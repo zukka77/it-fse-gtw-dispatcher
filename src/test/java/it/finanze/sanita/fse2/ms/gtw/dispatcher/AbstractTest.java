@@ -2,8 +2,11 @@ package it.finanze.sanita.fse2.ms.gtw.dispatcher;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
+
+import com.google.gson.Gson;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext;
@@ -16,8 +19,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.JWTHeaderDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.JWTPayloadDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.PublicationCreationReqDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.ValidationCDAReqDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.ErrorResponseDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.PublicationCreationResDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.ValidationCDAResDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ActivityEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.AttivitaClinicaEnum;
@@ -49,7 +57,7 @@ public abstract class AbstractTest {
 	}
 
 	public Map<String, ValidationResultEnum> callValidation(ActivityEnum activity, HealthDataFormatEnum type, InjectionModeEnum mode, byte[] fileByte,
-			boolean tokenPresent,ValidationCDAReqDTO reqDTO) {
+			boolean tokenPresent, ValidationCDAReqDTO reqDTO) {
 		Map<String, ValidationResultEnum> output = new HashMap<>();
 		LinkedMultiValueMap<String, Object> map = new LinkedMultiValueMap<>();
 
@@ -73,10 +81,12 @@ public abstract class AbstractTest {
 			headers.setContentType(MediaType.MULTIPART_FORM_DATA);
 
 			if(tokenPresent) {
-				headers.set("Authorization", "test");
+
+				log.info("Simulating a valid json payload");
+				headers.set(Constants.Headers.JWT_HEADER, generateJwt(StringUtility.encodeSHA256(fileByte)));
 			}
 
-			String urlValidation = "http://localhost:" + webServerAppCtxt.getWebServer().getPort() + webServerAppCtxt.getServletContext().getContextPath() + "/v1/validate-creation";
+			String urlValidation = "http://localhost:" + webServerAppCtxt.getWebServer().getPort() + webServerAppCtxt.getServletContext().getContextPath() + "/v1.0.0/validate-creation";
 
 			HttpEntity<LinkedMultiValueMap<String, Object>> requestEntity = new HttpEntity<>(map, headers);
 
@@ -87,7 +97,7 @@ public abstract class AbstractTest {
 				assertEquals(response.getStatusCode().value(), 201);
 			}
 
-			output.put(response.getBody().getTransactionId(), ValidationResultEnum.OK);
+			output.put(response.getBody().getWorkflowInstanceId(), ValidationResultEnum.OK);
 
 		} catch (Exception ex) {
 			String message = ex.getMessage();
@@ -108,9 +118,9 @@ public abstract class AbstractTest {
 				tipoDocumentoLivAlto(TipoDocAltoLivEnum.REFERTO).
 				mode(mode).healthDataFormat(type).
 				assettoOrganizzativo(PracticeSettingCodeEnum.AD_PSC001).
-				identificativoPaziente("VI").
+				identificativoPaziente(randomFiscalCode()).
 				tipoAttivitaClinica(AttivitaClinicaEnum.CONSULTO).
-				identificativoSottomissione("Identifiativo sottomissione").
+				identificativoSottomissione("Identificativo sottomissione").
 				build(); 
 		
 		return validationReq;
@@ -132,6 +142,68 @@ public abstract class AbstractTest {
 		
 		return validationReq;
 	}
+
+	protected String randomFiscalCode() {
+		// To generate a random fiscal code that passes CfUtility.isValid() requires too much effort.
+		return "RSSMRA22A01A399Z";
+	}
+
+	protected String generateJwt(final String documentHash) {
+		final JWTPayloadDTO jwtPayload = new JWTPayloadDTO("201123456", 1540890704, 1540918800, "1540918800", 
+			Constants.App.JWT_TOKEN_AUDIENCE, "RSSMRA22A01A399Z", "Regione Lazio", "201", 
+			"AAS", "RSSMRA22A01A399Z", true, "TREATMENT", null, "CREATE", documentHash);
+		
+		final JWTHeaderDTO jwtHeader = new JWTHeaderDTO("RS256", Constants.App.JWT_TOKEN_TYPE, null, "X5C cert base 64");
+
+		StringBuilder encodedJwtToken = new StringBuilder(Constants.App.BEARER_PREFIX) // Bearer prefix
+			.append(Base64.getEncoder().encodeToString(new Gson().toJson(jwtHeader).getBytes())) // Header
+			.append(".").append(Base64.getEncoder().encodeToString(new Gson().toJson(jwtPayload).getBytes())); // Payload
+		return encodedJwtToken.toString();
+	}
+
+	protected ResponseEntity<ValidationCDAResDTO> callPlainValidation(final String jwtToken, final byte[] file, final ValidationCDAReqDTO requestBody) {
+		String urlValidation = "http://localhost:" + webServerAppCtxt.getWebServer().getPort()
+				+ webServerAppCtxt.getServletContext().getContextPath() + "/v1.0.0/validate-creation";
+
+		HttpHeaders headers = new HttpHeaders();
+		headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+		headers.set(Constants.Headers.JWT_HEADER, jwtToken);
+
+		LinkedMultiValueMap<String, Object> map = new LinkedMultiValueMap<>();
+		ByteArrayResource fileAsResource = new ByteArrayResource(file){
+			@Override
+			public String getFilename(){
+				return "file";
+			}
+		};
+		map.add("file",fileAsResource);
+		map.add("requestBody", requestBody);
+		
+		return restTemplate.exchange(urlValidation, HttpMethod.POST, new HttpEntity<>(map, headers), ValidationCDAResDTO.class);
+	}
+
+	protected ResponseEntity<PublicationCreationResDTO> callPlainPublication(final String jwtToken, final byte[] fileByte, 
+		final PublicationCreationReqDTO requestBody) {
+		
+		String urlPublication = "http://localhost:" + webServerAppCtxt.getWebServer().getPort() + webServerAppCtxt.getServletContext().getContextPath() + "/v1.0.0/publish-creation";
+
+		LinkedMultiValueMap<String, Object> map = new LinkedMultiValueMap<>();
+		ByteArrayResource fileAsResource = new ByteArrayResource(fileByte){
+			@Override
+			public String getFilename(){
+				return "file";
+			}
+		};
+
+		map.add("file", fileAsResource);
+		map.add("requestBody", requestBody);
+
+		HttpHeaders headers = new HttpHeaders();
+		headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+		headers.set(Constants.Headers.JWT_HEADER, jwtToken);
+
+		HttpEntity<LinkedMultiValueMap<String, Object>> requestEntity = new HttpEntity<>(map, headers);
+		return restTemplate.exchange(urlPublication, HttpMethod.POST, requestEntity, PublicationCreationResDTO.class);
+	}
+	
 }
-
-

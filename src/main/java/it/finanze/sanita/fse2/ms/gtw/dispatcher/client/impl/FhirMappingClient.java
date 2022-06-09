@@ -43,7 +43,7 @@ public class FhirMappingClient implements IFhirMappingClient {
 
 		ResponseEntity<DocumentReferenceResDTO> response = null;
 		try {
-			response = restTemplate.exchange(msUrlCFG.getFhirMappingHost() + "/v1/document_reference", HttpMethod.POST, entity, DocumentReferenceResDTO.class);
+			response = restTemplate.exchange(msUrlCFG.getFhirMappingHost() + "/v1.0.0/document_reference", HttpMethod.POST, entity, DocumentReferenceResDTO.class);
 			if (response != null) {
 				out = response.getBody();
 				log.info("{} status returned from Fhir mapping Client", response.getStatusCode());

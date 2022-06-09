@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.FhirResourceDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.JWTTokenDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.BusinessException;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.repository.entity.IniEdsInvocationETY;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.repository.mongo.IIniEdsInvocationRepo;
@@ -28,11 +29,11 @@ public class IniEdsInvocationSRV implements IIniEdsInvocationSRV {
 	private IIniEdsInvocationRepo iniInvocationRepo;
 	
 	@Override
-	public Boolean insert(final String transactionId, final FhirResourceDTO fhirResourceDTO) {
+	public Boolean insert(final String workflowInstanceId, final FhirResourceDTO fhirResourceDTO, final JWTTokenDTO jwtToken) {
 		Boolean output = false;
 		try {
-			IniEdsInvocationETY etyToSave = buildETY(transactionId, fhirResourceDTO.getDocumentReferenceJson(),fhirResourceDTO.getSubmissionSetEntryJson(),
-					fhirResourceDTO.getDocumentEntryJson());
+			IniEdsInvocationETY etyToSave = buildETY(workflowInstanceId, fhirResourceDTO.getDocumentReferenceJson(),fhirResourceDTO.getSubmissionSetEntryJson(),
+					fhirResourceDTO.getDocumentEntryJson(), StringUtility.toJSON(jwtToken));
 			etyToSave = iniInvocationRepo.insert(etyToSave);
 			output = !StringUtility.isNullOrEmpty(etyToSave.getId());
 		} catch(Exception ex) {
@@ -42,18 +43,20 @@ public class IniEdsInvocationSRV implements IIniEdsInvocationSRV {
 		return output; 
 	}
 	
-	private IniEdsInvocationETY buildETY(final String transactionId, final String documentReference, final String submissionSetEntryJson,
-			final String documentEntryJson) {
+	private IniEdsInvocationETY buildETY(final String workflowInstanceId, final String documentReference, final String submissionSetEntryJson,
+			final String documentEntryJson, final String tokenEntryJson) {
 		IniEdsInvocationETY out = new IniEdsInvocationETY();
-		out.setTransactionId(transactionId);
+		out.setWorkflowInstanceId(workflowInstanceId);
 		out.setData(Document.parse(documentReference));
 		
 		List<Document> metadata = new ArrayList<>();
 		Document submissionSetEntryDoc = new Document("submissionSetEntry" ,Document.parse(submissionSetEntryJson));
 		Document documentEntryDoc = new Document("documentEntry" ,Document.parse(documentEntryJson));
+		Document tokenEntry = new Document("tokenEntry", Document.parse(tokenEntryJson));
 		
 		metadata.add(submissionSetEntryDoc);
 		metadata.add(documentEntryDoc);
+		metadata.add(tokenEntry);
 		
 		out.setMetadata(metadata);
 		return out;

@@ -57,7 +57,7 @@ public class ValidatorClient extends AbstractClient implements IValidatorClient 
         
         ResponseEntity<ValidationResDTO> response = null;
         try {
-        	response = restTemplate.exchange(msUrlCFG.getValidatorHost() + "/v1/validate", HttpMethod.POST, entity, ValidationResDTO.class);
+        	response = restTemplate.exchange(msUrlCFG.getValidatorHost() + "/v1.0.0/validate", HttpMethod.POST, entity, ValidationResDTO.class);
         	if (response != null) {
         		ValidationResDTO result = response.getBody();
         		log.info("{} status returned from Validator Client", response.getStatusCode());

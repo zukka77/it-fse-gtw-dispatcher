@@ -18,7 +18,4 @@ public class ValidationCFG {
     @Value("${validation.save-error-events-only}")
     private Boolean saveValidationErrorOnly;
 
-    @Value("${validation.transaction-id.generation-strategy}")
-    private Integer transactionIDStrategy;
-
 }

@@ -2,13 +2,18 @@ package it.finanze.sanita.fse2.ms.gtw.dispatcher.service.impl;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.AttivitaClinicaEnum;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.LowLevelDocEnum;
 import org.jsoup.Jsoup;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.impl.FhirMappingClient;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.DocumentEntryDTO;
@@ -17,6 +22,7 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.FhirResourceDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.SubmissionSetEntryDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.PublicationCreationReqDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.client.DocumentReferenceResDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventCodeEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.BusinessException;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.ConnectionRefusedException;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.IDocumentReferenceSRV;
@@ -37,7 +43,7 @@ public class DocumentReferenceSRV implements IDocumentReferenceSRV {
  
 	@Override
 	public FhirResourceDTO createFhirResources(final String cda, final PublicationCreationReqDTO requestBody, 
-			final Integer size, final byte[] hash) {
+			final Integer size, final String hash) {
 		FhirResourceDTO output = new FhirResourceDTO();
 		try {
 			org.jsoup.nodes.Document docCDA = Jsoup.parse(cda);
@@ -76,7 +82,7 @@ public class DocumentReferenceSRV implements IDocumentReferenceSRV {
 	}
 	
 	private DocumentReferenceResDTO createDocumentReference(final org.jsoup.nodes.Document docCDA, final PublicationCreationReqDTO requestBody, 
-			final Integer size, final byte[] hash) {
+			final Integer size, final String hash) {
 		DocumentReferenceResDTO out = null;
 		try {
 			DocumentReferenceDTO documentReferenceDTO = extractedInfoForDocumentReference(docCDA);
@@ -124,12 +130,21 @@ public class DocumentReferenceSRV implements IDocumentReferenceSRV {
 		sse = extractedInfoForSubmissionSetEntry(docCDA,identificativoSottomissione);
 		sse.setSubmissionTime(new Date());
 		sse.setContentTypeCode(contentTypeCode);
+		AttivitaClinicaEnum contentTypeCodeName = Arrays.stream(AttivitaClinicaEnum.values()).filter(attivitaClinicaEnum -> attivitaClinicaEnum.getCode().equals(contentTypeCode)).findFirst().orElse(null);
+		if (contentTypeCodeName != null) {
+			sse.setContentTypeCodeName(contentTypeCodeName.getDescription());
+		} else {
+			sse.setContentTypeCodeName(null);
+		}
 		return sse;
 	}
 	
 	private SubmissionSetEntryDTO extractedInfoForSubmissionSetEntry(final org.jsoup.nodes.Document docCDA, String identificativoSottomissione) {
 		SubmissionSetEntryDTO sse = new SubmissionSetEntryDTO();
-		sse.setSourceId(docCDA.select("ClinicalDocument > custodian > assignedCustodian > representedCustodianOrganization > id").first().attr("extension"));
+		///TODO: check
+		String sourceIdRoot = docCDA.select("ClinicalDocument > custodian > assignedCustodian > representedCustodianOrganization > id").first().attr("root");
+		String sourceIdExtension = docCDA.select("ClinicalDocument > custodian > assignedCustodian > representedCustodianOrganization > id").first().attr("extension");
+		sse.setSourceId(sourceIdRoot + "." + sourceIdExtension);
 		sse.setUniqueID(identificativoSottomissione);
 		return sse;
 	}
@@ -137,21 +152,37 @@ public class DocumentReferenceSRV implements IDocumentReferenceSRV {
 	
 	private DocumentEntryDTO extractedInfoForDocumentEntry(org.jsoup.nodes.Document docCDA) {
 		DocumentEntryDTO documentEntryDTO = new DocumentEntryDTO();
-		String patiendID = docCDA.select("ClinicalDocument > custodian > assignedCustodian > representedCustodianOrganization > id").first().attr("extension");
-		documentEntryDTO.setPatientId(patiendID);
+		String patientID = docCDA.select("ClinicalDocument > custodian > assignedCustodian > representedCustodianOrganization > id").first().attr("extension");
+		documentEntryDTO.setPatientId(patientID);
 		String confidentialityCode = docCDA.select("ClinicalDocument > confidentialityCode").first().attr("code");
+		String confidentialityCodeDisplayName = docCDA.select("ClinicalDocument > confidentialityCode").first().attr("displayName");
 		documentEntryDTO.setConfidentialityCode(confidentialityCode);
+		documentEntryDTO.setConfidentialityCodeDisplayName(confidentialityCodeDisplayName);
 		String typeCode = docCDA.select("ClinicalDocument > code").first().attr("code");
 		documentEntryDTO.setTypeCode(typeCode);
+		String typeCodeName = docCDA.select("ClinicalDocument > code").first().attr("displayName");
+		documentEntryDTO.setTypeCodeName(typeCodeName);
 		String formatCode = docCDA.select("ClinicalDocument > templateId").first().attr("root");
+		LowLevelDocEnum formatCodeEnum = Arrays.stream(LowLevelDocEnum.values()).filter(lowLevelDocEnum -> lowLevelDocEnum.getCode().equals(formatCode)).findFirst().orElse(null);
 		documentEntryDTO.setFormatCode(formatCode);
+		if (formatCodeEnum != null) {
+			documentEntryDTO.setFormatCodeName(formatCodeEnum.getDescription());
+		} else {
+			documentEntryDTO.setFormatCode(null);
+		}
 		String legalAuth = docCDA.select("ClinicalDocument > legalAuthenticator > assignedEntity > id").first().attr("extension");
 		documentEntryDTO.setLegalAuthenticator(legalAuth);
 		String sourcePatientInfo = docCDA.select("ClinicalDocument > recordTarget > patientRole").first().text();
 		documentEntryDTO.setSourcePatientInfo(sourcePatientInfo);
-		String author = docCDA.select("ClinicalDocument > author").first().text();
-		documentEntryDTO.setAuthor(author);
+		String authorPerson = docCDA.select("ClinicalDocument > author").first().attr("extension");
+		documentEntryDTO.setAuthor(authorPerson);
+		String representedOrganizationName = docCDA.select("ClinicalDocument > documentationOf > serviceEvent > performer > assignedEntity > representedOrganization > name").first().text();
+		String representedOrganizationCode = docCDA.select("ClinicalDocument > documentationOf > serviceEvent > performer > assignedEntity > representedOrganization > asOrganizationPartOf > id").first().attr("extension");
+		documentEntryDTO.setRepresentedOrganizationName(representedOrganizationName);
+		documentEntryDTO.setRepresentedOrganizationCode(representedOrganizationCode);
+
 		String uniqueId = docCDA.select("ClinicalDocument > id").first().attr("extension");
+		///TODO: check if clinicalDocument > id > root is the proper path
 		documentEntryDTO.setUniqueId(uniqueId);
 		String ref = docCDA.select("ClinicalDocument > inFulfillmentOf > order > id").first().attr("extension");
 		List<String> refID = new ArrayList<>();
@@ -161,7 +192,7 @@ public class DocumentReferenceSRV implements IDocumentReferenceSRV {
 	}
 	
 	private DocumentEntryDTO createDocumentEntry(final org.jsoup.nodes.Document docCDA ,
-			final PublicationCreationReqDTO requestBody,final Integer size, final byte[] hash) {
+			final PublicationCreationReqDTO requestBody,final Integer size, final String hash) {
 
 		DocumentEntryDTO de = null;
 		try {
@@ -174,17 +205,27 @@ public class DocumentReferenceSRV implements IDocumentReferenceSRV {
 			de.setHash(hash);
 			de.setStatus("approved");
 			de.setLanguageCode("it-IT");
-
 			de.setHealthcareFacilityTypeCode(requestBody.getTipologiaStruttura().getCode());
-			de.setEventCodeList(requestBody.getRegoleAccesso().stream().map(e->e.getCode()).collect(Collectors.toList()));
+			de.setHealthcareFacilityTypeCodeName(requestBody.getTipologiaStruttura().getCode());
+			if (!CollectionUtils.isEmpty(requestBody.getRegoleAccesso())) {
+				de.setEventCodeList(requestBody.getRegoleAccesso().stream().map(EventCodeEnum::getCode).collect(Collectors.toList()));
+			}
 			de.setRepositoryUniqueId(requestBody.getIdentificativoRep());
 			de.setClassCode(requestBody.getTipoDocumentoLivAlto().getCode());
-			de.setPracticeSettingCode(requestBody.getAssettoOrganizzativo().getDescription());
+			de.setClassCodeName(requestBody.getTipoDocumentoLivAlto().getDescription());
+			de.setPracticeSettingCode(requestBody.getAssettoOrganizzativo().name());
+			de.setPracticeSettingCodeName(requestBody.getAssettoOrganizzativo().getDescription());
 			de.setSourcePatientId(requestBody.getIdentificativoPaziente());
 
 			SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmmss");
-			de.setServiceStartTime(sdf.parse(requestBody.getDataInizioPrestazione()));
-			de.setServiceStopTime(sdf.parse(requestBody.getDataFinePrestazione()));
+
+			if (requestBody.getDataInizioPrestazione() != null) {
+				de.setServiceStartTime(sdf.parse(requestBody.getDataInizioPrestazione()));
+			}
+
+			if (requestBody.getDataFinePrestazione() != null) {
+				de.setServiceStopTime(sdf.parse(requestBody.getDataFinePrestazione()));
+			}
 		} catch(Exception ex) {
 			log.error("Error while create document entry : " , ex);
 			throw new BusinessException("Error while create document entry : " , ex);

@@ -12,6 +12,7 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 import brave.Tracer;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.ErrorResponseDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.LogTraceInfoDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.ValidationErrorResponseDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.PublicationResultEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ValidationResultEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.ConnectionRefusedException;
@@ -42,7 +43,7 @@ public class ControllerExceptionHandler extends ResponseEntityExceptionHandler {
 	 * @return			
 	 */
     @ExceptionHandler(value = {ValidationErrorException.class})
-    protected ResponseEntity<ErrorResponseDTO> handleValidationException(final ValidationErrorException ex, final WebRequest request) {
+    protected ResponseEntity<ValidationErrorResponseDTO> handleValidationException(final ValidationErrorException ex, final WebRequest request) {
     	log.info("HANDLER ValidationErrorException");
     	Integer status = 400;
     	if (ValidationResultEnum.SEMANTIC_ERROR.equals(ex.getResult())) {
@@ -52,7 +53,7 @@ public class ControllerExceptionHandler extends ResponseEntityExceptionHandler {
     	if (ValidationResultEnum.MANDATORY_ELEMENT_ERROR_TOKEN.equals(ex.getResult())) {
         	status = 401;
     	}
-    	ErrorResponseDTO out = new ErrorResponseDTO(getLogTraceInfo(), ex.getResult().getType(), ex.getResult().getTitle(), ex.getMessage(), status, ex.getResult().getType());
+    	ValidationErrorResponseDTO out = new ValidationErrorResponseDTO(getLogTraceInfo(), ex.getResult().getType(), ex.getResult().getTitle(), ex.getMessage(), status, ex.getResult().getType(), ex.getWorkflowInstanceId());
     	
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_PROBLEM_JSON);

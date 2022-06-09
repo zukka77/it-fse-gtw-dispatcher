@@ -8,6 +8,7 @@ import static org.mockito.BDDMockito.given;
 
 import java.io.File;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.Date;
 
 import org.junit.jupiter.api.Test;
@@ -21,6 +22,9 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.impl.FhirMappingClient;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.DocumentReferenceDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.FhirResourceDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.JWTHeaderDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.JWTPayloadDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.JWTTokenDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.PublicationCreationReqDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.client.DocumentReferenceResDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.AttivitaClinicaEnum;
@@ -38,7 +42,7 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ComponentScan(basePackages = {Constants.ComponentScan.BASE})
 @ActiveProfiles(Constants.Profile.TEST)
-public class DocumentReferenceTest {
+public class DocumentReferenceTest extends AbstractTest {
 
 	@Autowired
 	private IDocumentReferenceSRV documentReferenceSRV;
@@ -52,26 +56,35 @@ public class DocumentReferenceTest {
 	@Test
 	void createDocumentReference() {
 		
-		String transactionId = StringUtility.generateUUID();
+		String workflowInstanceId = StringUtility.generateUUID();
 		DocumentReferenceResDTO res = new DocumentReferenceResDTO();
 		res.setErrorMessage("");
 		res.setJson("{\"json\" : \"json\"}");
 		given(client.callCreateDocumentReference(any(DocumentReferenceDTO.class))).willReturn(res);
 		byte[] cdaFile = FileUtility.getFileFromInternalResources("Files" + File.separator + "Esempio CDA2_Referto Medicina di Laboratorio v6_OK.xml");
 		String cda = new String(cdaFile);
-		PublicationCreationReqDTO reqDTO = buildPublicationReqDTO(transactionId);
-		byte[] sha = StringUtility.encodeSHA256(cdaFile);
-		FhirResourceDTO resourceDTO = documentReferenceSRV.createFhirResources(cda, reqDTO, sha.length, sha);
+		PublicationCreationReqDTO reqDTO = buildPublicationReqDTO(workflowInstanceId);
+		String documentSha = StringUtility.encodeSHA256(cdaFile);
+		FhirResourceDTO resourceDTO = documentReferenceSRV.createFhirResources(cda, reqDTO, documentSha.length(), documentSha);
 		assertNotNull(resourceDTO.getDocumentEntryJson());
 		assertNotNull(resourceDTO.getDocumentReferenceJson());
 		assertNotNull(resourceDTO.getSubmissionSetEntryJson());
 		assertNull(resourceDTO.getErrorMessage());
 		
-		Boolean insert = iniEdsInvocationSRV.insert(transactionId, resourceDTO);
+		final String jwt = generateJwt(documentSha);
+		String[] chunks = jwt.substring(Constants.App.BEARER_PREFIX.length()).split("\\.");
+				
+		final String header = new String(Base64.getDecoder().decode(chunks[0]));
+		final String payload = new String(Base64.getDecoder().decode(chunks[1]));
+
+		// Building the object asserts that all required values are present
+		JWTTokenDTO jwtToken = new JWTTokenDTO(JWTHeaderDTO.extractHeader(header), JWTPayloadDTO.extractPayload(payload));
+
+		Boolean insert = iniEdsInvocationSRV.insert(workflowInstanceId, resourceDTO, jwtToken);
 		assertTrue(insert);
 	}
 	
-	private PublicationCreationReqDTO buildPublicationReqDTO(String transactionId) {
+	private PublicationCreationReqDTO buildPublicationReqDTO(String workflowInstanceId) {
 		PublicationCreationReqDTO output = PublicationCreationReqDTO.builder().
 				assettoOrganizzativo(PracticeSettingCodeEnum.AD_PSC001).
 				conservazioneSostitutiva("Conservazione").
@@ -88,7 +101,7 @@ public class DocumentReferenceTest {
 				tipoAttivitaClinica(AttivitaClinicaEnum.CONSULTO).
 				tipoDocumentoLivAlto(TipoDocAltoLivEnum.PRESCRIZIONE).
 				tipologiaStruttura(HealthcareFacilityEnum.OSPEDALE).
-				transactionID(transactionId).
+				workflowInstanceId(workflowInstanceId).
 				build();
 		return output;
 	}

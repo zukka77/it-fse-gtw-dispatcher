@@ -15,14 +15,20 @@ import lombok.Data;
 public class KafkaTopicCFG {
 
 	/**
-	 * Topic.
+	 * Topic status manager.
 	 */
-	@Value("${kafka.dispatcher-statusmanager.topic}")
-	private String dispatcherStatusManagerTopic;
+	@Value("${kafka.statusmanager.topic}")
+	private String statusManagerTopic;
 	
 	/**
 	 * Topic indexer.
 	 */
 	@Value("${kafka.dispatcher-indexer.topic}")
 	private String dispatcherIndexerTopic;
+
+	/**
+	 * Topic publisher.
+	 */
+	@Value("${kafka.dispatcher-publisher.topic}")
+	private String dispatcherPublisherTopic;
 }

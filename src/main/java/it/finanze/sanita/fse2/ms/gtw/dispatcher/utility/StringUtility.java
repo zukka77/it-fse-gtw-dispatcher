@@ -1,11 +1,16 @@
 package it.finanze.sanita.fse2.ms.gtw.dispatcher.utility;
 
 import java.net.InetAddress;
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.UUID;
 
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.google.gson.Gson;
 
 import org.apache.commons.codec.binary.Hex;
@@ -44,10 +49,10 @@ public final class StringUtility {
 	 * @param objectToEncode String to encode.
 	 * @return String Encoded.
 	 */
-	public static byte[] encodeSHA256(byte[] objectToEncode) {
+	public static String encodeSHA256(byte[] objectToEncode) {
 		try {
 		    final MessageDigest digest = MessageDigest.getInstance("SHA-256");
-		    return digest.digest(objectToEncode);
+		    return Hex.encodeHexString(digest.digest(objectToEncode));
 		} catch (Exception e) {
 			log.error("Errore in fase di calcolo sha", e);
 			throw new BusinessException("Errore in fase di calcolo SHA-256", e);
@@ -69,6 +74,10 @@ public final class StringUtility {
 			log.error("Errore in fase di calcolo sha", e);
 			throw new BusinessException("Errore in fase di calcolo SHA-256", e);
 		}
+	}
+
+	public static String decodeFromBase64(String encodedString) {
+		return new String(Base64.getDecoder().decode(encodedString), StandardCharsets.UTF_8);
 	}
 	
 	/**
@@ -169,5 +178,25 @@ public final class StringUtility {
 	public static String toJSON(final Object obj) {
 		return new Gson().toJson(obj);
 	}
-
+	
+	/**
+	 * Transformation from Object to Json.
+	 * 
+	 * @param obj	object to transform
+	 * @return		json
+	 */
+	public static String toJSONJackson(final Object obj) {
+		String out = "";
+		try {
+			ObjectMapper objectMapper = new ObjectMapper(); 
+			objectMapper.registerModule(new JavaTimeModule());
+			objectMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
+			objectMapper.setSerializationInclusion(Include.NON_NULL);
+			out = objectMapper.writeValueAsString(obj);
+		} catch(Exception ex) {
+			log.error("Error while running to json jackson");
+			throw new BusinessException(ex);
+		}
+		return out; 
+	}
 }

@@ -1,5 +1,7 @@
 package it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response;
 
+import javax.validation.constraints.Size;
+
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.AbstractDTO;
 import lombok.Getter;
 import lombok.Setter;
@@ -8,7 +10,7 @@ import lombok.Setter;
  * 
  * @author CPIERASC
  *
- *	Base response.
+ *         Base response.
  */
 @Getter
 @Setter
@@ -22,13 +24,15 @@ public class ResponseDTO extends AbstractDTO {
 	/**
 	 * Trace id log.
 	 */
+	@Size(min = 0, max = 100)
 	private String traceID;
-	
+
 	/**
 	 * Span id log.
 	 */
+	@Size(min = 0, max = 100)
 	private String spanID;
-	
+
 	/**
 	 * Instantiates a new response DTO.
 	 */
@@ -42,7 +46,7 @@ public class ResponseDTO extends AbstractDTO {
 	 */
 	public ResponseDTO(final LogTraceInfoDTO traceInfo) {
 		traceID = traceInfo.getTraceID();
-		spanID = traceInfo.getSpanID(); 
+		spanID = traceInfo.getSpanID();
 	}
-	
+
 }

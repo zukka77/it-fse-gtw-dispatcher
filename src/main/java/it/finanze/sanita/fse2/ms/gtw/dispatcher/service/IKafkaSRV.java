@@ -4,11 +4,17 @@ import java.io.Serializable;
 
 import org.apache.kafka.clients.producer.RecordMetadata;
 
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.JWTPayloadDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.HistoricalPublicationCreationReqDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.HistoricalValidationCDAReqDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.PublicationCreationReqDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.TSPublicationCreationReqDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.ValidationCDAReqDTO;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.PublicationResultEnum;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ValidationResultEnum;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventStatusEnum;
 
+/**
+ * Interface for service used to handle kafka communications
+ */
 public interface IKafkaSRV extends Serializable {
 
 	/**
@@ -20,24 +26,27 @@ public interface IKafkaSRV extends Serializable {
 	 * @return
 	 */
 	RecordMetadata sendMessage(String topic, String key, String value, boolean trans);
+ 
+	/**
+	 * Send message to indexer microservice over kafka topic
+	 * @param workflowInstanceId
+	 */
+	void notifyIndexer(String workflowInstanceId);
 
 	/**
-	 * Send validation event message to be sent over kafka
-	 * @param validationReq
-	 * @param validationResult
-	 * @param isHistoricalDoc
+	 * Send message to publisher microservice over kafka topic
+	 * @param workflowInstanceId
 	 */
-	void notifyValidationEvent(ValidationCDAReqDTO json, ValidationResultEnum validationResult, boolean isHistoricalDoc, boolean isTSFeeding, String transactionID); 
+	void notifyPublisher(String workflowInstanceId);
 	
-	/**
-	 * Send validation event message to be sent over kafka
-	 * @param publicationReq
-	 * @param publicationResult
-	 * @param isHistoricalDoc
-	 * @param isTSFeeding
-	 */
-	void notifyPublicationEvent(PublicationCreationReqDTO publicationReq, PublicationResultEnum publicationResult, boolean isHistoricalDoc, boolean isTSFeeding);
-	
-	void notifyAfterSaveMapping(String transactionId);
-	
+	void sendValidationStatus(String workflowInstanceId, EventStatusEnum eventStatus, String message, ValidationCDAReqDTO validationReq, JWTPayloadDTO jwtClaimDTO);
+
+	void sendPublicationStatus(EventStatusEnum eventStatus, String message, PublicationCreationReqDTO publicationReq, JWTPayloadDTO jwtClaimDTO);
+
+	void sendFeedingStatus(String workflowInstanceId, EventStatusEnum eventStatus, String message, TSPublicationCreationReqDTO publicationReq, JWTPayloadDTO jwtClaimDTO);
+
+	void sendHistoricalValidationStatus(String workflowInstanceId, EventStatusEnum eventStatus, String message, HistoricalValidationCDAReqDTO historicalValidationReq, JWTPayloadDTO jwtClaimDTO);
+
+	void sendHistoricalPublicationStatus(EventStatusEnum eventStatus, String message, HistoricalPublicationCreationReqDTO historicalPublicationReq, JWTPayloadDTO jwtClaimDTO);
+
 }

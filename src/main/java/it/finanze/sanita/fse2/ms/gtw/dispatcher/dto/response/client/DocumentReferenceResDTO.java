@@ -1,6 +1,7 @@
 package it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.client;
 
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.AbstractDTO;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -12,6 +13,7 @@ import lombok.NoArgsConstructor;
  */
 @Data
 @NoArgsConstructor
+@AllArgsConstructor
 public class DocumentReferenceResDTO extends AbstractDTO {
 
 	/**

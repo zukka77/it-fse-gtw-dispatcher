@@ -49,9 +49,22 @@ public final class Constants {
 		}
 
 	}
+	
+	public static final class Headers {
+		
+		/**
+		 * JWT header field.
+		 */
+		public static final String JWT_HEADER = "Authorization";
+
+		private Headers() {
+			//This method is intentionally left blank.
+		}
+
+	}
  
 	public static final class Profile {
-		public static final String TEST = "TEST";
+		public static final String TEST = "test";
 
 		/** 
 		 * Constructor.
@@ -60,6 +73,19 @@ public final class Constants {
 			//This method is intentionally left blank.
 		}
 
+	}
+
+	public static final class App {
+		
+		public static final String JWT_TOKEN_AUDIENCE = "fse-gateway";
+
+		public static final String JWT_TOKEN_TYPE = "JWT";
+
+		public static final String BEARER_PREFIX = "Bearer ";
+
+		private App() {
+			//This method is intentionally left blank.
+		}
 	}
   
 	/**

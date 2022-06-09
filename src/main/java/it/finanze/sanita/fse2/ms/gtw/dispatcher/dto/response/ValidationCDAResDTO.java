@@ -1,5 +1,7 @@
 package it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response;
 
+import javax.validation.constraints.Size;
+
 import lombok.Getter;
 import lombok.Setter;
 
@@ -18,15 +20,16 @@ public class ValidationCDAResDTO extends ResponseDTO {
 	 */
 	private static final long serialVersionUID = -2144353497297675698L;
 	
-	private String transactionId;
+	@Size(min = 0, max = 100)
+	private String workflowInstanceId;
 
 	public ValidationCDAResDTO() {
 		super();
 	}
 
-	public ValidationCDAResDTO(final LogTraceInfoDTO traceInfo, final String inTransactionId) {
+	public ValidationCDAResDTO(final LogTraceInfoDTO traceInfo, final String inWorkflowInstanceId) {
 		super(traceInfo);
-		transactionId = inTransactionId;
+		workflowInstanceId = inWorkflowInstanceId;
 	}
 	
 }

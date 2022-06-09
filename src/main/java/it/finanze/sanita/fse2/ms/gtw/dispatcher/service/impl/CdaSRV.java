@@ -57,5 +57,15 @@ public class CdaSRV implements ICdaSRV {
 			throw new BusinessException(String.format("Error while retrieving item with transaction ID: %s from Redis.", txID), e);
 		}
 	}
+	
+	@Override
+	public boolean consumeHash(final String hashToConsume) {
+		try {
+			return cdaRepo.delete(hashToConsume);
+		} catch (Exception e) {
+			log.error("Error while consume hash :" , e);
+			throw new BusinessException("Error while consume hash :" , e);
+		}
+	}
 
 }

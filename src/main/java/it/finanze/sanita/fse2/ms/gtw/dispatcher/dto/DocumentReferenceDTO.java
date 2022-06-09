@@ -17,7 +17,7 @@ public class DocumentReferenceDTO {
 	
 	private Integer size;
 	
-	private byte[] hash;
+	private String hash;
 
 	private String formatCode;
 	

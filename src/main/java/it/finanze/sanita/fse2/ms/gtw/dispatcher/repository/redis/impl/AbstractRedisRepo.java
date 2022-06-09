@@ -37,5 +37,9 @@ public abstract class AbstractRedisRepo {
 	protected String get(String key) { 
 		return redisTemplate.opsForValue().get(key);
 	}
+	
+	protected Boolean delete(String key) {
+		return redisTemplate.delete(key);
+	}
 
 }

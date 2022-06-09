@@ -12,6 +12,7 @@ public class SubmissionSetEntryDTO {
 	private Date submissionTime;
 	private String sourceId;
 	private String contentTypeCode;
+	private String contentTypeCodeName;
 	private String uniqueID;
 	
 }

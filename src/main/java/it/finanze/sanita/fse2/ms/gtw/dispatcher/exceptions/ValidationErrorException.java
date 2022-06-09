@@ -4,6 +4,7 @@
 package it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions;
 
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ValidationResultEnum;
+import lombok.Getter;
 
 /**
  * @author CPIERASC
@@ -18,15 +19,16 @@ public class ValidationErrorException extends RuntimeException {
 	 */
 	private static final long serialVersionUID = 1L;
 	
+	@Getter
 	private final ValidationResultEnum result;
 
-	public ValidationErrorException(final ValidationResultEnum inResult, final String msg) {
-		super(msg);
-		result = inResult;
-	}
+	@Getter
+	private final String workflowInstanceId;
 
-	public ValidationResultEnum getResult() {
-		return result;
+	public ValidationErrorException(final ValidationResultEnum inResult, final String msg, final String inWorkflowInstanceId) {
+		super(msg);
+		workflowInstanceId = inWorkflowInstanceId;
+		result = inResult;
 	}
 
 }

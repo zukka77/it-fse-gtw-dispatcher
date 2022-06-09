@@ -4,55 +4,96 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.springdoc.core.customizers.OpenApiCustomiser;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.enums.SecuritySchemeType;
-import io.swagger.v3.oas.annotations.extensions.Extension;
-import io.swagger.v3.oas.annotations.extensions.ExtensionProperty;
-import io.swagger.v3.oas.annotations.info.Contact;
-import io.swagger.v3.oas.annotations.info.Info;
 import io.swagger.v3.oas.annotations.security.SecurityScheme;
-import io.swagger.v3.oas.annotations.servers.Server;
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.info.Contact;
 import io.swagger.v3.oas.models.media.Content;
 import io.swagger.v3.oas.models.media.MediaType;
 import io.swagger.v3.oas.models.media.Schema;
 import io.swagger.v3.oas.models.responses.ApiResponse;
 import io.swagger.v3.oas.models.responses.ApiResponses;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
+import io.swagger.v3.oas.models.servers.Server;
 
 @Configuration
-@OpenAPIDefinition(
-	info = @Info(
-			extensions = {
-				@Extension(properties = {
-					@ExtensionProperty(name = "x-api-id", value = "1"),
-					@ExtensionProperty(name = "x-summary", value = "Handles and enroutes all the CDA validations and/or publications")
-				})
-			},
-			title = "Gateway Dispatcher", 
-			version = "1.0.0", 
-			description = "Handles and enroutes all the CDA validations and/or publications",
-			termsOfService = "${docs.info.termsOfService}", 
-			contact = @Contact(name = "${docs.info.contact.name}", url = "${docs.info.contact.url}", email = "${docs.info.contact.mail}")),
-	servers = {
-		@Server(
-			description = "Gateway Dispatcher Development URL",
-			url = "http://localhost:8010",
-			extensions = {
-				@Extension(properties = {
-					@ExtensionProperty(name = "x-sandbox", parseValue = true, value = "true")
-				})
-			}
-		)
-	})
-@SecurityScheme(name = "bearerAuth", type = SecuritySchemeType.HTTP, bearerFormat = "JWT", scheme = "bearer")
+@SecurityScheme(
+	name = "bearerAuth", 
+	type = SecuritySchemeType.HTTP, 
+	bearerFormat = "JWT", 
+	scheme = "bearer", 
+	description = "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token} [RFC8725](https://tools.ietf.org/html/RFC8725).\"")
 public class OpenApiCFG {
 
+	@Autowired
+	private CustomSwaggerCFG customOpenapi;
+
 	public OpenApiCFG() {
+		// Empty constructor.
+	}
+	
+	@Bean
+	public OpenApiCustomiser openApiCustomiser() {
+
+		final List<String> required = new ArrayList<>();
+		required.add("file");
+		required.add("requestBody");
+
+		final OpenApiCustomiser customOpenApi = new OpenApiCustomiser() {
+
+			@Override
+			public void customise(final OpenAPI openApi) {
+
+				// Populating info section.
+				openApi.getInfo().setTitle(customOpenapi.getTitle());
+				openApi.getInfo().setVersion(customOpenapi.getVersion());
+				openApi.getInfo().setDescription(customOpenapi.getDescription());
+				openApi.getInfo().setTermsOfService(customOpenapi.getTermsOfService());
+				
+				// Adding contact to info section
+				final Contact contact = new Contact();
+				contact.setName(customOpenapi.getContactName());
+				contact.setUrl(customOpenapi.getContactUrl());
+				contact.setEmail(customOpenapi.getContactMail());
+				openApi.getInfo().setContact(contact);
+				
+				// Adding extensions
+				openApi.getInfo().addExtension("x-api-id", customOpenapi.getApiId());
+				openApi.getInfo().addExtension("x-summary", customOpenapi.getApiSummary());
+				
+				// Adding servers
+				final List<Server> servers = new ArrayList<>();
+				final Server devServer = new Server();
+				devServer.setDescription("Gateway Dispatcher Development URL");
+				devServer.setUrl("http://localhost:" + customOpenapi.getPort());
+				devServer.addExtension("x-sandbox", true);
+				
+				servers.add(devServer);
+				openApi.setServers(servers);
+
+				openApi.getComponents().getSchemas().values().forEach(schema -> {
+					schema.setAdditionalProperties(false);
+				});
+
+				openApi.getPaths().values().stream().filter(item -> item.getPost() != null).forEach(item -> {
+
+					final Schema<MediaType> schema = item.getPost().getRequestBody().getContent()
+						.get(org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE).getSchema();
+
+					schema.additionalProperties(false);
+					schema.getProperties().get("file").setMaxLength(customOpenapi.getFileMaxLength());
+					schema.required(required);
+
+				});
+			}
+		};
+
+		return customOpenApi;
 	}
 
 	@Bean
@@ -63,33 +104,23 @@ public class OpenApiCFG {
 						new Components().addSecuritySchemes(securitySchemeName,
 								new io.swagger.v3.oas.models.security.SecurityScheme()
 										.name(securitySchemeName)
+										.description("JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token} [RFC8725](https://tools.ietf.org/html/RFC8725).\"")
 										.scheme("bearer")
 										.bearerFormat("JWT")));
-	}
-
-	@Bean
-	public OpenApiCustomiser openApiCustomiser() {
-
-		List<String> required = new ArrayList<>();
-		required.add("file");
-		required.add("requestBody");
-
-		return openApi -> openApi.getPaths().values().stream().filter(s -> s.getPost() != null).forEach(s -> s.getPost().getRequestBody().getContent()
-			.get("multipart/form-data").getSchema().additionalProperties(Boolean.FALSE).required(required));
 	}
 
 	@Bean
 	public OpenApiCustomiser customerGlobalHeaderOpenApiCustomiser() {
 		return openApi -> {
 			openApi.getPaths().values().forEach(pathItem -> pathItem.readOperations().forEach(operation -> {
-				ApiResponses apiResponses = operation.getResponses();
+				final ApiResponses apiResponses = operation.getResponses();
 
-				Schema<Object> errorResponseSchema = new Schema<>();
+				final Schema<Object> errorResponseSchema = new Schema<>();
 				errorResponseSchema.setName("Error");
 				errorResponseSchema.set$ref("#/components/schemas/ErrorResponseDTO");
-				MediaType media = new MediaType();
+				final MediaType media = new MediaType();
 				media.schema(errorResponseSchema);
-				ApiResponse apiResponse = new ApiResponse().description("default")
+				final ApiResponse apiResponse = new ApiResponse().description("default")
 						.content(new Content()
 								.addMediaType(org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE,
 										media));
