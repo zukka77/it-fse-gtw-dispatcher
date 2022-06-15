@@ -22,8 +22,7 @@ public enum PublicationResultEnum {
 	FORMAT_ELEMENT_ERROR("/msg/invalid-format", "Formato campo non valido.", ErrorLogEnum.KO_INVALID_DATA),
 	MANDATORY_ELEMENT_ERROR_TOKEN("/msg/mandatory-element", "Token JWT non valido.", ErrorLogEnum.KO_INVALID_DATA),
 	INVALID_TOKEN_FIELD("msg/jwt-validation", "Campo token JWT non valido", ErrorLogEnum.KO_INVALID_DATA),
-	FHIR_MAPPING_ERROR("/msg/fhir-mapping-type", "Mapping fhir fallito.", ErrorLogEnum.KO_PUB),
-	WORKFLOW_ID_ERROR("/msg/workflow-id-error-extraction", "Errore in fase di estrazione del workflow id.", ErrorLogEnum.KO_INVALID_DATA);
+	FHIR_MAPPING_ERROR("/msg/fhir-mapping-type", "Mapping fhir fallito.", ErrorLogEnum.KO_PUB);
 
 	private String type;
 	private String title;
@@ -33,17 +32,6 @@ public enum PublicationResultEnum {
 		type = inType;
 		title = inTitle;
 		errorCategory = inErrorCategory;
-	}
-
-	public static PublicationResultEnum get(String inType) {
-		PublicationResultEnum out = null;
-		for (PublicationResultEnum v:PublicationResultEnum.values()) {
-			if (v.getType().equalsIgnoreCase(inType)) {
-				out = v;
-				break;
-			}
-		}
-		return out;
 	}
 
 }

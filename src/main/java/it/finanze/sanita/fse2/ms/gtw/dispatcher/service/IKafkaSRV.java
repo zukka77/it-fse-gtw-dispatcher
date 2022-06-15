@@ -29,23 +29,23 @@ public interface IKafkaSRV extends Serializable {
  
 	/**
 	 * Send message to indexer microservice over kafka topic
-	 * @param workflowInstanceId
+	 * @param transactionId
 	 */
-	void notifyIndexer(String workflowInstanceId);
+	void notifyIndexer(String transactionId);
 
 	/**
 	 * Send message to publisher microservice over kafka topic
-	 * @param workflowInstanceId
+	 * @param transactionId
 	 */
-	void notifyPublisher(String workflowInstanceId);
+	void notifyPublisher(String transactionId);
 	
-	void sendValidationStatus(String workflowInstanceId, EventStatusEnum eventStatus, String message, ValidationCDAReqDTO validationReq, JWTPayloadDTO jwtClaimDTO);
+	void sendValidationStatus(String transactionId, EventStatusEnum eventStatus, String message, ValidationCDAReqDTO validationReq, JWTPayloadDTO jwtClaimDTO);
 
 	void sendPublicationStatus(EventStatusEnum eventStatus, String message, PublicationCreationReqDTO publicationReq, JWTPayloadDTO jwtClaimDTO);
 
-	void sendFeedingStatus(String workflowInstanceId, EventStatusEnum eventStatus, String message, TSPublicationCreationReqDTO publicationReq, JWTPayloadDTO jwtClaimDTO);
+	void sendFeedingStatus(String transactionId, EventStatusEnum eventStatus, String message, TSPublicationCreationReqDTO publicationReq, JWTPayloadDTO jwtClaimDTO);
 
-	void sendHistoricalValidationStatus(String workflowInstanceId, EventStatusEnum eventStatus, String message, HistoricalValidationCDAReqDTO historicalValidationReq, JWTPayloadDTO jwtClaimDTO);
+	void sendHistoricalValidationStatus(String transactionId, EventStatusEnum eventStatus, String message, HistoricalValidationCDAReqDTO historicalValidationReq, JWTPayloadDTO jwtClaimDTO);
 
 	void sendHistoricalPublicationStatus(EventStatusEnum eventStatus, String message, HistoricalPublicationCreationReqDTO historicalPublicationReq, JWTPayloadDTO jwtClaimDTO);
 

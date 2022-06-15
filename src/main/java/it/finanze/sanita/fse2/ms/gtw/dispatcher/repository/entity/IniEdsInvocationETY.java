@@ -21,8 +21,8 @@ public class IniEdsInvocationETY {
 	@Id
 	private String id;
 	
-	@Field(name = "workflow_instance_id")
-	private String workflowInstanceId;
+	@Field(name = "transaction_id")
+	private String transactionId;
 	
 	@Field(name = "data")
 	private org.bson.Document data;

@@ -6,12 +6,12 @@ import java.text.SimpleDateFormat;
 import java.util.Base64;
 import java.util.Map;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.multipart.MultipartFile;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import brave.Tracer;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.IValidatorClient;
@@ -34,6 +34,7 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ActivityEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.InjectionModeEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.PublicationResultEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.RawValidationEnum;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.UIDModeEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.BusinessException;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.ConnectionRefusedException;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.facade.ICdaFacadeSRV;
@@ -120,7 +121,11 @@ public abstract class AbstractCTL implements Serializable {
                 log.error("Errore gestione json", ex);
             }
         }
-	
+
+		// If the request does not contain a transaction Id, it can be forced for pablish, a new transaction Id must be generate
+		if (out != null && Boolean.TRUE.equals(out.isForcePublish())) {
+			out.setTransactionID(StringUtility.generateTransactionUID(UIDModeEnum.get(validationCFG.getTransactionIDStrategy())));
+		}
         return out;
     }
 
@@ -174,7 +179,7 @@ public abstract class AbstractCTL implements Serializable {
 
 	protected PublicationCreationReqDTO constructPublicationDTO(HistoricalPublicationCreationReqDTO historicalDTO) {
 		return PublicationCreationReqDTO.builder()
-		.workflowInstanceId(historicalDTO.getWorkflowInstanceId())
+		.transactionID(historicalDTO.getTransactionID())
 		.healthDataFormat(historicalDTO.getHealthDataFormat())
         .mode(historicalDTO.getMode())
         .tipologiaStruttura(historicalDTO.getTipologiaStruttura())
@@ -253,7 +258,7 @@ public abstract class AbstractCTL implements Serializable {
 
     protected String checkPublicationMandatoryElements(PublicationCreationReqDTO jsonObj) {
     	String out = null;
-    	if (Boolean.FALSE.equals(jsonObj.isForcePublish()) && StringUtility.isNullOrEmpty(jsonObj.getWorkflowInstanceId())) {
+    	if (Boolean.FALSE.equals(jsonObj.isForcePublish()) && StringUtility.isNullOrEmpty(jsonObj.getTransactionID())) {
     		out = "Il campo txID deve essere valorizzato.";
     	} else if (StringUtility.isNullOrEmpty(jsonObj.getIdentificativoDoc())) {
     		out = "Il campo identificativo documento deve essere valorizzato.";
@@ -323,7 +328,7 @@ public abstract class AbstractCTL implements Serializable {
     		out = "Il campo tipo documento liv alto deve essere valorizzato.";
     	} else if (jsonObj.getAssettoOrganizzativo()==null) {
     		out = "Il campo assetto organizzativo deve essere valorizzato.";
-    	} else if (!CfUtility.isValidCf(jsonObj.getIdentificativoPaziente())) {
+    	} else if (StringUtility.isNullOrEmpty(jsonObj.getIdentificativoPaziente())) {
     		out = "Il campo identificativo paziente deve essere valorizzato.";
     	} else if (jsonObj.getTipoAttivitaClinica()==null) {
     		out = "Il campo tipo attivita clinica deve essere valorizzato.";
@@ -335,7 +340,7 @@ public abstract class AbstractCTL implements Serializable {
 
 	protected String checkHistoricalPublicationMandatoryElements(HistoricalPublicationCreationReqDTO jsonObj) {
     	String out = null;
-    	if (StringUtility.isNullOrEmpty(jsonObj.getWorkflowInstanceId())) {
+    	if (StringUtility.isNullOrEmpty(jsonObj.getTransactionID())) {
     		out = "Il campo txID deve essere valorizzato.";
     	} else if (StringUtility.isNullOrEmpty(jsonObj.getIdentificativoDoc())) {
     		out = "Il campo identificativo documento deve essere valorizzato.";
@@ -390,7 +395,7 @@ public abstract class AbstractCTL implements Serializable {
 		return out;
 	}
 
-	protected ValidationInfoDTO validate(String cda, ActivityEnum activity, String workflowInstanceId) {
+	protected ValidationInfoDTO validate(String cda, ActivityEnum activity, String transactionID) {
 		ValidationInfoDTO rawValidationRes = null;
 		try {
 			rawValidationRes = validatorClient.validate(cda);
@@ -399,7 +404,7 @@ public abstract class AbstractCTL implements Serializable {
 				if (RawValidationEnum.OK.equals(rawValidation)) {
 					if (ActivityEnum.PRE_PUBLISHING.equals(activity) || ActivityEnum.HISTORICAL_DOC_PRE_PUBLISHING.equals(activity)) {
 						String hashedCDA = StringUtility.encodeSHA256B64(cda);
-						cdaFacadeSRV.create(workflowInstanceId, hashedCDA);
+						cdaFacadeSRV.create(transactionID, hashedCDA);
 					}
 				}  
 			}
@@ -430,7 +435,7 @@ public abstract class AbstractCTL implements Serializable {
 
     protected PublicationOutputDTO validateDocumentHash(final String encodedPDF, final JWTTokenDTO jwtToken) {
 
-		if (!encodedPDF.equals(jwtToken.getPayload().getAttachment_hash())) {
+		if (!encodedPDF.equals(jwtToken.getPayload().getHash())) {
 			return PublicationOutputDTO.builder().msg(PublicationResultEnum.DOCUMENT_HASH_VALIDATION_ERROR.getTitle())
 					.result(PublicationResultEnum.DOCUMENT_HASH_VALIDATION_ERROR).build();
 		} else {
@@ -438,11 +443,11 @@ public abstract class AbstractCTL implements Serializable {
 		}
 	}
 
-    protected PublicationOutputDTO validateCDAHash(String cda , String workflowInstanceId) {
+    protected PublicationOutputDTO validateCDAHash(String cda , String transactionID) {
 		PublicationOutputDTO out = null; 
         if (!StringUtility.isNullOrEmpty(cda)){
             final String hashedCDA = StringUtility.encodeSHA256B64(cda);
-            final boolean matchingHash = cdaFacadeSRV.validateHash(hashedCDA, workflowInstanceId);
+            final boolean matchingHash = cdaFacadeSRV.validateHash(hashedCDA, transactionID);
             if (!matchingHash) {
             	out = PublicationOutputDTO.builder().msg("Il CDA non risulta validato").result(PublicationResultEnum.CDA_MATCH_ERROR).build();
             }

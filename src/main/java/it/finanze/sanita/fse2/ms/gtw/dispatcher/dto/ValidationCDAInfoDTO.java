@@ -17,8 +17,8 @@ public class ValidationCDAInfoDTO extends AbstractDTO {
 	 */
 	private static final long serialVersionUID = -5488396011147827913L;
 
-	@Schema(description = "Identificativo del workflow")
-    private String workflowInstanceId;
+	@Schema(description = "Identificativo della transazione")
+    private String transactionID;
 
     @Schema(description = "Attività del gateway")
     private ActivityEnum activity;

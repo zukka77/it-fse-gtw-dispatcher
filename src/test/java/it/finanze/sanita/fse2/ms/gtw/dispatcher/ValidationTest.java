@@ -3,8 +3,6 @@ package it.finanze.sanita.fse2.ms.gtw.dispatcher;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
 import java.math.BigDecimal;
@@ -15,20 +13,15 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.Map;
 
-import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.ComponentScan;
-import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.web.client.HttpClientErrorException;
 
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.ValidationCDAReqDTO;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.ValidationCDAResDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ActivityEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.AttivitaClinicaEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.HealthDataFormatEnum;
@@ -38,7 +31,6 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.TipoDocAltoLivEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ValidationResultEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.ICdaSRV;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.FileUtility;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -263,56 +255,4 @@ public class ValidationTest extends AbstractTest {
 		}.start();
 
 	}
-
-	@Test
-	void validationErrorTest() {
-
-		final byte[] file = FileUtility.getFileFromInternalResources("Files" + File.separator + "attachment" + File.separator + "CDA_OK_SIGNED.pdf");
-
-		final String jwtToken = generateJwt(StringUtility.encodeSHA256(file));
-		ValidationCDAReqDTO requestBody = new ValidationCDAReqDTO();
-		Exception thrownException = assertThrows(HttpClientErrorException.BadRequest.class, () -> callPlainValidation(jwtToken, file, requestBody));
-		assertTrue(thrownException.getMessage().contains(ValidationResultEnum.MANDATORY_ELEMENT_ERROR.getType()));
-	
-		requestBody.setActivity(ActivityEnum.PRE_PUBLISHING);
-		thrownException = assertThrows(HttpClientErrorException.BadRequest.class, () -> callPlainValidation(jwtToken, file, requestBody));
-		assertTrue(thrownException.getMessage().contains(ValidationResultEnum.MANDATORY_ELEMENT_ERROR.getType()));
-
-		requestBody.setTipoDocumentoLivAlto(TipoDocAltoLivEnum.PRESCRIZIONE);
-		thrownException = assertThrows(HttpClientErrorException.BadRequest.class, () -> callPlainValidation(jwtToken, file, requestBody));
-		assertTrue(thrownException.getMessage().contains(ValidationResultEnum.MANDATORY_ELEMENT_ERROR.getType()));
-
-		requestBody.setTipoAttivitaClinica(AttivitaClinicaEnum.CONSULTO);
-		thrownException = assertThrows(HttpClientErrorException.BadRequest.class, () -> callPlainValidation(jwtToken, file, requestBody));
-		assertTrue(thrownException.getMessage().contains(ValidationResultEnum.MANDATORY_ELEMENT_ERROR.getType()));
-
-		requestBody.setIdentificativoSottomissione("identificativoSottomissione");
-		thrownException = assertThrows(HttpClientErrorException.BadRequest.class, () -> callPlainValidation(jwtToken, file, requestBody));
-		assertTrue(thrownException.getMessage().contains(ValidationResultEnum.MANDATORY_ELEMENT_ERROR.getType()));
-		
-		requestBody.setAssettoOrganizzativo(PracticeSettingCodeEnum.AD_PSC001);
-		thrownException = assertThrows(HttpClientErrorException.BadRequest.class, () -> callPlainValidation(jwtToken, file, requestBody));
-		assertTrue(thrownException.getMessage().contains(ValidationResultEnum.MANDATORY_ELEMENT_ERROR.getType()));
-		
-		requestBody.setIdentificativoPaziente("INVALID FISCAL CODE");
-		thrownException = assertThrows(HttpClientErrorException.BadRequest.class, () -> callPlainValidation(jwtToken, file, requestBody));
-		assertTrue(thrownException.getMessage().contains(ValidationResultEnum.MANDATORY_ELEMENT_ERROR.getType()));
-		
-		requestBody.setIdentificativoPaziente(randomFiscalCode());
-		final ResponseEntity<ValidationCDAResDTO> validationResponse = callPlainValidation(jwtToken, file, requestBody);
-		assertEquals(HttpStatus.SC_CREATED, validationResponse.getStatusCode().value());
-		assertNotNull(validationResponse.getBody());
-		assertNotNull(validationResponse.getBody().getWorkflowInstanceId());
-
-		requestBody.setActivity(ActivityEnum.VALIDATION);
-		final ResponseEntity<ValidationCDAResDTO> validationResponse200 = callPlainValidation(jwtToken, file, requestBody);
-		assertNotNull(validationResponse200.getBody());
-		assertNotNull(validationResponse200.getBody().getWorkflowInstanceId());
-
-		thrownException = assertThrows(HttpClientErrorException.Unauthorized.class, () -> callPlainValidation(null, file, requestBody));
-		
-		thrownException = assertThrows(HttpClientErrorException.BadRequest.class, () -> callPlainValidation(jwtToken, new byte[0], requestBody));
-		assertTrue(thrownException.getMessage().contains(ValidationResultEnum.EMPTY_FILE_ERROR.getType()));
-	}
-
 }

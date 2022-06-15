@@ -19,15 +19,15 @@ public class HistoricalValidationCDAResDTO extends ResponseDTO {
 	private static final long serialVersionUID = -2144377497297675698L;
 	
 	@Size(min = 0, max = 100)
-	private String workflowInstanceId;
+	private String transactionId;
 
 	public HistoricalValidationCDAResDTO() {
 		super();
 	}
 
-	public HistoricalValidationCDAResDTO(final LogTraceInfoDTO traceInfo, final String inWorkflowInstanceId) {
+	public HistoricalValidationCDAResDTO(final LogTraceInfoDTO traceInfo, final String inTransactionId) {
 		super(traceInfo);
-		workflowInstanceId = inWorkflowInstanceId;
+		transactionId = inTransactionId;
 	}
 	
 }

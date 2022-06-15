@@ -53,7 +53,7 @@ public class ControllerExceptionHandler extends ResponseEntityExceptionHandler {
     	if (ValidationResultEnum.MANDATORY_ELEMENT_ERROR_TOKEN.equals(ex.getResult())) {
         	status = 401;
     	}
-    	ValidationErrorResponseDTO out = new ValidationErrorResponseDTO(getLogTraceInfo(), ex.getResult().getType(), ex.getResult().getTitle(), ex.getMessage(), status, ex.getResult().getType(), ex.getWorkflowInstanceId());
+    	ValidationErrorResponseDTO out = new ValidationErrorResponseDTO(getLogTraceInfo(), ex.getResult().getType(), ex.getResult().getTitle(), ex.getMessage(), status, ex.getResult().getType(), ex.getTransactionId());
     	
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_PROBLEM_JSON);

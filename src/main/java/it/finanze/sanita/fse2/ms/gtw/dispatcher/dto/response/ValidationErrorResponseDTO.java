@@ -16,18 +16,13 @@ import lombok.Data;
 @Data
 public class ValidationErrorResponseDTO extends ErrorResponseDTO {
 
-	/**
-	 * Serial version uid.
-	 */
-	private static final long serialVersionUID = -6684870619268235535L;
-	
-	@Schema(description = "Identificativo del workflow")
+	@Schema(description = "Identificativo della transazione in errore")
 	@Size(min = 0, max = 100)
-	private String workflowInstanceId;
+	private String transactionId;
 	
-	public ValidationErrorResponseDTO(final LogTraceInfoDTO traceInfo, final String inType, final String inTitle, final String inDetail, final Integer inStatus, final String inInstance, final String inWorkflowInstanceId) {
+	public ValidationErrorResponseDTO(final LogTraceInfoDTO traceInfo, final String inType, final String inTitle, final String inDetail, final Integer inStatus, final String inInstance, final String inTransactionId) {
 		super(traceInfo, inType, inTitle, inDetail, inStatus, inInstance);
-		workflowInstanceId = inWorkflowInstanceId;
+		transactionId = inTransactionId;
 	}
 
 }

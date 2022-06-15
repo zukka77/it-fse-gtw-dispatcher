@@ -94,7 +94,7 @@ public class HistoricalDocTest extends AbstractTest {
 		ref.setJson("{\"json\" : \"json\"}");
 		given(fhirMappingClient.callCreateDocumentReference(any(DocumentReferenceDTO.class))).willReturn(ref);
         
-        HistoricalPublicationCreationReqDTO requestBody = createPublicationRB(validationResult.getWorkflowInstanceId(), false);
+        HistoricalPublicationCreationReqDTO requestBody = createPublicationRB(validationResult.getTransactionId(), false);
         HistoricalPublicationCreationResDTO publicationResult = callHistoricalPublication(pdfAttachment, requestBody);
         assertNotNull(publicationResult.getTraceID());
 
@@ -192,10 +192,10 @@ public class HistoricalDocTest extends AbstractTest {
 
     }
 
-    private HistoricalPublicationCreationReqDTO createPublicationRB(final String workflowInstanceId, final boolean forcePublish) {
+    private HistoricalPublicationCreationReqDTO createPublicationRB(final String transactionID, final boolean forcePublish) {
 
         return HistoricalPublicationCreationReqDTO.builder()
-        .workflowInstanceId(workflowInstanceId)
+        .transactionID(transactionID)
         .healthDataFormat(HealthDataFormatEnum.CDA)
         .mode(InjectionModeEnum.ATTACHMENT)
         .tipologiaStruttura(HealthcareFacilityEnum.OSPEDALE)

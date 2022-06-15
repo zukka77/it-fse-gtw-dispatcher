@@ -105,7 +105,7 @@ public class JWTPayloadDTO {
 	 */
 	private String action_id;
 
-	private String attachment_hash;
+	private String hash;
 
 	/**
 	 * Map the object from JSON to object.

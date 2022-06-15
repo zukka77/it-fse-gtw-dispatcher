@@ -62,7 +62,7 @@ public class UtilityTest {
     @ParameterizedTest
     @DisplayName("Transaction UID generation test")
     @ValueSource(ints = { 1, 2, 3, 4})
-    void workflowInstanceIdTest(final int idMode) {
+    void transactionIdTest(final int idMode) {
 
         String uidGenerated = StringUtility.generateTransactionUID(UIDModeEnum.get(idMode));
         assertFalse(StringUtility.isNullOrEmpty(uidGenerated));

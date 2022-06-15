@@ -33,7 +33,5 @@ public interface ICdaFacadeSRV extends Serializable {
 	 * @return {@code true} if hash is present and matches {@code hashToValidate}, {@code false} otherwise.
 	 */
 	boolean validateHash(String hashToValidate, String txID);
-	
-	boolean consumeHash(String hashToConsume);
 
 }

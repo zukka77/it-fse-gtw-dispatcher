@@ -21,15 +21,15 @@ public class ValidationCDAResDTO extends ResponseDTO {
 	private static final long serialVersionUID = -2144353497297675698L;
 	
 	@Size(min = 0, max = 100)
-	private String workflowInstanceId;
+	private String transactionId;
 
 	public ValidationCDAResDTO() {
 		super();
 	}
 
-	public ValidationCDAResDTO(final LogTraceInfoDTO traceInfo, final String inWorkflowInstanceId) {
+	public ValidationCDAResDTO(final LogTraceInfoDTO traceInfo, final String inTransactionId) {
 		super(traceInfo);
-		workflowInstanceId = inWorkflowInstanceId;
+		transactionId = inTransactionId;
 	}
 	
 }

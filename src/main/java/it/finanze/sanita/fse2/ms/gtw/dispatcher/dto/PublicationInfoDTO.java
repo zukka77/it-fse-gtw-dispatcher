@@ -16,8 +16,8 @@ public class PublicationInfoDTO extends AbstractDTO {
 	 */
 	private static final long serialVersionUID = -5485396011097827913L;
 
-	@Schema(description = "Identificativo del workflow")
-    private String workflowInstanceId;
+	@Schema(description = "Identificativo della transazione")
+    private String transactionID;
 
     @Schema(description = "Identificativo documento")
     private String identificativoDoc;

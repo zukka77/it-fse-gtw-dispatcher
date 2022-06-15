@@ -33,9 +33,4 @@ public class CdaRepo extends AbstractRedisRepo implements ICdaRepo {
 		return get(txID);
 	}
 	
-	@Override
-	public Boolean delete(final String txID) {
-		return super.delete(txID);
-	}
-	
 }

@@ -29,10 +29,10 @@ public class IniEdsInvocationSRV implements IIniEdsInvocationSRV {
 	private IIniEdsInvocationRepo iniInvocationRepo;
 	
 	@Override
-	public Boolean insert(final String workflowInstanceId, final FhirResourceDTO fhirResourceDTO, final JWTTokenDTO jwtToken) {
+	public Boolean insert(final String transactionId, final FhirResourceDTO fhirResourceDTO, final JWTTokenDTO jwtToken) {
 		Boolean output = false;
 		try {
-			IniEdsInvocationETY etyToSave = buildETY(workflowInstanceId, fhirResourceDTO.getDocumentReferenceJson(),fhirResourceDTO.getSubmissionSetEntryJson(),
+			IniEdsInvocationETY etyToSave = buildETY(transactionId, fhirResourceDTO.getDocumentReferenceJson(),fhirResourceDTO.getSubmissionSetEntryJson(),
 					fhirResourceDTO.getDocumentEntryJson(), StringUtility.toJSON(jwtToken));
 			etyToSave = iniInvocationRepo.insert(etyToSave);
 			output = !StringUtility.isNullOrEmpty(etyToSave.getId());
@@ -43,10 +43,10 @@ public class IniEdsInvocationSRV implements IIniEdsInvocationSRV {
 		return output; 
 	}
 	
-	private IniEdsInvocationETY buildETY(final String workflowInstanceId, final String documentReference, final String submissionSetEntryJson,
+	private IniEdsInvocationETY buildETY(final String transactionId, final String documentReference, final String submissionSetEntryJson,
 			final String documentEntryJson, final String tokenEntryJson) {
 		IniEdsInvocationETY out = new IniEdsInvocationETY();
-		out.setWorkflowInstanceId(workflowInstanceId);
+		out.setTransactionId(transactionId);
 		out.setData(Document.parse(documentReference));
 		
 		List<Document> metadata = new ArrayList<>();

@@ -67,7 +67,7 @@ public class ValidationCDAReqDTO extends AbstractDTO {
     @Size(min = 0, max = 100)
     private String identificativoRep;
     
-    @Schema(description = "Tipo documento alto livello", required = true)
+    @Schema(description = "Tipo documento alto livello",required = true)
     private TipoDocAltoLivEnum tipoDocumentoLivAlto;
     
     @Schema(description = "Assetto organizzativo che ha portato alla creazione del documento",required = true)

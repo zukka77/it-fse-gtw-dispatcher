@@ -22,10 +22,8 @@ import org.springframework.web.client.RestTemplate;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.JWTHeaderDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.JWTPayloadDTO;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.PublicationCreationReqDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.ValidationCDAReqDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.ErrorResponseDTO;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.PublicationCreationResDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.ValidationCDAResDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ActivityEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.AttivitaClinicaEnum;
@@ -97,7 +95,7 @@ public abstract class AbstractTest {
 				assertEquals(response.getStatusCode().value(), 201);
 			}
 
-			output.put(response.getBody().getWorkflowInstanceId(), ValidationResultEnum.OK);
+			output.put(response.getBody().getTransactionId(), ValidationResultEnum.OK);
 
 		} catch (Exception ex) {
 			String message = ex.getMessage();
@@ -161,49 +159,4 @@ public abstract class AbstractTest {
 		return encodedJwtToken.toString();
 	}
 
-	protected ResponseEntity<ValidationCDAResDTO> callPlainValidation(final String jwtToken, final byte[] file, final ValidationCDAReqDTO requestBody) {
-		String urlValidation = "http://localhost:" + webServerAppCtxt.getWebServer().getPort()
-				+ webServerAppCtxt.getServletContext().getContextPath() + "/v1.0.0/validate-creation";
-
-		HttpHeaders headers = new HttpHeaders();
-		headers.setContentType(MediaType.MULTIPART_FORM_DATA);
-		headers.set(Constants.Headers.JWT_HEADER, jwtToken);
-
-		LinkedMultiValueMap<String, Object> map = new LinkedMultiValueMap<>();
-		ByteArrayResource fileAsResource = new ByteArrayResource(file){
-			@Override
-			public String getFilename(){
-				return "file";
-			}
-		};
-		map.add("file",fileAsResource);
-		map.add("requestBody", requestBody);
-		
-		return restTemplate.exchange(urlValidation, HttpMethod.POST, new HttpEntity<>(map, headers), ValidationCDAResDTO.class);
-	}
-
-	protected ResponseEntity<PublicationCreationResDTO> callPlainPublication(final String jwtToken, final byte[] fileByte, 
-		final PublicationCreationReqDTO requestBody) {
-		
-		String urlPublication = "http://localhost:" + webServerAppCtxt.getWebServer().getPort() + webServerAppCtxt.getServletContext().getContextPath() + "/v1.0.0/publish-creation";
-
-		LinkedMultiValueMap<String, Object> map = new LinkedMultiValueMap<>();
-		ByteArrayResource fileAsResource = new ByteArrayResource(fileByte){
-			@Override
-			public String getFilename(){
-				return "file";
-			}
-		};
-
-		map.add("file", fileAsResource);
-		map.add("requestBody", requestBody);
-
-		HttpHeaders headers = new HttpHeaders();
-		headers.setContentType(MediaType.MULTIPART_FORM_DATA);
-		headers.set(Constants.Headers.JWT_HEADER, jwtToken);
-
-		HttpEntity<LinkedMultiValueMap<String, Object>> requestEntity = new HttpEntity<>(map, headers);
-		return restTemplate.exchange(urlPublication, HttpMethod.POST, requestEntity, PublicationCreationResDTO.class);
-	}
-	
 }

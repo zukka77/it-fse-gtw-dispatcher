@@ -88,7 +88,7 @@
 		<dependency>
             <groupId>org.codehaus.janino</groupId>
             <artifactId>janino</artifactId>
-            <version>3.1.7</version>
+            <version>3.0.6</version>
         </dependency>
 		
 		<!-- LOGSTASH LOGBACK ENCODER -->

@@ -56,14 +56,14 @@ public class DocumentReferenceTest extends AbstractTest {
 	@Test
 	void createDocumentReference() {
 		
-		String workflowInstanceId = StringUtility.generateUUID();
+		String transactionId = StringUtility.generateUUID();
 		DocumentReferenceResDTO res = new DocumentReferenceResDTO();
 		res.setErrorMessage("");
 		res.setJson("{\"json\" : \"json\"}");
 		given(client.callCreateDocumentReference(any(DocumentReferenceDTO.class))).willReturn(res);
 		byte[] cdaFile = FileUtility.getFileFromInternalResources("Files" + File.separator + "Esempio CDA2_Referto Medicina di Laboratorio v6_OK.xml");
 		String cda = new String(cdaFile);
-		PublicationCreationReqDTO reqDTO = buildPublicationReqDTO(workflowInstanceId);
+		PublicationCreationReqDTO reqDTO = buildPublicationReqDTO(transactionId);
 		String documentSha = StringUtility.encodeSHA256(cdaFile);
 		FhirResourceDTO resourceDTO = documentReferenceSRV.createFhirResources(cda, reqDTO, documentSha.length(), documentSha);
 		assertNotNull(resourceDTO.getDocumentEntryJson());
@@ -80,11 +80,11 @@ public class DocumentReferenceTest extends AbstractTest {
 		// Building the object asserts that all required values are present
 		JWTTokenDTO jwtToken = new JWTTokenDTO(JWTHeaderDTO.extractHeader(header), JWTPayloadDTO.extractPayload(payload));
 
-		Boolean insert = iniEdsInvocationSRV.insert(workflowInstanceId, resourceDTO, jwtToken);
+		Boolean insert = iniEdsInvocationSRV.insert(transactionId, resourceDTO, jwtToken);
 		assertTrue(insert);
 	}
 	
-	private PublicationCreationReqDTO buildPublicationReqDTO(String workflowInstanceId) {
+	private PublicationCreationReqDTO buildPublicationReqDTO(String transactionId) {
 		PublicationCreationReqDTO output = PublicationCreationReqDTO.builder().
 				assettoOrganizzativo(PracticeSettingCodeEnum.AD_PSC001).
 				conservazioneSostitutiva("Conservazione").
@@ -101,7 +101,7 @@ public class DocumentReferenceTest extends AbstractTest {
 				tipoAttivitaClinica(AttivitaClinicaEnum.CONSULTO).
 				tipoDocumentoLivAlto(TipoDocAltoLivEnum.PRESCRIZIONE).
 				tipologiaStruttura(HealthcareFacilityEnum.OSPEDALE).
-				workflowInstanceId(workflowInstanceId).
+				transactionID(transactionId).
 				build();
 		return output;
 	}
