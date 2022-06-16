@@ -97,9 +97,8 @@ public class ValidationCTL extends AbstractCTL implements IValidationCTL {
 					result = ValidationResultEnum.INVALID_TOKEN_FIELD;
 				}
 			}
-			if (!StringUtility.isNullOrEmpty(msgResult)) {
-				result = ValidationResultEnum.MANDATORY_ELEMENT_ERROR_TOKEN;
-			} else {
+			
+			if (StringUtility.isNullOrEmpty(msgResult)) { 
 				msgResult = checkValidationMandatoryElements(jsonObj);
 				if (!StringUtility.isNullOrEmpty(msgResult)) {
 					result = ValidationResultEnum.MANDATORY_ELEMENT_ERROR;

@@ -29,13 +29,13 @@ public class JWTPayloadDTO {
 	 * Numero intero (timestamp in secondi) che indica il momento in cui il token è
 	 * stato generato, serve per conoscere l’età di un token.
 	 */
-	private int iat;
+	private long iat;
 
 	/**
 	 * Numero intero (timestamp in secondi) che indica fino a quando il token sarà
 	 * valido.
 	 */
-	private int exp;
+	private long exp;
 
 	/**
 	 * Identificativo univoco del token, serve per prevenire la generazione
