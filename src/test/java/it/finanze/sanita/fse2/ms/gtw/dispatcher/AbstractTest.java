@@ -91,11 +91,11 @@ public abstract class AbstractTest {
 			ResponseEntity<ValidationCDAResDTO> response = restTemplate.exchange(urlValidation, HttpMethod.POST, requestEntity, ValidationCDAResDTO.class);
 			if(ActivityEnum.VALIDATION.equals(activity)) {
 				assertEquals(response.getStatusCode().value(), 200);
-			} else if(ActivityEnum.PRE_PUBLISHING.equals(activity)) {
+			} else if(ActivityEnum.VALIDATION.equals(activity)) {
 				assertEquals(response.getStatusCode().value(), 201);
 			}
 
-			output.put(response.getBody().getTransactionId(), ValidationResultEnum.OK);
+			output.put(response.getBody().getWorkflowInstanceId(), ValidationResultEnum.OK);
 
 		} catch (Exception ex) {
 			String message = ex.getMessage();

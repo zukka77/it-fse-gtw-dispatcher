@@ -2,8 +2,8 @@ package it.finanze.sanita.fse2.ms.gtw.dispatcher.enums;
 
 public enum ActivityEnum {
 
-	VALIDATION("V"), 
-	PRE_PUBLISHING("P"),
+	VERIFICA("V"), 
+	VALIDATION("P"),
 	HISTORICAL_DOC_VALIDATION("HP"),
 	HISTORICAL_DOC_PRE_PUBLISHING("HP"),
 	TS_PRE_PUBLISHING("TSP");

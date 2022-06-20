@@ -101,7 +101,7 @@ public class DocumentReferenceTest extends AbstractTest {
 				tipoAttivitaClinica(AttivitaClinicaEnum.CONSULTO).
 				tipoDocumentoLivAlto(TipoDocAltoLivEnum.PRESCRIZIONE).
 				tipologiaStruttura(HealthcareFacilityEnum.OSPEDALE).
-				transactionID(transactionId).
+				workflowInstanceId(transactionId).
 				build();
 		return output;
 	}

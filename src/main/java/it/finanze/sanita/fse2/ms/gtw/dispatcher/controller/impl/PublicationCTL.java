@@ -105,7 +105,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 							if (!StringUtility.isNullOrEmpty(validateJWT(jwtToken, cda))) {
 								out = PublicationOutputDTO.builder().msg(PublicationResultEnum.MANDATORY_ELEMENT_ERROR_TOKEN.getTitle()).result(PublicationResultEnum.MANDATORY_ELEMENT_ERROR_TOKEN).build();
 							} else if(!jsonObj.isForcePublish()) {
-								out = validateCDAHash(cda,jsonObj.getTransactionID());
+								out = validateCDAHash(cda,jsonObj.getWorkflowInstanceId());
 							}
 						}
 					}
@@ -119,7 +119,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 				}
 
 				if(out == null) {
-					String transactionID = jsonObj.getTransactionID();
+					String workflowInstanceId = jsonObj.getWorkflowInstanceId();
 					Integer size = bytePDF!=null ? bytePDF.length : 0;
 					if(size==0) {
 						out = PublicationOutputDTO.builder().msg("Attenzione . Il file risulta essere vuoto").result(PublicationResultEnum.DOCUMENT_SIZE_ERROR).build();
@@ -133,9 +133,9 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 						}
 
 						if(out == null) {
-							Boolean isInserted = iniInvocationSRV.insert(transactionID, fhirResourcesDTO, jwtToken);
+							Boolean isInserted = iniInvocationSRV.insert(workflowInstanceId, fhirResourcesDTO, jwtToken);
 							if(Boolean.TRUE.equals(isInserted)) {
-								kafkaSRV.notifyIndexer(transactionID);
+								kafkaSRV.notifyIndexer(workflowInstanceId);
 							} else {
 								log.warn("Attention, insertion of transaction id and document reference not done on mongo");
 							}
@@ -153,12 +153,12 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 		}
 
 		if (out!=null) {
-			String txId = jsonObj != null ? jsonObj.getTransactionID() : "UNKNOW TX ID";
+			String txId = jsonObj != null ? jsonObj.getWorkflowInstanceId() : "UNKNOW TX ID";
 			elasticLogger.error(out.getMsg() + " " + txId, OperationLogEnum.PUB_CDA2, ResultLogEnum.KO, startDateOperation, out.getResult().getErrorCategory());
 			throw new ValidationPublicationErrorException(out.getResult(), out.getMsg());
 		}
 
-		elasticLogger.info(String.format("Publication CDA completed for transactionID %s", jsonObj != null ? jsonObj.getTransactionID() : "UNKNOW TX ID"), OperationLogEnum.PUB_CDA2, ResultLogEnum.OK, startDateOperation);
+		elasticLogger.info(String.format("Publication CDA completed for transactionID %s", jsonObj != null ? jsonObj.getWorkflowInstanceId() : "UNKNOW TX ID"), OperationLogEnum.PUB_CDA2, ResultLogEnum.OK, startDateOperation);
 		return new PublicationCreationResDTO(getLogTraceInfo());
 	}
 }

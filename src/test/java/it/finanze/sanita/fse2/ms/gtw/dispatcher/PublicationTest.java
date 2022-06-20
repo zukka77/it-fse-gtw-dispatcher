@@ -116,7 +116,7 @@ class PublicationTest extends AbstractTest {
 		ValidationInfoDTO info = new ValidationInfoDTO(RawValidationEnum.OK, new ArrayList<>());
 		given(validatorClient.validate(anyString())).willReturn(info);
 
-		Map<String,ValidationResultEnum> res = callValidation(ActivityEnum.PRE_PUBLISHING, HealthDataFormatEnum.CDA, InjectionModeEnum.ATTACHMENT, pdfAttachment, true);
+		Map<String,ValidationResultEnum> res = callValidation(ActivityEnum.VALIDATION, HealthDataFormatEnum.CDA, InjectionModeEnum.ATTACHMENT, pdfAttachment, true);
 		Optional<String> firstKey = res.keySet().stream().findFirst();
 
 		String transactionId = "";
@@ -211,7 +211,7 @@ class PublicationTest extends AbstractTest {
 				tipoAttivitaClinica(AttivitaClinicaEnum.CONSULTO).
 				tipoDocumentoLivAlto(TipoDocAltoLivEnum.DOCUMENTO_WORKFLOW).
 				tipologiaStruttura(HealthcareFacilityEnum.OSPEDALE).
-				transactionID(transactionId).
+				workflowInstanceId(transactionId).
 				build();
 		return output;
 	}

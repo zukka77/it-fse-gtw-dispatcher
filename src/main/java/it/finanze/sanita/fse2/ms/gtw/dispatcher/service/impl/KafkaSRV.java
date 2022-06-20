@@ -138,7 +138,7 @@ public class KafkaSRV implements IKafkaSRV {
 		final PublicationCreationReqDTO publicationReq, final JWTPayloadDTO jwtClaimDTO) {
 		
 		if (publicationReq != null) {
-			sendStatusMessage(publicationReq.getTransactionID(), EventTypeEnum.PUBLICATION, eventStatus, message, publicationReq.getIdentificativoDoc(), 
+			sendStatusMessage(publicationReq.getWorkflowInstanceId(), EventTypeEnum.PUBLICATION, eventStatus, message, publicationReq.getIdentificativoDoc(), 
 				 jwtClaimDTO,publicationReq.getTipoAttivitaClinica());
 		}
 	}

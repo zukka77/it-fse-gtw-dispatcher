@@ -124,7 +124,7 @@ public abstract class AbstractCTL implements Serializable {
 
 		// If the request does not contain a transaction Id, it can be forced for pablish, a new transaction Id must be generate
 		if (out != null && Boolean.TRUE.equals(out.isForcePublish())) {
-			out.setTransactionID(StringUtility.generateTransactionUID(UIDModeEnum.get(validationCFG.getTransactionIDStrategy())));
+			out.setWorkflowInstanceId(StringUtility.generateTransactionUID(UIDModeEnum.get(validationCFG.getTransactionIDStrategy())));
 		}
         return out;
     }
@@ -158,7 +158,7 @@ public abstract class AbstractCTL implements Serializable {
 
 	protected PublicationCreationReqDTO constructPublicationDTO(HistoricalPublicationCreationReqDTO historicalDTO) {
 		return PublicationCreationReqDTO.builder()
-		.transactionID(historicalDTO.getTransactionID())
+		.workflowInstanceId(historicalDTO.getTransactionID())
 		.healthDataFormat(historicalDTO.getHealthDataFormat())
         .mode(historicalDTO.getMode())
         .tipologiaStruttura(historicalDTO.getTipologiaStruttura())
@@ -227,7 +227,7 @@ public abstract class AbstractCTL implements Serializable {
 
     protected String checkPublicationMandatoryElements(PublicationCreationReqDTO jsonObj) {
     	String out = null;
-    	if (Boolean.FALSE.equals(jsonObj.isForcePublish()) && StringUtility.isNullOrEmpty(jsonObj.getTransactionID())) {
+    	if (Boolean.FALSE.equals(jsonObj.isForcePublish()) && StringUtility.isNullOrEmpty(jsonObj.getWorkflowInstanceId())) {
     		out = "Il campo txID deve essere valorizzato.";
     	} else if (StringUtility.isNullOrEmpty(jsonObj.getIdentificativoDoc())) {
     		out = "Il campo identificativo documento deve essere valorizzato.";
@@ -371,7 +371,7 @@ public abstract class AbstractCTL implements Serializable {
 			if(rawValidationRes!=null && !ActivityEnum.TS_PRE_PUBLISHING.equals(activity)) {
 				RawValidationEnum rawValidation = rawValidationRes.getResult();
 				if (RawValidationEnum.OK.equals(rawValidation)) {
-					if (ActivityEnum.PRE_PUBLISHING.equals(activity) || ActivityEnum.HISTORICAL_DOC_PRE_PUBLISHING.equals(activity)) {
+					if (ActivityEnum.VALIDATION.equals(activity) || ActivityEnum.HISTORICAL_DOC_PRE_PUBLISHING.equals(activity)) {
 						String hashedCDA = StringUtility.encodeSHA256B64(cda);
 						cdaFacadeSRV.create(transactionID, hashedCDA);
 					}

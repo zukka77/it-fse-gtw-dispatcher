@@ -122,25 +122,25 @@ public class ValidationTest extends AbstractTest {
     	byte[] pdfAttachment = FileUtility.getFileFromInternalResources("Files/attachment/pdf_msg_SATLED_LED_Lettera_di_Dimissione.pdf");
     	byte[] pdfResource = FileUtility.getFileFromInternalResources("Files/resource/cert1.pdf");
     	
-    	Map<String, ValidationResultEnum> result = callValidation(ActivityEnum.PRE_PUBLISHING, HealthDataFormatEnum.CDA, InjectionModeEnum.ATTACHMENT, pdfResource,true);
+    	Map<String, ValidationResultEnum> result = callValidation(ActivityEnum.VALIDATION, HealthDataFormatEnum.CDA, InjectionModeEnum.ATTACHMENT, pdfResource,true);
     	assertEquals(ValidationResultEnum.MINING_CDA_ERROR, result.values().iterator().next());
     	
-    	result = callValidation(ActivityEnum.PRE_PUBLISHING, HealthDataFormatEnum.CDA, InjectionModeEnum.RESOURCE, pdfAttachment,true);
+    	result = callValidation(ActivityEnum.VALIDATION, HealthDataFormatEnum.CDA, InjectionModeEnum.RESOURCE, pdfAttachment,true);
     	assertEquals(ValidationResultEnum.MINING_CDA_ERROR, result.values().iterator().next());
     	
-    	result = callValidation(ActivityEnum.PRE_PUBLISHING, HealthDataFormatEnum.CDA, InjectionModeEnum.ATTACHMENT, pdfAttachment,true);
+    	result = callValidation(ActivityEnum.VALIDATION, HealthDataFormatEnum.CDA, InjectionModeEnum.ATTACHMENT, pdfAttachment,true);
     	assertEquals(ValidationResultEnum.OK, result.values().iterator().next());
     	assertNotNull(cdaSRV.get(result.keySet().iterator().next()), "La transazione non deve essere presente.");
     	
-    	result = callValidation(ActivityEnum.PRE_PUBLISHING, HealthDataFormatEnum.CDA, InjectionModeEnum.RESOURCE, pdfResource,true);
+    	result = callValidation(ActivityEnum.VALIDATION, HealthDataFormatEnum.CDA, InjectionModeEnum.RESOURCE, pdfResource,true);
     	assertEquals(ValidationResultEnum.OK, result.values().iterator().next());
     	assertNotNull(cdaSRV.get(result.keySet().iterator().next()), "La transazione non deve essere presente.");
 
-    	result = callValidation(ActivityEnum.PRE_PUBLISHING, HealthDataFormatEnum.CDA, null, pdfAttachment,true);
+    	result = callValidation(ActivityEnum.VALIDATION, HealthDataFormatEnum.CDA, null, pdfAttachment,true);
     	assertEquals(ValidationResultEnum.OK, result.values().iterator().next());
     	assertNotNull(cdaSRV.get(result.keySet().iterator().next()), "La transazione non deve essere presente.");
 
-    	result = callValidation(ActivityEnum.PRE_PUBLISHING, HealthDataFormatEnum.CDA, null, pdfResource,true);
+    	result = callValidation(ActivityEnum.VALIDATION, HealthDataFormatEnum.CDA, null, pdfResource,true);
     	assertEquals(ValidationResultEnum.OK, result.values().iterator().next());
     	assertNotNull(cdaSRV.get(result.keySet().iterator().next()), "La transazione non deve essere presente.");
     	 

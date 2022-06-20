@@ -37,9 +37,9 @@ public class PublicationCreationReqDTO extends AbstractDTO {
 	 */
 	private static final long serialVersionUID = -5437339267676346343L;
 
-	@Schema(description = "Identificativo della transazione", required = true)
+	@Schema(description = "Identificativo del workflow instance id", required = true)
 	@Size(min = 1, max = 100)
-	private String transactionID;
+	private String workflowInstanceId;
 
 	@Schema(description = "Formato dei dati sanitari")
 	private HealthDataFormatEnum healthDataFormat;

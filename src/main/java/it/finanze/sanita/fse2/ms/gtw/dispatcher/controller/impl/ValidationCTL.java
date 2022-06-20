@@ -9,6 +9,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
 
 import org.apache.commons.lang3.StringUtils;
+import org.jsoup.Jsoup;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -31,11 +32,13 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.RawValidationEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ResultLogEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.UIDModeEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ValidationResultEnum;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.BusinessException;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.ValidationErrorException;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.logging.ElasticLoggerHelper;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.IKafkaSRV;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.PDFUtility;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * 
@@ -44,6 +47,7 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility;
  *	Validation controller.
  */
 @RestController
+@Slf4j
 public class ValidationCTL extends AbstractCTL implements IValidationCTL {
 	
 	/**
@@ -63,8 +67,7 @@ public class ValidationCTL extends AbstractCTL implements IValidationCTL {
 	@Override
 	public ResponseEntity<ValidationCDAResDTO> validationCDA(ValidationCDAReqDTO requestBody, MultipartFile file, HttpServletRequest request) {
 
-		final String transactionId = StringUtility.generateTransactionUID(UIDModeEnum.get(validationCFG.getTransactionIDStrategy()));
-
+		String workflowInstanceId = "";
 		Date startDateOperation = new Date();
 		
 		ValidationResultEnum result = null;
@@ -118,9 +121,11 @@ public class ValidationCTL extends AbstractCTL implements IValidationCTL {
 									result = ValidationResultEnum.MINING_CDA_ERROR;
 									msgResult = "Errore generico in fase di estrazione del CDA dal file.";
 								} else {
+									String cxi = extractInfo(cda);	
+									workflowInstanceId = cxi + "." + StringUtility.generateTransactionUID(null) + "^^^^urn:ihe:iti:xdw:2013:workflowInstanceId";
 									msgResult = validateJWT(jwtToken, cda);
 									if (StringUtils.isEmpty(msgResult)) {
-										ValidationInfoDTO validationRes = validate(cda, jsonObj.getActivity(), transactionId);
+										ValidationInfoDTO validationRes = validate(cda, jsonObj.getActivity(), workflowInstanceId);
 										if(validationRes!=null && !RawValidationEnum.OK.equals(validationRes.getResult())) {
 											msgResult = validationRes.getMessage()!=null ? validationRes.getMessage().stream().collect(Collectors.joining(",")) : null;
 											if (RawValidationEnum.SYNTAX_ERROR.equals(validationRes.getResult())) {
@@ -144,23 +149,37 @@ public class ValidationCTL extends AbstractCTL implements IValidationCTL {
 		}
 
 		if(StringUtility.isNullOrEmpty(msgResult)) {
-			kafkaSRV.sendValidationStatus(transactionId, EventStatusEnum.SUCCESS, null, jsonObj, jwtToken != null ? jwtToken.getPayload() : null);
+			kafkaSRV.sendValidationStatus(workflowInstanceId, EventStatusEnum.SUCCESS, null, jsonObj, jwtToken != null ? jwtToken.getPayload() : null);
         } else {
-			kafkaSRV.sendValidationStatus(transactionId, EventStatusEnum.ERROR, msgResult, jsonObj, jwtToken != null ? jwtToken.getPayload() : null);
+			kafkaSRV.sendValidationStatus(workflowInstanceId, EventStatusEnum.ERROR, msgResult, jsonObj, jwtToken != null ? jwtToken.getPayload() : null);
         }
 
 		if (!ValidationResultEnum.OK.equals(result)) {
-			elasticLogger.error(msgResult + " " + transactionId, OperationLogEnum.VAL_CDA2, ResultLogEnum.KO, startDateOperation, result != null ? result.getErrorCategory() : null);
-			throw new ValidationErrorException(result, msgResult, transactionId);
+			elasticLogger.error(msgResult + " " + workflowInstanceId, OperationLogEnum.VAL_CDA2, ResultLogEnum.KO, startDateOperation, result != null ? result.getErrorCategory() : null);
+			throw new ValidationErrorException(result, msgResult, workflowInstanceId);
 		}
 
-		elasticLogger.info("Validation CDA completed for transactionID " + transactionId, OperationLogEnum.VAL_CDA2, ResultLogEnum.OK, startDateOperation);
+		elasticLogger.info("Validation CDA completed for workflow instance id " + workflowInstanceId, OperationLogEnum.VAL_CDA2, ResultLogEnum.OK, startDateOperation);
 
-		if (jsonObj!=null && ActivityEnum.PRE_PUBLISHING.equals(jsonObj.getActivity())){
-			return new ResponseEntity<>(new ValidationCDAResDTO(getLogTraceInfo(), transactionId), HttpStatus.CREATED);
+		if (jsonObj!=null && ActivityEnum.VALIDATION.equals(jsonObj.getActivity())){
+			return new ResponseEntity<>(new ValidationCDAResDTO(getLogTraceInfo(), workflowInstanceId), HttpStatus.CREATED);
 		} 
-		return new ResponseEntity<>(new ValidationCDAResDTO(getLogTraceInfo(), transactionId), HttpStatus.OK);
+		return new ResponseEntity<>(new ValidationCDAResDTO(getLogTraceInfo(), workflowInstanceId), HttpStatus.OK);
 		
 	}
 
+	private static String extractInfo(final String cda) {
+		String out = "";
+		try {
+			org.jsoup.nodes.Document docT = Jsoup.parse(cda);
+			
+			String id = docT.select("id").get(0).attr("root");
+			String extension = docT.select("id").get(0).attr("extension");
+			out = id + "." + StringUtility.encodeSHA256Hex(extension);
+		} catch(Exception ex) {
+			log.error("Error while extracting info from cda", ex);
+			throw new BusinessException("Error while extracting info from cda", ex);
+		}
+		return out;
+	}
 }

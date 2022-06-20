@@ -18,11 +18,11 @@ public class ValidationErrorResponseDTO extends ErrorResponseDTO {
 
 	@Schema(description = "Identificativo della transazione in errore")
 	@Size(min = 0, max = 100)
-	private String transactionId;
+	private String workflowInstanceId;
 	
-	public ValidationErrorResponseDTO(final LogTraceInfoDTO traceInfo, final String inType, final String inTitle, final String inDetail, final Integer inStatus, final String inInstance, final String inTransactionId) {
+	public ValidationErrorResponseDTO(final LogTraceInfoDTO traceInfo, final String inType, final String inTitle, final String inDetail, final Integer inStatus, final String inInstance, final String inWorkflowInstanceId) {
 		super(traceInfo, inType, inTitle, inDetail, inStatus, inInstance);
-		transactionId = inTransactionId;
+		workflowInstanceId = inWorkflowInstanceId;
 	}
 
 }

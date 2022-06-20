@@ -126,7 +126,7 @@ public final class StringUtility {
 		String uid = null;
 
 		if (!Arrays.asList(UIDModeEnum.values()).contains(mode)) {
-			uid = UUID.randomUUID().toString().replace("-", "");
+			uid = UUID.randomUUID().toString().replace("-", "").substring(0, 10);
 		} else {
 			switch (mode) {
 				case HOSTNAME_UUID:
