@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 import brave.Tracer;
@@ -96,6 +97,27 @@ public class ControllerExceptionHandler extends ResponseEntityExceptionHandler {
     	Integer status = 500;
 
 		ErrorResponseDTO out = new ErrorResponseDTO(getLogTraceInfo(), "/msg/generic-error", "Errore generico", "Errore generico", status, "/msg/generic-error");
+
+    	HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_PROBLEM_JSON);
+        
+    	return new ResponseEntity<>(out, headers, status);
+    }
+    
+	/**
+	 * Management generic exception.
+	 * 
+	 * @param ex		exception
+	 * @param request	request
+	 * @return			
+	 */
+    @ExceptionHandler(value = {MaxUploadSizeExceededException.class})
+    protected ResponseEntity<ErrorResponseDTO> handleMaxUploadSizeExceededException(final Exception ex, final WebRequest request) {
+    	log.info("HANDLER handleMaxUploadSizeExceededException");
+    	ValidationResultEnum result = ValidationResultEnum.DOCUMENT_SIZE_ERROR;
+    	Integer status = 400;
+
+		ErrorResponseDTO out = new ErrorResponseDTO(getLogTraceInfo(), result.getType(), result.getTitle(), result.getTitle(), status, result.getTitle());
 
     	HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_PROBLEM_JSON);

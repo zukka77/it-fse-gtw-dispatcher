@@ -130,8 +130,7 @@ public class KafkaSRV implements IKafkaSRV {
 	public void sendValidationStatus(final String transactionId, final EventStatusEnum eventStatus, final String message, 
 		final ValidationCDAReqDTO validationReq, final JWTPayloadDTO jwtClaimDTO) {
 		
-		sendStatusMessage(transactionId, EventTypeEnum.VALIDATION, eventStatus, message, validationReq != null ? validationReq.getIdentificativoDoc() : null, 
-			 jwtClaimDTO,validationReq.getTipoAttivitaClinica());
+		sendStatusMessage(transactionId, EventTypeEnum.VALIDATION, eventStatus, message, null,jwtClaimDTO,null);
 	}
 
 	@Override

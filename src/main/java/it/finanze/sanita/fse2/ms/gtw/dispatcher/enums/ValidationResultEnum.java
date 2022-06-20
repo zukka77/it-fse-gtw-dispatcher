@@ -10,6 +10,7 @@ public enum ValidationResultEnum {
 	EMPTY_FILE_ERROR("/msg/empty-file", "File vuoto.", ErrorLogEnum.KO_INVALID_DATA), 
 	FILE_GENERIC_ERROR("/msg/file-generic", "Errore in fase di gestione del file.", ErrorLogEnum.KO_INVALID_DATA), 
 	DOCUMENT_TYPE_ERROR("/msg/document-type", "Il documento non è pdf.", ErrorLogEnum.KO_INVALID_DATA), 
+	DOCUMENT_SIZE_ERROR("/msg/document-size", "La dimensione del documento supera il limite massimo consentito.", ErrorLogEnum.KO_INVALID_DATA),
 	MINING_CDA_ERROR("/msg/mining-cda", "Errore in fase di estrazione del CDA.", ErrorLogEnum.KO_VAL), 
 	SYNTAX_ERROR("/msg/syntax", "Errore di sintassi.", ErrorLogEnum.KO_VAL),
 	SEMANTIC_ERROR("/msg/semantic", "Errore semantico.", ErrorLogEnum.KO_VAL),

@@ -97,16 +97,13 @@ public class ValidationCTL extends AbstractCTL implements IValidationCTL {
 					result = ValidationResultEnum.INVALID_TOKEN_FIELD;
 				}
 			}
-			
-			if (StringUtility.isNullOrEmpty(msgResult)) { 
+			if (!StringUtility.isNullOrEmpty(msgResult)) {
+				result = ValidationResultEnum.MANDATORY_ELEMENT_ERROR_TOKEN;
+			} else {
 				msgResult = checkValidationMandatoryElements(jsonObj);
 				if (!StringUtility.isNullOrEmpty(msgResult)) {
 					result = ValidationResultEnum.MANDATORY_ELEMENT_ERROR;
-				} else {
-					msgResult = checkFormatDate(jsonObj.getDataInizioPrestazione(), jsonObj.getDataFinePrestazione());
-					if(!StringUtility.isNullOrEmpty(msgResult)) {
-						result = ValidationResultEnum.FORMAT_ELEMENT_ERROR;
-					} else {
+				} else { 
 						byte[] bytes = checkFile(file);
 						if (bytes == null) {
 							msgResult = "Il file deve essere valorizzato";
@@ -142,7 +139,6 @@ public class ValidationCTL extends AbstractCTL implements IValidationCTL {
 								}
 							}
 						}
-					}
 				}
 			}
 		}

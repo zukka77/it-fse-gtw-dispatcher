@@ -113,12 +113,7 @@ public abstract class AbstractTest {
 	protected ValidationCDAReqDTO buildValidationReqDTO(ActivityEnum activity, HealthDataFormatEnum type, InjectionModeEnum mode) {
 		ValidationCDAReqDTO validationReq = ValidationCDAReqDTO.builder().
 				activity(activity).
-				tipoDocumentoLivAlto(TipoDocAltoLivEnum.REFERTO).
 				mode(mode).healthDataFormat(type).
-				assettoOrganizzativo(PracticeSettingCodeEnum.AD_PSC001).
-				identificativoPaziente(randomFiscalCode()).
-				tipoAttivitaClinica(AttivitaClinicaEnum.CONSULTO).
-				identificativoSottomissione("Identificativo sottomissione").
 				build(); 
 		
 		return validationReq;
@@ -130,12 +125,7 @@ public abstract class AbstractTest {
 			String identificativoSottomissione) {
 		ValidationCDAReqDTO validationReq = ValidationCDAReqDTO.builder().
 				activity(activity).
-				tipoDocumentoLivAlto(tipoDocLivelloAlto).
 				mode(mode).healthDataFormat(type).
-				assettoOrganizzativo(assettoOrganizzativo).
-				identificativoPaziente(identificativoPaziente).
-				tipoAttivitaClinica(tipoAttivitaClinica).
-				identificativoSottomissione(identificativoSottomissione).
 				build(); 
 		
 		return validationReq;
@@ -147,7 +137,7 @@ public abstract class AbstractTest {
 	}
 
 	protected String generateJwt(final String documentHash) {
-		final JWTPayloadDTO jwtPayload = new JWTPayloadDTO("201123456", 1540890704L, 1540918800L, "1540918800", 
+		final JWTPayloadDTO jwtPayload = new JWTPayloadDTO("201123456", 1540890704, 1540918800, "1540918800", 
 			Constants.App.JWT_TOKEN_AUDIENCE, "RSSMRA22A01A399Z", "Regione Lazio", "201", 
 			"AAS", "RSSMRA22A01A399Z", true, "TREATMENT", null, "CREATE", documentHash);
 		

@@ -146,41 +146,7 @@ public class ValidationTest extends AbstractTest {
     	 
     }
 	
-	@Test
-	@DisplayName("Mandatory elements")
-	void checkMandatoryElement() {
-		byte[] pdfAttachment = FileUtility.getFileFromInternalResources("Files/attachment/pdf_msg_SATLED_LED_Lettera_di_Dimissione.pdf");
 	 
-		Map<String,ValidationResultEnum> validationResult = callValidation(null, HealthDataFormatEnum.CDA, InjectionModeEnum.ATTACHMENT, pdfAttachment,true);
-		assertEquals(ValidationResultEnum.MANDATORY_ELEMENT_ERROR, validationResult.get("ERROR"));
-		
-		validationResult = callValidation(ActivityEnum.VALIDATION, HealthDataFormatEnum.CDA, InjectionModeEnum.ATTACHMENT, pdfAttachment,true,
-				buildValidationReqDTOCustom(ActivityEnum.VALIDATION, HealthDataFormatEnum.CDA, InjectionModeEnum.ATTACHMENT, 
-						null, null, null, null, null));
-		assertEquals(ValidationResultEnum.MANDATORY_ELEMENT_ERROR, validationResult.get("ERROR"));
-		
-		validationResult = callValidation(null, HealthDataFormatEnum.CDA, InjectionModeEnum.ATTACHMENT, pdfAttachment,true, 
-				buildValidationReqDTOCustom(ActivityEnum.VALIDATION, HealthDataFormatEnum.CDA, InjectionModeEnum.ATTACHMENT, 
-						TipoDocAltoLivEnum.DOCUMENTO_WORKFLOW, null, null, null, null));
-		assertEquals(ValidationResultEnum.MANDATORY_ELEMENT_ERROR, validationResult.get("ERROR"));
-		
-		validationResult = callValidation(null, HealthDataFormatEnum.CDA, InjectionModeEnum.ATTACHMENT, pdfAttachment,true,
-				buildValidationReqDTOCustom(ActivityEnum.VALIDATION, HealthDataFormatEnum.CDA, InjectionModeEnum.ATTACHMENT, 
-						TipoDocAltoLivEnum.DOCUMENTO_WORKFLOW, PracticeSettingCodeEnum.AD_PSC001, null, null, null));
-		assertEquals(ValidationResultEnum.MANDATORY_ELEMENT_ERROR, validationResult.get("ERROR"));
-		
-		validationResult = callValidation(null, HealthDataFormatEnum.CDA, InjectionModeEnum.ATTACHMENT, pdfAttachment,true,
-				buildValidationReqDTOCustom(ActivityEnum.VALIDATION, HealthDataFormatEnum.CDA, InjectionModeEnum.ATTACHMENT, 
-						TipoDocAltoLivEnum.DOCUMENTO_WORKFLOW, PracticeSettingCodeEnum.AD_PSC001, randomFiscalCode(), null, "tipoIdentificativoPaziente"));
-		assertEquals(ValidationResultEnum.MANDATORY_ELEMENT_ERROR, validationResult.get("ERROR"));
-		
-		validationResult = callValidation(null, HealthDataFormatEnum.CDA, InjectionModeEnum.ATTACHMENT, pdfAttachment,true,
-				buildValidationReqDTOCustom(ActivityEnum.VALIDATION, HealthDataFormatEnum.CDA, InjectionModeEnum.ATTACHMENT, 
-						TipoDocAltoLivEnum.DOCUMENTO_WORKFLOW, PracticeSettingCodeEnum.AD_PSC001, randomFiscalCode(), AttivitaClinicaEnum.CONSULTO
-						, null));
-		assertEquals(ValidationResultEnum.MANDATORY_ELEMENT_ERROR, validationResult.get("ERROR"));
-
-	}
 	
 	/**
 	 * Valutazione performance.

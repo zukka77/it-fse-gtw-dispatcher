@@ -155,27 +155,6 @@ public abstract class AbstractCTL implements Serializable {
         return out;
     }
 
-	protected ValidationCDAReqDTO constructValidationDTO(PublicationCreationReqDTO publicationDTO, ActivityEnum activity) {
-
-        return ValidationCDAReqDTO.builder()
-			.healthDataFormat(publicationDTO.getHealthDataFormat())
-			.mode(publicationDTO.getMode())
-			.activity(activity)
-			.tipologiaStruttura(publicationDTO.getTipologiaStruttura())
-			.regoleAccesso(publicationDTO.getRegoleAccesso())
-			.identificativoDoc(publicationDTO.getIdentificativoDoc())
-			.identificativoRep(publicationDTO.getIdentificativoRep())
-			.tipoDocumentoLivAlto(publicationDTO.getTipoDocumentoLivAlto())
-			.assettoOrganizzativo(publicationDTO.getAssettoOrganizzativo())
-			.identificativoPaziente(publicationDTO.getIdentificativoPaziente())
-			.dataInizioPrestazione(publicationDTO.getDataInizioPrestazione())
-			.dataFinePrestazione(publicationDTO.getDataFinePrestazione())
-			.conservazioneSostitutiva(publicationDTO.getConservazioneSostitutiva())
-			.tipoAttivitaClinica(publicationDTO.getTipoAttivitaClinica())
-			.identificativoSottomissione(publicationDTO.getIdentificativoSottomissione())
-			.build();
-
-    }
 
 	protected PublicationCreationReqDTO constructPublicationDTO(HistoricalPublicationCreationReqDTO historicalDTO) {
 		return PublicationCreationReqDTO.builder()
@@ -223,17 +202,7 @@ public abstract class AbstractCTL implements Serializable {
 
 		if (jsonObj.getActivity() == null) {
 			out = "Il campo activity deve essere valorizzato.";
-		} else if (jsonObj.getTipoDocumentoLivAlto() == null) {
-			out = "Il tipo documento di alto livello deve essere valorizzato.";
-		} else if (jsonObj.getAssettoOrganizzativo() == null) {
-			out = "L'assetto organizzativo deve essere valorizzato.";
-		} else if (!CfUtility.isValidCf(jsonObj.getIdentificativoPaziente())) {
-			out = "L'identificativo paziente deve essere valorizzato con un codice fiscale valido.";
-		} else if (jsonObj.getTipoAttivitaClinica() == null) {
-			out = "Il tipo attività clinica deve essere valorizzata.";
-		} else if (StringUtility.isNullOrEmpty(jsonObj.getIdentificativoSottomissione())) {
-			out = "L'identificativo della sottomissione deve essere valorizzato.";
-		}
+		}  
 		return out;
 	}
 
