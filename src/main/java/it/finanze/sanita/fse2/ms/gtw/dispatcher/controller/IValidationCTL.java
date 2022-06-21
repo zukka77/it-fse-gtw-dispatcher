@@ -27,7 +27,7 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.ValidationErrorResp
  *
  *         Controller validation.
  */
-@RequestMapping(path = "/v1.0.0")
+@RequestMapping(path = "/v1")
 @Tag(name = "Servizio validazione documenti")
 public interface IValidationCTL {
 

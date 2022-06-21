@@ -26,7 +26,7 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.PublicationCreation
  *
  *         Controller publication.
  */
-@RequestMapping(path = "/v1.0.0")
+@RequestMapping(path = "/v1")
 @Tag(name = "Servizio pubblicazione documenti")
 public interface IPublicationCTL {
 
