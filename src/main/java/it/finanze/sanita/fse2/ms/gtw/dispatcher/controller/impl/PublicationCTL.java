@@ -4,13 +4,11 @@ import java.util.Date;
 import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.MicroservicesURLCFG;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.ValidationCFG;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.controller.IPublicationCTL;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.FhirResourceDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.JWTHeaderDTO;
@@ -55,9 +53,6 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 	private IniEdsInvocationSRV iniInvocationSRV;
 
 	@Autowired
-	private ValidationCFG validationCfg;
-
-	@Autowired
 	private MicroservicesURLCFG msCfg;
 	
 	@Autowired
@@ -88,7 +83,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 			} else {
 				String errorMsg = JWTHeaderDTO.validateHeader(jwtToken.getHeader());
 				if (errorMsg == null) {
-					errorMsg = JWTPayloadDTO.validatePayload(jwtToken.getPayload(), validationCfg.getJwtAudicence());
+					errorMsg = JWTPayloadDTO.validatePayload(jwtToken.getPayload());
 				}
 				if (errorMsg != null) {
 					out = PublicationOutputDTO.builder().msg(errorMsg).result(PublicationResultEnum.INVALID_TOKEN_FIELD).build();

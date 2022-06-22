@@ -2,7 +2,6 @@ package it.finanze.sanita.fse2.ms.gtw.dispatcher.dto;
 
 import org.apache.commons.lang3.StringUtils;
 
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.CfUtility;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility;
 import lombok.AllArgsConstructor;
@@ -126,13 +125,11 @@ public class JWTPayloadDTO {
 		return jwtPayload;
 	}
 
-	public static String validatePayload(final JWTPayloadDTO payload, final String audience) {
+	public static String validatePayload(final JWTPayloadDTO payload) {
 		String error = null;
 
 		if (payload == null) {
 			error = "JWT payload is not valid";
-		} else if (!audience.equals(payload.getAud())) {
-			error = "Invalid audience";
 		} else if (!CfUtility.isValidCf(payload.getSub())) {
 			error = "Invalid subject fiscal code";
 		} else if (!CfUtility.isValidCf(payload.getPerson_id())) {

@@ -56,9 +56,6 @@ public class ValidationCTL extends AbstractCTL implements IValidationCTL {
 	private static final long serialVersionUID = 278537982196195315L;
 
 	@Autowired
-	private ValidationCFG validationCFG;
-
-	@Autowired
 	private MicroservicesURLCFG msCfg;
 
 	@Autowired
@@ -102,7 +99,7 @@ public class ValidationCTL extends AbstractCTL implements IValidationCTL {
 			} else {
 				msgResult = JWTHeaderDTO.validateHeader(jwtToken.getHeader());
 				if (msgResult == null) {
-					msgResult = JWTPayloadDTO.validatePayload(jwtToken.getPayload(), validationCFG.getJwtAudicence());
+					msgResult = JWTPayloadDTO.validatePayload(jwtToken.getPayload());
 				}
 				if (msgResult != null) {
 					result = ValidationResultEnum.INVALID_TOKEN_FIELD;

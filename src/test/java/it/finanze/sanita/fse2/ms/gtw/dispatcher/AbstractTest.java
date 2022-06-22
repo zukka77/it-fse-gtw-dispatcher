@@ -6,8 +6,6 @@ import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.google.gson.Gson;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext;
 import org.springframework.core.io.ByteArrayResource;
@@ -18,6 +16,8 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.web.client.RestTemplate;
+
+import com.google.gson.Gson;
 
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.ValidationCFG;
@@ -144,7 +144,7 @@ public abstract class AbstractTest {
 
 	protected String generateJwt(final String documentHash) {
 		final JWTPayloadDTO jwtPayload = new JWTPayloadDTO("201123456", 1540890704, 1540918800, "1540918800", 
-			validationCFG.getJwtAudicence(), "RSSMRA22A01A399Z", "Regione Lazio", "201", 
+			"fse-gateway", "RSSMRA22A01A399Z", "Regione Lazio", "201", 
 			"AAS", "RSSMRA22A01A399Z", true, "TREATMENT", null, "CREATE", documentHash);
 		
 		final JWTHeaderDTO jwtHeader = new JWTHeaderDTO("RS256", Constants.App.JWT_TOKEN_TYPE, null, "X5C cert base 64");
