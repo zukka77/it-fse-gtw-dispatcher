@@ -57,6 +57,11 @@ public final class Constants {
 		 */
 		public static final String JWT_HEADER = "Authorization";
 
+		/**
+		 * JWT header field of GovWay.
+		 */
+		public static final String JWT_GOVWAY_HEADER = "GovWay-ModI-Info";
+
 		private Headers() {
 			//This method is intentionally left blank.
 		}
@@ -77,8 +82,6 @@ public final class Constants {
 
 	public static final class App {
 		
-		public static final String JWT_TOKEN_AUDIENCE = "fse-gateway";
-
 		public static final String JWT_TOKEN_TYPE = "JWT";
 
 		public static final String BEARER_PREFIX = "Bearer ";

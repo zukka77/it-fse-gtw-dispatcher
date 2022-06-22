@@ -24,4 +24,7 @@ public class MicroservicesURLCFG {
      */
 	@Value("${ms.url.gtw-fhir-mapping-service}")
 	private String fhirMappingHost;
+
+     @Value("${ms-calls.are-from-govway}")
+	private Boolean fromGovway;
 }

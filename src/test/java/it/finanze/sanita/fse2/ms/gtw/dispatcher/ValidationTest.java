@@ -3,6 +3,7 @@ package it.finanze.sanita.fse2.ms.gtw.dispatcher;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.mockito.BDDMockito.given;
 
 import java.io.File;
 import java.math.BigDecimal;
@@ -13,21 +14,21 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.Map;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.test.context.ActiveProfiles;
 
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.MicroservicesURLCFG;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ActivityEnum;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.AttivitaClinicaEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.HealthDataFormatEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.InjectionModeEnum;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.PracticeSettingCodeEnum;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.TipoDocAltoLivEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ValidationResultEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.ICdaSRV;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.FileUtility;
@@ -39,10 +40,11 @@ import lombok.extern.slf4j.Slf4j;
 @ActiveProfiles(Constants.Profile.TEST)
 public class ValidationTest extends AbstractTest {
 
-
 	@Autowired
 	private ICdaSRV cdaSRV;
 
+	@MockBean
+	private MicroservicesURLCFG msCfg;
 
 	/**
 	 * Calcolo performance: numero di prove per singolo utente.
@@ -54,7 +56,6 @@ public class ValidationTest extends AbstractTest {
 	 */
 	private static final int N_UTENTI = 20;
 	
-
 	/**
 	 * Numero di verifiche di raggiungimento del numero di test necessari.
 	 */
@@ -70,17 +71,22 @@ public class ValidationTest extends AbstractTest {
 	 */
 	private static final int SLEEP_TIME = 100;
 	
+	@BeforeEach
+	void setup() {
+		given(msCfg.getFromGovway()).willReturn(false);
+	}
+
     @Test
     @DisplayName("Wrong File Test")
     void wrongFileTest() {
     	byte[] docxByte = FileUtility.getFileFromInternalResources("Files" + File.separator + "Test.docx");
 
     	//invio un non pdf -
-    	Map<String, ValidationResultEnum> result = callValidation(ActivityEnum.VALIDATION, HealthDataFormatEnum.CDA, InjectionModeEnum.ATTACHMENT, docxByte,true);
+    	Map<String, ValidationResultEnum> result = callValidation(ActivityEnum.VALIDATION, HealthDataFormatEnum.CDA, InjectionModeEnum.ATTACHMENT, docxByte, true, false);
     	assertEquals(ValidationResultEnum.DOCUMENT_TYPE_ERROR, result.values().iterator().next());
 
     	byte[] pdfByte = FileUtility.getFileFromInternalResources("Files" + File.separator + "Test.pdf");
-    	result = callValidation(ActivityEnum.VALIDATION, HealthDataFormatEnum.CDA, InjectionModeEnum.ATTACHMENT, pdfByte,true);
+    	result = callValidation(ActivityEnum.VALIDATION, HealthDataFormatEnum.CDA, InjectionModeEnum.ATTACHMENT, pdfByte, true, false);
     	assertEquals(ValidationResultEnum.MINING_CDA_ERROR, result.values().iterator().next());
     }
 
@@ -91,26 +97,26 @@ public class ValidationTest extends AbstractTest {
     	byte[] pdfAttachment = FileUtility.getFileFromInternalResources("Files/attachment/pdf_msg_SATLED_LED_Lettera_di_Dimissione.pdf");
     	byte[] pdfResource = FileUtility.getFileFromInternalResources("Files/resource/cert1.pdf");
     	
-    	 Map<String, ValidationResultEnum> result = callValidation(ActivityEnum.VALIDATION, HealthDataFormatEnum.CDA, InjectionModeEnum.ATTACHMENT, pdfResource,true);
+    	 Map<String, ValidationResultEnum> result = callValidation(ActivityEnum.VALIDATION, HealthDataFormatEnum.CDA, InjectionModeEnum.ATTACHMENT, pdfResource, true, false);
     	 assertNotNull(result);
 		 assertEquals(ValidationResultEnum.MINING_CDA_ERROR, result.values().iterator().next());
     	
-    	 result = callValidation(ActivityEnum.VALIDATION, HealthDataFormatEnum.CDA, InjectionModeEnum.RESOURCE, pdfAttachment,true);
+    	 result = callValidation(ActivityEnum.VALIDATION, HealthDataFormatEnum.CDA, InjectionModeEnum.RESOURCE, pdfAttachment, true, false);
     	 assertEquals(ValidationResultEnum.MINING_CDA_ERROR, result.values().iterator().next());
     	
-    	 result = callValidation(ActivityEnum.VALIDATION, HealthDataFormatEnum.CDA, InjectionModeEnum.ATTACHMENT, pdfAttachment,true);
+    	 result = callValidation(ActivityEnum.VERIFICA, HealthDataFormatEnum.CDA, InjectionModeEnum.ATTACHMENT, pdfAttachment, true, false);
     	 assertEquals(ValidationResultEnum.OK, result.values().iterator().next());
     	 assertNull(cdaSRV.get(result.keySet().iterator().next()), "La transazione non deve essere presente.");
     	
-    	 result = callValidation(ActivityEnum.VALIDATION, HealthDataFormatEnum.CDA, InjectionModeEnum.RESOURCE, pdfResource,true);
+    	 result = callValidation(ActivityEnum.VERIFICA, HealthDataFormatEnum.CDA, InjectionModeEnum.RESOURCE, pdfResource, true, false);
     	 assertEquals(ValidationResultEnum.OK, result.values().iterator().next());
     	 assertNull(cdaSRV.get(result.keySet().iterator().next()), "La transazione non deve essere presente.");
 
-    	 result = callValidation(ActivityEnum.VALIDATION, HealthDataFormatEnum.CDA, null, pdfAttachment,true);
+    	 result = callValidation(ActivityEnum.VERIFICA, HealthDataFormatEnum.CDA, null, pdfAttachment, true, false);
     	 assertEquals(ValidationResultEnum.OK, result.values().iterator().next());
     	 assertNull(cdaSRV.get(result.keySet().iterator().next()), "La transazione non deve essere presente.");
 
-    	 result = callValidation(ActivityEnum.VALIDATION, HealthDataFormatEnum.CDA, null, pdfResource,true);
+    	 result = callValidation(ActivityEnum.VERIFICA, HealthDataFormatEnum.CDA, null, pdfResource, true, false);
     	 assertEquals(ValidationResultEnum.OK, result.values().iterator().next());
     	 assertNull(cdaSRV.get(result.keySet().iterator().next()), "La transazione non deve essere presente.");
     }
@@ -122,25 +128,25 @@ public class ValidationTest extends AbstractTest {
     	byte[] pdfAttachment = FileUtility.getFileFromInternalResources("Files/attachment/pdf_msg_SATLED_LED_Lettera_di_Dimissione.pdf");
     	byte[] pdfResource = FileUtility.getFileFromInternalResources("Files/resource/cert1.pdf");
     	
-    	Map<String, ValidationResultEnum> result = callValidation(ActivityEnum.VALIDATION, HealthDataFormatEnum.CDA, InjectionModeEnum.ATTACHMENT, pdfResource,true);
+    	Map<String, ValidationResultEnum> result = callValidation(ActivityEnum.VALIDATION, HealthDataFormatEnum.CDA, InjectionModeEnum.ATTACHMENT, pdfResource, true, false);
     	assertEquals(ValidationResultEnum.MINING_CDA_ERROR, result.values().iterator().next());
     	
-    	result = callValidation(ActivityEnum.VALIDATION, HealthDataFormatEnum.CDA, InjectionModeEnum.RESOURCE, pdfAttachment,true);
+    	result = callValidation(ActivityEnum.VALIDATION, HealthDataFormatEnum.CDA, InjectionModeEnum.RESOURCE, pdfAttachment, true, false);
     	assertEquals(ValidationResultEnum.MINING_CDA_ERROR, result.values().iterator().next());
     	
-    	result = callValidation(ActivityEnum.VALIDATION, HealthDataFormatEnum.CDA, InjectionModeEnum.ATTACHMENT, pdfAttachment,true);
+    	result = callValidation(ActivityEnum.VALIDATION, HealthDataFormatEnum.CDA, InjectionModeEnum.ATTACHMENT, pdfAttachment, true, false);
     	assertEquals(ValidationResultEnum.OK, result.values().iterator().next());
     	assertNotNull(cdaSRV.get(result.keySet().iterator().next()), "La transazione non deve essere presente.");
     	
-    	result = callValidation(ActivityEnum.VALIDATION, HealthDataFormatEnum.CDA, InjectionModeEnum.RESOURCE, pdfResource,true);
+    	result = callValidation(ActivityEnum.VALIDATION, HealthDataFormatEnum.CDA, InjectionModeEnum.RESOURCE, pdfResource, true, false);
     	assertEquals(ValidationResultEnum.OK, result.values().iterator().next());
     	assertNotNull(cdaSRV.get(result.keySet().iterator().next()), "La transazione non deve essere presente.");
 
-    	result = callValidation(ActivityEnum.VALIDATION, HealthDataFormatEnum.CDA, null, pdfAttachment,true);
+    	result = callValidation(ActivityEnum.VALIDATION, HealthDataFormatEnum.CDA, null, pdfAttachment, true, false);
     	assertEquals(ValidationResultEnum.OK, result.values().iterator().next());
     	assertNotNull(cdaSRV.get(result.keySet().iterator().next()), "La transazione non deve essere presente.");
 
-    	result = callValidation(ActivityEnum.VALIDATION, HealthDataFormatEnum.CDA, null, pdfResource,true);
+    	result = callValidation(ActivityEnum.VALIDATION, HealthDataFormatEnum.CDA, null, pdfResource, true, false);
     	assertEquals(ValidationResultEnum.OK, result.values().iterator().next());
     	assertNotNull(cdaSRV.get(result.keySet().iterator().next()), "La transazione non deve essere presente.");
     	 
@@ -201,7 +207,7 @@ public class ValidationTest extends AbstractTest {
 				for (int x = 0; x < N_PROVE; x++) { 
 					boolean fail = true;
 					try {
-						final Map<String, ValidationResultEnum> resp = callValidation(ActivityEnum.VALIDATION, HealthDataFormatEnum.CDA, InjectionModeEnum.ATTACHMENT, pdf,true);
+						final Map<String, ValidationResultEnum> resp = callValidation(ActivityEnum.VALIDATION, HealthDataFormatEnum.CDA, InjectionModeEnum.ATTACHMENT, pdf, true, false);
 						if (ValidationResultEnum.OK.equals(resp.values().iterator().next())) {
 							fail = false;
 						}

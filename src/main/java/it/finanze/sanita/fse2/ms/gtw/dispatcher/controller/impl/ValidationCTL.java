@@ -5,9 +5,6 @@ import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
-
 import org.apache.commons.lang3.StringUtils;
 import org.jsoup.Jsoup;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,7 +13,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
+
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.MicroservicesURLCFG;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.ValidationCFG;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.controller.IValidationCTL;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.JWTHeaderDTO;
@@ -30,7 +31,6 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventStatusEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.OperationLogEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.RawValidationEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ResultLogEnum;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.UIDModeEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ValidationResultEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.BusinessException;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.ValidationErrorException;
@@ -59,6 +59,9 @@ public class ValidationCTL extends AbstractCTL implements IValidationCTL {
 	private ValidationCFG validationCFG;
 
 	@Autowired
+	private MicroservicesURLCFG msCfg;
+
+	@Autowired
 	private IKafkaSRV kafkaSRV;
 
 	@Autowired
@@ -73,7 +76,12 @@ public class ValidationCTL extends AbstractCTL implements IValidationCTL {
 		ValidationResultEnum result = null;
 		String msgResult = null;
 		
-		final JWTTokenDTO jwtToken = extractJWT(request.getHeader(Constants.Headers.JWT_HEADER));
+		JWTTokenDTO jwtToken = null;
+		if (Boolean.TRUE.equals(msCfg.getFromGovway())) {
+			jwtToken = extractJWT(request.getHeader(Constants.Headers.JWT_GOVWAY_HEADER));
+		} else {
+			jwtToken = extractJWT(request.getHeader(Constants.Headers.JWT_HEADER));
+		}
 
 		ValidationCDAReqDTO jsonObj = getValidationJSONObject(request.getParameter("requestBody"));
 		if (jsonObj==null) {
@@ -94,7 +102,7 @@ public class ValidationCTL extends AbstractCTL implements IValidationCTL {
 			} else {
 				msgResult = JWTHeaderDTO.validateHeader(jwtToken.getHeader());
 				if (msgResult == null) {
-					msgResult = JWTPayloadDTO.validatePayload(jwtToken.getPayload());
+					msgResult = JWTPayloadDTO.validatePayload(jwtToken.getPayload(), validationCFG.getJwtAudicence());
 				}
 				if (msgResult != null) {
 					result = ValidationResultEnum.INVALID_TOKEN_FIELD;

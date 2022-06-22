@@ -126,12 +126,12 @@ public class JWTPayloadDTO {
 		return jwtPayload;
 	}
 
-	public static String validatePayload(JWTPayloadDTO payload) {
+	public static String validatePayload(final JWTPayloadDTO payload, final String audience) {
 		String error = null;
 
 		if (payload == null) {
 			error = "JWT payload is not valid";
-		} else if (!Constants.App.JWT_TOKEN_AUDIENCE.equals(payload.getAud())) {
+		} else if (!audience.equals(payload.getAud())) {
 			error = "Invalid audience";
 		} else if (!CfUtility.isValidCf(payload.getSub())) {
 			error = "Invalid subject fiscal code";

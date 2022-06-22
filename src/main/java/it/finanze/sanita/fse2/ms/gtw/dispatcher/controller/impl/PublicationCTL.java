@@ -4,10 +4,13 @@ import java.util.Date;
 import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.MicroservicesURLCFG;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.ValidationCFG;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.controller.IPublicationCTL;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.FhirResourceDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.JWTHeaderDTO;
@@ -52,6 +55,12 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 	private IniEdsInvocationSRV iniInvocationSRV;
 
 	@Autowired
+	private ValidationCFG validationCfg;
+
+	@Autowired
+	private MicroservicesURLCFG msCfg;
+	
+	@Autowired
 	private ElasticLoggerHelper elasticLogger;
 
 	@Override
@@ -59,8 +68,13 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 
 		Date startDateOperation = new Date();
 
-		final JWTTokenDTO jwtToken = extractJWT(request.getHeader(Constants.Headers.JWT_HEADER));
-
+		JWTTokenDTO jwtToken = null;
+		if (Boolean.TRUE.equals(msCfg.getFromGovway())) {
+			jwtToken = extractJWT(request.getHeader(Constants.Headers.JWT_GOVWAY_HEADER));
+		} else {
+			jwtToken = extractJWT(request.getHeader(Constants.Headers.JWT_HEADER));
+		}
+		
 		PublicationCreationReqDTO jsonObj = getPublicationJSONObject(request.getParameter("requestBody"));
 		byte[] bytePDF = null;
 		PublicationOutputDTO out = null;
@@ -74,7 +88,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 			} else {
 				String errorMsg = JWTHeaderDTO.validateHeader(jwtToken.getHeader());
 				if (errorMsg == null) {
-					errorMsg = JWTPayloadDTO.validatePayload(jwtToken.getPayload());
+					errorMsg = JWTPayloadDTO.validatePayload(jwtToken.getPayload(), validationCfg.getJwtAudicence());
 				}
 				if (errorMsg != null) {
 					out = PublicationOutputDTO.builder().msg(errorMsg).result(PublicationResultEnum.INVALID_TOKEN_FIELD).build();

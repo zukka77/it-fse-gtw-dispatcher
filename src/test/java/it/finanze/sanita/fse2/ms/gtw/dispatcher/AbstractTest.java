@@ -20,6 +20,7 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.ValidationCFG;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.JWTHeaderDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.JWTPayloadDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.ValidationCDAReqDTO;
@@ -38,24 +39,26 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public abstract class AbstractTest {
 
+	@Autowired
+	RestTemplate restTemplate;
 
 	@Autowired
-	private RestTemplate restTemplate;
+	ValidationCFG validationCFG;
 
 	@Autowired
-    private ServletWebServerApplicationContext webServerAppCtxt;
+    ServletWebServerApplicationContext webServerAppCtxt;
 	
-	public Map<String, ValidationResultEnum> callValidationWithoutToken(ActivityEnum activity, HealthDataFormatEnum type, InjectionModeEnum mode, byte[] fileByte){
-		return callValidation(activity, type, mode, fileByte, false,null);
+	protected Map<String, ValidationResultEnum> callValidationWithoutToken(ActivityEnum activity, HealthDataFormatEnum type, InjectionModeEnum mode, byte[] fileByte){
+		return callValidation(activity, type, mode, fileByte, false,null, false);
 	}
 
 	public Map<String, ValidationResultEnum> callValidation(ActivityEnum activity, HealthDataFormatEnum type, InjectionModeEnum mode, byte[] fileByte,
-			boolean tokenPresent){
-		return callValidation(activity, type, mode, fileByte,tokenPresent,null);
+			boolean tokenPresent, boolean fromGovway){
+		return callValidation(activity, type, mode, fileByte, tokenPresent,null, fromGovway);
 	}
 
-	public Map<String, ValidationResultEnum> callValidation(ActivityEnum activity, HealthDataFormatEnum type, InjectionModeEnum mode, byte[] fileByte,
-			boolean tokenPresent, ValidationCDAReqDTO reqDTO) {
+	protected Map<String, ValidationResultEnum> callValidation(ActivityEnum activity, HealthDataFormatEnum type, InjectionModeEnum mode, byte[] fileByte,
+			boolean tokenPresent, ValidationCDAReqDTO reqDTO, boolean fromGovway) {
 		Map<String, ValidationResultEnum> output = new HashMap<>();
 		LinkedMultiValueMap<String, Object> map = new LinkedMultiValueMap<>();
 
@@ -79,17 +82,20 @@ public abstract class AbstractTest {
 			headers.setContentType(MediaType.MULTIPART_FORM_DATA);
 
 			if(tokenPresent) {
-
 				log.info("Simulating a valid json payload");
-				headers.set(Constants.Headers.JWT_HEADER, generateJwt(StringUtility.encodeSHA256(fileByte)));
+				if (fromGovway) {
+					headers.set(Constants.Headers.JWT_GOVWAY_HEADER, generateJwt(StringUtility.encodeSHA256(fileByte)));
+				} else {
+					headers.set(Constants.Headers.JWT_HEADER, generateJwt(StringUtility.encodeSHA256(fileByte)));
+				}
 			}
 
-			String urlValidation = "http://localhost:" + webServerAppCtxt.getWebServer().getPort() + webServerAppCtxt.getServletContext().getContextPath() + "/v1.0.0/validate-creation";
+			String urlValidation = "http://localhost:" + webServerAppCtxt.getWebServer().getPort() + webServerAppCtxt.getServletContext().getContextPath() + "/v1/validate-creation";
 
 			HttpEntity<LinkedMultiValueMap<String, Object>> requestEntity = new HttpEntity<>(map, headers);
 
 			ResponseEntity<ValidationCDAResDTO> response = restTemplate.exchange(urlValidation, HttpMethod.POST, requestEntity, ValidationCDAResDTO.class);
-			if(ActivityEnum.VALIDATION.equals(activity)) {
+			if(ActivityEnum.VERIFICA.equals(activity)) {
 				assertEquals(response.getStatusCode().value(), 200);
 			} else if(ActivityEnum.VALIDATION.equals(activity)) {
 				assertEquals(response.getStatusCode().value(), 201);
@@ -138,7 +144,7 @@ public abstract class AbstractTest {
 
 	protected String generateJwt(final String documentHash) {
 		final JWTPayloadDTO jwtPayload = new JWTPayloadDTO("201123456", 1540890704, 1540918800, "1540918800", 
-			Constants.App.JWT_TOKEN_AUDIENCE, "RSSMRA22A01A399Z", "Regione Lazio", "201", 
+			validationCFG.getJwtAudicence(), "RSSMRA22A01A399Z", "Regione Lazio", "201", 
 			"AAS", "RSSMRA22A01A399Z", true, "TREATMENT", null, "CREATE", documentHash);
 		
 		final JWTHeaderDTO jwtHeader = new JWTHeaderDTO("RS256", Constants.App.JWT_TOKEN_TYPE, null, "X5C cert base 64");

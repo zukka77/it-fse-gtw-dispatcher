@@ -36,6 +36,7 @@ import org.springframework.web.client.RestTemplate;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.IValidatorClient;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.impl.FhirMappingClient;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.MicroservicesURLCFG;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.DocumentReferenceDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.JWTHeaderDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.JWTPayloadDTO;
@@ -80,11 +81,15 @@ class PublicationTest extends AbstractTest {
 	private IValidatorClient validatorClient;
 
 	@MockBean
+	private MicroservicesURLCFG msCfg;
+
+	@MockBean
 	private FhirMappingClient client;
 	
 	@Test
 	void testHashPublication() {
 
+		given(msCfg.getFromGovway()).willReturn(false);
 		log.info("Testing hash check in publication phase");
 		final String txID = UUID.randomUUID().toString();
 		final String hash = StringUtility.encodeSHA256B64("hash");
@@ -106,24 +111,23 @@ class PublicationTest extends AbstractTest {
 	@Test
 	@DisplayName("Validation + Publication")
 	void testPublication() {
-		DocumentReferenceResDTO ref = new DocumentReferenceResDTO();
-		ref.setErrorMessage("");
-		ref.setJson("{\"json\" : \"json\"}");
-		given(client.callCreateDocumentReference(any(DocumentReferenceDTO.class))).willReturn(ref);
-		
+
+		given(msCfg.getFromGovway()).willReturn(false);
+
+		mockDocumentRef();		
         byte[] pdfAttachment = FileUtility.getFileFromInternalResources("Files/attachment/CDA_OK_SIGNED.pdf");
 
 		ValidationInfoDTO info = new ValidationInfoDTO(RawValidationEnum.OK, new ArrayList<>());
 		given(validatorClient.validate(anyString())).willReturn(info);
 
-		Map<String,ValidationResultEnum> res = callValidation(ActivityEnum.VALIDATION, HealthDataFormatEnum.CDA, InjectionModeEnum.ATTACHMENT, pdfAttachment, true);
+		Map<String,ValidationResultEnum> res = callValidation(ActivityEnum.VALIDATION, HealthDataFormatEnum.CDA, InjectionModeEnum.ATTACHMENT, pdfAttachment, true, false);
 		Optional<String> firstKey = res.keySet().stream().findFirst();
 
 		String transactionId = "";
 		if (firstKey.isPresent()) {
 			transactionId = firstKey.get();
 		}
-		PublicationCreationResDTO resPublication = callPublication(pdfAttachment,null, transactionId);
+		PublicationCreationResDTO resPublication = callPublication(pdfAttachment,null, transactionId, msCfg.getFromGovway());
 		assertNotNull(resPublication.getTraceID()); 
 	}
 
@@ -149,7 +153,36 @@ class PublicationTest extends AbstractTest {
 		assertEquals(encoded, jwtToken.getPayload().getHash());
 	}
 
-	public PublicationCreationResDTO callPublication(byte[] fileByte,PublicationCreationReqDTO reqDTO, String transactionId) {
+	@Test
+	void govwayHeader () {
+		given(msCfg.getFromGovway()).willReturn(true);
+
+		mockDocumentRef();
+
+		final byte[] pdfAttachment = FileUtility.getFileFromInternalResources("Files/attachment/CDA_OK_SIGNED.pdf");
+		final ValidationInfoDTO info = new ValidationInfoDTO(RawValidationEnum.OK, new ArrayList<>());
+		given(validatorClient.validate(anyString())).willReturn(info); // Mocking validation
+
+		final Map<String,ValidationResultEnum> res = callValidation(ActivityEnum.VALIDATION, HealthDataFormatEnum.CDA, InjectionModeEnum.ATTACHMENT, pdfAttachment, true, true);
+		final Optional<String> firstKey = res.keySet().stream().findFirst();
+
+		String transactionId = "";
+		if (firstKey.isPresent()) {
+			transactionId = firstKey.get();
+		}
+
+		final PublicationCreationResDTO resPublication = callPublication(pdfAttachment, null, transactionId, msCfg.getFromGovway());
+		assertNotNull(resPublication.getTraceID());
+	}
+
+	private void mockDocumentRef() {
+		DocumentReferenceResDTO ref = new DocumentReferenceResDTO();
+		ref.setErrorMessage("");
+		ref.setJson("{\"json\" : \"json\"}");
+		given(client.callCreateDocumentReference(any(DocumentReferenceDTO.class))).willReturn(ref);
+	}
+
+	PublicationCreationResDTO callPublication(final byte[] fileByte, final PublicationCreationReqDTO reqDTO, final String transactionId, final boolean isFromGovway) {
 		PublicationCreationResDTO output = null;
 		LinkedMultiValueMap<String, Object> map = new LinkedMultiValueMap<>();
 
@@ -173,9 +206,13 @@ class PublicationTest extends AbstractTest {
 			headers.setContentType(MediaType.MULTIPART_FORM_DATA);
 			log.info("Simulating a valid json payload");
 			
-			headers.set(Constants.Headers.JWT_HEADER, generateJwt(StringUtility.encodeSHA256(fileByte)));
+			if (isFromGovway) {
+				headers.set(Constants.Headers.JWT_GOVWAY_HEADER, generateJwt(StringUtility.encodeSHA256(fileByte)));
+			} else {
+				headers.set(Constants.Headers.JWT_HEADER, generateJwt(StringUtility.encodeSHA256(fileByte)));
+			}
 
-			String urlPublication = "http://localhost:" + webServerAppCtxt.getWebServer().getPort() + webServerAppCtxt.getServletContext().getContextPath() + "/v1.0.0/publish-creation";
+			String urlPublication = "http://localhost:" + webServerAppCtxt.getWebServer().getPort() + webServerAppCtxt.getServletContext().getContextPath() + "/v1/publish-creation";
 
 			HttpEntity<LinkedMultiValueMap<String, Object>> requestEntity = new HttpEntity<>(map, headers);
 
@@ -194,7 +231,7 @@ class PublicationTest extends AbstractTest {
 		return output;
 	}
 
-	private PublicationCreationReqDTO buildCreationDTO(String transactionId) {
+	PublicationCreationReqDTO buildCreationDTO(String transactionId) {
 		PublicationCreationReqDTO output = PublicationCreationReqDTO.builder().
 				assettoOrganizzativo(PracticeSettingCodeEnum.AD_PSC001).
 				conservazioneSostitutiva("Conservazione sostitutiva").

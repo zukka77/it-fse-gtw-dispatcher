@@ -21,4 +21,6 @@ public class ValidationCFG {
     @Value("${validation.transaction-id.generation-strategy}")
     private Integer transactionIDStrategy;
 
+    @Value("${validation.jwt.target-audience}")
+    private String jwtAudicence;
 }
