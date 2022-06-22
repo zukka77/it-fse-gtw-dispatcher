@@ -256,18 +256,21 @@ public abstract class AbstractCTL implements Serializable {
 				log.debug("Decoding JWT");
 				
 				String[] chunks = null;
+				String header = null;
+				String payload = null;
 				if (!jwt.startsWith(Constants.App.BEARER_PREFIX)) {
 					log.warn("Bearer prefix not found, trying decoding the token without prefix");
 					chunks = jwt.split("\\.");
+					payload = new String(Base64.getDecoder().decode(chunks[0]));
+
+					// Building the object asserts that all required values are present
+					jwtToken = new JWTTokenDTO(null, JWTPayloadDTO.extractPayload(payload));
 				} else {
 					// Getting header and payload removing the "Bearer " prefix
 					chunks = jwt.substring(Constants.App.BEARER_PREFIX.length()).split("\\.");
-				}
-				
-				if (chunks.length >=2) { // If has at least header and payload
-					final String header = new String(Base64.getDecoder().decode(chunks[0]));
-					final String payload = new String(Base64.getDecoder().decode(chunks[1]));
-	
+					header = new String(Base64.getDecoder().decode(chunks[0]));
+					payload = new String(Base64.getDecoder().decode(chunks[1]));
+
 					// Building the object asserts that all required values are present
 					jwtToken = new JWTTokenDTO(JWTHeaderDTO.extractHeader(header), JWTPayloadDTO.extractPayload(payload));
 				}

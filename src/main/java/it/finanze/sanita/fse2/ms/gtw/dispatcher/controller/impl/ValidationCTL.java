@@ -97,7 +97,9 @@ public class ValidationCTL extends AbstractCTL implements IValidationCTL {
 				msgResult = "Il JWT deve essere valorizzato.";
 				result = ValidationResultEnum.MANDATORY_ELEMENT_ERROR_TOKEN;
 			} else {
-				msgResult = JWTHeaderDTO.validateHeader(jwtToken.getHeader());
+				if (!Boolean.TRUE.equals(msCfg.getFromGovway())) {
+					msgResult = JWTHeaderDTO.validateHeader(jwtToken.getHeader());
+				}
 				if (msgResult == null) {
 					msgResult = JWTPayloadDTO.validatePayload(jwtToken.getPayload());
 				}

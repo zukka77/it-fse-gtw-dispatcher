@@ -84,7 +84,7 @@ public abstract class AbstractTest {
 			if(tokenPresent) {
 				log.info("Simulating a valid json payload");
 				if (fromGovway) {
-					headers.set(Constants.Headers.JWT_GOVWAY_HEADER, generateJwt(StringUtility.encodeSHA256(fileByte)));
+					headers.set(Constants.Headers.JWT_GOVWAY_HEADER, generateJwtPayload(StringUtility.encodeSHA256(fileByte)));
 				} else {
 					headers.set(Constants.Headers.JWT_HEADER, generateJwt(StringUtility.encodeSHA256(fileByte)));
 				}
@@ -143,16 +143,20 @@ public abstract class AbstractTest {
 	}
 
 	protected String generateJwt(final String documentHash) {
-		final JWTPayloadDTO jwtPayload = new JWTPayloadDTO("201123456", 1540890704, 1540918800, "1540918800", 
-			"fse-gateway", "RSSMRA22A01A399Z", "Regione Lazio", "201", 
-			"AAS", "RSSMRA22A01A399Z", true, "TREATMENT", null, "CREATE", documentHash);
 		
 		final JWTHeaderDTO jwtHeader = new JWTHeaderDTO("RS256", Constants.App.JWT_TOKEN_TYPE, null, "X5C cert base 64");
 
 		StringBuilder encodedJwtToken = new StringBuilder(Constants.App.BEARER_PREFIX) // Bearer prefix
 			.append(Base64.getEncoder().encodeToString(new Gson().toJson(jwtHeader).getBytes())) // Header
-			.append(".").append(Base64.getEncoder().encodeToString(new Gson().toJson(jwtPayload).getBytes())); // Payload
+			.append(".").append(generateJwtPayload(documentHash)); // Payload
 		return encodedJwtToken.toString();
 	}
 
+	protected String generateJwtPayload(final String documentHash) {
+		
+		final JWTPayloadDTO jwtPayload = new JWTPayloadDTO("201123456", 1540890704, 1540918800, "1540918800", 
+		"fse-gateway", "RSSMRA22A01A399Z", "Regione Lazio", "201", 
+		"AAS", "RSSMRA22A01A399Z", true, "TREATMENT", null, "CREATE", documentHash);
+		return Base64.getEncoder().encodeToString(new Gson().toJson(jwtPayload).getBytes());
+	}
 }

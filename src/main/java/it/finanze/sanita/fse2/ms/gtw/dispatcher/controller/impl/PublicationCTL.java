@@ -81,7 +81,10 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 			if (jwtToken == null) {
 				out = PublicationOutputDTO.builder().msg(PublicationResultEnum.MANDATORY_ELEMENT_ERROR_TOKEN.getTitle()).result(PublicationResultEnum.MANDATORY_ELEMENT_ERROR_TOKEN).build();
 			} else {
-				String errorMsg = JWTHeaderDTO.validateHeader(jwtToken.getHeader());
+				String errorMsg = null;
+				if (!Boolean.TRUE.equals(msCfg.getFromGovway())) {
+					errorMsg = JWTHeaderDTO.validateHeader(jwtToken.getHeader());
+				}
 				if (errorMsg == null) {
 					errorMsg = JWTPayloadDTO.validatePayload(jwtToken.getPayload());
 				}

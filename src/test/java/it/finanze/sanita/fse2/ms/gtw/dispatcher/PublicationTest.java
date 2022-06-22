@@ -207,7 +207,7 @@ class PublicationTest extends AbstractTest {
 			log.info("Simulating a valid json payload");
 			
 			if (isFromGovway) {
-				headers.set(Constants.Headers.JWT_GOVWAY_HEADER, generateJwt(StringUtility.encodeSHA256(fileByte)));
+				headers.set(Constants.Headers.JWT_GOVWAY_HEADER, generateJwtPayload(StringUtility.encodeSHA256(fileByte)));
 			} else {
 				headers.set(Constants.Headers.JWT_HEADER, generateJwt(StringUtility.encodeSHA256(fileByte)));
 			}
