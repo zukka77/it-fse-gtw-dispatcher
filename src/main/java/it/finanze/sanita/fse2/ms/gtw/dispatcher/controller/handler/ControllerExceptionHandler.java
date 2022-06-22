@@ -45,7 +45,7 @@ public class ControllerExceptionHandler extends ResponseEntityExceptionHandler {
 	 */
     @ExceptionHandler(value = {ValidationErrorException.class})
     protected ResponseEntity<ValidationErrorResponseDTO> handleValidationException(final ValidationErrorException ex, final WebRequest request) {
-    	log.info("HANDLER ValidationErrorException");
+    	log.error("" , ex);   	
     	Integer status = 400;
     	if (ValidationResultEnum.SEMANTIC_ERROR.equals(ex.getResult())) {
         	status = 422;
@@ -71,7 +71,7 @@ public class ControllerExceptionHandler extends ResponseEntityExceptionHandler {
 	 */
     @ExceptionHandler(value = {ConnectionRefusedException.class})
     protected ResponseEntity<ErrorResponseDTO> handleConnectionRefusedException(final ConnectionRefusedException ex, final WebRequest request) {
-    	log.info("HANDLER handleGenericException");
+    	log.error("" , ex);
     	Integer status = 500;
     	
     	String url  = ex.getUrl() != null ? ex.getUrl() : "";
@@ -93,7 +93,7 @@ public class ControllerExceptionHandler extends ResponseEntityExceptionHandler {
 	 */
     @ExceptionHandler(value = {Exception.class})
     protected ResponseEntity<ErrorResponseDTO> handleGenericException(final Exception ex, final WebRequest request) {
-    	log.info("HANDLER handleGenericException");
+    	log.error("" , ex);
     	Integer status = 500;
 
 		ErrorResponseDTO out = new ErrorResponseDTO(getLogTraceInfo(), "/msg/generic-error", "Errore generico", "Errore generico", status, "/msg/generic-error");
@@ -113,7 +113,7 @@ public class ControllerExceptionHandler extends ResponseEntityExceptionHandler {
 	 */
     @ExceptionHandler(value = {MaxUploadSizeExceededException.class})
     protected ResponseEntity<ErrorResponseDTO> handleMaxUploadSizeExceededException(final Exception ex, final WebRequest request) {
-    	log.info("HANDLER handleMaxUploadSizeExceededException");
+    	log.error("" , ex);
     	ValidationResultEnum result = ValidationResultEnum.DOCUMENT_SIZE_ERROR;
     	Integer status = 400;
 
@@ -134,7 +134,7 @@ public class ControllerExceptionHandler extends ResponseEntityExceptionHandler {
 	 */
     @ExceptionHandler(value = {ValidationPublicationErrorException.class})
     protected ResponseEntity<ErrorResponseDTO> handleValidationException(final ValidationPublicationErrorException ex, final WebRequest request) {
-    	log.info("HANDLER ValidationErrorException");
+    	log.error("" , ex);
     	Integer status = 400;
      
     	if (PublicationResultEnum.MANDATORY_ELEMENT_ERROR_TOKEN.equals(ex.getResult())) {
