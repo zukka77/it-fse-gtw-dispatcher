@@ -52,7 +52,7 @@ public class ControllerExceptionHandler extends ResponseEntityExceptionHandler {
     	}
     	
     	if (ValidationResultEnum.MANDATORY_ELEMENT_ERROR_TOKEN.equals(ex.getResult())) {
-        	status = 401;
+        	status = 400;
     	}
     	ValidationErrorResponseDTO out = new ValidationErrorResponseDTO(getLogTraceInfo(), ex.getResult().getType(), ex.getResult().getTitle(), ex.getMessage(), status, ex.getResult().getType(), ex.getTransactionId());
     	
@@ -138,7 +138,7 @@ public class ControllerExceptionHandler extends ResponseEntityExceptionHandler {
     	Integer status = 400;
      
     	if (PublicationResultEnum.MANDATORY_ELEMENT_ERROR_TOKEN.equals(ex.getResult())) {
-        	status = 401;
+        	status = 400;
     	}
     	ErrorResponseDTO out = new ErrorResponseDTO(getLogTraceInfo(), ex.getResult().getType(), ex.getResult().getTitle(), ex.getMessage(), status, ex.getResult().getType());
     	
