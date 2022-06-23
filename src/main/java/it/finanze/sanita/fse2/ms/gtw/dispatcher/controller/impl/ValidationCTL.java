@@ -72,7 +72,7 @@ public class ValidationCTL extends AbstractCTL implements IValidationCTL {
 		
 		ValidationResultEnum result = null;
 		String msgResult = null;
-		
+		String warning = null;
 		JWTTokenDTO jwtToken = null;
 		if (Boolean.TRUE.equals(msCfg.getFromGovway())) {
 			jwtToken = extractJWT(request.getHeader(Constants.Headers.JWT_GOVWAY_HEADER));
@@ -141,6 +141,9 @@ public class ValidationCTL extends AbstractCTL implements IValidationCTL {
 												result = ValidationResultEnum.SEMANTIC_ERROR;
 											} else if(RawValidationEnum.VOCABULARY_ERROR.equals(validationRes.getResult())) {
 												result = ValidationResultEnum.VOCABULARY_ERROR;
+											} else if(RawValidationEnum.SEMANTIC_WARNING.equals(validationRes.getResult())) {
+												result = ValidationResultEnum.OK;
+												warning = msgResult + ".";
 											} else {
 												result = ValidationResultEnum.GENERIC_ERROR;
 											} 
@@ -167,10 +170,10 @@ public class ValidationCTL extends AbstractCTL implements IValidationCTL {
 		}
 
 		elasticLogger.info("Validation CDA completed for workflow instance id " + workflowInstanceId, OperationLogEnum.VAL_CDA2, ResultLogEnum.OK, startDateOperation);
-
-		String warning = null;
+		
 		if(jsonObj.getMode() ==null) {
-			warning = "Attenzione, non è stata selezionata la modalità di estrazione del CDA";
+			String schematronWarn = StringUtility.isNullOrEmpty(warning) ? "" : warning;
+			warning = "[" + schematronWarn + "[WARNING_EXTRACT]Attenzione, non è stata selezionata la modalità di estrazione del CDA]";
 		}
 		
 		if (jsonObj!=null && ActivityEnum.VALIDATION.equals(jsonObj.getActivity())){
