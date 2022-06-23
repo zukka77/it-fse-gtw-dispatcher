@@ -127,18 +127,18 @@ public class KafkaSRV implements IKafkaSRV {
 	}
 	
 	@Override
-	public void sendValidationStatus(final String transactionId, final EventStatusEnum eventStatus, final String message, 
+	public void sendValidationStatus(final String traceId,final String transactionId, final EventStatusEnum eventStatus, final String message, 
 		final ValidationCDAReqDTO validationReq, final JWTPayloadDTO jwtClaimDTO) {
 		
-		sendStatusMessage(transactionId, EventTypeEnum.VALIDATION, eventStatus, message, null,jwtClaimDTO,null);
+		sendStatusMessage(traceId,transactionId, EventTypeEnum.VALIDATION, eventStatus, message, null,jwtClaimDTO,null);
 	}
 
 	@Override
-	public void sendPublicationStatus(final EventStatusEnum eventStatus, final String message, 
+	public void sendPublicationStatus(final String traceId,final EventStatusEnum eventStatus, final String message, 
 		final PublicationCreationReqDTO publicationReq, final JWTPayloadDTO jwtClaimDTO) {
 		
 		if (publicationReq != null) {
-			sendStatusMessage(publicationReq.getWorkflowInstanceId(), EventTypeEnum.PUBLICATION, eventStatus, message, publicationReq.getIdentificativoDoc(), 
+			sendStatusMessage(traceId,publicationReq.getWorkflowInstanceId(), EventTypeEnum.PUBLICATION, eventStatus, message, publicationReq.getIdentificativoDoc(), 
 				 jwtClaimDTO,publicationReq.getTipoAttivitaClinica());
 		}
 	}
@@ -147,7 +147,7 @@ public class KafkaSRV implements IKafkaSRV {
 	public void sendFeedingStatus(final String transactionId, final EventStatusEnum eventStatus, final String message, 
 			final TSPublicationCreationReqDTO feedingReq, final JWTPayloadDTO jwtClaimDTO) {
 		
-		sendStatusMessage(transactionId, EventTypeEnum.FEEDING, eventStatus, message, feedingReq.getIdentificativoDoc(), 
+		sendStatusMessage(null,transactionId, EventTypeEnum.FEEDING, eventStatus, message, feedingReq.getIdentificativoDoc(), 
 			jwtClaimDTO, feedingReq.getTipoAttivitaClinica());
 	}
 
@@ -155,7 +155,7 @@ public class KafkaSRV implements IKafkaSRV {
 	public void sendHistoricalValidationStatus(String transactionId, EventStatusEnum eventStatus, String message,
 			HistoricalValidationCDAReqDTO historicalValidationReq, JWTPayloadDTO jwtClaimDTO) {
 		
-		sendStatusMessage(transactionId, EventTypeEnum.HISTORICAL_VALIDATION, eventStatus, message, historicalValidationReq.getIdentificativoDoc(), 
+		sendStatusMessage(null,transactionId, EventTypeEnum.HISTORICAL_VALIDATION, eventStatus, message, historicalValidationReq.getIdentificativoDoc(), 
 			 jwtClaimDTO, historicalValidationReq.getTipoAttivitaClinica());
 		
 	}
@@ -166,17 +166,18 @@ public class KafkaSRV implements IKafkaSRV {
 
 		if (historicalPublicationReq != null) {
 	
-			sendStatusMessage(historicalPublicationReq.getTransactionID(), EventTypeEnum.HISTORICAL_PUBLICATION, eventStatus, 
+			sendStatusMessage(null,historicalPublicationReq.getTransactionID(), EventTypeEnum.HISTORICAL_PUBLICATION, eventStatus, 
 					message, historicalPublicationReq.getIdentificativoDoc(), jwtClaimDTO,historicalPublicationReq.getTipoAttivitaClinica());
 		}
 
 	}
 
-	private void sendStatusMessage(final String transactionId, final EventTypeEnum eventType,
+	private void sendStatusMessage(final String traceId,final String transactionId, final EventTypeEnum eventType,
 			final EventStatusEnum eventStatus, final String message, final String documentId,  
 			final JWTPayloadDTO jwtClaimDTO, AttivitaClinicaEnum tipoAttivita) {
 		try {
 			KafkaStatusManagerDTO statusManagerMessage = KafkaStatusManagerDTO.builder().
+					traceId(traceId).
 					eventType(eventType).
 					eventDate(new Date()).
 					eventStatus(eventStatus).

@@ -39,14 +39,16 @@ public interface IKafkaSRV extends Serializable {
 	 */
 	void notifyPublisher(String transactionId);
 	
-	void sendValidationStatus(String transactionId, EventStatusEnum eventStatus, String message, ValidationCDAReqDTO validationReq, JWTPayloadDTO jwtClaimDTO);
-
-	void sendPublicationStatus(EventStatusEnum eventStatus, String message, PublicationCreationReqDTO publicationReq, JWTPayloadDTO jwtClaimDTO);
+	void sendValidationStatus(String traceId,String transactionId, EventStatusEnum eventStatus, String message, ValidationCDAReqDTO validationReq, JWTPayloadDTO jwtClaimDTO);
+	
+	void sendPublicationStatus(String traceId,EventStatusEnum eventStatus, String message,PublicationCreationReqDTO publicationReq, JWTPayloadDTO jwtClaimDTO);
 
 	void sendFeedingStatus(String transactionId, EventStatusEnum eventStatus, String message, TSPublicationCreationReqDTO publicationReq, JWTPayloadDTO jwtClaimDTO);
 
 	void sendHistoricalValidationStatus(String transactionId, EventStatusEnum eventStatus, String message, HistoricalValidationCDAReqDTO historicalValidationReq, JWTPayloadDTO jwtClaimDTO);
 
 	void sendHistoricalPublicationStatus(EventStatusEnum eventStatus, String message, HistoricalPublicationCreationReqDTO historicalPublicationReq, JWTPayloadDTO jwtClaimDTO);
+	
+	
 
 }
