@@ -22,14 +22,19 @@ public class ValidationCDAResDTO extends ResponseDTO {
 	
 	@Size(min = 0, max = 256)
 	private String workflowInstanceId;
+	
+	@Size(min = 0, max = 256)
+	private String warning;
 
 	public ValidationCDAResDTO() {
 		super();
 	}
 
-	public ValidationCDAResDTO(final LogTraceInfoDTO traceInfo, final String inWorkflowInstanceId) {
+	public ValidationCDAResDTO(final LogTraceInfoDTO traceInfo, final String inWorkflowInstanceId,
+			final String inWarning) {
 		super(traceInfo);
 		workflowInstanceId = inWorkflowInstanceId;
+		warning = inWarning;
 	}
 	
 }

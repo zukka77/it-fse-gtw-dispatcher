@@ -23,11 +23,11 @@ public class ValidationErrorException extends RuntimeException {
 	private final ValidationResultEnum result;
 
 	@Getter
-	private final String transactionId;
+	private final String workflowInstanceId;
 
-	public ValidationErrorException(final ValidationResultEnum inResult, final String msg, final String inTransactionId) {
+	public ValidationErrorException(final ValidationResultEnum inResult, final String msg, final String inWorkflowInstanceId) {
 		super(msg);
-		transactionId = inTransactionId;
+		workflowInstanceId = inWorkflowInstanceId;
 		result = inResult;
 	}
 

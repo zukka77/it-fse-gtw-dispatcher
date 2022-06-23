@@ -150,7 +150,7 @@ class PublicationTest extends AbstractTest {
 		assertNotNull(jwtToken);
 		assertNotNull(jwtToken.getHeader());
 		assertNotNull(jwtToken.getPayload());
-		assertEquals(encoded, jwtToken.getPayload().getHash());
+		assertEquals(encoded, jwtToken.getPayload().getAttachment_hash());
 	}
 
 	@Test
@@ -240,11 +240,10 @@ class PublicationTest extends AbstractTest {
 				forcePublish(false).
 				healthDataFormat(HealthDataFormatEnum.CDA).
 				identificativoDoc("Identificativo doc").
-				identificativoPaziente(randomFiscalCode()).
 				identificativoRep("Identificativo rep").
 				identificativoSottomissione("Identificativo Sottomissione").
 				mode(InjectionModeEnum.ATTACHMENT).
-				regoleAccesso(java.util.Arrays.asList(EventCodeEnum._94503_0)).
+				attiCliniciRegoleAccesso(java.util.Arrays.asList(EventCodeEnum._94503_0)).
 				tipoAttivitaClinica(AttivitaClinicaEnum.CONSULTO).
 				tipoDocumentoLivAlto(TipoDocAltoLivEnum.DOCUMENTO_WORKFLOW).
 				tipologiaStruttura(HealthcareFacilityEnum.OSPEDALE).

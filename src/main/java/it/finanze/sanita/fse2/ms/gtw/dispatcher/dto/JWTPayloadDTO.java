@@ -2,6 +2,8 @@ package it.finanze.sanita.fse2.ms.gtw.dispatcher.dto;
 
 import org.apache.commons.lang3.StringUtils;
 
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.PurposeOfUseEnum;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.SubjectOrganizationEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.CfUtility;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility;
 import lombok.AllArgsConstructor;
@@ -57,6 +59,11 @@ public class JWTPayloadDTO {
 	 * Identificativo del dominio dell’utente (vedi TABELLA ORGANIZZAZIONE).
 	 */
 	private String subject_organization_id;
+	
+	/**
+	 * Descrizione organization.
+	 */
+	private String subject_organization;
 
 	/**
 	 * Identificativo della struttura utente.
@@ -104,7 +111,7 @@ public class JWTPayloadDTO {
 	 */
 	private String action_id;
 
-	private String hash;
+	private String attachment_hash;
 
 	/**
 	 * Map the object from JSON to object.
@@ -134,13 +141,15 @@ public class JWTPayloadDTO {
 			error = "Invalid subject fiscal code";
 		} else if (!CfUtility.isValidCf(payload.getPerson_id())) {
 			error = "Invalid person fiscal code";
-		} else if (StringUtils.isEmpty(payload.getSubject_organization_id())) {
+		} else if (SubjectOrganizationEnum.getCode(payload.getSubject_organization_id())==null) {
 			error = "Invalid subject organization id";
+		} else if (SubjectOrganizationEnum.getDisplay(payload.getSubject_organization())==null) {
+			error = "Invalid subject organization";
 		} else if (StringUtils.isEmpty(payload.getLocality())) {
 			error = "Invalid locality";
 		} else if (StringUtils.isEmpty(payload.getSubject_role())) {
 			error = "Invalid subject role";
-		} else if (StringUtils.isEmpty(payload.getPurpose_of_use())) {
+		} else if (PurposeOfUseEnum.get(payload.getPurpose_of_use())==null) {
 			error = "Invalid purpose of use";
 		} else if (!ActionEnum.isAllowed(payload.getAction_id())) {
 			error = "Action not allowed";

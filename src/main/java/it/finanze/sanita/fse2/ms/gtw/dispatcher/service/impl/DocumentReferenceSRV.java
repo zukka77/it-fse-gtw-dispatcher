@@ -39,7 +39,7 @@ public class DocumentReferenceSRV implements IDocumentReferenceSRV {
  
 	@Override
 	public FhirResourceDTO createFhirResources(final String cda, final PublicationCreationReqDTO requestBody, 
-			final Integer size, final String hash) {
+			final Integer size, final String hash, final String sourcePatientId) {
 		FhirResourceDTO output = new FhirResourceDTO();
 		try {
 			org.jsoup.nodes.Document docCDA = Jsoup.parse(cda);
@@ -60,7 +60,7 @@ public class DocumentReferenceSRV implements IDocumentReferenceSRV {
 				
 				if(StringUtility.isNullOrEmpty(documentReferenceDTO.getErrorMessage())) {
 					try {
-						DocumentEntryDTO documentEntryDTO = createDocumentEntry(docCDA, requestBody, size, hash);
+						DocumentEntryDTO documentEntryDTO = createDocumentEntry(docCDA, requestBody, size, hash,sourcePatientId);
 						output.setDocumentEntryJson(StringUtility.toJSON(documentEntryDTO));
 					} catch(Exception ex) {
 						output.setErrorMessage(ex.getCause().getCause().getMessage());
@@ -86,11 +86,10 @@ public class DocumentReferenceSRV implements IDocumentReferenceSRV {
 			documentReferenceDTO.setHash(hash);
 			documentReferenceDTO.setFacilityTypeCode(requestBody.getTipologiaStruttura().getCode());
 			
-			if(requestBody.getRegoleAccesso()!=null && !requestBody.getRegoleAccesso().isEmpty()) {
-				documentReferenceDTO.setEventCode(requestBody.getRegoleAccesso().stream().map(e->e.getCode()).collect(Collectors.toList()));
+			if(requestBody.getAttiCliniciRegoleAccesso()!=null && !requestBody.getAttiCliniciRegoleAccesso().isEmpty()) {
+				documentReferenceDTO.setEventCode(requestBody.getAttiCliniciRegoleAccesso().stream().map(e->e.getCode()).collect(Collectors.toList()));
 			}
 			documentReferenceDTO.setPracticeSettingCode(requestBody.getAssettoOrganizzativo().getDescription());
-			documentReferenceDTO.setPatientID(requestBody.getIdentificativoPaziente());
 			documentReferenceDTO.setTipoDocumentoLivAlto(requestBody.getTipoDocumentoLivAlto().getCode());
 			documentReferenceDTO.setRepositoryUniqueID(requestBody.getIdentificativoRep());
 			documentReferenceDTO.setServiceStartTime(requestBody.getDataInizioPrestazione());
@@ -163,7 +162,8 @@ public class DocumentReferenceSRV implements IDocumentReferenceSRV {
 	}
 	
 	private DocumentEntryDTO createDocumentEntry(final org.jsoup.nodes.Document docCDA ,
-			final PublicationCreationReqDTO requestBody,final Integer size, final String hash) {
+			final PublicationCreationReqDTO requestBody,final Integer size, final String hash,
+			final String sourcePatientId) {
 
 		DocumentEntryDTO de = null;
 		try {
@@ -178,13 +178,14 @@ public class DocumentReferenceSRV implements IDocumentReferenceSRV {
 			de.setLanguageCode("it-IT");
 
 			de.setHealthcareFacilityTypeCode(requestBody.getTipologiaStruttura().getCode());
-			if (!CollectionUtils.isEmpty(requestBody.getRegoleAccesso())) {
-				de.setEventCodeList(requestBody.getRegoleAccesso().stream().map(EventCodeEnum::getCode).collect(Collectors.toList()));
+			if (!CollectionUtils.isEmpty(requestBody.getAttiCliniciRegoleAccesso())) {
+				de.setEventCodeList(requestBody.getAttiCliniciRegoleAccesso().stream().map(EventCodeEnum::getCode).collect(Collectors.toList()));
 			}
 			de.setRepositoryUniqueId(requestBody.getIdentificativoRep());
 			de.setClassCode(requestBody.getTipoDocumentoLivAlto().getCode());
 			de.setPracticeSettingCode(requestBody.getAssettoOrganizzativo().getDescription());
-			de.setSourcePatientId(requestBody.getIdentificativoPaziente());
+			//TODO - Capire come settare questo parametro per ini
+//			de.setSourcePatientId(requestBody.getIdentificativoPaziente());
 
 			SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmmss");
 

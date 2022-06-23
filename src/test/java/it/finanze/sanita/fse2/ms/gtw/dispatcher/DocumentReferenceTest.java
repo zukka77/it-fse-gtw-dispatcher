@@ -65,7 +65,7 @@ public class DocumentReferenceTest extends AbstractTest {
 		String cda = new String(cdaFile);
 		PublicationCreationReqDTO reqDTO = buildPublicationReqDTO(transactionId);
 		String documentSha = StringUtility.encodeSHA256(cdaFile);
-		FhirResourceDTO resourceDTO = documentReferenceSRV.createFhirResources(cda, reqDTO, documentSha.length(), documentSha);
+		FhirResourceDTO resourceDTO = documentReferenceSRV.createFhirResources(cda, reqDTO, documentSha.length(), documentSha,null);
 		assertNotNull(resourceDTO.getDocumentEntryJson());
 		assertNotNull(resourceDTO.getDocumentReferenceJson());
 		assertNotNull(resourceDTO.getSubmissionSetEntryJson());
@@ -93,11 +93,10 @@ public class DocumentReferenceTest extends AbstractTest {
 				forcePublish(false).
 				healthDataFormat(HealthDataFormatEnum.CDA).
 				identificativoDoc("Identificativo doc").
-				identificativoPaziente("Identificativo Paziente").
 				identificativoRep("Identificativo rep").
 				identificativoSottomissione("identificativo sottomissione").
 				mode(InjectionModeEnum.ATTACHMENT).
-				regoleAccesso(Arrays.asList(EventCodeEnum._94503_0)).
+				attiCliniciRegoleAccesso(Arrays.asList(EventCodeEnum._94503_0)).
 				tipoAttivitaClinica(AttivitaClinicaEnum.CONSULTO).
 				tipoDocumentoLivAlto(TipoDocAltoLivEnum.PRESCRIZIONE).
 				tipologiaStruttura(HealthcareFacilityEnum.OSPEDALE).

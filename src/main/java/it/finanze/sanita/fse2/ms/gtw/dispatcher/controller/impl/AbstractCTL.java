@@ -162,12 +162,11 @@ public abstract class AbstractCTL implements Serializable {
 		.healthDataFormat(historicalDTO.getHealthDataFormat())
         .mode(historicalDTO.getMode())
         .tipologiaStruttura(historicalDTO.getTipologiaStruttura())
-        .regoleAccesso(historicalDTO.getRegoleAccesso())
+        .attiCliniciRegoleAccesso(historicalDTO.getRegoleAccesso())
         .identificativoDoc(historicalDTO.getIdentificativoDoc())
         .identificativoRep(historicalDTO.getIdentificativoRep())
         .tipoDocumentoLivAlto(historicalDTO.getTipoDocumentoLivAlto())
         .assettoOrganizzativo(historicalDTO.getAssettoOrganizzativo())
-        .identificativoPaziente(historicalDTO.getIdentificativoPaziente())
         .dataInizioPrestazione(historicalDTO.getDataInizioPrestazione())
         .dataFinePrestazione(historicalDTO.getDataFinePrestazione())
         .conservazioneSostitutiva(historicalDTO.getConservazioneSostitutiva())
@@ -182,12 +181,11 @@ public abstract class AbstractCTL implements Serializable {
 				.healthDataFormat(tsDTO.getHealthDataFormat())
 				.mode(tsDTO.getMode())
 				.tipologiaStruttura(tsDTO.getTipologiaStruttura())
-				.regoleAccesso(tsDTO.getRegoleAccesso())
+				.attiCliniciRegoleAccesso(tsDTO.getRegoleAccesso())
 				.identificativoDoc(tsDTO.getIdentificativoDoc())
 				.identificativoRep(tsDTO.getIdentificativoRep())
 				.tipoDocumentoLivAlto(tsDTO.getTipoDocumentoLivAlto())
 				.assettoOrganizzativo(tsDTO.getAssettoOrganizzativo())
-				.identificativoPaziente(tsDTO.getIdentificativoPaziente())
 				.dataInizioPrestazione(tsDTO.getDataInizioPrestazione())
 				.dataFinePrestazione(tsDTO.getDataFinePrestazione())
 				.conservazioneSostitutiva(tsDTO.getConservazioneSostitutiva())
@@ -237,8 +235,6 @@ public abstract class AbstractCTL implements Serializable {
     		out = "Il campo tipo documento liv alto deve essere valorizzato.";
     	} else if (jsonObj.getAssettoOrganizzativo()==null) {
     		out = "Il campo assetto organizzativo deve essere valorizzato.";
-    	} else if (!CfUtility.isValidCf(jsonObj.getIdentificativoPaziente())) {
-    		out = "Il campo identificativo paziente deve essere valorizzato con un codice fiscale valido.";
     	} else if (jsonObj.getTipoAttivitaClinica()==null) {
     		out = "Il campo tipo attivita clinica deve essere valorizzato.";
     	} else if (StringUtility.isNullOrEmpty(jsonObj.getIdentificativoSottomissione())) {
@@ -416,7 +412,7 @@ public abstract class AbstractCTL implements Serializable {
 
     protected PublicationOutputDTO validateDocumentHash(final String encodedPDF, final JWTTokenDTO jwtToken) {
 
-		if (!encodedPDF.equals(jwtToken.getPayload().getHash())) {
+		if (!encodedPDF.equals(jwtToken.getPayload().getAttachment_hash())) {
 			return PublicationOutputDTO.builder().msg(PublicationResultEnum.DOCUMENT_HASH_VALIDATION_ERROR.getTitle())
 					.result(PublicationResultEnum.DOCUMENT_HASH_VALIDATION_ERROR).build();
 		} else {

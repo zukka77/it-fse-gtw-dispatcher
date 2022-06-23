@@ -5,8 +5,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public enum HealthDataFormatEnum {
 
-	CDA("V"), 
-	FHIR("P"),
+	CDA("V"),  
 	DICOM_SR("D");
 
 	private String code;

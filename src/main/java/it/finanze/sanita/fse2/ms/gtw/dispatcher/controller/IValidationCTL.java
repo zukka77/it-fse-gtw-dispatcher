@@ -40,7 +40,9 @@ public interface IValidationCTL {
 			@ApiResponse(responseCode = "201", description = "Validazione eseguita con inserimento in cache", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ValidationCDAResDTO.class))),
 			@ApiResponse(responseCode = "400", description = "Bad Request", content = @Content(mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE, schema = @Schema(implementation = ValidationErrorResponseDTO.class))),
 			@ApiResponse(responseCode = "401", description = "Token jwt mancante", content = @Content(mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE, schema = @Schema(implementation = ValidationErrorResponseDTO.class))),
+			@ApiResponse(responseCode = "415", description = "Unsupported media type", content = @Content(mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE, schema = @Schema(implementation = ValidationErrorResponseDTO.class))),
 			@ApiResponse(responseCode = "422", description = "Richiesta semanticamente non processabile", content = @Content(mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE, schema = @Schema(implementation = ValidationErrorResponseDTO.class))),
+			@ApiResponse(responseCode = "429", description = "Too Many Requests", content = @Content(mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE, schema = @Schema(implementation = ValidationErrorResponseDTO.class))),
 			@ApiResponse(responseCode = "500", description = "Internal Server Error", content = @Content(mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE, schema = @Schema(implementation = ValidationErrorResponseDTO.class))) })
 	ResponseEntity<ValidationCDAResDTO> validationCDA(@RequestBody(required = false) ValidationCDAReqDTO requestBody,
 			@RequestPart("file") MultipartFile file, HttpServletRequest request);

@@ -52,7 +52,7 @@ public class PublicationCreationReqDTO extends AbstractDTO {
 
 	@Schema(description = "Regole di accesso")
 	@Size(min = 0, max = 100)
-	private List<EventCodeEnum> regoleAccesso;
+	private List<EventCodeEnum> attiCliniciRegoleAccesso;
 
 	@Schema(description = "Identificativo documento", required = true)
 	@Size(min = 0, max = 100)
@@ -67,10 +67,6 @@ public class PublicationCreationReqDTO extends AbstractDTO {
 
 	@Schema(description = "Assetto organizzativo che ha portato alla creazione del documento", required = true)
 	private PracticeSettingCodeEnum assettoOrganizzativo;
-
-	@Schema(description = "Identificativo del paziente al momento della creazione del documento", required = true)
-	@Size(min = 11, max = 16)
-	private String identificativoPaziente;
 
 	@Schema(description = "Data inizio prestazione")
 	@Size(min = 0, max = 100)

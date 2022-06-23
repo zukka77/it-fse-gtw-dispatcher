@@ -168,10 +168,15 @@ public class ValidationCTL extends AbstractCTL implements IValidationCTL {
 
 		elasticLogger.info("Validation CDA completed for workflow instance id " + workflowInstanceId, OperationLogEnum.VAL_CDA2, ResultLogEnum.OK, startDateOperation);
 
+		String warning = null;
+		if(jsonObj.getMode() ==null) {
+			warning = "Attenzione, non è stata selezionata la modalità di estrazione del CDA";
+		}
+		
 		if (jsonObj!=null && ActivityEnum.VALIDATION.equals(jsonObj.getActivity())){
-			return new ResponseEntity<>(new ValidationCDAResDTO(getLogTraceInfo(), workflowInstanceId), HttpStatus.CREATED);
+			return new ResponseEntity<>(new ValidationCDAResDTO(getLogTraceInfo(), workflowInstanceId,warning), HttpStatus.CREATED);
 		} 
-		return new ResponseEntity<>(new ValidationCDAResDTO(getLogTraceInfo(), workflowInstanceId), HttpStatus.OK);
+		return new ResponseEntity<>(new ValidationCDAResDTO(getLogTraceInfo(), workflowInstanceId,warning), HttpStatus.OK);
 		
 	}
 

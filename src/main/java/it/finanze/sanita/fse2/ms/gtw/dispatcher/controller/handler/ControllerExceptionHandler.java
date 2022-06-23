@@ -19,6 +19,7 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ValidationResultEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.ConnectionRefusedException;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.ValidationErrorException;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.ValidationPublicationErrorException;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -54,7 +55,14 @@ public class ControllerExceptionHandler extends ResponseEntityExceptionHandler {
     	if (ValidationResultEnum.MANDATORY_ELEMENT_ERROR_TOKEN.equals(ex.getResult())) {
         	status = 401;
     	}
-    	ValidationErrorResponseDTO out = new ValidationErrorResponseDTO(getLogTraceInfo(), ex.getResult().getType(), ex.getResult().getTitle(), ex.getMessage(), status, ex.getResult().getType(), ex.getTransactionId());
+    	
+    	if(ValidationResultEnum.DOCUMENT_TYPE_ERROR.equals(ex.getResult())) {
+    		status = 415;
+    	}
+
+    	String workflowInstanceId = StringUtility.isNullOrEmpty(ex.getWorkflowInstanceId()) ? null : ex.getWorkflowInstanceId(); 
+    	
+    	ValidationErrorResponseDTO out = new ValidationErrorResponseDTO(getLogTraceInfo(), ex.getResult().getType(), ex.getResult().getTitle(), ex.getMessage(), status, ex.getResult().getType(), workflowInstanceId);
     	
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_PROBLEM_JSON);

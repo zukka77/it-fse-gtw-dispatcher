@@ -155,7 +155,7 @@ public abstract class AbstractTest {
 	protected String generateJwtPayload(final String documentHash) {
 		
 		final JWTPayloadDTO jwtPayload = new JWTPayloadDTO("201123456", 1540890704, 1540918800, "1540918800", 
-		"fse-gateway", "RSSMRA22A01A399Z", "Regione Lazio", "201", 
+		"fse-gateway", "RSSMRA22A01A399Z", "120", "Regione Lazio", "Regione Lazio",
 		"AAS", "RSSMRA22A01A399Z", true, "TREATMENT", null, "CREATE", documentHash);
 		return Base64.getEncoder().encodeToString(new Gson().toJson(jwtPayload).getBytes());
 	}
