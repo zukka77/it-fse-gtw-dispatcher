@@ -91,6 +91,15 @@ public final class Constants {
 		}
 	}
   
+	public static final class OIDS {
+
+        public static final String OID_MEF = "2.16.840.1.113883.2.9.4.3.2";
+        
+        private OIDS() {
+            //This method is intentionally left blank.
+        }
+    }
+	
 	/**
 	 *	Constants.
 	 */

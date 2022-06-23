@@ -2,6 +2,7 @@ package it.finanze.sanita.fse2.ms.gtw.dispatcher.dto;
 
 import org.apache.commons.lang3.StringUtils;
 
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.PurposeOfUseEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.SubjectOrganizationEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.CfUtility;
@@ -137,9 +138,9 @@ public class JWTPayloadDTO {
 
 		if (payload == null) {
 			error = "JWT payload is not valid";
-		} else if (!CfUtility.isValidCf(payload.getSub())) {
+		} else if (!isValidOid(payload.getSub())) {
 			error = "Invalid subject fiscal code";
-		} else if (!CfUtility.isValidCf(payload.getPerson_id())) {
+		} else if (!isValidOid(payload.getPerson_id())) {
 			error = "Invalid person fiscal code";
 		} else if (SubjectOrganizationEnum.getCode(payload.getSubject_organization_id())==null) {
 			error = "Invalid subject organization id";
@@ -160,9 +161,27 @@ public class JWTPayloadDTO {
 		} else if (!payload.getSub().equals(payload.getPerson_id())
 				&& payload.getPatient_consent() == null) {
 			error = "Patient consent is mandatory if subject and person id are different";
+		} else if (!Boolean.TRUE.equals(payload.getPatient_consent())) {
+			error = "Patient consent is mandatory";
 		}
 
 		return error;
+	}
+	
+	private static boolean isValidOid(String rawOid) {
+		final String [] chunks = rawOid.split("\\^\\^\\^");
+		
+		if (chunks.length > 1) {
+			log.debug("Searching oid");
+			final String[] chunkedInfo = chunks[1].split("&amp;");
+			if (chunkedInfo.length > 1 && Constants.OIDS.OID_MEF.equals(chunkedInfo[1])) {
+				return CfUtility.isValidCf(chunks[0]);
+			} else {
+				return true;
+			}
+		} else {
+			return true;
+		}
 	}
 
 	private enum ActionEnum {
