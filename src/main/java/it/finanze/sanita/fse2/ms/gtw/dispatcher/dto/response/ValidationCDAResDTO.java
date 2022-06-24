@@ -23,7 +23,7 @@ public class ValidationCDAResDTO extends ResponseDTO {
 	@Size(min = 0, max = 256)
 	private String workflowInstanceId;
 	
-	@Size(min = 0, max = 256)
+	@Size(min = 0)
 	private String warning;
 
 	public ValidationCDAResDTO() {
