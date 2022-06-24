@@ -52,8 +52,9 @@ public class ControllerExceptionHandler extends ResponseEntityExceptionHandler {
         	status = 422;
     	}
     	
-    	if (ValidationResultEnum.MANDATORY_ELEMENT_ERROR_TOKEN.equals(ex.getResult())) {
-        	status = 400;
+    	if (ValidationResultEnum.MANDATORY_ELEMENT_ERROR_TOKEN.equals(ex.getResult()) || 
+    			ValidationResultEnum.INVALID_TOKEN_FIELD.equals(ex.getResult())) {
+        	status = 403;
     	}
     	
     	if(ValidationResultEnum.DOCUMENT_TYPE_ERROR.equals(ex.getResult())) {
