@@ -167,17 +167,20 @@ public class ValidationCTL extends AbstractCTL implements IValidationCTL {
         }
 
 		if (!ValidationResultEnum.OK.equals(result)) {
-			elasticLogger.error(msgResult + " " + workflowInstanceId, OperationLogEnum.VAL_CDA2, ResultLogEnum.KO, startDateOperation, result != null ? result.getErrorCategory() : null);
+			elasticLogger.error(msgResult + " " + workflowInstanceId, OperationLogEnum.VAL_CDA2, ResultLogEnum.KO, startDateOperation, result != null ? result.getErrorCategory() : null,
+					jwtToken.getPayload().getIss());
 			throw new ValidationErrorException(result, msgResult, workflowInstanceId);
 		}
 
-		elasticLogger.info("Validation CDA completed for workflow instance id " + workflowInstanceId, OperationLogEnum.VAL_CDA2, ResultLogEnum.OK, startDateOperation);
+		elasticLogger.info("Validation CDA completed for workflow instance id " + workflowInstanceId, OperationLogEnum.VAL_CDA2, ResultLogEnum.OK, startDateOperation,
+				jwtToken.getPayload().getIss());
 		
 		if(jsonObj.getMode() ==null) {
 			String schematronWarn = StringUtility.isNullOrEmpty(warning) ? "" : warning;
 			warning = "[" + schematronWarn + "[WARNING_EXTRACT]Attenzione, non è stata selezionata la modalità di estrazione del CDA]";
 		}
 		
+		request.setAttribute("JWT_ISSUER", jwtToken.getPayload().getIss());
 		if (jsonObj!=null && ActivityEnum.VALIDATION.equals(jsonObj.getActivity())){
 			return new ResponseEntity<>(new ValidationCDAResDTO(getLogTraceInfo(), workflowInstanceId,warning), HttpStatus.CREATED);
 		} 

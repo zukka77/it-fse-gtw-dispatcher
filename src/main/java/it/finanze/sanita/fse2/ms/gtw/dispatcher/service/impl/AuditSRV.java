@@ -5,7 +5,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -50,6 +49,8 @@ public class AuditSRV implements IAuditSRV {
 				auditMap.put("end_time", new Date());
 				auditMap.put("request", StringUtility.fromJSON(requestBody[0], Object.class));
 				auditMap.put("response", body);
+				auditMap.put("jwt_issuer", httpServletRequest.getAttribute("JWT_ISSUER"));
+				httpServletRequest.removeAttribute("JWT_ISSUER");
 				
 				if(auditMap!=null) {
 					auditServiceRepo.save(auditMap);   

@@ -11,5 +11,5 @@ import javax.servlet.http.HttpServletRequest;
  */
 public interface IAuditSRV extends Serializable {
       
-	void saveAuditReqRes(HttpServletRequest httpServletRequest, Object body);
+	void saveAuditReqRes(HttpServletRequest httpServletRequest,Object body);
 }

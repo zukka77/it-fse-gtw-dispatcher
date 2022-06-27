@@ -40,4 +40,6 @@ public class KafkaStatusManagerDTO extends AbstractDTO {
 	
 	private String organizzazione;
 	
+	private String issuer;
+	
 }

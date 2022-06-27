@@ -40,9 +40,10 @@ public class ElasticLoggerHelper {
 	 * Implements structured logs, at all logging levels
 	 */
 	public void trace(String message, ILogEnum operation, 
-			   ResultLogEnum result, Date startDateOperation) {
+			   ResultLogEnum result, Date startDateOperation, String issuer) {
 		
 		LogDTO logDTO = LogDTO.builder().
+				op_issuer(issuer).
 				message(message).
 				operation(operation.getCode()).
 				op_result(result.getCode()).
@@ -53,6 +54,7 @@ public class ElasticLoggerHelper {
 		
 		if(elasticLogEnable) {
 			elasticLog.trace(message, 
+					StructuredArguments.kv("op-issuer", issuer),
 					StructuredArguments.kv("operation", operation.getCode()), 
 					StructuredArguments.kv("op-result", result.getCode()),
 					StructuredArguments.kv("op-timestamp-start", dateFormat.format(startDateOperation)),
@@ -61,9 +63,10 @@ public class ElasticLoggerHelper {
 	} 
 	
 	public void debug(String message,  ILogEnum operation,  
-			   ResultLogEnum result, Date startDateOperation) {
+			   ResultLogEnum result, Date startDateOperation, String issuer) {
 		
 		LogDTO logDTO = LogDTO.builder().
+				op_issuer(issuer).
 				message(message).
 				operation(operation.getCode()).
 				op_result(result.getCode()).
@@ -75,6 +78,7 @@ public class ElasticLoggerHelper {
 		
 		if(elasticLogEnable) {
 			elasticLog.debug(message,  
+					StructuredArguments.kv("op-issuer", issuer),
 					StructuredArguments.kv("operation", operation.getCode()), 
 					StructuredArguments.kv("op-result", result.getCode()),
 					StructuredArguments.kv("op-timestamp-start", dateFormat.format(startDateOperation)),
@@ -83,9 +87,10 @@ public class ElasticLoggerHelper {
 	} 
 	 
 	public void info(String message, ILogEnum operation,  
-			ResultLogEnum result, Date startDateOperation) {
+			ResultLogEnum result, Date startDateOperation, String issuer) {
 		
 		LogDTO logDTO = LogDTO.builder().
+				op_issuer(issuer).
 				message(message).
 				operation(operation.getCode()).
 				op_result(result.getCode()).
@@ -97,6 +102,7 @@ public class ElasticLoggerHelper {
 		
 		if(elasticLogEnable) {
 			elasticLog.info(message,  
+					StructuredArguments.kv("op-issuer", issuer),
 					StructuredArguments.kv("operation", operation.getCode()), 
 					StructuredArguments.kv("op-result", result.getCode()),
 					StructuredArguments.kv("op-timestamp-start", dateFormat.format(startDateOperation)),
@@ -105,9 +111,10 @@ public class ElasticLoggerHelper {
 	} 
 	
 	public void warn(String message, ILogEnum operation,  
-			   ResultLogEnum result, Date startDateOperation) {
+			   ResultLogEnum result, Date startDateOperation, String issuer) {
 		
 		LogDTO logDTO = LogDTO.builder().
+				op_issuer(issuer).
 				message(message).
 				operation(operation.getCode()).
 				op_result(result.getCode()).
@@ -119,6 +126,7 @@ public class ElasticLoggerHelper {
 		
 		if(elasticLogEnable) {
 			elasticLog.warn(message, 
+					StructuredArguments.kv("op-issuer", issuer),
 					StructuredArguments.kv("operation", operation.getCode()), 
 					StructuredArguments.kv("op-result", result.getCode()),
 					StructuredArguments.kv("op-timestamp-start", dateFormat.format(startDateOperation)),
@@ -128,9 +136,10 @@ public class ElasticLoggerHelper {
 	
 	public void error(String message, ILogEnum operation,  
 			   ResultLogEnum result, Date startDateOperation,
-			   ILogEnum error) {
+			   ILogEnum error, String issuer) {
 		
 		LogDTO logDTO = LogDTO.builder().
+				op_issuer(issuer).
 				message(message).
 				operation(operation.getCode()).
 				op_result(result.getCode()).
@@ -144,6 +153,7 @@ public class ElasticLoggerHelper {
 		
 		if(elasticLogEnable) {
 			elasticLog.error(message,  
+					StructuredArguments.kv("op-issuer", issuer),
 					StructuredArguments.kv("operation", operation.getCode()), 
 					StructuredArguments.kv("op-result", result.getCode()),
 					StructuredArguments.kv("op-timestamp-start", dateFormat.format(startDateOperation)),
