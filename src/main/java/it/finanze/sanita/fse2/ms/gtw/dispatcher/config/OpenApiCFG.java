@@ -2,6 +2,7 @@ package it.finanze.sanita.fse2.ms.gtw.dispatcher.config;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import org.springdoc.core.customizers.OpenApiCustomiser;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -66,15 +67,12 @@ public class OpenApiCFG {
 				openApi.getInfo().addExtension("x-api-id", customOpenapi.getApiId());
 				openApi.getInfo().addExtension("x-summary", customOpenapi.getApiSummary());
 				
-				// Adding servers
-				final List<Server> servers = new ArrayList<>();
-				final Server devServer = new Server();
-				devServer.setDescription("Gateway Dispatcher Development URL");
-				devServer.setUrl("http://localhost:" + customOpenapi.getPort());
-				devServer.addExtension("x-sandbox", true);
-				
-				servers.add(devServer);
-				openApi.setServers(servers);
+				for (final Server server : openApi.getServers()) {
+					final Pattern pattern = Pattern.compile("^https://.*");
+					if (!pattern.matcher(server.getUrl()).matches()) {
+						server.addExtension("x-sandbox", true);
+					}
+				}
 
 				openApi.getComponents().getSchemas().values().forEach(schema -> {
 					schema.setAdditionalProperties(false);

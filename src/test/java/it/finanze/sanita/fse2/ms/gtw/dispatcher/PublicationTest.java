@@ -15,6 +15,7 @@ import java.util.Date;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.regex.Pattern;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -151,6 +152,16 @@ class PublicationTest extends AbstractTest {
 		assertNotNull(jwtToken.getHeader());
 		assertNotNull(jwtToken.getPayload());
 		assertEquals(encoded, jwtToken.getPayload().getAttachment_hash());
+	}
+
+	@Test
+	void patternTest() {
+		final String devUrl = "http:localhost:9080";
+		final String prodUrl = "https://server-ok.com";
+
+		final Pattern pattern = Pattern.compile("^https://.*");
+		assertTrue(pattern.matcher(prodUrl).matches());
+		assertFalse(pattern.matcher(devUrl).matches());
 	}
 
 	@Test
