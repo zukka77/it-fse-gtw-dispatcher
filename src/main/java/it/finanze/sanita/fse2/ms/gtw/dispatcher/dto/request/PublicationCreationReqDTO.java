@@ -89,5 +89,8 @@ public class PublicationCreationReqDTO extends AbstractDTO {
 
     @Schema(description = "Forza pubblicazione documento" , defaultValue = "false")
     private boolean forcePublish;
+    
+    @Schema(description = "Priorita" , defaultValue = "false")
+    private boolean priorita;
 
 }
