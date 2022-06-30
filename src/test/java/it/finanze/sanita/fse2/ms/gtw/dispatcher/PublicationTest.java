@@ -255,9 +255,9 @@ class PublicationTest extends AbstractTest {
 				identificativoSottomissione("Identificativo Sottomissione").
 				mode(InjectionModeEnum.ATTACHMENT).
 				attiCliniciRegoleAccesso(java.util.Arrays.asList(EventCodeEnum._94503_0)).
-				tipoAttivitaClinica(AttivitaClinicaEnum.CONSULTO).
-				tipoDocumentoLivAlto(TipoDocAltoLivEnum.DOCUMENTO_WORKFLOW).
-				tipologiaStruttura(HealthcareFacilityEnum.OSPEDALE).
+				tipoAttivitaClinica(AttivitaClinicaEnum.CON).
+				tipoDocumentoLivAlto(TipoDocAltoLivEnum.WOR).
+				tipologiaStruttura(HealthcareFacilityEnum.Ospedale).
 				workflowInstanceId(transactionId).
 				build();
 		return output;

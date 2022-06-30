@@ -239,7 +239,9 @@ public abstract class AbstractCTL implements Serializable {
     		out = "Il campo tipo attivita clinica deve essere valorizzato.";
     	} else if (StringUtility.isNullOrEmpty(jsonObj.getIdentificativoSottomissione())) {
     		out = "Il campo identificativo sottomissione deve essere valorizzato.";
-    	} 
+    	} else if(jsonObj.getTipologiaStruttura()==null) {
+    		out = "Il campo tipologia struttura deve essere valorizzato.";
+    	}
     	return out;
     }
 

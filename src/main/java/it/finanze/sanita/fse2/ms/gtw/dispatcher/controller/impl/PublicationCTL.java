@@ -172,6 +172,6 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 //		}
 //
 //		elasticLogger.info(String.format("Publication CDA completed for transactionID %s", jsonObj != null ? jsonObj.getWorkflowInstanceId() : "UNKNOW TX ID"), OperationLogEnum.PUB_CDA2, ResultLogEnum.OK, startDateOperation);
-		return new PublicationCreationResDTO(getLogTraceInfo());
+		return new PublicationCreationResDTO(getLogTraceInfo(),null);
 	}
 }

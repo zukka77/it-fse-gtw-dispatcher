@@ -97,9 +97,9 @@ public class DocumentReferenceTest extends AbstractTest {
 				identificativoSottomissione("identificativo sottomissione").
 				mode(InjectionModeEnum.ATTACHMENT).
 				attiCliniciRegoleAccesso(Arrays.asList(EventCodeEnum._94503_0)).
-				tipoAttivitaClinica(AttivitaClinicaEnum.CONSULTO).
-				tipoDocumentoLivAlto(TipoDocAltoLivEnum.PRESCRIZIONE).
-				tipologiaStruttura(HealthcareFacilityEnum.OSPEDALE).
+				tipoAttivitaClinica(AttivitaClinicaEnum.CON).
+				tipoDocumentoLivAlto(TipoDocAltoLivEnum.PRE).
+				tipologiaStruttura(HealthcareFacilityEnum.Ospedale).
 				workflowInstanceId(transactionId).
 				build();
 		return output;

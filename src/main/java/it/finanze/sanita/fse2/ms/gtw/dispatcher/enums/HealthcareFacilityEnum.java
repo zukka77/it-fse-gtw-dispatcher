@@ -2,10 +2,10 @@ package it.finanze.sanita.fse2.ms.gtw.dispatcher.enums;
 
 public enum HealthcareFacilityEnum {
 
-	OSPEDALE("Ospedale"),
-	PREVENZIONE("Prevenzione"),
-	TERRITORIO("Territorio"),
-	SISTEMATS("SistemaTS");
+	Ospedale("Ospedale"),
+	Prevenzione("Prevenzione"),
+	Territorio("Territorio"),
+	SistemaTS("SistemaTS");
 
 	private String code;
 

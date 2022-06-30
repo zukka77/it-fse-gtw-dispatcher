@@ -2,15 +2,15 @@ package it.finanze.sanita.fse2.ms.gtw.dispatcher.enums;
 
 public enum TipoDocAltoLivEnum {
 
-	DOCUMENTO_WORKFLOW("WOR", "Documento di workflow"),
-	REFERTO("REF","Referto"),
-	LETTERA_DIMISSIONE_OSPEDALIERA("LDO","Lettera di dimissione ospedaliera"),
-	RICHIESTA("RIC","Richiesta"),
-	SOMMARIO("SUM","Sommario"),
-	TACCUINO("TAC","Taccuino"),
-	PRESCRIZIONE("PRS","Prescrizione"),
-	PRESTAZIONI("PRE","Prestazioni"),
-	ESENZIONE("ESE","Esenzione");
+	WOR("WOR", "Documento di workflow"),
+	REF("REF","Referto"),
+	LDO("LDO","Lettera di dimissione ospedaliera"),
+	RIC("RIC","Richiesta"),
+	SUM("SUM","Sommario"),
+	TAC("TAC","Taccuino"),
+	PRS("PRS","Prescrizione"),
+	PRE("PRE","Prestazioni"),
+	ESE("ESE","Esenzione");
 
 	private String code;
 	private String description;
