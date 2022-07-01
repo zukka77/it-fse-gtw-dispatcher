@@ -33,15 +33,15 @@ public class ErrorResponseDTO extends AbstractDTO {
 	@Size(min = 0, max = 100)
 	private String spanID;
 
-	@Schema(description = "Identificativo del problema verificatosi")
+	@Schema(description = "URI da utilizzare come identificativo del problema che si è verificato")
 	@Size(min = 0, max = 100)
 	private String type;
 	
-	@Schema(description = "Sintesi del problema (invariante per occorrenze diverse dello stesso problema)")
+	@Schema(description = "Descrizione sintetica della tipologia d’errore")
 	@Size(min = 0, max = 1000)
 	private String title;
 
-	@Schema(description = "Descrizione del problema")
+	@Schema(description = "Dettaglio della tipologia d’errore")
 	@Size(min = 0, max = 1000)
 	private String detail;
 
@@ -50,7 +50,7 @@ public class ErrorResponseDTO extends AbstractDTO {
 	@Max(value = 599)
 	private Integer status;
 	
-	@Schema(description = "URI che potrebbe fornire ulteriori informazioni riguardo l'occorrenza del problema")
+	@Schema(description = "URI che identifica la specifica occorrenza del problema")
 	@Size(min = 0, max = 100)
 	private String instance;
 

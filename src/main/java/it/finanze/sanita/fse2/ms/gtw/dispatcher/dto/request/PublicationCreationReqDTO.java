@@ -87,8 +87,8 @@ public class PublicationCreationReqDTO extends AbstractDTO {
 	@Size(min = 0, max = 100)
 	private String identificativoSottomissione;
 
-    @Schema(description = "Forza pubblicazione documento" , defaultValue = "false")
-    private boolean forcePublish;
+//    @Schema(description = "Forza pubblicazione documento" , defaultValue = "false")
+//    private boolean forcePublish;
     
     @Schema(description = "Priorita" , defaultValue = "false")
     private boolean priorita;

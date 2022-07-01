@@ -5,7 +5,8 @@ public enum HealthcareFacilityEnum {
 	Ospedale("Ospedale"),
 	Prevenzione("Prevenzione"),
 	Territorio("Territorio"),
-	SistemaTS("SistemaTS");
+	SistemaTS("SistemaTS"),
+	Cittadino("Cittadino");
 
 	private String code;
 

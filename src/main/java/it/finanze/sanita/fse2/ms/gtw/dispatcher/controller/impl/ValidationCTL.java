@@ -74,11 +74,16 @@ public class ValidationCTL extends AbstractCTL implements IValidationCTL {
 		String msgResult = null;
 		String warning = null;
 		JWTTokenDTO jwtToken = null;
+		
+		Date startDateExtractJwt = new Date();
+		log.info("START EXTRACT JWT: " + startDateExtractJwt);
 		if (Boolean.TRUE.equals(msCfg.getFromGovway())) {
 			jwtToken = extractJWT(request.getHeader(Constants.Headers.JWT_GOVWAY_HEADER));
 		} else {
 			jwtToken = extractJWT(request.getHeader(Constants.Headers.JWT_HEADER));
 		}
+		Long endDateExtract = new Date().getTime() - startDateExtractJwt.getTime();
+		log.info("END EXTRACT JWT: " + endDateExtract);
 
 		ValidationCDAReqDTO jsonObj = getValidationJSONObject(request.getParameter("requestBody"));
 		if (jsonObj==null) {
@@ -97,6 +102,8 @@ public class ValidationCTL extends AbstractCTL implements IValidationCTL {
 				msgResult = "Il JWT deve essere valorizzato.";
 				result = ValidationResultEnum.MANDATORY_ELEMENT_ERROR_TOKEN;
 			} else {
+				Date startDateValidateJwt = new Date();
+				log.info("START VALIDATE JWT: " + startDateValidateJwt);
 				if (!Boolean.TRUE.equals(msCfg.getFromGovway())) {
 					msgResult = JWTHeaderDTO.validateHeader(jwtToken.getHeader());
 				}
@@ -106,11 +113,19 @@ public class ValidationCTL extends AbstractCTL implements IValidationCTL {
 				if (msgResult != null) {
 					result = ValidationResultEnum.INVALID_TOKEN_FIELD;
 				}
+				
+				Long endDateValidate = new Date().getTime() - startDateValidateJwt.getTime();
+				log.info("END VALIDATE JWT: " + endDateValidate);
 			}
 			if (!StringUtility.isNullOrEmpty(msgResult)) {
 				result = ValidationResultEnum.MANDATORY_ELEMENT_ERROR_TOKEN;
 			} else {
+				
+				Date startDateMandatoryJwt = new Date();
+				log.info("START MANDATORY ELEMENTS: " + startDateMandatoryJwt);
 				msgResult = checkValidationMandatoryElements(jsonObj);
+				Long endDateMandatoryJwt = new Date().getTime() - startDateMandatoryJwt.getTime();
+				log.info("END MANDATORY ELEMENTS: " + endDateMandatoryJwt);
 				if (!StringUtility.isNullOrEmpty(msgResult)) {
 					result = ValidationResultEnum.MANDATORY_ELEMENT_ERROR;
 				} else { 
@@ -123,7 +138,11 @@ public class ValidationCTL extends AbstractCTL implements IValidationCTL {
 								result = ValidationResultEnum.DOCUMENT_TYPE_ERROR;
 								msgResult = "Il file deve essere un PDF.";
 							} else {
+								Date startDateExtractCDA = new Date();
+								log.info("START EXTRACT CDA: " + startDateExtractCDA);
 								String cda = extractCDA(bytes, jsonObj.getMode());
+								Long endDateExtractCDA = new Date().getTime() - startDateExtractCDA.getTime();
+								log.info("END EXTRACT CDA : " + endDateExtractCDA);
 								if (StringUtility.isNullOrEmpty(cda)) {
 									result = ValidationResultEnum.MINING_CDA_ERROR;
 									msgResult = "Errore generico in fase di estrazione del CDA dal file.";
@@ -132,7 +151,12 @@ public class ValidationCTL extends AbstractCTL implements IValidationCTL {
 									workflowInstanceId = cxi + "." + StringUtility.generateTransactionUID(null) + "^^^^urn:ihe:iti:xdw:2013:workflowInstanceId";
 									msgResult = validateJWT(jwtToken, cda);
 									if (StringUtils.isEmpty(msgResult)) {
+										
+										Date startDateValidateMs = new Date();
+										log.info("START VALIDATION MS: " + startDateValidateMs);
 										ValidationInfoDTO validationRes = validate(cda, jsonObj.getActivity(), workflowInstanceId);
+										Long endDateValidateMs = new Date().getTime() - startDateValidateMs.getTime();
+										log.info("END VALIDATION MS : " + endDateValidateMs);
 										if(validationRes!=null && !RawValidationEnum.OK.equals(validationRes.getResult())) {
 											msgResult = validationRes.getMessage()!=null ? validationRes.getMessage().stream().collect(Collectors.joining(",")) : null;
 											if (RawValidationEnum.SYNTAX_ERROR.equals(validationRes.getResult())) {
@@ -162,12 +186,20 @@ public class ValidationCTL extends AbstractCTL implements IValidationCTL {
 		
 		LogTraceInfoDTO traceInfoDTO = getLogTraceInfo();
 
+		Date startDateSendMs = new Date();
+		log.info("START KAFKA STATUS : " + startDateSendMs);
 		if(StringUtility.isNullOrEmpty(msgResult)) {
 			kafkaSRV.sendValidationStatus(traceInfoDTO.getTraceID(), workflowInstanceId, EventStatusEnum.SUCCESS, null, jsonObj, jwtToken != null ? jwtToken.getPayload() : null);
         } else {
 			kafkaSRV.sendValidationStatus(traceInfoDTO.getTraceID(),workflowInstanceId, EventStatusEnum.ERROR, msgResult, jsonObj, jwtToken != null ? jwtToken.getPayload() : null);
         }
+		
+		Long endDateSendMs = new Date().getTime() - startDateSendMs.getTime();
+		log.info("END KAFKA STATUS : " + endDateSendMs);
 
+		
+		Date startDateChiusura = new Date();
+		log.info("START FINAL OPERATION: " + startDateChiusura);
 		if (!ValidationResultEnum.OK.equals(result)) {
 			elasticLogger.error(msgResult + " " + workflowInstanceId, OperationLogEnum.VAL_CDA2, ResultLogEnum.KO, startDateOperation, result != null ? result.getErrorCategory() : null,
 					jwtToken.getPayload().getIss());
@@ -183,6 +215,10 @@ public class ValidationCTL extends AbstractCTL implements IValidationCTL {
 		}
 		
 		request.setAttribute("JWT_ISSUER", jwtToken.getPayload().getIss());
+		
+		Long endDateChiusura = new Date().getTime() - startDateChiusura.getTime();
+		log.info("END FINAL OPERATION : " + endDateChiusura);
+		
 		if (jsonObj!=null && ActivityEnum.VALIDATION.equals(jsonObj.getActivity())){
 			return new ResponseEntity<>(new ValidationCDAResDTO(getLogTraceInfo(), workflowInstanceId,warning), HttpStatus.CREATED);
 		} 

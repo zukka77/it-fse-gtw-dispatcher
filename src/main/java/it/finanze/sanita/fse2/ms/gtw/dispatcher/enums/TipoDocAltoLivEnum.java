@@ -10,7 +10,13 @@ public enum TipoDocAltoLivEnum {
 	TAC("TAC","Taccuino"),
 	PRS("PRS","Prescrizione"),
 	PRE("PRE","Prestazioni"),
-	ESE("ESE","Esenzione");
+	ESE("ESE","Esenzione"),
+	PDC("PDC","Piano di cura"),
+	VAC("VAC","Vaccino"),
+	CER("CER","Certificato per DGC"),
+	VRB("VRB","Verbale");
+	
+	
 
 	private String code;
 	private String description;

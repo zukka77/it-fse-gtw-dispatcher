@@ -90,7 +90,6 @@ public class DocumentReferenceTest extends AbstractTest {
 				conservazioneANorma("Conservazione").
 				dataFinePrestazione(""+new Date().getTime()).
 				dataInizioPrestazione(""+new Date().getTime()).
-				forcePublish(false).
 				healthDataFormat(HealthDataFormatEnum.CDA).
 				identificativoDoc("Identificativo doc").
 				identificativoRep("Identificativo rep").

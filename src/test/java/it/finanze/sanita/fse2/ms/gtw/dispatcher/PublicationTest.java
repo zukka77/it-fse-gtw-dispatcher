@@ -248,7 +248,6 @@ class PublicationTest extends AbstractTest {
 				conservazioneANorma("Conservazione sostitutiva").
 				dataFinePrestazione(""+new Date().getTime()).
 				dataInizioPrestazione(""+new Date().getTime()).
-				forcePublish(false).
 				healthDataFormat(HealthDataFormatEnum.CDA).
 				identificativoDoc("Identificativo doc").
 				identificativoRep("Identificativo rep").

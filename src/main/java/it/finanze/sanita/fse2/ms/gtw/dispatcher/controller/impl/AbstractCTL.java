@@ -124,7 +124,7 @@ public abstract class AbstractCTL implements Serializable {
         }
 
 		// If the request does not contain a transaction Id, it can be forced for pablish, a new transaction Id must be generate
-		if (out != null && Boolean.TRUE.equals(out.isForcePublish())) {
+		if (out != null) {
 			out.setWorkflowInstanceId(StringUtility.generateTransactionUID(UIDModeEnum.get(validationCFG.getTransactionIDStrategy())));
 		}
         return out;
@@ -173,7 +173,6 @@ public abstract class AbstractCTL implements Serializable {
         .conservazioneANorma(historicalDTO.getConservazioneANorma())
         .tipoAttivitaClinica(historicalDTO.getTipoAttivitaClinica())
         .identificativoSottomissione(historicalDTO.getIdentificativoSottomissione())
-		.forcePublish(historicalDTO.isForcePublish())
         .build();
 	}
 
@@ -192,7 +191,6 @@ public abstract class AbstractCTL implements Serializable {
 				.conservazioneANorma(tsDTO.getConservazioneANorma())
 				.tipoAttivitaClinica(tsDTO.getTipoAttivitaClinica())
 				.identificativoSottomissione(tsDTO.getIdentificativoSottomissione())
-				.forcePublish(tsDTO.isForcePublish())
 				.build();
 	}
 
@@ -226,7 +224,7 @@ public abstract class AbstractCTL implements Serializable {
 
     protected String checkPublicationMandatoryElements(PublicationCreationReqDTO jsonObj) {
     	String out = null;
-    	if (Boolean.FALSE.equals(jsonObj.isForcePublish()) && StringUtility.isNullOrEmpty(jsonObj.getWorkflowInstanceId())) {
+    	if (StringUtility.isNullOrEmpty(jsonObj.getWorkflowInstanceId())) {
     		out = "Il campo txID deve essere valorizzato.";
     	} else if (StringUtility.isNullOrEmpty(jsonObj.getIdentificativoDoc())) {
     		out = "Il campo identificativo documento deve essere valorizzato.";
@@ -394,15 +392,13 @@ public abstract class AbstractCTL implements Serializable {
 		ValidationInfoDTO rawValidationRes = null;
 		try {
 			rawValidationRes = validatorClient.validate(cda);
-			if(rawValidationRes!=null && !ActivityEnum.TS_PRE_PUBLISHING.equals(activity)) {
+			if(rawValidationRes!=null) {
 				RawValidationEnum rawValidation = rawValidationRes.getResult();
-				if (RawValidationEnum.OK.equals(rawValidation)) {
-					if (ActivityEnum.VALIDATION.equals(activity) || ActivityEnum.HISTORICAL_DOC_PRE_PUBLISHING.equals(activity)) {
+				if (RawValidationEnum.OK.equals(rawValidation) && ActivityEnum.VALIDATION.equals(activity)) {
 						String hashedCDA = StringUtility.encodeSHA256B64(cda);
 						cdaFacadeSRV.create(transactionID, hashedCDA);
 					}
 				}  
-			}
 		}  catch(ConnectionRefusedException cex) {
 			throw cex;
 		} catch(Exception ex) {
