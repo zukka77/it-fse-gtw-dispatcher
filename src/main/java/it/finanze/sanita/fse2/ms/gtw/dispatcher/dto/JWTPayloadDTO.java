@@ -180,7 +180,7 @@ public class JWTPayloadDTO {
 				return true;
 			}
 		} else {
-			return true;
+			return CfUtility.isValidCf(chunks[0]);
 		}
 	}
 
