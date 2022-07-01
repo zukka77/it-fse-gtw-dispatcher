@@ -245,7 +245,7 @@ class PublicationTest extends AbstractTest {
 	PublicationCreationReqDTO buildCreationDTO(String transactionId) {
 		PublicationCreationReqDTO output = PublicationCreationReqDTO.builder().
 				assettoOrganizzativo(PracticeSettingCodeEnum.AD_PSC001).
-				conservazioneSostitutiva("Conservazione sostitutiva").
+				conservazioneANorma("Conservazione sostitutiva").
 				dataFinePrestazione(""+new Date().getTime()).
 				dataInizioPrestazione(""+new Date().getTime()).
 				forcePublish(false).

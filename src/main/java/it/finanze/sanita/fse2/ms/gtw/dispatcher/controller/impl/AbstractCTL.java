@@ -6,12 +6,13 @@ import java.text.SimpleDateFormat;
 import java.util.Base64;
 import java.util.Map;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import org.apache.commons.lang3.StringUtils;
+import org.jsoup.Jsoup;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.multipart.MultipartFile;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import brave.Tracer;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.IValidatorClient;
@@ -169,7 +170,7 @@ public abstract class AbstractCTL implements Serializable {
         .assettoOrganizzativo(historicalDTO.getAssettoOrganizzativo())
         .dataInizioPrestazione(historicalDTO.getDataInizioPrestazione())
         .dataFinePrestazione(historicalDTO.getDataFinePrestazione())
-        .conservazioneSostitutiva(historicalDTO.getConservazioneSostitutiva())
+        .conservazioneANorma(historicalDTO.getConservazioneANorma())
         .tipoAttivitaClinica(historicalDTO.getTipoAttivitaClinica())
         .identificativoSottomissione(historicalDTO.getIdentificativoSottomissione())
 		.forcePublish(historicalDTO.isForcePublish())
@@ -188,7 +189,7 @@ public abstract class AbstractCTL implements Serializable {
 				.assettoOrganizzativo(tsDTO.getAssettoOrganizzativo())
 				.dataInizioPrestazione(tsDTO.getDataInizioPrestazione())
 				.dataFinePrestazione(tsDTO.getDataFinePrestazione())
-				.conservazioneSostitutiva(tsDTO.getConservazioneSostitutiva())
+				.conservazioneANorma(tsDTO.getConservazioneANorma())
 				.tipoAttivitaClinica(tsDTO.getTipoAttivitaClinica())
 				.identificativoSottomissione(tsDTO.getIdentificativoSottomissione())
 				.forcePublish(tsDTO.isForcePublish())
@@ -288,7 +289,22 @@ public abstract class AbstractCTL implements Serializable {
 			if (jwtToken == null || StringUtils.isEmpty(cda)) {
 				errorMsg = "JWT payload or CDA is null or empty";
 			} else {
-				// TODO: Validazione jwt con CDA
+				org.jsoup.nodes.Document docT = Jsoup.parse(cda);
+				String code = docT.select("code").get(0).attr("code");
+				String codeSystem = docT.select("code").get(0).attr("codeSystem");
+				String hl7Type = code+"^^"+codeSystem;
+				String patientRoleCF = docT.select("patientRole > id").get(0).attr("extension");
+				
+				if(!hl7Type.equals(jwtToken.getPayload().getResource_hl7_type())) {
+					errorMsg = "JWT payload : tipo doc diverso dal code and codesystem del cda";
+				}
+				
+				if(StringUtility.isNullOrEmpty(errorMsg)) {
+					final String [] chunks = jwtToken.getPayload().getPerson_id().split("\\^");
+					if(!chunks[0].equals(patientRoleCF)) {
+						errorMsg = "JWT payload : person id diverso dal patient del cda";
+					}
+				}
 			}
 		} catch (Exception e) {
 			log.error("Error while validating JWT payload with CDA", e);

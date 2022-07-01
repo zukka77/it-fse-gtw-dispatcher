@@ -150,6 +150,8 @@ public class ValidationCTL extends AbstractCTL implements IValidationCTL {
 										} else {
 											result = ValidationResultEnum.OK;
 										} 
+									} else {
+										result = ValidationResultEnum.INVALID_TOKEN_FIELD;
 									}
 								}
 							}

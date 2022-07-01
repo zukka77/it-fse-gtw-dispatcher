@@ -146,6 +146,9 @@ public class JWTPayloadDTO {
 			error = "Invalid subject organization id";
 		} else if (SubjectOrganizationEnum.getDisplay(payload.getSubject_organization())==null) {
 			error = "Invalid subject organization";
+		} else if(SubjectOrganizationEnum.getCode(payload.getSubject_organization_id())!=
+				SubjectOrganizationEnum.getDisplay(payload.getSubject_organization())) {
+			error = "Subject organization id and subject organization are different";
 		} else if (StringUtils.isEmpty(payload.getLocality())) {
 			error = "Invalid locality";
 		} else if (StringUtils.isEmpty(payload.getSubject_role())) {
@@ -158,9 +161,6 @@ public class JWTPayloadDTO {
 			error = "Invalid issuer";
 		} else if (StringUtils.isEmpty(payload.getJti())) {
 			error = "Invalid Jti";
-		} else if (!payload.getSub().equals(payload.getPerson_id())
-				&& payload.getPatient_consent() == null) {
-			error = "Patient consent is mandatory if subject and person id are different";
 		} else if (!Boolean.TRUE.equals(payload.getPatient_consent())) {
 			error = "Patient consent is mandatory";
 		}
