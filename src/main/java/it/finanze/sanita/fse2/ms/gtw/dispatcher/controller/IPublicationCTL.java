@@ -3,6 +3,7 @@ package it.finanze.sanita.fse2.ms.gtw.dispatcher.controller;
 import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestPart;
@@ -41,7 +42,7 @@ public interface IPublicationCTL {
 			@ApiResponse(responseCode = "429", description = "Too Many Requests", content = @Content(mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE, schema = @Schema(implementation = ErrorResponseDTO.class))),
 			@ApiResponse(responseCode = "500", description = "Internal Server Error", content = @Content(mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE, schema = @Schema(implementation = ErrorResponseDTO.class))),
 			@ApiResponse(responseCode = "502", description = "Invalid response received from the API Implementation", content = @Content(mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE, schema = @Schema(implementation = ErrorResponseDTO.class)))})
-	PublicationCreationResDTO publicationCreation(@RequestBody(required = false) PublicationCreationReqDTO requestBody,
+	ResponseEntity<PublicationCreationResDTO> publicationCreation(@RequestBody(required = false) PublicationCreationReqDTO requestBody,
 			@RequestPart("file") MultipartFile file, HttpServletRequest request);
 
 }

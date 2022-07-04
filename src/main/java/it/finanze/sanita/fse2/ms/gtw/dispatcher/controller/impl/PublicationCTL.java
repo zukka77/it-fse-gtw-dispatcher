@@ -4,6 +4,8 @@ import java.util.Date;
 import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -59,8 +61,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 	private ElasticLoggerHelper elasticLogger;
 
 	@Override
-	public PublicationCreationResDTO publicationCreation(PublicationCreationReqDTO requestBody, MultipartFile file, HttpServletRequest request) {
-
+	public ResponseEntity<PublicationCreationResDTO> publicationCreation(PublicationCreationReqDTO requestBody, MultipartFile file, HttpServletRequest request) {
 //		Date startDateOperation = new Date();
 //
 //		JWTTokenDTO jwtToken = null;
@@ -172,6 +173,6 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 //		}
 //
 //		elasticLogger.info(String.format("Publication CDA completed for transactionID %s", jsonObj != null ? jsonObj.getWorkflowInstanceId() : "UNKNOW TX ID"), OperationLogEnum.PUB_CDA2, ResultLogEnum.OK, startDateOperation);
-		return new PublicationCreationResDTO(getLogTraceInfo(),null);
+		return new ResponseEntity<>(new PublicationCreationResDTO(getLogTraceInfo(), null), HttpStatus.CREATED);
 	}
 }
