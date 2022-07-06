@@ -118,7 +118,9 @@ public class ValidationCTL extends AbstractCTL implements IValidationCTL {
 				log.info("END VALIDATE JWT: " + endDateValidate);
 			}
 			if (!StringUtility.isNullOrEmpty(msgResult)) {
-				result = ValidationResultEnum.MANDATORY_ELEMENT_ERROR_TOKEN;
+				if (result == null) {
+					result = ValidationResultEnum.MANDATORY_ELEMENT_ERROR_TOKEN;
+				}
 			} else {
 				
 				Date startDateMandatoryJwt = new Date();
