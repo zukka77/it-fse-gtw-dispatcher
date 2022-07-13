@@ -3,9 +3,11 @@ package it.finanze.sanita.fse2.ms.gtw.dispatcher.service.impl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.ValidationDataDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.BusinessException;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.repository.redis.ICdaRepo;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.ICdaSRV;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -26,9 +28,9 @@ public class CdaSRV implements ICdaSRV {
 	private ICdaRepo cdaRepo;
 	
 	@Override
-	public void create(final String txID, final String hashedCDA) {
+	public void create(final String hashedCDA, final String wii) {
 		try {
-			cdaRepo.create(txID, hashedCDA);
+			cdaRepo.create(hashedCDA, wii);
 		} catch(Exception ex) {
 			log.error("Error creating cda :" ,ex);
 			throw new BusinessException("Error creating cda :" ,ex);
@@ -36,9 +38,9 @@ public class CdaSRV implements ICdaSRV {
 	}
 	
 	@Override
-	public String get(final String txID) {
+	public String get(final String hash) {
 		try {
-			return cdaRepo.getItem(txID);
+			return cdaRepo.getItem(hash);
 		} catch(Exception ex) {
 			log.error("Error getting cda", ex);
 			throw new BusinessException("Error getting cda", ex);
@@ -46,16 +48,29 @@ public class CdaSRV implements ICdaSRV {
 	}
 
 	@Override
-	public boolean validateHash(final String hashToValidate, final String txID) {
-		String hash = null;
+	public ValidationDataDTO retrieveValidationInfo(final String hashPublication, final String wiiPublication) {
+
+		ValidationDataDTO data = new ValidationDataDTO();
+		data.setCdaValidated(false);
 
 		try {
-			hash = cdaRepo.getItem(txID);
-			return hashToValidate.equals(hash);
+			final String value = cdaRepo.getItem(hashPublication);
+
+			if (value == null) {
+				log.debug("Hash of CDA not found in redis, the CDA may be not validated");
+			} else {
+				data.setCdaValidated(true);
+				data.setWorkflowInstanceId(value);
+				if (!StringUtility.isNullOrEmpty(wiiPublication) && !wiiPublication.equals(data.getWorkflowInstanceId())) {
+					data.setCdaValidated(false);
+				}
+			}
 		} catch (Exception e) {
-			log.error(String.format("Error while retrieving item with transaction ID: %s from Redis.", txID), e);
-			throw new BusinessException(String.format("Error while retrieving item with transaction ID: %s from Redis.", txID), e);
+			log.error(String.format("Error while retrieving item with transaction ID: %s from Redis.", wiiPublication), e);
+			throw new BusinessException(String.format("Error while retrieving item with transaction ID: %s from Redis.", wiiPublication), e);
 		}
+		
+		return data;
 	}
 
 }

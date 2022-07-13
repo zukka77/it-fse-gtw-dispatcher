@@ -50,5 +50,5 @@ public class DocumentReferenceDTO {
 	private String serviceStartTime;
 	
 	private String serviceStopTime;
-	
+
 }

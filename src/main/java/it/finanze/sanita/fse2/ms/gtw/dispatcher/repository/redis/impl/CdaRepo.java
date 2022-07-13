@@ -24,13 +24,13 @@ public class CdaRepo extends AbstractRedisRepo implements ICdaRepo {
 	private CDACFG cdaCfg;
 
 	@Override
-	public void create(final String txID, final String hashedCDA) {
-		set(txID, hashedCDA, cdaCfg.getValidationTTL());
+	public void create(final String hashedCDA, final String wii) {
+		set(hashedCDA, wii, cdaCfg.getValidationTTL());
 	}
 
 	@Override
-	public String getItem(final String txID) {
-		return get(txID);
+	public String getItem(final String hash) {
+		return get(hash);
 	}
 	
 }

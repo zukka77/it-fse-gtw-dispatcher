@@ -96,17 +96,17 @@ class PublicationTest extends AbstractTest {
 		final String hash = StringUtility.encodeSHA256B64("hash");
 		final String expectedHash = StringUtility.encodeSHA256B64("expected_hash");
 
-		assertThrows(BusinessException.class, () -> cdaFacadeSRV.validateHash(hash, null), "If the txId is null, a Business exception should be thrown.");
-		assertFalse(cdaFacadeSRV.validateHash(hash, txID), "If the hash is not present on Redis, the result should be false.");
+		assertThrows(BusinessException.class, () -> cdaFacadeSRV.retrieveValidationInfo(hash, null), "If the txId is null, a Business exception should be thrown.");
+		assertFalse(cdaFacadeSRV.retrieveValidationInfo(hash, txID).isCdaValidated(), "If the hash is not present on Redis, the result should be false.");
 
 		log.info("Inserting a key on Redis");
 		cdaFacadeSRV.create(txID, hash);
-		assertTrue(cdaFacadeSRV.validateHash(hash, txID), "If the hash is present on Redis, the result should be true");
+		assertTrue(cdaFacadeSRV.retrieveValidationInfo(hash, txID).isCdaValidated(), "If the hash is present on Redis, the result should be true");
 
 		final String unmatchinTxID = UUID.randomUUID().toString();
 		cdaFacadeSRV.create(unmatchinTxID, expectedHash);
 
-		assertFalse(cdaFacadeSRV.validateHash(hash, unmatchinTxID), "If the hash present on Redis is different from expected one, the result should be false");
+		assertFalse(cdaFacadeSRV.retrieveValidationInfo(hash, unmatchinTxID).isCdaValidated(), "If the hash present on Redis is different from expected one, the result should be false");
 	}
 	
 	@Test

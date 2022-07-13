@@ -177,7 +177,7 @@ public class KafkaSRV implements IKafkaSRV {
 			final JWTPayloadDTO jwtClaimDTO, AttivitaClinicaEnum tipoAttivita) {
 		try {
 			KafkaStatusManagerDTO statusManagerMessage = KafkaStatusManagerDTO.builder().
-					issuer(jwtClaimDTO.getIss()).
+					issuer(jwtClaimDTO != null ? jwtClaimDTO.getIss() : null).
 					traceId(traceId).
 					eventType(eventType).
 					eventDate(new Date()).

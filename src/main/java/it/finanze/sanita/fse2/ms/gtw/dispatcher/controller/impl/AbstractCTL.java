@@ -6,6 +6,8 @@ import java.text.SimpleDateFormat;
 import java.util.Base64;
 import java.util.Map;
 
+import javax.annotation.Nullable;
+
 import org.apache.commons.lang3.StringUtils;
 import org.jsoup.Jsoup;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,12 +20,12 @@ import brave.Tracer;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.IValidatorClient;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.CDACFG;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.ValidationCFG;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.AttachmentDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.JWTHeaderDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.JWTPayloadDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.JWTTokenDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.PublicationOutputDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.ValidationDataDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.ValidationInfoDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.HistoricalPublicationCreationReqDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.HistoricalValidationCDAReqDTO;
@@ -35,7 +37,6 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ActivityEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.InjectionModeEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.PublicationResultEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.RawValidationEnum;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.UIDModeEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.BusinessException;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.ConnectionRefusedException;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.facade.ICdaFacadeSRV;
@@ -72,9 +73,6 @@ public abstract class AbstractCTL implements Serializable {
 
 	@Value("${sign.verification.mode}")
     private String signVerificationMode;
-
-	@Autowired
-	private ValidationCFG validationCFG;
 
 	protected LogTraceInfoDTO getLogTraceInfo() {
 		LogTraceInfoDTO out = new LogTraceInfoDTO(null, null);
@@ -124,9 +122,9 @@ public abstract class AbstractCTL implements Serializable {
         }
 
 		// If the request does not contain a transaction Id, it can be forced for pablish, a new transaction Id must be generate
-		if (out != null) {
-			out.setWorkflowInstanceId(StringUtility.generateTransactionUID(UIDModeEnum.get(validationCFG.getTransactionIDStrategy())));
-		}
+		// if (out != null && out.for) {
+		// 	out.setWorkflowInstanceId(StringUtility.generateTransactionUID(UIDModeEnum.get(validationCFG.getTransactionIDStrategy())));
+		// }
         return out;
     }
 
@@ -224,9 +222,7 @@ public abstract class AbstractCTL implements Serializable {
 
     protected String checkPublicationMandatoryElements(PublicationCreationReqDTO jsonObj) {
     	String out = null;
-    	if (StringUtility.isNullOrEmpty(jsonObj.getWorkflowInstanceId())) {
-    		out = "Il campo txID deve essere valorizzato.";
-    	} else if (StringUtility.isNullOrEmpty(jsonObj.getIdentificativoDoc())) {
+    	if (StringUtility.isNullOrEmpty(jsonObj.getIdentificativoDoc())) {
     		out = "Il campo identificativo documento deve essere valorizzato.";
     	} else if (StringUtility.isNullOrEmpty(jsonObj.getIdentificativoRep())) {
     		out = "Il campo identificativo rep deve essere valorizzato.";
@@ -297,7 +293,7 @@ public abstract class AbstractCTL implements Serializable {
 				String patientRoleCF = docT.select("patientRole > id").get(0).attr("extension");
 				
 				if(!hl7Type.equals(jwtToken.getPayload().getResource_hl7_type())) {
-					errorMsg = "JWT payload : tipo doc diverso dal code and codesystem del cda";
+					errorMsg = "JWT payload: tipologia documento diverso dal code e codesystem del CDA";
 				}
 				
 				if(StringUtility.isNullOrEmpty(errorMsg)) {
@@ -305,7 +301,7 @@ public abstract class AbstractCTL implements Serializable {
 					log.info("Person id fiscal code found in JWT token: {}", chunks[0]);
 					log.info("Person id fiscal code found in CDA: {}", patientRoleCF);
 					if(!chunks[0].equals(patientRoleCF)) {
-						errorMsg = "JWT payload : person id diverso dal patient del cda";
+						errorMsg = "JWT payload: person id diverso dal patient del cda";
 					}
 				}
 			}
@@ -393,7 +389,7 @@ public abstract class AbstractCTL implements Serializable {
 		return out;
 	}
 
-	protected ValidationInfoDTO validate(String cda, ActivityEnum activity, String transactionID) {
+	protected ValidationInfoDTO validate(String cda, ActivityEnum activity, String wii) {
 		ValidationInfoDTO rawValidationRes = null;
 		try {
 			rawValidationRes = validatorClient.validate(cda);
@@ -401,7 +397,7 @@ public abstract class AbstractCTL implements Serializable {
 				RawValidationEnum rawValidation = rawValidationRes.getResult();
 				if (RawValidationEnum.OK.equals(rawValidation) && ActivityEnum.VALIDATION.equals(activity)) {
 						String hashedCDA = StringUtility.encodeSHA256B64(cda);
-						cdaFacadeSRV.create(transactionID, hashedCDA);
+						cdaFacadeSRV.create(hashedCDA, wii);
 					}
 				}  
 		}  catch(ConnectionRefusedException cex) {
@@ -439,18 +435,16 @@ public abstract class AbstractCTL implements Serializable {
 		}
 	}
 
-    protected PublicationOutputDTO validateCDAHash(String cda , String transactionID) {
-		PublicationOutputDTO out = null; 
-        if (!StringUtility.isNullOrEmpty(cda)){
-            final String hashedCDA = StringUtility.encodeSHA256B64(cda);
-            final boolean matchingHash = cdaFacadeSRV.validateHash(hashedCDA, transactionID);
-            if (!matchingHash) {
-            	out = PublicationOutputDTO.builder().msg("Il CDA non risulta validato").result(PublicationResultEnum.CDA_MATCH_ERROR).build();
-            }
-        } else {
-        	out = PublicationOutputDTO.builder().msg("Impossibile estrarre il CDA").result(PublicationResultEnum.MINING_CDA_ERROR).build();
-        }
-        return out;
+	/**
+	 * Retrieve validation info of CDA on Redis.
+	 * 
+	 * @param cda CDA to check validation of.
+	 * @param wii WorkflowTransactionId, is not mandatory in publication. If not provided, 
+	 * the system will retrieve it from validation info.
+	 */
+    protected ValidationDataDTO getValidationInfo(final String cda, @Nullable final String wii) {
+		final String hashedCDA = StringUtility.encodeSHA256B64(cda);
+		return cdaFacadeSRV.retrieveValidationInfo(hashedCDA, wii);
 	}
     
     protected String checkFormatDate(final String dataInizio, final String dataFine) {

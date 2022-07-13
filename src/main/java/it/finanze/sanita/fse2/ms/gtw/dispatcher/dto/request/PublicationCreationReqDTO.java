@@ -37,7 +37,7 @@ public class PublicationCreationReqDTO extends AbstractDTO {
 	 */
 	private static final long serialVersionUID = -5437339267676346343L;
 
-	@Schema(description = "Identificativo del workflow instance id", required = true)
+	@Schema(description = "Identificativo del workflow instance id", required = false)
 	@Size(min = 1, max = 256)
 	private String workflowInstanceId;
 

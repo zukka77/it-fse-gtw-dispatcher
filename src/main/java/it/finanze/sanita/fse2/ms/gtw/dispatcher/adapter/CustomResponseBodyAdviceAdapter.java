@@ -1,7 +1,5 @@
 package it.finanze.sanita.fse2.ms.gtw.dispatcher.adapter;
 
-import javax.servlet.http.HttpServletRequest;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.MethodParameter;
 import org.springframework.http.MediaType;

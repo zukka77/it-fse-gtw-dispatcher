@@ -86,6 +86,8 @@ public final class Constants {
 
 		public static final String BEARER_PREFIX = "Bearer ";
 
+		public static final String MISSING_WORKFLOW_PLACEHOLDER = "UNKNOW_WORKFLOW_ID";
+
 		private App() {
 			//This method is intentionally left blank.
 		}
