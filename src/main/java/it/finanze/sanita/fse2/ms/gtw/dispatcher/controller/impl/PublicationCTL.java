@@ -145,23 +145,23 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 						out = PublicationOutputDTO.builder().msg("Attenzione. Il file risulta essere vuoto").result(PublicationResultEnum.DOCUMENT_SIZE_ERROR).build();
 					}
 
-					if(out==null) {
+				// 	if(out==null) {
 
-						FhirResourceDTO fhirResourcesDTO = documentReferenceSRV.createFhirResources(cda, jsonObj, size, documentSha256,
-								jwtToken.getPayload().getPerson_id());
-						if(fhirResourcesDTO!=null &&  !StringUtility.isNullOrEmpty(fhirResourcesDTO.getErrorMessage())) {
-							out = PublicationOutputDTO.builder().msg(fhirResourcesDTO.getErrorMessage()).result(PublicationResultEnum.FHIR_MAPPING_ERROR).build();
-						}
+				// 		FhirResourceDTO fhirResourcesDTO = documentReferenceSRV.createFhirResources(cda, jsonObj, size, documentSha256,
+				// 				jwtToken.getPayload().getPerson_id());
+				// 		if(fhirResourcesDTO!=null &&  !StringUtility.isNullOrEmpty(fhirResourcesDTO.getErrorMessage())) {
+				// 			out = PublicationOutputDTO.builder().msg(fhirResourcesDTO.getErrorMessage()).result(PublicationResultEnum.FHIR_MAPPING_ERROR).build();
+				// 		}
 
-						if(out == null) {
-							Boolean isInserted = iniInvocationSRV.insert(validationInfo.getWorkflowInstanceId(), fhirResourcesDTO, jwtToken);
-							if(Boolean.TRUE.equals(isInserted)) {
-								kafkaSRV.notifyIndexer(validationInfo.getWorkflowInstanceId());
-							} else {
-								log.warn("Attention, insertion of transaction id and document reference not done on mongo");
-							}
-						}
-					}
+				// 		if(out == null) {
+				// 			Boolean isInserted = iniInvocationSRV.insert(validationInfo.getWorkflowInstanceId(), fhirResourcesDTO, jwtToken);
+				// 			if(Boolean.TRUE.equals(isInserted)) {
+				// 				kafkaSRV.notifyIndexer(validationInfo.getWorkflowInstanceId());
+				// 			} else {
+				// 				log.warn("Attention, insertion of transaction id and document reference not done on mongo");
+				// 			}
+				// 		}
+				// 	}
 
 				}
 			}
