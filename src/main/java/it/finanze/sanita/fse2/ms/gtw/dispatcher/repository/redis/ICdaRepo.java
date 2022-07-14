@@ -20,4 +20,5 @@ public interface ICdaRepo extends Serializable {
 	 */
 	String getItem(String txID);
 
+	Boolean delete(String hash);
 }

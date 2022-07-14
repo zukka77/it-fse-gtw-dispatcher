@@ -52,6 +52,7 @@ public class CdaSRV implements ICdaSRV {
 
 		ValidationDataDTO data = new ValidationDataDTO();
 		data.setCdaValidated(false);
+		data.setHash(hashPublication);
 
 		try {
 			final String value = cdaRepo.getItem(hashPublication);
@@ -71,6 +72,20 @@ public class CdaSRV implements ICdaSRV {
 		}
 		
 		return data;
+	}
+
+	@Override
+	public boolean consumeHash(final String hashToConsume) {
+		boolean consumed = false;
+		try {
+			if(!StringUtility.isNullOrEmpty(hashToConsume)) {
+				consumed = cdaRepo.delete(hashToConsume);
+			}
+		} catch (Exception e) {
+			log.error("Error while consuming hash from Redis", e);
+			throw new BusinessException("Error while consuming hash from Redis", e);
+		}
+		return consumed;
 	}
 
 }

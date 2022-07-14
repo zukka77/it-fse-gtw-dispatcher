@@ -35,4 +35,6 @@ public interface ICdaFacadeSRV extends Serializable {
 	 * @return The workflowInstanceId saved in validation time or {@code null} if never validated.
 	 */
 	ValidationDataDTO retrieveValidationInfo(String hashToValidate, String wii);
+
+	boolean consumeHash(String hashToConsume);
 }

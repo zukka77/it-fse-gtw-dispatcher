@@ -28,6 +28,7 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.ValidationPublication
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.logging.ElasticLoggerHelper;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.IDocumentReferenceSRV;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.IKafkaSRV;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.facade.ICdaFacadeSRV;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.impl.IniEdsInvocationSRV;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.PDFUtility;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility;
@@ -60,6 +61,9 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 	
 	@Autowired
 	private ElasticLoggerHelper elasticLogger;
+
+	@Autowired
+	private ICdaFacadeSRV cdaSRV;
 
 	@Override
 	public ResponseEntity<PublicationCreationResDTO> publicationCreation(PublicationCreationReqDTO requestBody, MultipartFile file, HttpServletRequest request) {
@@ -139,6 +143,8 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 					out = validateDocumentHash(documentSha256, jwtToken);
 				}
 
+				cdaSRV.consumeHash(validationInfo.getHash());
+
 				if(out == null) {
 					final Integer size = bytePDF!=null ? bytePDF.length : 0;
 					if(size==0) {
@@ -178,6 +184,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 			elasticLogger.error(out.getMsg() + " " + validationInfo.getWorkflowInstanceId(), OperationLogEnum.PUB_CDA2, ResultLogEnum.KO, startDateOperation, out.getResult().getErrorCategory(), issuer);
 			throw new ValidationPublicationErrorException(out.getResult(), out.getMsg());
 		}
+
 
 		elasticLogger.info(String.format("Publication CDA completed for transactionID %s", validationInfo.getWorkflowInstanceId()), OperationLogEnum.PUB_CDA2, ResultLogEnum.OK, startDateOperation, jwtToken.getPayload().getIss());
 		return new ResponseEntity<>(new PublicationCreationResDTO(getLogTraceInfo(), null), HttpStatus.CREATED);
