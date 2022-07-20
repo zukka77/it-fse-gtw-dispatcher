@@ -55,4 +55,4 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
           SONAR_TOKEN: 84a26caadc45937b31040e5a2926fe3ef1a8b238
-        run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=it.finanze.sanita.fse2:gtw-dispatcher-ms -DskipTests
+        run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=it.finanze.sanita.fse2:gtw-dispatcher-ms -DskipTests=true
