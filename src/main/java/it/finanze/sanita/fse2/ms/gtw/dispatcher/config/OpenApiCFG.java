@@ -9,8 +9,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import io.swagger.v3.oas.annotations.enums.SecuritySchemeIn;
 import io.swagger.v3.oas.annotations.enums.SecuritySchemeType;
 import io.swagger.v3.oas.annotations.security.SecurityScheme;
+import io.swagger.v3.oas.annotations.security.SecuritySchemes;
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Contact;
@@ -22,13 +24,19 @@ import io.swagger.v3.oas.models.responses.ApiResponses;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.servers.Server;
 
-@Configuration
-@SecurityScheme(
-	name = "bearerAuth", 
-	type = SecuritySchemeType.HTTP, 
-	bearerFormat = "JWT", 
-	scheme = "bearer", 
-	description = "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token} [RFC8725](https://tools.ietf.org/html/RFC8725).\"")
+@Configuration 
+@SecuritySchemes( {
+    @SecurityScheme(
+            name = "bearerAuth", 
+            type = SecuritySchemeType.HTTP, 
+            bearerFormat = "JWT", 
+            scheme = "bearer", 
+            description = "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token} [RFC8725](https://tools.ietf.org/html/RFC8725).\""),
+    @SecurityScheme(
+            name = "FSE-JWT-Signature", 
+            type = SecuritySchemeType.APIKEY,
+            in = SecuritySchemeIn.HEADER)
+    })
 public class OpenApiCFG {
 
 	@Autowired

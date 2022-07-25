@@ -21,7 +21,7 @@ public enum PublicationResultEnum {
 	MANDATORY_ELEMENT_ERROR("/msg/mandatory-element", "Campo obbligatorio non presente.", ErrorLogEnum.KO_INVALID_DATA),
 	FORMAT_ELEMENT_ERROR("/msg/invalid-format", "Formato campo non valido.", ErrorLogEnum.KO_INVALID_DATA),
 	MANDATORY_ELEMENT_ERROR_TOKEN("/msg/mandatory-element", "Token JWT non valido.", ErrorLogEnum.KO_INVALID_DATA),
-	INVALID_TOKEN_FIELD("msg/jwt-validation", "Campo token JWT non valido", ErrorLogEnum.KO_INVALID_DATA),
+	INVALID_TOKEN_FIELD("/msg/jwt-validation", "Campo token JWT non valido.", ErrorLogEnum.KO_INVALID_DATA),
 	FHIR_MAPPING_ERROR("/msg/fhir-mapping-type", "Mapping fhir fallito.", ErrorLogEnum.KO_PUB);
 
 	private String type;

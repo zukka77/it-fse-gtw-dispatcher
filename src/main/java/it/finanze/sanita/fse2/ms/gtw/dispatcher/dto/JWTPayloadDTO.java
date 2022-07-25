@@ -169,19 +169,25 @@ public class JWTPayloadDTO {
 	}
 	
 	private static boolean isValidOid(String rawOid) {
-		final String [] chunks = rawOid.split("\\^\\^\\^");
-		
-		if (chunks.length > 1) {
-			log.debug("Searching oid");
-			final String[] chunkedInfo = chunks[1].split("&amp;");
-			if (chunkedInfo.length > 1 && Constants.OIDS.OID_MEF.equals(chunkedInfo[1])) {
-				return CfUtility.isValidCf(chunks[0]);
+
+		boolean isValid = false;
+		if (rawOid != null) {
+			final String [] chunks = rawOid.split("\\^\\^\\^");
+			
+			if (chunks.length > 1) {
+				log.debug("Searching oid");
+				final String[] chunkedInfo = chunks[1].split("&amp;");
+				if (chunkedInfo.length > 1 && Constants.OIDS.OID_MEF.equals(chunkedInfo[1])) {
+					isValid = CfUtility.isValidCf(chunks[0]);
+				} else {
+					isValid = true;
+				}
 			} else {
-				return true;
+				isValid = CfUtility.isValidCf(chunks[0]);
 			}
-		} else {
-			return CfUtility.isValidCf(chunks[0]);
 		}
+
+		return isValid;
 	}
 
 	private enum ActionEnum {

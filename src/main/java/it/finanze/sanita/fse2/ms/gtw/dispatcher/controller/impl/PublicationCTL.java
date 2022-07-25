@@ -12,8 +12,6 @@ import org.springframework.web.multipart.MultipartFile;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.MicroservicesURLCFG;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.controller.IPublicationCTL;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.FhirResourceDTO;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.JWTHeaderDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.JWTPayloadDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.JWTTokenDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.PublicationOutputDTO;
@@ -32,7 +30,6 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.facade.ICdaFacadeSRV;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.impl.IniEdsInvocationSRV;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.PDFUtility;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility;
-import lombok.extern.slf4j.Slf4j;
 /**
  * 
  * @author CPIERASC
@@ -40,7 +37,6 @@ import lombok.extern.slf4j.Slf4j;
  *  Publication controller.
  */
 @RestController
-@Slf4j
 public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 	/**
 	 * Serial version uid.
@@ -74,9 +70,9 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 
 		JWTTokenDTO jwtToken = null;
 		if (Boolean.TRUE.equals(msCfg.getFromGovway())) {
-			jwtToken = extractJWT(request.getHeader(Constants.Headers.JWT_GOVWAY_HEADER));
+			jwtToken = extractJWT(request.getHeader(Constants.Headers.JWT_GOVWAY_HEADER), msCfg.getFromGovway());
 		} else {
-			jwtToken = extractJWT(request.getHeader(Constants.Headers.JWT_HEADER));
+			jwtToken = extractJWT(request.getHeader(Constants.Headers.JWT_HEADER), msCfg.getFromGovway());
 		}
 		
 		PublicationCreationReqDTO jsonObj = getPublicationJSONObject(request.getParameter("requestBody"));
@@ -92,7 +88,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 			} else {
 				String errorMsg = null;
 				if (!Boolean.TRUE.equals(msCfg.getFromGovway())) {
-					errorMsg = JWTHeaderDTO.validateHeader(jwtToken.getHeader());
+					// errorMsg = JWTHeaderDTO.validateHeader(jwtToken.getHeader());
 				}
 				if (errorMsg == null) {
 					errorMsg = JWTPayloadDTO.validatePayload(jwtToken.getPayload());
@@ -124,7 +120,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 							cda = extractCDA(bytePDF, jsonObj.getMode());
 
 							if (!StringUtility.isNullOrEmpty(validateJWT(jwtToken, cda))) {
-								out = PublicationOutputDTO.builder().msg(PublicationResultEnum.MANDATORY_ELEMENT_ERROR_TOKEN.getTitle()).result(PublicationResultEnum.MANDATORY_ELEMENT_ERROR_TOKEN).build();
+								out = PublicationOutputDTO.builder().msg(PublicationResultEnum.INVALID_TOKEN_FIELD.getTitle()).result(PublicationResultEnum.INVALID_TOKEN_FIELD).build();
 							} else /**if(!jsonObj.isForcePublish())**/ {
 								validationInfo = getValidationInfo(cda, jsonObj.getWorkflowInstanceId());
 

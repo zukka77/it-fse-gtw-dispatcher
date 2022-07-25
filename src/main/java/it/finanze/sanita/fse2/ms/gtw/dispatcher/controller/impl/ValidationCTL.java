@@ -19,7 +19,6 @@ import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.MicroservicesURLCFG;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.controller.IValidationCTL;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.JWTHeaderDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.JWTPayloadDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.JWTTokenDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.ValidationInfoDTO;
@@ -78,9 +77,9 @@ public class ValidationCTL extends AbstractCTL implements IValidationCTL {
 		Date startDateExtractJwt = new Date();
 		log.info("START EXTRACT JWT: " + startDateExtractJwt);
 		if (Boolean.TRUE.equals(msCfg.getFromGovway())) {
-			jwtToken = extractJWT(request.getHeader(Constants.Headers.JWT_GOVWAY_HEADER));
+			jwtToken = extractJWT(request.getHeader(Constants.Headers.JWT_GOVWAY_HEADER), msCfg.getFromGovway());
 		} else {
-			jwtToken = extractJWT(request.getHeader(Constants.Headers.JWT_HEADER));
+			jwtToken = extractJWT(request.getHeader(Constants.Headers.JWT_HEADER), msCfg.getFromGovway());
 		}
 		Long endDateExtract = new Date().getTime() - startDateExtractJwt.getTime();
 		log.info("END EXTRACT JWT: " + endDateExtract);
@@ -105,7 +104,7 @@ public class ValidationCTL extends AbstractCTL implements IValidationCTL {
 				Date startDateValidateJwt = new Date();
 				log.info("START VALIDATE JWT: " + startDateValidateJwt);
 				if (!Boolean.TRUE.equals(msCfg.getFromGovway())) {
-					msgResult = JWTHeaderDTO.validateHeader(jwtToken.getHeader());
+					// msgResult = JWTHeaderDTO.validateHeader(jwtToken.getHeader());
 				}
 				if (msgResult == null) {
 					msgResult = JWTPayloadDTO.validatePayload(jwtToken.getPayload());

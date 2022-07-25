@@ -240,7 +240,7 @@ public abstract class AbstractCTL implements Serializable {
     	return out;
     }
 
-	protected JWTTokenDTO extractJWT(final String jwt) {
+	protected JWTTokenDTO extractJWT(final String jwt, final boolean fromGovway) {
 		JWTTokenDTO jwtToken = null;
 
 		try {
@@ -254,7 +254,12 @@ public abstract class AbstractCTL implements Serializable {
 				if (!jwt.startsWith(Constants.App.BEARER_PREFIX)) {
 					log.warn("Bearer prefix not found, trying decoding the token without prefix");
 					chunks = jwt.split("\\.");
-					payload = new String(Base64.getDecoder().decode(chunks[0]));
+					if (fromGovway) {
+						payload = new String(Base64.getDecoder().decode(chunks[0]));
+					} else {
+						header = new String(Base64.getDecoder().decode(chunks[0]));
+						payload = new String(Base64.getDecoder().decode(chunks[1]));
+					}
 
 					// Building the object asserts that all required values are present
 					jwtToken = new JWTTokenDTO(null, JWTPayloadDTO.extractPayload(payload));
