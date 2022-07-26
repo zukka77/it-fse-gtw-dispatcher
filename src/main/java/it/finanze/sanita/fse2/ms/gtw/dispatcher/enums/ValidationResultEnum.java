@@ -18,7 +18,7 @@ public enum ValidationResultEnum {
 	GENERIC_ERROR("/msg/generic", "Errore generico.", ErrorLogEnum.KO_VAL),
 	MANDATORY_ELEMENT_ERROR_TOKEN("/msg/mandatory-element", "Token jwt non presente.", ErrorLogEnum.KO_INVALID_DATA),
 	FORMAT_ELEMENT_ERROR("/msg/invalid-format", "Formato campo non valido.", ErrorLogEnum.KO_INVALID_DATA),
-	INVALID_TOKEN_FIELD("msg/jwt-validation", "Campo token JWT non valido", ErrorLogEnum.KO_INVALID_DATA);
+	INVALID_TOKEN_FIELD("/msg/jwt-validation", "Campo token JWT non valido.", ErrorLogEnum.KO_INVALID_DATA);
 
 	private String type;
 	private String title;
