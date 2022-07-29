@@ -63,7 +63,7 @@ public class ControllerExceptionHandler extends ResponseEntityExceptionHandler {
 
     	String workflowInstanceId = StringUtility.isNullOrEmpty(ex.getWorkflowInstanceId()) ? null : ex.getWorkflowInstanceId(); 
     	
-    	ValidationErrorResponseDTO out = new ValidationErrorResponseDTO(getLogTraceInfo(), ex.getResult().getType(), ex.getResult().getTitle(), ex.getMessage(), status, ex.getResult().getType(), workflowInstanceId);
+    	ValidationErrorResponseDTO out = new ValidationErrorResponseDTO(getLogTraceInfo(), ex.getResult().getType(), ex.getResult().getTitle(),StringUtility.sanitizeMessage(ex.getMessage()), status, ex.getResult().getType(), workflowInstanceId);
     	
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_PROBLEM_JSON);
@@ -83,9 +83,8 @@ public class ControllerExceptionHandler extends ResponseEntityExceptionHandler {
     	log.error("" , ex);
     	Integer status = 500;
     	
-    	String url  = ex.getUrl() != null ? ex.getUrl() : "";
-    	String detailedMessage = ex.getMessage() + " " + url; 
-    	ErrorResponseDTO out = new ErrorResponseDTO(getLogTraceInfo(), "/msg/connection-refused", ex.getMessage(), detailedMessage, status, "/msg/connection-refused");
+    	String detailedMessage = ex.getMessage();
+    	ErrorResponseDTO out = new ErrorResponseDTO(getLogTraceInfo(), "/msg/connection-refused", StringUtility.sanitizeMessage(ex.getMessage()), detailedMessage, status, "/msg/connection-refused");
 
     	HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_PROBLEM_JSON);
@@ -149,7 +148,7 @@ public class ControllerExceptionHandler extends ResponseEntityExceptionHandler {
     	if (PublicationResultEnum.MANDATORY_ELEMENT_ERROR_TOKEN.equals(ex.getResult())) {
         	status = 400;
     	}
-    	ErrorResponseDTO out = new ErrorResponseDTO(getLogTraceInfo(), ex.getResult().getType(), ex.getResult().getTitle(), ex.getMessage(), status, ex.getResult().getType());
+    	ErrorResponseDTO out = new ErrorResponseDTO(getLogTraceInfo(), ex.getResult().getType(), ex.getResult().getTitle(), StringUtility.sanitizeMessage(ex.getMessage()), status, ex.getResult().getType());
     	
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_PROBLEM_JSON);

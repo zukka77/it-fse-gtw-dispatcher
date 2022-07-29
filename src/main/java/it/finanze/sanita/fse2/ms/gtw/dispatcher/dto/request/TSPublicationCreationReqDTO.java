@@ -7,7 +7,6 @@ import javax.validation.constraints.Size;
 import io.swagger.v3.oas.annotations.media.Schema;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.AbstractDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.AttivitaClinicaEnum;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventCodeEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.HealthDataFormatEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.HealthcareFacilityEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.InjectionModeEnum;
@@ -46,7 +45,7 @@ public class TSPublicationCreationReqDTO extends AbstractDTO {
 
 	@Schema(description = "Regole di accesso")
 	@Size(min = 0, max = 100)
-	private List<EventCodeEnum> regoleAccesso;
+	private List<String> regoleAccesso;
 
 	@Schema(description = "Identificativo documento", required = true)
 	@Size(min = 0, max = 100)

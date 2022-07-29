@@ -26,5 +26,18 @@ public enum EventCodeEnum {
 	public String getDescription() {
 		return description;
 	}
+	
+	public static EventCodeEnum fromValue(final String code) {
+		EventCodeEnum output = null;
+        for (EventCodeEnum valueEnum : EventCodeEnum.values()) {
+        	if (valueEnum.getCode().equalsIgnoreCase(code)) {
+        		output = valueEnum;
+        		break;
+        	}
+
+        }
+		 
+		return output;
+    }
 
 }

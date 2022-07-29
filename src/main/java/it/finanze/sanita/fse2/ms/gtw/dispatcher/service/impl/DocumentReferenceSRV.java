@@ -86,8 +86,8 @@ public class DocumentReferenceSRV implements IDocumentReferenceSRV {
 			documentReferenceDTO.setHash(hash);
 			documentReferenceDTO.setFacilityTypeCode(requestBody.getTipologiaStruttura().getCode());
 			
-			if(requestBody.getAttiCliniciRegoleAccesso()!=null && !requestBody.getAttiCliniciRegoleAccesso().isEmpty()) {
-				documentReferenceDTO.setEventCode(requestBody.getAttiCliniciRegoleAccesso().stream().map(e->e.getCode()).collect(Collectors.toList()));
+			if(requestBody.getAttiCliniciRegoleAccesso()!=null && !requestBody.getAttiCliniciRegoleAccesso().isEmpty()) { 
+				documentReferenceDTO.setEventCode(requestBody.getAttiCliniciRegoleAccesso());
 			}
 			documentReferenceDTO.setPracticeSettingCode(requestBody.getAssettoOrganizzativo().getDescription());
 			documentReferenceDTO.setTipoDocumentoLivAlto(requestBody.getTipoDocumentoLivAlto().getCode());
@@ -179,7 +179,7 @@ public class DocumentReferenceSRV implements IDocumentReferenceSRV {
 
 			de.setHealthcareFacilityTypeCode(requestBody.getTipologiaStruttura().getCode());
 			if (!CollectionUtils.isEmpty(requestBody.getAttiCliniciRegoleAccesso())) {
-				de.setEventCodeList(requestBody.getAttiCliniciRegoleAccesso().stream().map(EventCodeEnum::getCode).collect(Collectors.toList()));
+				de.setEventCodeList(requestBody.getAttiCliniciRegoleAccesso());
 			}
 			de.setRepositoryUniqueId(requestBody.getIdentificativoRep());
 			de.setClassCode(requestBody.getTipoDocumentoLivAlto().getCode());

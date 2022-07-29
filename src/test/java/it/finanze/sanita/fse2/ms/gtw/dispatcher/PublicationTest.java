@@ -253,7 +253,7 @@ class PublicationTest extends AbstractTest {
 				identificativoRep("Identificativo rep").
 				identificativoSottomissione("Identificativo Sottomissione").
 				mode(InjectionModeEnum.ATTACHMENT).
-				attiCliniciRegoleAccesso(java.util.Arrays.asList(EventCodeEnum._94503_0)).
+				attiCliniciRegoleAccesso(java.util.Arrays.asList(EventCodeEnum._94503_0.getCode())).
 				tipoAttivitaClinica(AttivitaClinicaEnum.CON).
 				tipoDocumentoLivAlto(TipoDocAltoLivEnum.WOR).
 				tipologiaStruttura(HealthcareFacilityEnum.Ospedale).

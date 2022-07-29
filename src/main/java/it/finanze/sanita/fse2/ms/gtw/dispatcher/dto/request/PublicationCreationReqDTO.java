@@ -52,7 +52,7 @@ public class PublicationCreationReqDTO extends AbstractDTO {
 
 	@Schema(description = "Regole di accesso")
 	@Size(min = 0, max = 100)
-	private List<EventCodeEnum> attiCliniciRegoleAccesso;
+	private List<String> attiCliniciRegoleAccesso;
 
 	@Schema(description = "Identificativo documento", required = true)
 	@Size(min = 0, max = 100)

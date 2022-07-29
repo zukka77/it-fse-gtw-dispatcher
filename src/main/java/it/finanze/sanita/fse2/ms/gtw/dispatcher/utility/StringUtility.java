@@ -156,6 +156,10 @@ public final class StringUtility {
 
 		return uid;
 	}
+	
+	public static String sanitizeMessage(final String message) {
+		return message.replace("<script>", "").replace("</script>", "");
+	}
 
 	/**
 	 * Transformation from Json to Object.

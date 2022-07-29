@@ -34,6 +34,8 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.TSPublicationCreatio
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.ValidationCDAReqDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.LogTraceInfoDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ActivityEnum;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.AttivitaClinicaEnum;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventCodeEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.InjectionModeEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.PublicationResultEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.RawValidationEnum;
@@ -236,6 +238,12 @@ public abstract class AbstractCTL implements Serializable {
     		out = "Il campo identificativo sottomissione deve essere valorizzato.";
     	} else if(jsonObj.getTipologiaStruttura()==null) {
     		out = "Il campo tipologia struttura deve essere valorizzato.";
+    	} else if(jsonObj.getAttiCliniciRegoleAccesso()!=null) {
+    		for(String attoClinico : jsonObj.getAttiCliniciRegoleAccesso()) {
+    			if(EventCodeEnum.fromValue(attoClinico)==null) {
+    				out = "Il campo event code " + attoClinico + " non è consentito";
+    			}
+    		}
     	}
     	return out;
     }
