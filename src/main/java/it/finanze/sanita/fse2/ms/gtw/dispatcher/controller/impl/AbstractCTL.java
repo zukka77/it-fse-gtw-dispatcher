@@ -306,7 +306,7 @@ public abstract class AbstractCTL implements Serializable {
 					log.info("Person id fiscal code found in JWT token: {}", chunks[0]);
 					log.info("Person id fiscal code found in CDA: {}", patientRoleCF);
 					if(!chunks[0].equals(patientRoleCF)) {
-						errorMsg = "JWT payload: person id diverso dal patient del cda";
+						errorMsg = "JWT payload: person id diverso dal patient del CDA";
 					}
 				}
 			}
