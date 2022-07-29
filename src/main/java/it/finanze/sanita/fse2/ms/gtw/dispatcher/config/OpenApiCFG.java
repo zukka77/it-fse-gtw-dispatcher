@@ -2,32 +2,46 @@ package it.finanze.sanita.fse2.ms.gtw.dispatcher.config;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.regex.Pattern;
 
 import org.springdoc.core.customizers.OpenApiCustomiser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import io.swagger.v3.oas.annotations.enums.SecuritySchemeIn;
 import io.swagger.v3.oas.annotations.enums.SecuritySchemeType;
 import io.swagger.v3.oas.annotations.security.SecurityScheme;
+import io.swagger.v3.oas.annotations.security.SecuritySchemes;
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.Operation;
+import io.swagger.v3.oas.models.PathItem;
 import io.swagger.v3.oas.models.info.Contact;
 import io.swagger.v3.oas.models.media.Content;
 import io.swagger.v3.oas.models.media.MediaType;
 import io.swagger.v3.oas.models.media.Schema;
+import io.swagger.v3.oas.models.parameters.RequestBody;
 import io.swagger.v3.oas.models.responses.ApiResponse;
 import io.swagger.v3.oas.models.responses.ApiResponses;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.servers.Server;
 
-@Configuration
-@SecurityScheme(
-	name = "bearerAuth", 
-	type = SecuritySchemeType.HTTP, 
-	bearerFormat = "JWT", 
-	scheme = "bearer", 
-	description = "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token} [RFC8725](https://tools.ietf.org/html/RFC8725).\"")
+@Configuration 
+@SecuritySchemes( {
+	@SecurityScheme(
+			name = "bearerAuth", 
+			type = SecuritySchemeType.HTTP, 
+			bearerFormat = "JWT", 
+			scheme = "bearer", 
+			description = "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token} [RFC8725](https://tools.ietf.org/html/RFC8725).\""),
+	@SecurityScheme(
+			name = "FSE-JWT-Signature", 
+			type = SecuritySchemeType.APIKEY,
+			in = SecuritySchemeIn.HEADER)
+    }
+)
 public class OpenApiCFG {
 
 	@Autowired
@@ -44,61 +58,52 @@ public class OpenApiCFG {
 		required.add("file");
 		required.add("requestBody");
 
-		final OpenApiCustomiser customOpenApi = new OpenApiCustomiser() {
+		return openApi -> {
 
-			@Override
-			public void customise(final OpenAPI openApi) {
+			// Populating info section.
+			openApi.getInfo().setTitle(customOpenapi.getTitle());
+			openApi.getInfo().setVersion(customOpenapi.getVersion());
+			openApi.getInfo().setDescription(customOpenapi.getDescription());
+			openApi.getInfo().setTermsOfService(customOpenapi.getTermsOfService());
 
-				// Populating info section.
-				openApi.getInfo().setTitle(customOpenapi.getTitle());
-				openApi.getInfo().setVersion(customOpenapi.getVersion());
-				openApi.getInfo().setDescription(customOpenapi.getDescription());
-				openApi.getInfo().setTermsOfService(customOpenapi.getTermsOfService());
-				
-				// Adding contact to info section
-				final Contact contact = new Contact();
-				contact.setName(customOpenapi.getContactName());
-				contact.setUrl(customOpenapi.getContactUrl());
-				contact.setEmail(customOpenapi.getContactMail());
-				openApi.getInfo().setContact(contact);
-				
-				// Adding extensions
-				openApi.getInfo().addExtension("x-api-id", customOpenapi.getApiId());
-				openApi.getInfo().addExtension("x-summary", customOpenapi.getApiSummary());
-				
-				// Adding servers
-				final List<Server> servers = new ArrayList<>();
-				final Server devServer = new Server();
-				devServer.setDescription("Gateway Dispatcher Development URL");
-				devServer.setUrl("http://localhost:" + customOpenapi.getPort());
-				devServer.addExtension("x-sandbox", true);
-				
-				servers.add(devServer);
-				openApi.setServers(servers);
+			// Adding contact to info section
+			final Contact contact = new Contact();
+			contact.setName(customOpenapi.getContactName());
+			contact.setUrl(customOpenapi.getContactUrl());
+			contact.setEmail(customOpenapi.getContactMail());
+			openApi.getInfo().setContact(contact);
 
-				openApi.getComponents().getSchemas().values().forEach(schema -> {
-					schema.setAdditionalProperties(false);
-				});
+			// Adding extensions
+			openApi.getInfo().addExtension("x-api-id", customOpenapi.getApiId());
+			openApi.getInfo().addExtension("x-summary", customOpenapi.getApiSummary());
 
-				openApi.getPaths().values().stream().filter(item -> item.getPost() != null).forEach(item -> {
-
-					final Schema<MediaType> schema = item.getPost().getRequestBody().getContent()
-						.get(org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE).getSchema();
-
-					schema.additionalProperties(false);
-					schema.getProperties().get("file").setMaxLength(customOpenapi.getFileMaxLength());
-					schema.required(required);
-
-				});
+			for (final Server server : openApi.getServers()) {
+				final Pattern pattern = Pattern.compile("^https://.*");
+				if (!pattern.matcher(server.getUrl()).matches()) {
+					server.addExtension("x-sandbox", true);
+				}
 			}
-		};
 
-		return customOpenApi;
+			openApi.getComponents().getSchemas().values().forEach(schema -> {
+				schema.setAdditionalProperties(false);
+			});
+
+			openApi.getPaths().values()
+			.stream()
+			.map(item -> getFileSchema(item))
+			.filter(Objects::nonNull)
+			.forEach(schema -> {
+				schema.additionalProperties(false);
+				schema.getProperties().get("file").setMaxLength(customOpenapi.getFileMaxLength());
+				schema.required(required);
+			});
+		};
 	}
 
 	@Bean
 	public OpenAPI customOpenAPI() {
 		final String securitySchemeName = "bearerAuth";
+		
 		return new OpenAPI().addSecurityItem(new SecurityRequirement().addList(securitySchemeName))
 				.components(
 						new Components().addSecuritySchemes(securitySchemeName,
@@ -127,5 +132,29 @@ public class OpenApiCFG {
 				apiResponses.addApiResponse("default", apiResponse);
 			}));
 		};
+	}
+
+	private Schema<?> getFileSchema(PathItem item) {
+		MediaType mediaType = getMultipartFile(item);
+		if (mediaType == null) return null;
+		return mediaType.getSchema();
+	}
+	
+	private Operation getOperation(PathItem item) {
+		if (item.getPost() != null) return item.getPost();
+		if (item.getPatch() != null) return item.getPatch();
+		if (item.getPut() != null) return item.getPut();
+		return null;
+	}
+	
+	private MediaType getMultipartFile(PathItem item) {
+		Operation operation = getOperation(item);
+		if (operation == null) return null;
+		RequestBody body = operation.getRequestBody();
+		if (body == null) return null;
+		Content content = body.getContent();
+		if (content == null) return null;
+		MediaType mediaType = content.get(org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE);
+		return mediaType;
 	}
 }

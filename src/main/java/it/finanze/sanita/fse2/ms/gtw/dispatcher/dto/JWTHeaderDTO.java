@@ -1,8 +1,5 @@
 package it.finanze.sanita.fse2.ms.gtw.dispatcher.dto;
 
-import org.apache.commons.lang3.StringUtils;
-
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -48,41 +45,12 @@ public class JWTHeaderDTO {
 		try {
 			jwtHeader = StringUtility.fromJSON(json, JWTHeaderDTO.class); 
 		} catch (Exception e) {
-			jwtHeader = null;
 			log.error("Error while validating JWT header");
 		}
 		
 		return jwtHeader;
 	}
-
-	public static String validateHeader(JWTHeaderDTO header) {
-		String error = null;
-		
-		if (header == null) {
-			error = "JWT header is not valid";
-		} else if (!Constants.App.JWT_TOKEN_TYPE.equals(header.getTyp())) {
-			error = "Invalid JWT token type";
-		} else if (!JWTAllowdALG.isAllowed(header.getAlg())) {
-			error = "Invalid JWT token algorithm";
-		} else if (StringUtils.isEmpty(header.getX5c())) {
-			error = "JWT token certificate is mandatory";
-		}
-
-		return error;
-	}
+ 
 	
-	private enum JWTAllowdALG {
-		RS256, RS384, RS512;
-
-		private static boolean isAllowed(final String value) {
-			
-			for (JWTAllowdALG v : JWTAllowdALG.values()) {
-				if (v.name().equals(value)) {
-					return true;
-				}
-			}
-			return false;
-		}
-	}
 	
 }

@@ -9,7 +9,5 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class JWTTokenDTO {
     
-    private JWTHeaderDTO header;
-
     private JWTPayloadDTO payload;
 }

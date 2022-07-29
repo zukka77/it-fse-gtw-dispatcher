@@ -24,8 +24,7 @@ public class ValidatorMockClient extends AbstractClient implements IValidatorCli
 
 	@Override
 	public ValidationInfoDTO validate(String cda) {
-		ValidationInfoDTO info = ValidationInfoDTO.builder().result(RawValidationEnum.OK).build();
-		return info;
+		return ValidationInfoDTO.builder().result(RawValidationEnum.OK).build();
 	}
 	   
 }

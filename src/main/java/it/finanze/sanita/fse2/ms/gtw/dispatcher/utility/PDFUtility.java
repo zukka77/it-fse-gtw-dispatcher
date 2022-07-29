@@ -1,66 +1,20 @@
 package it.finanze.sanita.fse2.ms.gtw.dispatcher.utility;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
 
+import com.lowagie.text.pdf.*;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.AttachmentDTO;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDDocumentCatalog;
 import org.apache.pdfbox.pdmodel.PDDocumentNameDictionary;
 import org.apache.pdfbox.pdmodel.PDEmbeddedFilesNameTreeNode;
 import org.apache.pdfbox.pdmodel.common.filespecification.PDComplexFileSpecification;
-import org.apache.pdfbox.pdmodel.common.filespecification.PDEmbeddedFile;
 
-import com.lowagie.text.pdf.PRStream;
-import com.lowagie.text.pdf.PdfArray;
-import com.lowagie.text.pdf.PdfDictionary;
-import com.lowagie.text.pdf.PdfIndirectReference;
-import com.lowagie.text.pdf.PdfName;
-import com.lowagie.text.pdf.PdfReader;
-import com.lowagie.text.pdf.PdfString;
-
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.AttachmentDTO;
-import lombok.extern.slf4j.Slf4j;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 @Slf4j
 public class PDFUtility {
-
-	public static byte[] addAttachments(byte[] bytePDF, AttachmentDTO... attachments) {
-		byte[] out = null;
-		try {
-		    final PDDocument document = PDDocument.load(new ByteArrayInputStream(bytePDF));
-
-		    final Map<String, PDComplexFileSpecification> embeddedFileMap = new HashMap<>();
-
-		    for (AttachmentDTO attachment:attachments) {
-			    final PDEmbeddedFile embeddedFile = new PDEmbeddedFile(document, new ByteArrayInputStream(attachment.getContent()));
-			    embeddedFile.setSubtype(attachment.getMimeType());
-			    embeddedFile.setSize(attachment.getContent().length);
-
-			    final PDComplexFileSpecification fileSpecification = new PDComplexFileSpecification();
-			    fileSpecification.setFile(attachment.getFileName());
-			    fileSpecification.setEmbeddedFile(embeddedFile);
-
-			    embeddedFileMap.put(attachment.getFileName(), fileSpecification);
-		    }
-		    
-		    final PDEmbeddedFilesNameTreeNode efTree = new PDEmbeddedFilesNameTreeNode();
-		    efTree.setNames(embeddedFileMap);
-
-		    final PDDocumentNameDictionary names = new PDDocumentNameDictionary(document.getDocumentCatalog());
-		    names.setEmbeddedFiles(efTree);
-		    document.getDocumentCatalog().setNames(names);
-
-		    ByteArrayOutputStream baos = new ByteArrayOutputStream();
-		    document.save(baos);
-		    document.close();
-		    out = baos.toByteArray();
-		} catch (Exception e) {
-			log.error("Errore in fase di estrazione allegato dal pdf.", e);
-		}
-	    return out;
-	}
 	
 	public static Map<String, AttachmentDTO> extractAttachments(byte[] bytePDF) {
 		Map<String, AttachmentDTO> out = new HashMap<>();
@@ -87,9 +41,7 @@ public class PDFUtility {
 	public static String unenvelopeA2(byte[] pdf) {
 		String out = null;
 		String errorMsg = "No CDA found.";
-		PdfReader pdfReader = null;
-		try { 
-			pdfReader = new PdfReader(pdf);
+		try (PdfReader pdfReader = new PdfReader(pdf)) {
 			PdfDictionary catalog = pdfReader.getCatalog();
 			if (catalog != null) {
 				PdfDictionary names = catalog.getAsDict(PdfName.NAMES);
@@ -143,9 +95,6 @@ public class PDFUtility {
 		} catch (Exception e) {
 			log.warn("Errore in fase di recupero CDA da risorsa.", e);
 		} finally {
-			if(pdfReader!=null) {
-				pdfReader.close();
-			}
 			log.warn(errorMsg);
 		}
 		return out;

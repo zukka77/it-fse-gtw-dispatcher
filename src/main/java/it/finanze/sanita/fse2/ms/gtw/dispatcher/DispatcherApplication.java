@@ -13,7 +13,6 @@ public class DispatcherApplication {
 		SpringApplication.run(DispatcherApplication.class, args);
 	}
 
-
     /**
      * Definizione rest template.
      * 

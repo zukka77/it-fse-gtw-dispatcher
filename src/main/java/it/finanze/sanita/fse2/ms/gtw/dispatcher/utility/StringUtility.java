@@ -1,22 +1,29 @@
 package it.finanze.sanita.fse2.ms.gtw.dispatcher.utility;
 
 import java.net.InetAddress;
-import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Base64;
+import java.util.TimeZone;
 import java.util.UUID;
+
+import org.apache.commons.codec.binary.Hex;
 
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.google.gson.Gson;
 
-import org.apache.commons.codec.binary.Hex;
-
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.ErrorResponseDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ErrorInstanceEnum;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.RestExecutionResultEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.UIDModeEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.BusinessException;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.ValidationException;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -36,11 +43,7 @@ public final class StringUtility {
 	 * @return		{@code true} if the String passed as parameter is null or empty.
 	 */
 	public static boolean isNullOrEmpty(final String str) {
-	    boolean out = false;
-		if (str == null || str.isEmpty()) {
-			out = true;
-		}
-		return out;
+		return str == null || str.isEmpty();
 	}
 
 	/**
@@ -49,13 +52,13 @@ public final class StringUtility {
 	 * @param objectToEncode String to encode.
 	 * @return String Encoded.
 	 */
-	public static String encodeSHA256(byte[] objectToEncode) {
+	public static String encodeSHA256(final byte[] objectToEncode) {
 		try {
-		    final MessageDigest digest = MessageDigest.getInstance("SHA-256");
+		    final MessageDigest digest = MessageDigest.getInstance(Constants.App.SHA_ALGORITHM);
 		    return Hex.encodeHexString(digest.digest(objectToEncode));
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			log.error("Errore in fase di calcolo sha", e);
-			throw new BusinessException("Errore in fase di calcolo SHA-256", e);
+			throw new BusinessException(Constants.App.SHA_ERROR, e);
 		}
 	}
 	
@@ -65,19 +68,15 @@ public final class StringUtility {
 	 * @param objectToEncode String to encode.
 	 * @return String Encoded.
 	 */
-	public static String encodeSHA256B64(String objectToEncode) {
+	public static String encodeSHA256B64(final String objectToEncode) {
 		try {
-		    final MessageDigest digest = MessageDigest.getInstance("SHA-256");
+		    final MessageDigest digest = MessageDigest.getInstance(Constants.App.SHA_ALGORITHM);
 		    final byte[] hash = digest.digest(objectToEncode.getBytes());
 		    return encodeBase64(hash);
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			log.error("Errore in fase di calcolo sha", e);
-			throw new BusinessException("Errore in fase di calcolo SHA-256", e);
+			throw new BusinessException(Constants.App.SHA_ERROR, e);
 		}
-	}
-
-	public static String decodeFromBase64(String encodedString) {
-		return new String(Base64.getDecoder().decode(encodedString), StandardCharsets.UTF_8);
 	}
 	
 	/**
@@ -86,14 +85,14 @@ public final class StringUtility {
 	 * @param objectToEncode String to encode.
 	 * @return String Encoded.
 	 */
-	public static String encodeSHA256Hex(String objectToEncode) {
+	public static String encodeSHA256Hex(final String objectToEncode) {
 		try {
-		    final MessageDigest digest = MessageDigest.getInstance("SHA-256");
+		    final MessageDigest digest = MessageDigest.getInstance(Constants.App.SHA_ALGORITHM);
 		    final byte[] hash = digest.digest(objectToEncode.getBytes());
 		    return encodeHex(hash);
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			log.error("Errore in fase di calcolo sha", e);
-			throw new BusinessException("Errore in fase di calcolo SHA-256", e);
+			throw new BusinessException(Constants.App.SHA_ERROR, e);
 		}
 	}
 
@@ -126,26 +125,26 @@ public final class StringUtility {
 		String uid = null;
 
 		if (!Arrays.asList(UIDModeEnum.values()).contains(mode)) {
-			uid = UUID.randomUUID().toString().replace("-", "");
+			uid = UUID.randomUUID().toString().replace("-", "").substring(0, 10);
 		} else {
 			switch (mode) {
 				case HOSTNAME_UUID:
 					try {
-						InetAddress ip = InetAddress.getLocalHost();
+						final InetAddress ip = InetAddress.getLocalHost();
 						uid = ip.getHostName() + UUID.randomUUID().toString().replace("-", "");
-					} catch (Exception e) {
-						log.error("Error while retrieving host informations", e);
-						throw new BusinessException("Error while retrieving host informations", e);
+					} catch (final Exception e) {
+						log.error(Constants.App.HOST_ERROR, e);
+						throw new BusinessException(Constants.App.HOST_ERROR, e);
 					}
 					break;
 				case IP_UUID:
 					try {
-						InetAddress ip = InetAddress.getLocalHost();
+						final InetAddress ip = InetAddress.getLocalHost();
 						uid = ip.toString().replace(ip.getHostName() + "/", "")
 								+ UUID.randomUUID().toString().replace("-", "");
-					} catch (Exception e) {
-						log.error("Error while retrieving host informations", e);
-						throw new BusinessException("Error while retrieving host informations", e);
+					} catch (final Exception e) {
+						log.error(Constants.App.HOST_ERROR, e);
+						throw new BusinessException(Constants.App.HOST_ERROR, e);
 					}
 					break;
 				case UUID_UUID:
@@ -188,15 +187,51 @@ public final class StringUtility {
 	public static String toJSONJackson(final Object obj) {
 		String out = "";
 		try {
-			ObjectMapper objectMapper = new ObjectMapper(); 
+			final ObjectMapper objectMapper = new ObjectMapper(); 
 			objectMapper.registerModule(new JavaTimeModule());
 			objectMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
+			objectMapper.setDateFormat(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ"));
+			objectMapper.setTimeZone(TimeZone.getDefault());
 			objectMapper.setSerializationInclusion(Include.NON_NULL);
 			out = objectMapper.writeValueAsString(obj);
-		} catch(Exception ex) {
+		} catch(final Exception ex) {
 			log.error("Error while running to json jackson");
 			throw new BusinessException(ex);
 		}
 		return out; 
+	}
+
+	public static <T> T fromJSONJackson(final String json, final Class<T> clazz) {
+
+		T out = null;
+
+		try {
+			final ObjectMapper mapper = new ObjectMapper();
+			out = mapper.readValue(json, clazz);
+		} catch (UnrecognizedPropertyException ue) {
+			final ErrorResponseDTO error = ErrorResponseDTO.builder()
+				.type(RestExecutionResultEnum.MANDATORY_ELEMENT_ERROR.getType())
+				.instance(RestExecutionResultEnum.MANDATORY_ELEMENT_ERROR.getType())
+				.title(ErrorInstanceEnum.MISSING_MANDATORY_ELEMENT.getInstance())
+				.detail("Parametro non riconosciuto all'interno della request nella conversione di " + clazz.getName())
+				.build();
+
+			throw new ValidationException(error);
+		} catch (final Exception e) {
+			final ErrorResponseDTO error = ErrorResponseDTO.builder()
+				.type(RestExecutionResultEnum.MANDATORY_ELEMENT_ERROR.getType())
+				.instance(RestExecutionResultEnum.MANDATORY_ELEMENT_ERROR.getType())
+				.title(ErrorInstanceEnum.MISSING_MANDATORY_ELEMENT.getInstance())
+				.detail("Errore durante la conversione da json a oggetto " + clazz.getName())
+				.build();
+
+			throw new ValidationException(error);
+		}
+
+		return out;
+	}
+
+	public static String sanitizeMessage(final String message) {
+		return message.replace("<script>", "").replace("</script>", "");
 	}
 }

@@ -20,6 +20,8 @@ public class KafkaStatusManagerDTO extends AbstractDTO {
 	 */
 	private static final long serialVersionUID = 7080680277816570116L;
 	
+	private String traceId;
+	
 	private EventTypeEnum eventType;
 	
 	private Date eventDate;
@@ -37,5 +39,7 @@ public class KafkaStatusManagerDTO extends AbstractDTO {
 	private AttivitaClinicaEnum tipoAttivita;
 	
 	private String organizzazione;
+	
+	private String issuer;
 	
 }

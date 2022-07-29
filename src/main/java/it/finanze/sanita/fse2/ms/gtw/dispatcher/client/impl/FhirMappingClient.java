@@ -11,7 +11,7 @@ import org.springframework.web.client.RestTemplate;
 
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.IFhirMappingClient;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.MicroservicesURLCFG;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.DocumentReferenceDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.FhirResourceDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.client.DocumentReferenceResDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.BusinessException;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.ConnectionRefusedException;
@@ -33,21 +33,19 @@ public class FhirMappingClient implements IFhirMappingClient {
 	private MicroservicesURLCFG msUrlCFG;
 
 	@Override
-	public DocumentReferenceResDTO callCreateDocumentReference(final DocumentReferenceDTO documentReferenceDTO) {
+	public DocumentReferenceResDTO callConvertCdaInBundle(final FhirResourceDTO resourceToConvert) {
 		DocumentReferenceResDTO out = null;
 		log.info("Calling create document reference - START");
 		HttpHeaders headers = new HttpHeaders();
 		headers.set("Content-Type", "application/json");
 
-		HttpEntity<?> entity = new HttpEntity<>(documentReferenceDTO, headers);
+		HttpEntity<?> entity = new HttpEntity<>(resourceToConvert, headers);
 
 		ResponseEntity<DocumentReferenceResDTO> response = null;
 		try {
-			response = restTemplate.exchange(msUrlCFG.getFhirMappingHost() + "/v1.0.0/document_reference", HttpMethod.POST, entity, DocumentReferenceResDTO.class);
-			if (response != null) {
-				out = response.getBody();
-				log.info("{} status returned from Fhir mapping Client", response.getStatusCode());
-			}
+			response = restTemplate.exchange(msUrlCFG.getFhirMappingHost() + "/v1/document-reference", HttpMethod.POST, entity, DocumentReferenceResDTO.class);
+			out = response.getBody();
+			log.info("{} status returned from Fhir mapping Client", response.getStatusCode());
 		} catch(ResourceAccessException cex) {
 			log.error("Connect error while call document reference ep :" + cex);
 			throw new ConnectionRefusedException(msUrlCFG.getFhirMappingHost(),"Connection refused");

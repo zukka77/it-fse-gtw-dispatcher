@@ -1,0 +1,17 @@
+{
+  "iss": "201123456",
+  "iat": 1540890704,
+  "exp": 1540918800,
+  "jti": "201123456",
+  "aud": "fse-gateway",
+  "sub": "RSSMRA22A01A399Z^^^&amp;2.16.840.1.113883.2.9.4.3.2&amp;ISO",
+  "subject_organization_id": "110",
+  "subject_organization": "Regione Marche",
+  "locality": "Regione Lazio",
+  "subject_role": "AAS",
+  "person_id": "BMTBTS01A01I526W",
+  "patient_consent": true,
+  "purpose_of_use": "CREATE",
+  "action_id": "CREATE",
+  "attachment_hash": "ccd1a23b4a73c838e4dfc2a1948aaec8389ebd331cbaebc1b3144c74fca17da5"
+}

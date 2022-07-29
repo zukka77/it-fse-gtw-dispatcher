@@ -5,12 +5,12 @@ import java.io.Serializable;
 import org.apache.kafka.clients.producer.RecordMetadata;
 
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.JWTPayloadDTO;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.HistoricalPublicationCreationReqDTO;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.HistoricalValidationCDAReqDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.PublicationCreationReqDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.TSPublicationCreationReqDTO;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.ValidationCDAReqDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.DestinationTypeEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventStatusEnum;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.PriorityTypeEnum;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.TipoDocAltoLivEnum;
 
 /**
  * Interface for service used to handle kafka communications
@@ -26,27 +26,23 @@ public interface IKafkaSRV extends Serializable {
 	 * @return
 	 */
 	RecordMetadata sendMessage(String topic, String key, String value, boolean trans);
- 
-	/**
-	 * Send message to indexer microservice over kafka topic
-	 * @param workflowInstanceId
-	 */
-	void notifyIndexer(String workflowInstanceId);
 
 	/**
-	 * Send message to publisher microservice over kafka topic
-	 * @param workflowInstanceId
+	 * Send message to either indexer or publisher over kafka topic, choosing priority
+	 * @param key
+	 * @param value
+	 * @param priorityType
+	 * @param documentType
+	 * @param destinationTypeEnum
 	 */
-	void notifyPublisher(String workflowInstanceId);
+	void notifyChannel(String key, String value, PriorityTypeEnum priorityType, TipoDocAltoLivEnum documentType, DestinationTypeEnum destinationTypeEnum);
 	
-	void sendValidationStatus(String workflowInstanceId, EventStatusEnum eventStatus, String message, ValidationCDAReqDTO validationReq, JWTPayloadDTO jwtClaimDTO);
+	void sendValidationStatus(String traceId, String workflowInstanceId, EventStatusEnum eventStatus, String message,JWTPayloadDTO jwtClaimDTO); 
 
-	void sendPublicationStatus(EventStatusEnum eventStatus, String message, PublicationCreationReqDTO publicationReq, JWTPayloadDTO jwtClaimDTO);
+	void sendPublicationStatus(String traceId, String workflowInstanceId, EventStatusEnum eventStatus, String message, PublicationCreationReqDTO publicationReq, JWTPayloadDTO jwtClaimDTO);
 
-	void sendFeedingStatus(String workflowInstanceId, EventStatusEnum eventStatus, String message, TSPublicationCreationReqDTO publicationReq, JWTPayloadDTO jwtClaimDTO);
+	void sendFeedingStatus(String traceId, String workflowInstanceId, EventStatusEnum eventStatus, String message, TSPublicationCreationReqDTO feedingReq, JWTPayloadDTO jwtClaimDTO);
 
-	void sendHistoricalValidationStatus(String workflowInstanceId, EventStatusEnum eventStatus, String message, HistoricalValidationCDAReqDTO historicalValidationReq, JWTPayloadDTO jwtClaimDTO);
-
-	void sendHistoricalPublicationStatus(EventStatusEnum eventStatus, String message, HistoricalPublicationCreationReqDTO historicalPublicationReq, JWTPayloadDTO jwtClaimDTO);
+	void sendReplaceStatus(String traceId, String workflowInstanceId, EventStatusEnum eventStatus, String message, PublicationCreationReqDTO publicationReq, JWTPayloadDTO jwtClaimDTO);
 
 }

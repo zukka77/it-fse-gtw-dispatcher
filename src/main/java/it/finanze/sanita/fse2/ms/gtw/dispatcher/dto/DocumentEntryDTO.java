@@ -1,6 +1,5 @@
 package it.finanze.sanita.fse2.ms.gtw.dispatcher.dto;
 
-import java.util.Date;
 import java.util.List;
 
 import lombok.Data;
@@ -12,7 +11,7 @@ public class DocumentEntryDTO {
 
 	private String mimeType;
 	private String entryUUID;
-	private Date creationTime;
+	private String creationTime;
 	private String hash;
 	private Integer size;
 	private String status;
@@ -42,6 +41,6 @@ public class DocumentEntryDTO {
 	private String practiceSettingCode;
 	private String practiceSettingCodeName;
 	private String sourcePatientId;
-	private Date serviceStartTime;
-	private Date serviceStopTime;
+	private String serviceStartTime;
+	private String serviceStopTime;
 }

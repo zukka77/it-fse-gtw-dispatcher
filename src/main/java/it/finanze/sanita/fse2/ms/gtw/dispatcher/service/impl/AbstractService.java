@@ -1,8 +1,10 @@
 package it.finanze.sanita.fse2.ms.gtw.dispatcher.service.impl;
 
 import java.io.Serializable;
-import org.springframework.stereotype.Service;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
 import brave.Tracer;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.LogTraceInfoDTO;
 

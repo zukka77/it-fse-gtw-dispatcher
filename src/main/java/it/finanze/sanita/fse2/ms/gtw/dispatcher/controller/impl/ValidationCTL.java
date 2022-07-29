@@ -1,50 +1,42 @@
 package it.finanze.sanita.fse2.ms.gtw.dispatcher.controller.impl;
 
 import java.util.Date;
-import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 
-import org.apache.commons.lang3.StringUtils;
+import org.jsoup.Jsoup;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
-
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.controller.IValidationCTL;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.JWTHeaderDTO;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.JWTPayloadDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.JWTTokenDTO;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.ValidationInfoDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.ValidationCDAReqDTO;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.ValidationCDAResDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.LogTraceInfoDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.ValidationResDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ActivityEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventStatusEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.OperationLogEnum;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.RawValidationEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ResultLogEnum;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ValidationResultEnum;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.ValidationErrorException;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.ValidationException;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.logging.ElasticLoggerHelper;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.IErrorHandlerSRV;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.IKafkaSRV;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.CdaUtility;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.PDFUtility;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility;
 
 /**
- * 
+ *
  * @author CPIERASC
  *
  *	Validation controller.
  */
 @RestController
 public class ValidationCTL extends AbstractCTL implements IValidationCTL {
-	
+
 	/**
 	 * Serial version uid.
 	 */
@@ -54,124 +46,61 @@ public class ValidationCTL extends AbstractCTL implements IValidationCTL {
 	private IKafkaSRV kafkaSRV;
 
 	@Autowired
-	private ElasticLoggerHelper elasticLogger;
-	
+	private transient ElasticLoggerHelper elasticLogger;
+
+	@Autowired
+	private IErrorHandlerSRV errorHandlerSRV;
+
+	 
 	@Override
-	public ResponseEntity<ValidationCDAResDTO> validationCDA(ValidationCDAReqDTO requestBody, MultipartFile file, HttpServletRequest request) {
+	public ResponseEntity<ValidationResDTO> validate(final ValidationCDAReqDTO requestBody, final MultipartFile file, final HttpServletRequest request) {
+		final Date startDateOperation = new Date();
+		LogTraceInfoDTO traceInfoDTO = getLogTraceInfo();
 
-		String workflowInstanceId = "";
+		String workflowInstanceId = Constants.App.MISSING_WORKFLOW_PLACEHOLDER;
+		JWTTokenDTO jwtToken = null;
+		ValidationCDAReqDTO jsonObj = null;
+		String warning = null;
 
-		Date startDateOperation = new Date();
-		
-		ValidationResultEnum result = null;
-		String msgResult = null;
-		
-		final JWTTokenDTO jwtToken = extractJWT(request.getHeader(Constants.Headers.JWT_HEADER));
-
-		ValidationCDAReqDTO jsonObj = getValidationJSONObject(request.getParameter("requestBody"));
-		if (jsonObj==null) {
-
-			try {
-				ObjectMapper mapper = new ObjectMapper();
-				mapper.readValue(request.getParameter("requestBody"), ValidationCDAReqDTO.class);
-			} catch (UnrecognizedPropertyException ue) {
-				msgResult = "Uno o più parametri non riconosciuti presenti all'interno della request";
-			} catch (Exception e) {
-				msgResult = "Errore generico nella letture della request.";
-			}
-			result = ValidationResultEnum.MANDATORY_ELEMENT_ERROR;
-		} else {
-			if (jwtToken == null) {
-				msgResult = "Il JWT deve essere valorizzato.";
-				result = ValidationResultEnum.MANDATORY_ELEMENT_ERROR_TOKEN;
+		try {
+			if (Boolean.TRUE.equals(msCfg.getFromGovway())) {
+				jwtToken = extractAndValidateJWT(request.getHeader(Constants.Headers.JWT_GOVWAY_HEADER), msCfg.getFromGovway());
 			} else {
-				msgResult = JWTHeaderDTO.validateHeader(jwtToken.getHeader());
-				if (msgResult == null) {
-					msgResult = JWTPayloadDTO.validatePayload(jwtToken.getPayload());
-				}
-				if (msgResult != null) {
-					result = ValidationResultEnum.INVALID_TOKEN_FIELD;
-				}
+				jwtToken = extractAndValidateJWT(request.getHeader(Constants.Headers.JWT_HEADER), msCfg.getFromGovway());
 			}
-			if (!StringUtility.isNullOrEmpty(msgResult)) {
-				result = ValidationResultEnum.MANDATORY_ELEMENT_ERROR_TOKEN;
-			} else {
-				msgResult = checkValidationMandatoryElements(jsonObj);
-				if (!StringUtility.isNullOrEmpty(msgResult)) {
-					result = ValidationResultEnum.MANDATORY_ELEMENT_ERROR;
-				} else {
-					msgResult = checkFormatDate(jsonObj.getDataInizioPrestazione(), jsonObj.getDataFinePrestazione());
-					if(!StringUtility.isNullOrEmpty(msgResult)) {
-						result = ValidationResultEnum.FORMAT_ELEMENT_ERROR;
-					} else {
-						byte[] bytes = checkFile(file);
-						if (bytes == null) {
-							msgResult = "Il file deve essere valorizzato";
-							result = ValidationResultEnum.EMPTY_FILE_ERROR;
-						} else {
-							if (!PDFUtility.isPdf(bytes)) {
-								result = ValidationResultEnum.DOCUMENT_TYPE_ERROR;
-								msgResult = "Il file deve essere un PDF.";
-							} else {
-								String cda = extractCDA(bytes, jsonObj.getMode());
-								if (StringUtility.isNullOrEmpty(cda)) {
-									result = ValidationResultEnum.MINING_CDA_ERROR;
-									msgResult = "Errore generico in fase di estrazione del CDA dal file.";
-								} else {
-									
-									try {
-										workflowInstanceId = CdaUtility.getWorkflowInstanceId(cda);
-									} catch(Exception ex) {
-										msgResult = "Errore durante l'estrazione del workflow instance id ";
-										result = ValidationResultEnum.WORKFLOW_ID_ERROR;
-									}
-									
-									if(result==null) {
-										msgResult = validateJWT(jwtToken, cda);
-										if (StringUtils.isEmpty(msgResult)) {
-											ValidationInfoDTO validationRes = validate(cda, jsonObj.getActivity(), workflowInstanceId);
-											if(validationRes!=null && !RawValidationEnum.OK.equals(validationRes.getResult())) {
-												msgResult = validationRes.getMessage()!=null ? validationRes.getMessage().stream().collect(Collectors.joining(",")) : null;
-												if (RawValidationEnum.SYNTAX_ERROR.equals(validationRes.getResult())) {
-													result = ValidationResultEnum.SYNTAX_ERROR;
-												} else if (RawValidationEnum.SEMANTIC_ERROR.equals(validationRes.getResult())) {
-													result = ValidationResultEnum.SEMANTIC_ERROR;
-												} else if(RawValidationEnum.VOCABULARY_ERROR.equals(validationRes.getResult())) {
-													result = ValidationResultEnum.VOCABULARY_ERROR;
-												} else {
-													result = ValidationResultEnum.GENERIC_ERROR;
-												} 
-											} else {
-												result = ValidationResultEnum.OK;
-											} 
-										}
-									} 
-								}
-							}
-						}
-					}
-				}
+
+			jsonObj = getAndValidateValidationReq(request.getParameter("requestBody"));
+			final byte[] bytes = getAndValidateFile(file);
+			final String cda = extractCDA(bytes, jsonObj.getMode());
+			org.jsoup.nodes.Document docT = Jsoup.parse(cda);
+			workflowInstanceId = CdaUtility.getWorkflowInstanceId(docT);
+
+			validateJWT(jwtToken, cda);
+			warning = validate(cda, jsonObj.getActivity(), workflowInstanceId);
+			String message = null;
+			if (jsonObj.getActivity().equals(ActivityEnum.VERIFICA)) {
+				message = "Attenzione - è stato chiamato l'endpoint di validazione con VERIFICA";
 			}
+
+			kafkaSRV.sendValidationStatus(traceInfoDTO.getTraceID(),workflowInstanceId, EventStatusEnum.SUCCESS, message, jwtToken != null ? jwtToken.getPayload() : null);
+
+			String issuer = (jwtToken != null && jwtToken.getPayload() != null && !StringUtility.isNullOrEmpty(jwtToken.getPayload().getIss())) ? jwtToken.getPayload().getIss() : Constants.App.JWT_MISSING_ISSUER_PLACEHOLDER;
+			elasticLogger.info("Validation CDA completed for workflow instance Id " + workflowInstanceId, OperationLogEnum.VAL_CDA2, ResultLogEnum.OK, startDateOperation, issuer);
+			request.setAttribute("JWT_ISSUER", issuer);
+		} catch (final ValidationException e) {
+			errorHandlerSRV.validationExceptionHandler(startDateOperation, traceInfoDTO, workflowInstanceId, jwtToken, e);
 		}
 
-		if(StringUtility.isNullOrEmpty(msgResult)) {
-			kafkaSRV.sendValidationStatus(workflowInstanceId, EventStatusEnum.SUCCESS, null, jsonObj, jwtToken != null ? jwtToken.getPayload() : null);
-        } else {
-			kafkaSRV.sendValidationStatus(workflowInstanceId, EventStatusEnum.ERROR, msgResult, jsonObj, jwtToken != null ? jwtToken.getPayload() : null);
-        }
-
-		if (!ValidationResultEnum.OK.equals(result)) {
-			elasticLogger.error(msgResult + " " + workflowInstanceId, OperationLogEnum.VAL_CDA2, ResultLogEnum.KO, startDateOperation, result != null ? result.getErrorCategory() : null);
-			throw new ValidationErrorException(result, msgResult, workflowInstanceId);
+		if (jsonObj != null && jsonObj.getMode() == null) {
+			String schematronWarn = StringUtility.isNullOrEmpty(warning) ? "" : warning;
+			warning = "[" + schematronWarn + "[WARNING_EXTRACT]" + Constants.Misc.WARN_EXTRACTION_SELECTION + "]";
 		}
 
-		elasticLogger.info("Validation CDA completed for workflow instance Id " + workflowInstanceId, OperationLogEnum.VAL_CDA2, ResultLogEnum.OK, startDateOperation);
+		warning = StringUtility.isNullOrEmpty(warning) ? null : warning;
+		if (jsonObj != null && ActivityEnum.VALIDATION.equals(jsonObj.getActivity())){
+			return new ResponseEntity<>(new ValidationResDTO(traceInfoDTO, workflowInstanceId, warning), HttpStatus.CREATED);
+		}
 
-		if (jsonObj!=null && ActivityEnum.PRE_PUBLISHING.equals(jsonObj.getActivity())){
-			return new ResponseEntity<>(new ValidationCDAResDTO(getLogTraceInfo(), workflowInstanceId), HttpStatus.CREATED);
-		} 
-		return new ResponseEntity<>(new ValidationCDAResDTO(getLogTraceInfo(), workflowInstanceId), HttpStatus.OK);
-		
+		return new ResponseEntity<>(new ValidationResDTO(traceInfoDTO , workflowInstanceId, warning), HttpStatus.OK);
 	}
-
 }

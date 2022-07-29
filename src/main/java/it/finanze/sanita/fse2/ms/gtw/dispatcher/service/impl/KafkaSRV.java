@@ -10,26 +10,27 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.SendResult;
 import org.springframework.stereotype.Service;
 
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.kafka.KafkaPropertiesCFG;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.kafka.KafkaTopicCFG;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.JWTPayloadDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.KafkaStatusManagerDTO;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.HistoricalPublicationCreationReqDTO;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.HistoricalValidationCDAReqDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.PublicationCreationReqDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.TSPublicationCreationReqDTO;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.ValidationCDAReqDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.AttivitaClinicaEnum;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.DestinationTypeEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventStatusEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventTypeEnum;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.PriorityTypeEnum;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.TipoDocAltoLivEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.BusinessException;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.IKafkaSRV;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.EncryptDecryptUtility;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.PriorityUtility;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility;
 import lombok.extern.slf4j.Slf4j;
 
+
 /**
- * 
+ *
  * @author vincenzoingenito
  *
  * Kafka management service.
@@ -44,53 +45,54 @@ public class KafkaSRV implements IKafkaSRV {
 	private static final long serialVersionUID = 987723954716001270L;
 
 	@Autowired
-	private KafkaPropertiesCFG kafkaPropCFG;
-	
-	@Autowired
-	private KafkaTopicCFG kafkaTopicCFG;
+	private transient KafkaTopicCFG kafkaTopicCFG;
 
 	/**
 	 * Transactional producer.
 	 */
 	@Autowired
 	@Qualifier("txkafkatemplate")
-	private KafkaTemplate<String, String> txKafkaTemplate;
-	
+	private transient KafkaTemplate<String, String> txKafkaTemplate;
+
 	/**
 	 * Not transactional producer.
 	 */
 	@Autowired
 	@Qualifier("notxkafkatemplate")
-	private KafkaTemplate<String, String> notxKafkaTemplate;
- 
+	private transient KafkaTemplate<String, String> notxKafkaTemplate;
+
+	@Autowired
+	private transient PriorityUtility priorityUtility;
+
 	@Override
 	public RecordMetadata sendMessage(String topic, String key, String value, boolean trans) {
 		RecordMetadata out = null;
-		ProducerRecord<String, String> record = new ProducerRecord<>(topic, key, value); 
-		try { 
-			out = kafkaSend(record, trans);
+		ProducerRecord<String, String> producerRecord = new ProducerRecord<>(topic, key, value);
+		try {
+			out = kafkaSend(producerRecord, trans);
 		} catch (Exception e) {
-			log.error("Send failed.", e); 
+			log.error("Send failed.", e);
 			throw new BusinessException(e);
-		}   
+		}
 		return out;
-	} 
+	}
 
-	private RecordMetadata kafkaSend(ProducerRecord<String, String> record, boolean trans) {
+	@SuppressWarnings("unchecked")
+	private RecordMetadata kafkaSend(ProducerRecord<String, String> producerRecord, boolean trans) {
 		RecordMetadata out = null;
 		Object result = null;
 
-		if (trans) {  
-			result = txKafkaTemplate.executeInTransaction(t -> { 
+		if (trans) {
+			result = txKafkaTemplate.executeInTransaction(t -> {
 				try {
-					return t.send(record).get();
+					return t.send(producerRecord).get();
 				} catch (Exception e) {
 					throw new BusinessException(e);
-				}  
-			});  
-		} else { 
-			notxKafkaTemplate.send(record);
-		} 
+				}
+			});
+		} else {
+			notxKafkaTemplate.send(producerRecord);
+		}
 
 		if(result != null) {
 			SendResult<String,String> sendResult = (SendResult<String,String>) result;
@@ -100,84 +102,86 @@ public class KafkaSRV implements IKafkaSRV {
 
 		return out;
 	}
- 
-	
+
 	@Override
-	public void notifyIndexer(final String workflowInstanceId) {
+	public void notifyChannel(
+			final String key,
+			final String kafkaValue,
+			PriorityTypeEnum priorityFromRequest,
+			TipoDocAltoLivEnum documentType,
+			DestinationTypeEnum destinationType
+	) {
+		log.info("Destinazione: {}", destinationType.name());
 		try {
-			String message = EncryptDecryptUtility.encryptObject(kafkaPropCFG.getCrypto(), workflowInstanceId);
-			sendMessage(kafkaTopicCFG.getDispatcherIndexerTopic(), "validation", message,true);
+			String destTopic = priorityUtility.computeTopic(priorityFromRequest, destinationType, documentType);
+			sendMessage(destTopic, key, kafkaValue,true);
 		} catch (Exception e) {
 			log.error("Error sending kafka message", e);
 			throw new BusinessException(e);
 		}
-
 	}
 
 	@Override
-	public void notifyPublisher(final String workflowInstanceId) {
-		try {
-			String message = EncryptDecryptUtility.encryptObject(kafkaPropCFG.getCrypto(), workflowInstanceId);
-			sendMessage(kafkaTopicCFG.getDispatcherPublisherTopic(), "validation", message,true);
-		} catch (Exception e) {
-			log.error("Error sending kafka message", e);
-			throw new BusinessException(e);
+	public void sendValidationStatus(final String traceId,final String workflowInstanceId, final EventStatusEnum eventStatus, final String message,
+									 final JWTPayloadDTO jwtClaimDTO) {
+		sendStatusMessage(traceId,workflowInstanceId, EventTypeEnum.VALIDATION, eventStatus, message, null, jwtClaimDTO, null);
+	}
+
+	@Override
+	public void sendPublicationStatus(final String traceId,final String workflowInstanceId, final EventStatusEnum eventStatus, final String message,
+									  final PublicationCreationReqDTO publicationReq, final JWTPayloadDTO jwtClaimDTO) {
+
+		String identificativoDocumento = null;
+		AttivitaClinicaEnum tipoAttivita = null;
+		if (publicationReq != null)  {
+
+			if (publicationReq.getIdentificativoDoc()!=null) {
+				identificativoDocumento = publicationReq.getIdentificativoDoc();
+			}
+
+			if(publicationReq.getTipoAttivitaClinica()!=null) {
+				tipoAttivita = publicationReq.getTipoAttivitaClinica();
+			}
 		}
 
-	}
-	
-	@Override
-	public void sendValidationStatus(final String workflowInstanceId, final EventStatusEnum eventStatus, final String message, 
-		final ValidationCDAReqDTO validationReq, final JWTPayloadDTO jwtClaimDTO) {
-		
-		sendStatusMessage(workflowInstanceId, EventTypeEnum.VALIDATION, eventStatus, message, validationReq != null ? validationReq.getIdentificativoDoc() : null, 
-			 jwtClaimDTO,validationReq.getTipoAttivitaClinica());
+		sendStatusMessage(traceId,workflowInstanceId, EventTypeEnum.PUBLICATION, eventStatus, message, identificativoDocumento, jwtClaimDTO,tipoAttivita);
 	}
 
 	@Override
-	public void sendPublicationStatus(final EventStatusEnum eventStatus, final String message, 
-		final PublicationCreationReqDTO publicationReq, final JWTPayloadDTO jwtClaimDTO) {
-		
-		if (publicationReq != null) {
-			sendStatusMessage(publicationReq.getWorkflowInstanceId(), EventTypeEnum.PUBLICATION, eventStatus, message, publicationReq.getIdentificativoDoc(), 
-				 jwtClaimDTO,publicationReq.getTipoAttivitaClinica());
+	public void sendReplaceStatus(final String traceId,final String workflowInstanceId, final EventStatusEnum eventStatus, final String message, 
+			final PublicationCreationReqDTO publicationReq, final JWTPayloadDTO jwtClaimDTO) {
+
+		String identificativoDocumento = null;
+		AttivitaClinicaEnum tipoAttivita = null;
+		if(publicationReq!=null)  {
+
+			if (publicationReq.getIdentificativoDoc()!=null) {
+				identificativoDocumento = publicationReq.getIdentificativoDoc();
+			}
+
+			if(publicationReq.getTipoAttivitaClinica()!=null) {
+				tipoAttivita = publicationReq.getTipoAttivitaClinica();
+			}
 		}
+		
+		sendStatusMessage(traceId,workflowInstanceId, EventTypeEnum.REPLACE, eventStatus, message, identificativoDocumento, jwtClaimDTO,tipoAttivita);
 	}
 
 	@Override
-	public void sendFeedingStatus(final String workflowInstanceId, final EventStatusEnum eventStatus, final String message, 
-			final TSPublicationCreationReqDTO feedingReq, final JWTPayloadDTO jwtClaimDTO) {
-		
-		sendStatusMessage(workflowInstanceId, EventTypeEnum.FEEDING, eventStatus, message, feedingReq.getIdentificativoDoc(), 
-			jwtClaimDTO, feedingReq.getTipoAttivitaClinica());
+	public void sendFeedingStatus(final String traceId,final String workflowInstanceId, final EventStatusEnum eventStatus, final String message,
+								  final TSPublicationCreationReqDTO feedingReq, final JWTPayloadDTO jwtClaimDTO) {
+
+		sendStatusMessage(traceId,workflowInstanceId, EventTypeEnum.FEEDING, eventStatus, message, feedingReq.getIdentificativoDoc(),
+				jwtClaimDTO, feedingReq.getTipoAttivitaClinica());
 	}
 
-	@Override
-	public void sendHistoricalValidationStatus(String workflowInstanceId, EventStatusEnum eventStatus, String message,
-			HistoricalValidationCDAReqDTO historicalValidationReq, JWTPayloadDTO jwtClaimDTO) {
-		
-		sendStatusMessage(workflowInstanceId, EventTypeEnum.HISTORICAL_VALIDATION, eventStatus, message, historicalValidationReq.getIdentificativoDoc(), 
-			 jwtClaimDTO, historicalValidationReq.getTipoAttivitaClinica());
-		
-	}
-
-	@Override
-	public void sendHistoricalPublicationStatus(EventStatusEnum eventStatus, String message,
-			HistoricalPublicationCreationReqDTO historicalPublicationReq, JWTPayloadDTO jwtClaimDTO) {
-
-		if (historicalPublicationReq != null) {
-	
-			sendStatusMessage(historicalPublicationReq.getWorkflowInstanceId(), EventTypeEnum.HISTORICAL_PUBLICATION, eventStatus, 
-					message, historicalPublicationReq.getIdentificativoDoc(), jwtClaimDTO,historicalPublicationReq.getTipoAttivitaClinica());
-		}
-
-	}
-
-	private void sendStatusMessage(final String workflowInstanceId, final EventTypeEnum eventType,
-			final EventStatusEnum eventStatus, final String message, final String documentId,  
-			final JWTPayloadDTO jwtClaimDTO, AttivitaClinicaEnum tipoAttivita) {
+	private void sendStatusMessage(final String traceId,final String workflowInstanceId, final EventTypeEnum eventType,
+								   final EventStatusEnum eventStatus, final String message, final String documentId,
+								   final JWTPayloadDTO jwtClaimDTO, AttivitaClinicaEnum tipoAttivita) {
 		try {
 			KafkaStatusManagerDTO statusManagerMessage = KafkaStatusManagerDTO.builder().
+					issuer(jwtClaimDTO != null ? jwtClaimDTO.getIss() : Constants.App.JWT_MISSING_ISSUER_PLACEHOLDER).
+					traceId(traceId).
 					eventType(eventType).
 					eventDate(new Date()).
 					eventStatus(eventStatus).
@@ -187,14 +191,12 @@ public class KafkaSRV implements IKafkaSRV {
 					subject(jwtClaimDTO != null ? jwtClaimDTO.getSub() : null).
 					organizzazione(jwtClaimDTO != null ? jwtClaimDTO.getSubject_organization_id() : null).
 					build();
-			 
+
 			String json = StringUtility.toJSONJackson(statusManagerMessage);
-			String cryptoMessage = EncryptDecryptUtility.encryptObject(kafkaPropCFG.getCrypto(), json);
-			sendMessage(kafkaTopicCFG.getStatusManagerTopic(), workflowInstanceId, cryptoMessage, true);
+			sendMessage(kafkaTopicCFG.getStatusManagerTopic(), workflowInstanceId, json, true);
 		} catch(Exception ex) {
-			log.error("Error while send status message on indexer : " , ex);
+			log.error("Error while send status message : " , ex);
 			throw new BusinessException(ex);
 		}
 	}
-
 }

@@ -6,7 +6,8 @@ public enum RawValidationEnum {
 	SYNTAX_ERROR("01", "Errore di sintassi"),
 	VOCABULARY_ERROR("02", "Errore dovuto alle terminologie utilizzate"),
 	SEMANTIC_ERROR("03", "Errore semantico"),
-	SCHEMATRON_NOT_FOUND("04", "Schematron not found");
+	SCHEMATRON_NOT_FOUND("04", "Schematron not found"),
+	SEMANTIC_WARNING("05", "Warning semantico");
 	
 	private String code;
 	private String description;

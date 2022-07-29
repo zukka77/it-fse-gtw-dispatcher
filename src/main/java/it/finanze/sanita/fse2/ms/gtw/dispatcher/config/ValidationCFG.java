@@ -18,4 +18,8 @@ public class ValidationCFG {
     @Value("${validation.save-error-events-only}")
     private Boolean saveValidationErrorOnly;
 
+    
+	@Value("${ms.dispatcher.other-config-prop-cf}")
+	private Boolean otherConfigFiscalCode;
+    
 }

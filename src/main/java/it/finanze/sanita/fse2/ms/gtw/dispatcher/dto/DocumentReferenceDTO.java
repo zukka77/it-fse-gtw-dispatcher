@@ -19,22 +19,6 @@ public class DocumentReferenceDTO {
 	
 	private String hash;
 
-	private String formatCode;
-	
-	private String referencedID;
-	
-	private String securityLabel;
-	
-	private String masterIdentifier;
-	
-	private String typeCode;
-	
-	private String author;
-	
-	private String authenticator;
-	
-	private String custodian;
-	
 	private String facilityTypeCode;
 	
 	private List<String> eventCode;
@@ -50,5 +34,9 @@ public class DocumentReferenceDTO {
 	private String serviceStartTime;
 	
 	private String serviceStopTime;
+
+	private String encodedCDA;
+
+	private String identificativoDoc;
 	
 }

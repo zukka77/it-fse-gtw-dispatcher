@@ -1,13 +1,14 @@
 package it.finanze.sanita.fse2.ms.gtw.dispatcher.utility;
 
 public class CfUtility {
-    public final static int CF_NON_CORRETTO = 0;
-    public final static int CF_OK_16 = 1;
-    public final static int CF_CHECK_DIGIT_16 = 2;
-    public final static int CF_OK_11 = 1;
-    public final static int CF_CHECK_DIGIT_11 = 2;
-    public final static int CF_ENI_OK = 3;
-    public final static int CF_STP_OK = 4;
+	
+    public static final int CF_NON_CORRETTO = 0;
+    public static final int CF_OK_16 = 1;
+    public static final int CF_CHECK_DIGIT_16 = 2;
+    public static final int CF_OK_11 = 1;
+    public static final int CF_CHECK_DIGIT_11 = 2;
+    public static final int CF_ENI_OK = 3;
+    public static final int CF_STP_OK = 4;
 
     public static int validaCF(String cfIn) {
         // gli esiti per cf16 sono gli stessi di cf11
@@ -29,12 +30,7 @@ public class CfUtility {
         return esito;
     }
 
-    public static boolean isValidCf(final String fiscalCode) {
-        return validaCF(fiscalCode) == CF_OK_16 || validaCF(fiscalCode) == CF_OK_11
-            || validaCF(fiscalCode) == CF_ENI_OK || validaCF(fiscalCode) == CF_STP_OK;
-    }
-
-    private static final int validaCF11(String cfIn) {
+    private static int validaCF11(String cfIn) {
         if (cfIn == null)
             return CF_NON_CORRETTO;
         int i, c, s;
@@ -63,7 +59,7 @@ public class CfUtility {
             return CF_OK_11;
     }
 
-    private static final int validaCF16(String cfIn) {
+    private static int validaCF16(String cfIn) {
         if (cfIn == null)
             return CF_NON_CORRETTO;
         int i = 0;
@@ -136,50 +132,40 @@ public class CfUtility {
             return CF_CHECK_DIGIT_16;
     }
 
-    public static final boolean checkDigit(String cf) {
+    public static boolean checkDigit(String cf) {
         return true;
     }
 
-    private static final int convertiDispari(char c) {
+    private static int convertiDispari(char c) {
         switch (c) {
             case '0':
-                return 1;
-            case '1':
-                return 0;
-            case '2':
-                return 5;
-            case '3':
-                return 7;
-            case '4':
-                return 9;
-            case '5':
-                return 13;
-            case '6':
-                return 15;
-            case '7':
-                return 17;
-            case '8':
-                return 19;
-            case '9':
-                return 21;
             case 'A':
                 return 1;
+            case '1':
             case 'B':
                 return 0;
+            case '2':
             case 'C':
                 return 5;
+            case '3':
             case 'D':
                 return 7;
+            case '4':
             case 'E':
                 return 9;
+            case '5':
             case 'F':
                 return 13;
+            case '6':
             case 'G':
                 return 15;
+            case '7':
             case 'H':
                 return 17;
+            case '8':
             case 'I':
                 return 19;
+            case '9':
             case 'J':
                 return 21;
             case 'K':
@@ -219,46 +205,36 @@ public class CfUtility {
         }
     }
 
-    private static final int convertiPari(char c) {
+    private static int convertiPari(char c) {
         switch (c) {
             case '0':
-                return 0;
-            case '1':
-                return 1;
-            case '2':
-                return 2;
-            case '3':
-                return 3;
-            case '4':
-                return 4;
-            case '5':
-                return 5;
-            case '6':
-                return 6;
-            case '7':
-                return 7;
-            case '8':
-                return 8;
-            case '9':
-                return 9;
             case 'A':
                 return 0;
+            case '1':
             case 'B':
                 return 1;
+            case '2':
             case 'C':
                 return 2;
+            case '3':
             case 'D':
                 return 3;
+            case '4':
             case 'E':
                 return 4;
+            case '5':
             case 'F':
                 return 5;
+            case '6':
             case 'G':
                 return 6;
+            case '7':
             case 'H':
                 return 7;
+            case '8':
             case 'I':
                 return 8;
+            case '9':
             case 'J':
                 return 9;
             case 'K':
@@ -298,7 +274,7 @@ public class CfUtility {
         }
     }
 
-    private static final char convertiResto(int i) {
+    private static char convertiResto(int i) {
         char[] table = { 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M',
                 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'
         };

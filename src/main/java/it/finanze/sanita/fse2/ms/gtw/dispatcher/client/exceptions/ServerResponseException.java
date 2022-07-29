@@ -24,15 +24,15 @@ public class ServerResponseException extends RuntimeException {
 	 */
 	private static final long serialVersionUID = 1062386344600523308L;
 
-	private final String target;
+	private String target;
 	
-	private final String message;
+	private String message;
 	
-	private final HttpStatus status;
+	private HttpStatus status;
 	
-	private final int statusCode;
+	private int statusCode;
 	
-	private final String detail;
+	private String detail;
 	
 	public ServerResponseException(ServerResponseException e) {
 		this.target = e.getTarget();
@@ -40,5 +40,14 @@ public class ServerResponseException extends RuntimeException {
 		this.status = e.getStatus();
 		this.statusCode = e.getStatusCode();
 		this.detail = e.getDetail();
+	}
+	
+	/**
+	 * Message constructor.
+	 * 
+	 * @param msg	Message to be shown.
+	 */
+	public ServerResponseException(final String msg) {
+		message = msg;
 	}
 }

@@ -3,6 +3,9 @@
  */
 package it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions;
 
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.ErrorResponseDTO;
+import lombok.Getter;
+
 /**
  * @author CPIERASC
  * 
@@ -11,6 +14,8 @@ package it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions;
  */
 public class ValidationException extends RuntimeException {
 
+	@Getter
+	private ErrorResponseDTO error;
 	/**
 	 * Message constructor.
 	 * 
@@ -18,6 +23,10 @@ public class ValidationException extends RuntimeException {
 	 */
 	public ValidationException(final String msg) {
 		super(msg);
+	}
+
+	public ValidationException(final ErrorResponseDTO inError) {
+		error = inError;
 	}
 	
 	/**

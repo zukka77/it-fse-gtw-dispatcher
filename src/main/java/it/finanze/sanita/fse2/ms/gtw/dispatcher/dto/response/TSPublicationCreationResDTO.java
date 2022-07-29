@@ -18,13 +18,16 @@ public class TSPublicationCreationResDTO extends ResponseDTO {
 
 	private String workflowInstanceId;
 	
+	private String warning;
+	
 	public TSPublicationCreationResDTO() {
 		super();
 	}
 
-	public TSPublicationCreationResDTO(final LogTraceInfoDTO traceInfo, final String inWorkflowInstanceId) {
+	public TSPublicationCreationResDTO(final LogTraceInfoDTO traceInfo, final String inWorkflowInstanceId, final String inWarning) {
 		super(traceInfo);
 		workflowInstanceId = inWorkflowInstanceId;
+		warning = inWarning;
 	}
 	
 }

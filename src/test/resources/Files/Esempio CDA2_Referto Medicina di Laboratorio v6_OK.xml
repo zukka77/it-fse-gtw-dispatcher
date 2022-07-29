@@ -14,7 +14,7 @@
 	<versionNumber value="2"/> 
 	<recordTarget typeCode="RCT" contextControlCode="OP">
 		<patientRole classCode="PAT">
-			<id root="2.16.840.1.113883.2.9.4.3.2" extension="TKLEYP93Y27Z315J" assigningAuthorityName="MEF"/> 
+			<id root="2.16.840.1.113883.2.9.4.3.2" extension="RSSMRA22A01A399Z" assigningAuthorityName="MEF"/> 
 			<addr use="H"> 
 				<country>100</country>
 				<state>120</state>

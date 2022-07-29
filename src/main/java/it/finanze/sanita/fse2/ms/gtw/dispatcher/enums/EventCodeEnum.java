@@ -8,7 +8,7 @@ public enum EventCodeEnum {
 	LP417541_2("LP417541-2", "Tampone molecolare per Covid-19"),
 	_96118_5("96118-5", "Test Sierologico qualitativo"),
 	_94503_0("94503-0", "Test Sierologico quantitativo"),
-	PAY("Pay", "Prescrizione farmaceutica non a carico SSN"),
+	pay("pay", "Prescrizione farmaceutica non a carico SSN"),
 	PUBLICPOL("PUBLICPOL", "Prescrizione farmaceutica SSN");
 
 	private String code;

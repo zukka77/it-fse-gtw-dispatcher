@@ -74,9 +74,9 @@ public class TSPublicationCreationReqDTO extends AbstractDTO {
 	@Size(min = 0, max = 100)
 	private String dataFinePrestazione;
 
-	@Schema(description = "Conservazione sostitutiva")
+	@Schema(description = "Conservazione a norma")
 	@Size(min = 0, max = 100)
-	private String conservazioneSostitutiva;
+	private String conservazioneANorma;
 
 	@Schema(description = "Tipo attività clinica",required = true)
 	private AttivitaClinicaEnum tipoAttivitaClinica;
@@ -88,4 +88,6 @@ public class TSPublicationCreationReqDTO extends AbstractDTO {
     @Schema(description = "Forza pubblicazione documento" , defaultValue = "false")
     private boolean forcePublish;
 
+	@Schema(description = "Priorità")
+	private Boolean priorita;
 }

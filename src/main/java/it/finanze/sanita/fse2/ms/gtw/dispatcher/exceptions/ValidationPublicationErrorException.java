@@ -1,6 +1,7 @@
 package it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions;
 
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.PublicationResultEnum;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.RestExecutionResultEnum;
+import lombok.Getter;
 
 public class ValidationPublicationErrorException  extends RuntimeException {
 
@@ -9,15 +10,16 @@ public class ValidationPublicationErrorException  extends RuntimeException {
 	 */
 	private static final long serialVersionUID = 1L;
 	
-	private final PublicationResultEnum result;
+	@Getter
+	private final RestExecutionResultEnum result;
 
-	public ValidationPublicationErrorException(final PublicationResultEnum inResult, final String msg) {
+	@Getter
+	private String errorInstance;
+
+	public ValidationPublicationErrorException(final RestExecutionResultEnum inResult, final String msg, final String inErrorInstance) {
 		super(msg);
 		result = inResult;
-	}
-
-	public PublicationResultEnum getResult() {
-		return result;
+		errorInstance = inErrorInstance;
 	}
 
 }

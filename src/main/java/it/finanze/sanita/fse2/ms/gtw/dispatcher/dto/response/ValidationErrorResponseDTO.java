@@ -22,7 +22,7 @@ public class ValidationErrorResponseDTO extends ErrorResponseDTO {
 	private static final long serialVersionUID = -6684870619268235535L;
 	
 	@Schema(description = "Identificativo del workflow")
-	@Size(min = 0, max = 100)
+	@Size(min = 0, max = 256)
 	private String workflowInstanceId;
 	
 	public ValidationErrorResponseDTO(final LogTraceInfoDTO traceInfo, final String inType, final String inTitle, final String inDetail, final Integer inStatus, final String inInstance, final String inWorkflowInstanceId) {

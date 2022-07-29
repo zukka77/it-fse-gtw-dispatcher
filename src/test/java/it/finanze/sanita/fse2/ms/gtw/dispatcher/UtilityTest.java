@@ -1,34 +1,54 @@
 package it.finanze.sanita.fse2.ms.gtw.dispatcher;
 
+
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.BDDMockito.given;
+
+import java.io.File;
+import java.util.Base64;
+import java.util.Date;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.test.context.ActiveProfiles;
 
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.ValidationCFG;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.JWTHeaderDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ErrorLogEnum;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.OperationLogEnum;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ResultLogEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.UIDModeEnum;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.logging.ElasticLoggerHelper;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.impl.UtilitySRV;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.CfUtility;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.FileUtility;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Junit class for utility methods.
  * 
  * @author Simone Lungarella
  */
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@Slf4j
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, properties = {"ms.dispatcher.other-config-prop-cf=true"})
 @ComponentScan(basePackages = { Constants.ComponentScan.BASE })
 @ActiveProfiles(Constants.Profile.TEST)
-public class UtilityTest {
+class UtilityTest extends AbstractTest{
+
+    @MockBean
+    ValidationCFG validationCfg;
 
     @Test
     @DisplayName("Fiscal code check test")
@@ -39,12 +59,14 @@ public class UtilityTest {
         final String fiscalCode11 = "RSSMRA72H26";
         final String fiscalCodeEni = "ENI1234567891234";
         final String fiscalCodeStp = "STP1234567891234";
+        final String fiscalCodeNull = null;
         
         assertEquals(CfUtility.CF_OK_16, CfUtility.validaCF(fiscalCode16));
         assertEquals(CfUtility.CF_OK_16, CfUtility.validaCF(fiscalCode17));
-        assertFalse(CfUtility.CF_OK_11 == CfUtility.validaCF(fiscalCode11));
+        assertNotEquals(CfUtility.CF_OK_11, CfUtility.validaCF(fiscalCode11));
         assertEquals(CfUtility.CF_ENI_OK, CfUtility.validaCF(fiscalCodeEni));
         assertEquals(CfUtility.CF_STP_OK, CfUtility.validaCF(fiscalCodeStp));
+        assertEquals(CfUtility.CF_NON_CORRETTO, CfUtility.validaCF(fiscalCodeNull));
         
         final String fiscalCodeShort = "RSSMRA72H26F941";
         final String fiscalCodeLong = "RSSMRA72H26F941LAA";
@@ -59,6 +81,51 @@ public class UtilityTest {
         assertEquals(0, CfUtility.validaCF(fcImproperStp));
     }
 
+    @Autowired
+    UtilitySRV utilitySrv;
+
+    @Test
+    @DisplayName(value = "Validation CF by config")
+    void extValidFiscalCode() {
+        final String fiscalCode16 = "RSSMRA72H26F941L";
+        final String fiscalCode17 = "RSSMRA72H26F941LA"; // Should drop last char
+        final String fiscalCode11 = "RSSMRA72H26";
+        final String fiscalCodeEni = "ENI1234567891234";
+        final String fiscalCodeStp = "STP1234567891234";
+        final String fiscalCodeNull = null;
+    	
+        given(validationCfg.getSaveValidationErrorOnly()).willCallRealMethod();
+        given(validationCfg.getOtherConfigFiscalCode()).willReturn(true);
+
+    	//true validation prop
+    	assertEquals(true, utilitySrv.isValidCf(fiscalCode16));
+    	assertEquals(true, utilitySrv.isValidCf(fiscalCode17));
+    	assertEquals(false, utilitySrv.isValidCf(fiscalCode11));
+    	assertEquals(true, utilitySrv.isValidCf(fiscalCodeEni));
+    	assertEquals(true, utilitySrv.isValidCf(fiscalCodeStp));
+    	assertEquals(false, utilitySrv.isValidCf(fiscalCodeNull));
+        
+        given(validationCfg.getOtherConfigFiscalCode()).willReturn(false);
+
+    	//false validation prop
+    	assertEquals(true, utilitySrv.isValidCf(fiscalCode16));
+    	assertEquals(false, utilitySrv.isValidCf(fiscalCode17));
+    	assertEquals(false, utilitySrv.isValidCf(fiscalCode11));
+    	assertEquals(false, utilitySrv.isValidCf(fiscalCodeEni));
+    	assertEquals(false, utilitySrv.isValidCf(fiscalCodeStp));
+    	assertEquals(false, utilitySrv.isValidCf(fiscalCodeNull));
+
+        given(validationCfg.getOtherConfigFiscalCode()).willReturn(null);
+
+        //null validation prop
+    	assertEquals(true, utilitySrv.isValidCf(fiscalCode16));
+    	assertEquals(false, utilitySrv.isValidCf(fiscalCode17));
+    	assertEquals(false, utilitySrv.isValidCf(fiscalCode11));
+    	assertEquals(false, utilitySrv.isValidCf(fiscalCodeEni));
+    	assertEquals(false, utilitySrv.isValidCf(fiscalCodeStp));
+    	assertEquals(false, utilitySrv.isValidCf(fiscalCodeNull));
+    }
+    
     @ParameterizedTest
     @DisplayName("Transaction UID generation test")
     @ValueSource(ints = { 1, 2, 3, 4})
@@ -81,4 +148,22 @@ public class UtilityTest {
         JWTHeaderDTO head = new JWTHeaderDTO("alg", "typ", "kid", "x5c");
         assertDoesNotThrow(() -> StringUtility.fromJSON(StringUtility.toJSON(head), JWTHeaderDTO.class));
     }
+
+    @Test
+    @DisplayName("Logger test")
+    void loggerTest() {
+        ElasticLoggerHelper log = new ElasticLoggerHelper();
+        assertDoesNotThrow(() -> log.trace("Trace", OperationLogEnum.PUB_CDA2, ResultLogEnum.KO, new Date(), "issuer"));
+        assertDoesNotThrow(() -> log.debug("Debug", OperationLogEnum.REDIS, ResultLogEnum.KO, new Date(), "issuer"));
+        assertDoesNotThrow(() -> log.error("Error", OperationLogEnum.TRAS_KAFKA, ResultLogEnum.KO, new Date(), ErrorLogEnum.KO_FHIR, "issuer"));
+        assertDoesNotThrow(() -> log.info("Info", OperationLogEnum.REDIS, ResultLogEnum.KO, new Date(), "issuer"));
+
+    }
+
+    @Test
+	void generateJwtFromFiles() {
+		final String header = new String(FileUtility.getFileFromInternalResources("Files" + File.separator + "jwt" + File.separator + "header.json"));
+		final String payload = new String(FileUtility.getFileFromInternalResources("Files" + File.separator + "jwt" + File.separator + "payload.json"));
+		log.info(Base64.getEncoder().encodeToString(header.getBytes()) + "." + Base64.getEncoder().encodeToString(payload.getBytes()));
+	}
 }

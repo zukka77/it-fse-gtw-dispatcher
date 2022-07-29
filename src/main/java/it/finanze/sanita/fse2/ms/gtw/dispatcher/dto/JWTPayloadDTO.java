@@ -1,9 +1,5 @@
 package it.finanze.sanita.fse2.ms.gtw.dispatcher.dto;
 
-import org.apache.commons.lang3.StringUtils;
-
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.CfUtility;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -29,13 +25,13 @@ public class JWTPayloadDTO {
 	 * Numero intero (timestamp in secondi) che indica il momento in cui il token è
 	 * stato generato, serve per conoscere l’età di un token.
 	 */
-	private int iat;
+	private long iat;
 
 	/**
 	 * Numero intero (timestamp in secondi) che indica fino a quando il token sarà
 	 * valido.
 	 */
-	private int exp;
+	private long exp;
 
 	/**
 	 * Identificativo univoco del token, serve per prevenire la generazione
@@ -58,6 +54,11 @@ public class JWTPayloadDTO {
 	 * Identificativo del dominio dell’utente (vedi TABELLA ORGANIZZAZIONE).
 	 */
 	private String subject_organization_id;
+
+	/**
+	 * Descrizione del dominio dell’utente (vedi TABELLA ORGANIZZAZIONE);
+	 */
+	private String subject_organization;
 
 	/**
 	 * Identificativo della struttura utente.
@@ -106,7 +107,9 @@ public class JWTPayloadDTO {
 	private String action_id;
 
 	private String attachment_hash;
-
+	
+	
+	
 	/**
 	 * Map the object from JSON to object.
 	 * 
@@ -119,59 +122,10 @@ public class JWTPayloadDTO {
 		try {
 			jwtPayload = StringUtility.fromJSON(json, JWTPayloadDTO.class);
 		} catch (Exception e) {
-			jwtPayload = null;
 			log.error("Error while validating JWT payload DTO");
 		}
 
 		return jwtPayload;
 	}
-
-	public static String validatePayload(JWTPayloadDTO payload) {
-		String error = null;
-
-		if (payload == null) {
-			error = "JWT payload is not valid";
-		} else if (!Constants.App.JWT_TOKEN_AUDIENCE.equals(payload.getAud())) {
-			error = "Invalid audience";
-		} else if (!CfUtility.isValidCf(payload.getSub())) {
-			error = "Invalid subject fiscal code";
-		} else if (!CfUtility.isValidCf(payload.getPerson_id())) {
-			error = "Invalid person fiscal code";
-		} else if (StringUtils.isEmpty(payload.getSubject_organization_id())) {
-			error = "Invalid subject organization id";
-		} else if (StringUtils.isEmpty(payload.getLocality())) {
-			error = "Invalid locality";
-		} else if (StringUtils.isEmpty(payload.getSubject_role())) {
-			error = "Invalid subject role";
-		} else if (StringUtils.isEmpty(payload.getPurpose_of_use())) {
-			error = "Invalid purpose of use";
-		} else if (!ActionEnum.isAllowed(payload.getAction_id())) {
-			error = "Action not allowed";
-		} else if (StringUtils.isEmpty(payload.getIss())) {
-			error = "Invalid issuer";
-		} else if (StringUtils.isEmpty(payload.getJti())) {
-			error = "Invalid Jti";
-		} else if (!payload.getSub().equals(payload.getPerson_id())
-				&& payload.getPatient_consent() == null) {
-			error = "Patient consent is mandatory if subject and person id are different";
-		}
-
-		return error;
-	}
-
-	private enum ActionEnum {
-
-		CREATE, READ, UPDATE, DELETE;
-
-		private static boolean isAllowed(final String value) {
-
-			for (ActionEnum v : ActionEnum.values()) {
-				if (v.name().equals(value)) {
-					return true;
-				}
-			}
-			return false;
-		}
-	}
-
+ 
 }

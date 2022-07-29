@@ -57,15 +57,13 @@ public class ValidatorClient extends AbstractClient implements IValidatorClient 
         
         ResponseEntity<ValidationResDTO> response = null;
         try {
-        	response = restTemplate.exchange(msUrlCFG.getValidatorHost() + "/v1.0.0/validate", HttpMethod.POST, entity, ValidationResDTO.class);
-        	if (response != null) {
-        		ValidationResDTO result = response.getBody();
-        		log.info("{} status returned from Validator Client", response.getStatusCode());
-        		log.info("{} body returned from Validator Client", result);
-        		if (result!=null) {
-        			out = result.getResult();
-        		}
-        	}
+        	response = restTemplate.exchange(msUrlCFG.getValidatorHost() + "/v1/validate", HttpMethod.POST, entity, ValidationResDTO.class);
+			final ValidationResDTO result = response.getBody();
+			log.info("{} status returned from Validator Client", response.getStatusCode());
+			log.info("{} body returned from Validator Client", result);
+			if (result != null) {
+				out = result.getResult();
+			}
         } catch(RestClientException cex) {
         	log.error("Connect error while call validation ep :" + cex);
         	throw new ConnectionRefusedException(msUrlCFG.getValidatorHost(),"Connection refused");

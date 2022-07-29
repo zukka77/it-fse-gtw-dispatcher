@@ -13,7 +13,7 @@ import lombok.NoArgsConstructor;
 /**
  * Model to save ini and eds invocation info.
  */
-@Document(collection = "ini_eds_invocation")
+@Document(collection = "#{@iniEdsInvocationBean}")
 @Data
 @NoArgsConstructor
 public class IniEdsInvocationETY {
@@ -23,6 +23,9 @@ public class IniEdsInvocationETY {
 	
 	@Field(name = "workflow_instance_id")
 	private String workflowInstanceId;
+
+	@Field(name = "identificativo_doc_update")
+	private String identificativoDocUpdate;
 	
 	@Field(name = "data")
 	private org.bson.Document data;

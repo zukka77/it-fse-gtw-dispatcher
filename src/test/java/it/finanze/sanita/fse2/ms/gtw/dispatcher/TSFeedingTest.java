@@ -2,10 +2,12 @@ package it.finanze.sanita.fse2.ms.gtw.dispatcher;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 
+import java.io.File;
 import java.util.Date;
 import java.util.List;
 
@@ -28,7 +30,7 @@ import org.springframework.web.client.RestTemplate;
 
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.impl.FhirMappingClient;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.DocumentReferenceDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.FhirResourceDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.TSPublicationCreationReqDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.ErrorResponseDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.TSPublicationCreationResDTO;
@@ -39,7 +41,7 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.HealthDataFormatEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.HealthcareFacilityEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.InjectionModeEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.PracticeSettingCodeEnum;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.PublicationResultEnum;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.RestExecutionResultEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.TipoDocAltoLivEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.FileUtility;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility;
@@ -49,7 +51,7 @@ import lombok.extern.slf4j.Slf4j;
 @ComponentScan(basePackages = {Constants.ComponentScan.BASE})
 @ActiveProfiles(Constants.Profile.TEST)
 @Slf4j
-public class TSFeedingTest extends AbstractTest {
+class TSFeedingTest extends AbstractTest {
 
 
 	@Autowired
@@ -72,10 +74,10 @@ public class TSFeedingTest extends AbstractTest {
         DocumentReferenceResDTO ref = new DocumentReferenceResDTO();
 		ref.setErrorMessage("");
 		ref.setJson("{\"json\" : \"json\"}");
-		given(fhirMappingClient.callCreateDocumentReference(any(DocumentReferenceDTO.class))).willReturn(ref);
+		given(fhirMappingClient.callConvertCdaInBundle(any(FhirResourceDTO.class))).willReturn(ref);
 
         //PublicationResultEnum result = callTSEndpoint(pdfAttachment, null);
-        assertDoesNotThrow(() -> callTSEndpoint(pdfAttachment, null));
+        assertDoesNotThrow(() -> callTSEndpoint(pdfAttachment, null, true));
     }
 
     @Test
@@ -90,9 +92,9 @@ public class TSFeedingTest extends AbstractTest {
         DocumentReferenceResDTO ref = new DocumentReferenceResDTO();
 		ref.setErrorMessage("");
 		ref.setJson("{\"json\" : \"json\"}");
-		given(fhirMappingClient.callCreateDocumentReference(any(DocumentReferenceDTO.class))).willReturn(ref);
+		given(fhirMappingClient.callConvertCdaInBundle(any(FhirResourceDTO.class))).willReturn(ref);
 
-        assertDoesNotThrow(() -> callTSEndpoint(pdfAttachment, requestBody));
+        assertDoesNotThrow(() -> callTSEndpoint(pdfAttachment, requestBody, true));
     }
 
     @Test
@@ -101,22 +103,22 @@ public class TSFeedingTest extends AbstractTest {
 
         // non pdf file
     	byte[] wrongPdf = FileUtility.getFileFromInternalResources("Files/Test.docx");
-        PublicationResultEnum resPublication = callTSEndpoint(wrongPdf, null);
+        RestExecutionResultEnum resPublication = callTSEndpoint(wrongPdf, null, false);
 		assertNotNull(resPublication); 
-        assertEquals(PublicationResultEnum.DOCUMENT_TYPE_ERROR.getType(), resPublication.getType());
+        assertEquals(RestExecutionResultEnum.DOCUMENT_TYPE_ERROR.getType(), resPublication.getType());
 
-        // attachment pdf - wong mode
+        // attachment pdf - wrong mode
     	byte[] pdfAttachment = FileUtility.getFileFromInternalResources("Files/attachment/CDA_ATTACHMENT.pdf");
-		resPublication = callTSEndpoint(pdfAttachment, buildTSRequestBody(InjectionModeEnum.RESOURCE));
+		resPublication = callTSEndpoint(pdfAttachment, buildTSRequestBody(InjectionModeEnum.RESOURCE), true);
 		assertNotNull(resPublication); 
-        assertEquals(PublicationResultEnum.MINING_CDA_ERROR.getType(), resPublication.getType());
+        assertEquals(RestExecutionResultEnum.MINING_CDA_ERROR.getType(), resPublication.getType());
 
-        // attachment resource - wong mode
+        // attachment resource - wrong mode
     	byte[] pdfResource = FileUtility.getFileFromInternalResources("Files/resource/CDA_RESOURCE.pdf");
-		resPublication = callTSEndpoint(pdfResource, buildTSRequestBody(InjectionModeEnum.ATTACHMENT));
+		resPublication = callTSEndpoint(pdfResource, buildTSRequestBody(InjectionModeEnum.ATTACHMENT), true);
 		assertNotNull(resPublication); 
-        assertEquals(PublicationResultEnum.MINING_CDA_ERROR.getType(), resPublication.getType());
-
+        assertEquals(RestExecutionResultEnum.MINING_CDA_ERROR.getType(), resPublication.getType());
+        
     }
 
 
@@ -127,76 +129,84 @@ public class TSFeedingTest extends AbstractTest {
         byte[] pdfAttachment = FileUtility.getFileFromInternalResources("Files/attachment/CDA_OK_SIGNED.pdf");
 
         // missing IdentificativoDoc        
-        PublicationResultEnum res = callTSEndpoint(pdfAttachment,buildTSReqDTOCustom(HealthDataFormatEnum.CDA, InjectionModeEnum.ATTACHMENT, HealthcareFacilityEnum.OSPEDALE, 
+        RestExecutionResultEnum res = callTSEndpoint(pdfAttachment, buildTSReqDTOCustom(HealthDataFormatEnum.CDA, InjectionModeEnum.ATTACHMENT, HealthcareFacilityEnum.Ospedale, 
                                                     java.util.Arrays.asList(EventCodeEnum._94503_0), null, 
-                                                    "Identificativo rep", TipoDocAltoLivEnum.DOCUMENTO_WORKFLOW, PracticeSettingCodeEnum.AD_PSC001, 
+                                                    "Identificativo rep", TipoDocAltoLivEnum.WOR, PracticeSettingCodeEnum.AD_PSC001, 
                                                     randomFiscalCode(), ""+new Date().getTime(), ""+new Date().getTime(), "Conservazione sostitutiva",
-                                                    AttivitaClinicaEnum.CONSULTO, "Identificativo Sottomissione", false));
-        assertEquals(PublicationResultEnum.MANDATORY_ELEMENT_ERROR.getType(), res.getType());
+                                                    AttivitaClinicaEnum.CON, "Identificativo Sottomissione", false), true);
+        assertEquals(RestExecutionResultEnum.MANDATORY_ELEMENT_ERROR.getType(), res.getType());
 
 
 
         // missing IdentificativoRep
-        res = callTSEndpoint(pdfAttachment,buildTSReqDTOCustom(HealthDataFormatEnum.CDA, InjectionModeEnum.ATTACHMENT, HealthcareFacilityEnum.OSPEDALE, 
+        res = callTSEndpoint(pdfAttachment,buildTSReqDTOCustom(HealthDataFormatEnum.CDA, InjectionModeEnum.ATTACHMENT, HealthcareFacilityEnum.Ospedale, 
                                                     java.util.Arrays.asList(EventCodeEnum._94503_0), "Identificativo Doc", 
-                                                    null, TipoDocAltoLivEnum.DOCUMENTO_WORKFLOW, PracticeSettingCodeEnum.AD_PSC001, 
+                                                    null, TipoDocAltoLivEnum.WOR, PracticeSettingCodeEnum.AD_PSC001, 
                                                     randomFiscalCode(), ""+new Date().getTime(), ""+new Date().getTime(), "Conservazione sostitutiva",
-                                                    AttivitaClinicaEnum.CONSULTO, "Identificativo Sottomissione", false));
-        assertEquals(PublicationResultEnum.MANDATORY_ELEMENT_ERROR.getType(), res.getType());
+                                                    AttivitaClinicaEnum.CON, "Identificativo Sottomissione", false), true);
+        assertEquals(RestExecutionResultEnum.MANDATORY_ELEMENT_ERROR.getType(), res.getType());
 
 
         // missing TipoDocumentoLivAlto
-        res = callTSEndpoint(pdfAttachment,buildTSReqDTOCustom(HealthDataFormatEnum.CDA, InjectionModeEnum.ATTACHMENT, HealthcareFacilityEnum.OSPEDALE, 
+        res = callTSEndpoint(pdfAttachment,buildTSReqDTOCustom(HealthDataFormatEnum.CDA, InjectionModeEnum.ATTACHMENT, HealthcareFacilityEnum.Ospedale, 
                                                     java.util.Arrays.asList(EventCodeEnum._94503_0), "Identificativo Doc", 
                                                     "Identificativo Rep", null, PracticeSettingCodeEnum.AD_PSC001, 
                                                     randomFiscalCode(), ""+new Date().getTime(), ""+new Date().getTime(), "Conservazione sostitutiva",
-                                                    AttivitaClinicaEnum.CONSULTO, "Identificativo Sottomissione", false));
-        assertEquals(PublicationResultEnum.MANDATORY_ELEMENT_ERROR.getType(), res.getType());
+                                                    AttivitaClinicaEnum.CON, "Identificativo Sottomissione", false), true);
+        assertEquals(RestExecutionResultEnum.MANDATORY_ELEMENT_ERROR.getType(), res.getType());
 
 
         // missing AssettoOrganizzativo
-        res = callTSEndpoint(pdfAttachment,buildTSReqDTOCustom(HealthDataFormatEnum.CDA, InjectionModeEnum.ATTACHMENT, HealthcareFacilityEnum.OSPEDALE, 
+        res = callTSEndpoint(pdfAttachment,buildTSReqDTOCustom(HealthDataFormatEnum.CDA, InjectionModeEnum.ATTACHMENT, HealthcareFacilityEnum.Ospedale, 
                                                     java.util.Arrays.asList(EventCodeEnum._94503_0), "Identificativo Doc", 
-                                                    "Identificativo Rep", TipoDocAltoLivEnum.DOCUMENTO_WORKFLOW, null, 
+                                                    "Identificativo Rep", TipoDocAltoLivEnum.WOR, null, 
                                                     randomFiscalCode(), ""+new Date().getTime(), ""+new Date().getTime(), "Conservazione sostitutiva",
-                                                    AttivitaClinicaEnum.CONSULTO, "Identificativo Sottomissione", false));
-        assertEquals(PublicationResultEnum.MANDATORY_ELEMENT_ERROR.getType(), res.getType());
+                                                    AttivitaClinicaEnum.CON, "Identificativo Sottomissione", false), true);
+        assertEquals(RestExecutionResultEnum.MANDATORY_ELEMENT_ERROR.getType(), res.getType());
 
 
         // missing IdentificativoPaziente
-        res = callTSEndpoint(pdfAttachment,buildTSReqDTOCustom(HealthDataFormatEnum.CDA, InjectionModeEnum.ATTACHMENT, HealthcareFacilityEnum.OSPEDALE, 
+        res = callTSEndpoint(pdfAttachment,buildTSReqDTOCustom(HealthDataFormatEnum.CDA, InjectionModeEnum.ATTACHMENT, HealthcareFacilityEnum.Ospedale, 
                                                     java.util.Arrays.asList(EventCodeEnum._94503_0), "Identificativo Doc", 
-                                                    "Identificativo Rep", TipoDocAltoLivEnum.DOCUMENTO_WORKFLOW, PracticeSettingCodeEnum.AD_PSC001, 
+                                                    "Identificativo Rep", TipoDocAltoLivEnum.WOR, PracticeSettingCodeEnum.AD_PSC001, 
                                                     null, ""+new Date().getTime(), ""+new Date().getTime(), "Conservazione sostitutiva",
-                                                    AttivitaClinicaEnum.CONSULTO, "Identificativo Sottomissione", false));
-        assertEquals(PublicationResultEnum.MANDATORY_ELEMENT_ERROR.getType(), res.getType());
+                                                    AttivitaClinicaEnum.CON, "Identificativo Sottomissione", false), true);
+        assertEquals(RestExecutionResultEnum.MANDATORY_ELEMENT_ERROR.getType(), res.getType());
 
 
         // invalid IdentificativoPaziente
-        res = callTSEndpoint(pdfAttachment,buildTSReqDTOCustom(HealthDataFormatEnum.CDA, InjectionModeEnum.ATTACHMENT, HealthcareFacilityEnum.OSPEDALE, 
+        res = callTSEndpoint(pdfAttachment,buildTSReqDTOCustom(HealthDataFormatEnum.CDA, InjectionModeEnum.ATTACHMENT, HealthcareFacilityEnum.Ospedale, 
                                                     java.util.Arrays.asList(EventCodeEnum._94503_0), "Identificativo Doc", 
-                                                    "Identificativo Rep", TipoDocAltoLivEnum.DOCUMENTO_WORKFLOW, PracticeSettingCodeEnum.AD_PSC001, 
+                                                    "Identificativo Rep", TipoDocAltoLivEnum.WOR, PracticeSettingCodeEnum.AD_PSC001, 
                                                     "invalid identificativo paziente", ""+new Date().getTime(), ""+new Date().getTime(), "Conservazione sostitutiva",
-                                                    AttivitaClinicaEnum.CONSULTO, "Identificativo Sottomissione", false));
-        assertEquals(PublicationResultEnum.MANDATORY_ELEMENT_ERROR.getType(), res.getType());
+                                                    AttivitaClinicaEnum.CON, "Identificativo Sottomissione", false), true);
+        assertEquals(RestExecutionResultEnum.MANDATORY_ELEMENT_ERROR.getType(), res.getType());
 
 
         // missing TipoAttivitaClinica
-        res = callTSEndpoint(pdfAttachment,buildTSReqDTOCustom(HealthDataFormatEnum.CDA, InjectionModeEnum.ATTACHMENT, HealthcareFacilityEnum.OSPEDALE, 
+        res = callTSEndpoint(pdfAttachment,buildTSReqDTOCustom(HealthDataFormatEnum.CDA, InjectionModeEnum.ATTACHMENT, HealthcareFacilityEnum.Ospedale, 
                                                     java.util.Arrays.asList(EventCodeEnum._94503_0), "Identificativo Doc", 
-                                                    "Identificativo Rep", TipoDocAltoLivEnum.DOCUMENTO_WORKFLOW, PracticeSettingCodeEnum.AD_PSC001, 
+                                                    "Identificativo Rep", TipoDocAltoLivEnum.WOR, PracticeSettingCodeEnum.AD_PSC001, 
                                                     randomFiscalCode(), ""+new Date().getTime(), ""+new Date().getTime(), "Conservazione sostitutiva",
-                                                    null, "Identificativo Sottomissione", false));
-        assertEquals(PublicationResultEnum.MANDATORY_ELEMENT_ERROR.getType(), res.getType());
+                                                    null, "Identificativo Sottomissione", false), true);
+        assertEquals(RestExecutionResultEnum.MANDATORY_ELEMENT_ERROR.getType(), res.getType());
 
 
         // missing IdentificativoSottomissione
-        res = callTSEndpoint(pdfAttachment,buildTSReqDTOCustom(HealthDataFormatEnum.CDA, InjectionModeEnum.ATTACHMENT, HealthcareFacilityEnum.OSPEDALE, 
+        res = callTSEndpoint(pdfAttachment,buildTSReqDTOCustom(HealthDataFormatEnum.CDA, InjectionModeEnum.ATTACHMENT, HealthcareFacilityEnum.Ospedale, 
                                                     java.util.Arrays.asList(EventCodeEnum._94503_0), "Identificativo Doc", 
-                                                    "Identificativo Rep", TipoDocAltoLivEnum.DOCUMENTO_WORKFLOW, PracticeSettingCodeEnum.AD_PSC001, 
+                                                    "Identificativo Rep", TipoDocAltoLivEnum.WOR, PracticeSettingCodeEnum.AD_PSC001, 
                                                     randomFiscalCode(), ""+new Date().getTime(), ""+new Date().getTime(), "Conservazione sostitutiva",
-                                                    AttivitaClinicaEnum.CONSULTO, null, false));
-        assertEquals(PublicationResultEnum.MANDATORY_ELEMENT_ERROR.getType(), res.getType());
+                                                    AttivitaClinicaEnum.CON, null, false), true);
+        assertEquals(RestExecutionResultEnum.MANDATORY_ELEMENT_ERROR.getType(), res.getType());
+        
+     // missing Mode - (not mandatory)
+        res = callTSEndpoint(pdfAttachment,buildTSReqDTOCustom(HealthDataFormatEnum.CDA, null, HealthcareFacilityEnum.Ospedale, 
+                                                    java.util.Arrays.asList(EventCodeEnum._94503_0), "Identificativo Doc", 
+                                                    "Identificativo Rep", TipoDocAltoLivEnum.WOR, PracticeSettingCodeEnum.AD_PSC001, 
+                                                    randomFiscalCode(), ""+new Date().getTime(), ""+new Date().getTime(), "Conservazione sostitutiva",
+                                                    AttivitaClinicaEnum.CON, "Identificativo Sottomissione", false), true);
+        assertNotEquals(RestExecutionResultEnum.MANDATORY_ELEMENT_ERROR.getType(), res.getType());
 	}
 
 
@@ -218,7 +228,7 @@ public class TSFeedingTest extends AbstractTest {
                 .identificativoPaziente(identificativoPaziente)
                 .dataInizioPrestazione(dataInizioPrestazione)
                 .dataFinePrestazione(dataFinePrestazione)
-                .conservazioneSostitutiva(conservazioneSostitutiva)
+                .conservazioneANorma(conservazioneSostitutiva)
                 .tipoAttivitaClinica(tipoAttivitaClinica)
                 .identificativoSottomissione(identificativoSottomissione)
                 .forcePublish(forcePublish)
@@ -226,9 +236,9 @@ public class TSFeedingTest extends AbstractTest {
 
     }
 
-    public PublicationResultEnum callTSEndpoint(byte[] fileByte, TSPublicationCreationReqDTO reqDTO) {
+    public RestExecutionResultEnum callTSEndpoint(byte[] fileByte, TSPublicationCreationReqDTO reqDTO, boolean isValidFile) {
 
-		PublicationResultEnum output = null;
+		RestExecutionResultEnum output = null;
 		LinkedMultiValueMap<String, Object> map = new LinkedMultiValueMap<>();
 
 		try {
@@ -251,14 +261,14 @@ public class TSFeedingTest extends AbstractTest {
 			headers.setContentType(MediaType.MULTIPART_FORM_DATA);
 			log.info("Simulating a valid json payload");
 			
-			headers.set(Constants.Headers.JWT_HEADER, generateJwt(StringUtility.encodeSHA256(fileByte)));
+			headers.set(Constants.Headers.JWT_HEADER, generateJwt(fileByte, isValidFile));
 
-			String urlPublication = "http://localhost:" + webServerAppCtxt.getWebServer().getPort() + webServerAppCtxt.getServletContext().getContextPath() + "/v1.0.0/ts-feeding";
+			String urlPublication = "http://localhost:" + webServerAppCtxt.getWebServer().getPort() + webServerAppCtxt.getServletContext().getContextPath() + "/v1/ts-feeding";
 
 			HttpEntity<LinkedMultiValueMap<String, Object>> requestEntity = new HttpEntity<>(map, headers);
 
-			ResponseEntity<TSPublicationCreationResDTO> response = restTemplate.exchange(urlPublication, HttpMethod.POST, requestEntity, TSPublicationCreationResDTO.class);
-			return PublicationResultEnum.OK;
+			restTemplate.exchange(urlPublication, HttpMethod.POST, requestEntity, TSPublicationCreationResDTO.class);
+			return RestExecutionResultEnum.OK;
 		} catch (Exception ex) {
 			String message = ex.getMessage();
 			Integer firstIndex = message.indexOf("{");
@@ -266,7 +276,7 @@ public class TSFeedingTest extends AbstractTest {
 			String subString = message.substring(firstIndex, lastIndex+1);
 
 			ErrorResponseDTO errorClass = StringUtility.fromJSON(subString, ErrorResponseDTO.class);
-			output = PublicationResultEnum.get(errorClass.getType());
+			output = RestExecutionResultEnum.get(errorClass.getType());
 			log.info("Status {}", errorClass.getStatus());
 			log.error("Error : " + ex.getMessage());
 		}
@@ -279,17 +289,17 @@ public class TSFeedingTest extends AbstractTest {
         return TSPublicationCreationReqDTO.builder()
                 .healthDataFormat(HealthDataFormatEnum.CDA)
                 .mode(InjectionModeEnum.ATTACHMENT)
-                .tipologiaStruttura(HealthcareFacilityEnum.OSPEDALE)
+                .tipologiaStruttura(HealthcareFacilityEnum.Ospedale)
                 .regoleAccesso(java.util.Arrays.asList(EventCodeEnum.P99))
                 .identificativoDoc(StringUtility.generateUUID())
                 .identificativoRep(StringUtility.generateUUID())
-                .tipoDocumentoLivAlto(TipoDocAltoLivEnum.DOCUMENTO_WORKFLOW)
+                .tipoDocumentoLivAlto(TipoDocAltoLivEnum.WOR)
                 .assettoOrganizzativo(PracticeSettingCodeEnum.AD_PSC001)
                 .identificativoPaziente(randomFiscalCode())
                 .dataInizioPrestazione("1652284461782")
                 .dataFinePrestazione("1652284497269")
-                .conservazioneSostitutiva("string")
-                .tipoAttivitaClinica(AttivitaClinicaEnum.PERSONAL_HEALTH_RECORD_UPDATE)
+                .conservazioneANorma("string")
+                .tipoAttivitaClinica(AttivitaClinicaEnum.PHR)
                 .identificativoSottomissione(StringUtility.generateUUID())
                 .forcePublish(forcePublish)
                 .build();
@@ -302,23 +312,68 @@ public class TSFeedingTest extends AbstractTest {
         return TSPublicationCreationReqDTO.builder()
                 .healthDataFormat(HealthDataFormatEnum.CDA)
                 .mode(mode)
-                .tipologiaStruttura(HealthcareFacilityEnum.OSPEDALE)
+                .tipologiaStruttura(HealthcareFacilityEnum.Ospedale)
                 .regoleAccesso(java.util.Arrays.asList(EventCodeEnum.P99))
                 .identificativoDoc(StringUtility.generateUUID())
                 .identificativoRep(StringUtility.generateUUID())
-                .tipoDocumentoLivAlto(TipoDocAltoLivEnum.DOCUMENTO_WORKFLOW)
+                .tipoDocumentoLivAlto(TipoDocAltoLivEnum.WOR)
                 .assettoOrganizzativo(PracticeSettingCodeEnum.AD_PSC001)
                 .identificativoPaziente(randomFiscalCode())
                 .dataInizioPrestazione("1652284461782")
                 .dataFinePrestazione("1652284497269")
-                .conservazioneSostitutiva("string")
-                .tipoAttivitaClinica(AttivitaClinicaEnum.PERSONAL_HEALTH_RECORD_UPDATE)
+                .conservazioneANorma("string")
+                .tipoAttivitaClinica(AttivitaClinicaEnum.PHR)
                 .identificativoSottomissione(StringUtility.generateUUID())
                 .forcePublish(false)
                 .build();
 
     }
+    
+ 
+    
+	protected ResponseEntity<TSPublicationCreationResDTO> callPlainTSFeeding(final String jwtToken, final byte[] fileByte, 
+			final TSPublicationCreationReqDTO requestBody) {
+			
+			String urlPublication = "http://localhost:" + webServerAppCtxt.getWebServer().getPort() + webServerAppCtxt.getServletContext().getContextPath() + "/v1/ts-feeding";
 
+			LinkedMultiValueMap<String, Object> map = new LinkedMultiValueMap<>();
+			ByteArrayResource fileAsResource = new ByteArrayResource(fileByte){
+				@Override
+				public String getFilename(){
+					return "file";
+				}
+			};
+
+			map.add("file", fileAsResource);
+			map.add("requestBody", requestBody);
+
+			HttpHeaders headers = new HttpHeaders();
+			headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+			headers.set(Constants.Headers.JWT_HEADER, jwtToken);
+
+			HttpEntity<LinkedMultiValueMap<String, Object>> requestEntity = new HttpEntity<>(map, headers);
+			return restTemplate.exchange(urlPublication, HttpMethod.POST, requestEntity, TSPublicationCreationResDTO.class);
+		}
     
-    
+    @Test
+    void warningTSfeedingTest() {
+        final byte[] file = FileUtility.getFileFromInternalResources("Files" + File.separator + "attachment" + File.separator + "CDA_OK_SIGNED.pdf");
+		final String jwtToken = generateJwt(file, true);
+		
+        TSPublicationCreationReqDTO requestBody = buildTSRequestBody(null);
+        
+        // mock fhir mapping call
+        DocumentReferenceResDTO ref = new DocumentReferenceResDTO();
+		ref.setErrorMessage("");
+		ref.setJson("{\"json\" : \"json\"}");
+		
+		given(fhirMappingClient.callConvertCdaInBundle(any(FhirResourceDTO.class))).willReturn(ref);
+		
+		final ResponseEntity<TSPublicationCreationResDTO> responseTSfeeding = callPlainTSFeeding(jwtToken, file, requestBody);
+
+		assertDoesNotThrow(() -> callTSEndpoint(file, requestBody, true));
+		assertEquals("Attenzione , non è stata selezionata la modalità di estrazione del CDA", responseTSfeeding.getBody().getWarning());
+
+    }
+
 }

@@ -2,12 +2,12 @@ package it.finanze.sanita.fse2.ms.gtw.dispatcher;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.io.File;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.google.gson.Gson;
-
+import org.jsoup.Jsoup;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext;
 import org.springframework.core.io.ByteArrayResource;
@@ -19,27 +19,35 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
+import com.google.gson.Gson;
+
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.CDACFG;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.AttachmentDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.JWTHeaderDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.JWTPayloadDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.PublicationCreationReqDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.ValidationCDAReqDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.ErrorResponseDTO;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.PublicationCreationResDTO;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.ValidationCDAResDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.PublicationResDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.ValidationResDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ActivityEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.AttivitaClinicaEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.HealthDataFormatEnum;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.HealthcareFacilityEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.InjectionModeEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.PracticeSettingCodeEnum;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.RestExecutionResultEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.TipoDocAltoLivEnum;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ValidationResultEnum;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.CfUtility;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.FileUtility;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.JsonUtility;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.PDFUtility;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public abstract class AbstractTest {
-
 
 	@Autowired
 	private RestTemplate restTemplate;
@@ -47,18 +55,18 @@ public abstract class AbstractTest {
 	@Autowired
     private ServletWebServerApplicationContext webServerAppCtxt;
 	
-	public Map<String, ValidationResultEnum> callValidationWithoutToken(ActivityEnum activity, HealthDataFormatEnum type, InjectionModeEnum mode, byte[] fileByte){
-		return callValidation(activity, type, mode, fileByte, false,null);
+	public Map<String, RestExecutionResultEnum> callValidationWithoutToken(ActivityEnum activity, HealthDataFormatEnum type, InjectionModeEnum mode, byte[] fileByte){
+		return callValidation(activity, type, mode, fileByte, false, null, false, true);
 	}
 
-	public Map<String, ValidationResultEnum> callValidation(ActivityEnum activity, HealthDataFormatEnum type, InjectionModeEnum mode, byte[] fileByte,
-			boolean tokenPresent){
-		return callValidation(activity, type, mode, fileByte,tokenPresent,null);
+	public Map<String, RestExecutionResultEnum> callValidation(ActivityEnum activity, HealthDataFormatEnum type, InjectionModeEnum mode, byte[] fileByte,
+			boolean tokenPresent, final boolean fromGovway, boolean isValidMultipart){
+		return callValidation(activity, type, mode, fileByte, tokenPresent, null, fromGovway, isValidMultipart);
 	}
 
-	public Map<String, ValidationResultEnum> callValidation(ActivityEnum activity, HealthDataFormatEnum type, InjectionModeEnum mode, byte[] fileByte,
-			boolean tokenPresent, ValidationCDAReqDTO reqDTO) {
-		Map<String, ValidationResultEnum> output = new HashMap<>();
+	public Map<String, RestExecutionResultEnum> callValidation(ActivityEnum activity, HealthDataFormatEnum type, InjectionModeEnum mode, byte[] fileByte,
+			boolean tokenPresent, ValidationCDAReqDTO reqDTO, final boolean fromGovway, final boolean isValidMultipart) {
+		Map<String, RestExecutionResultEnum> output = new HashMap<>();
 		LinkedMultiValueMap<String, Object> map = new LinkedMultiValueMap<>();
 
 		try {
@@ -81,23 +89,27 @@ public abstract class AbstractTest {
 			headers.setContentType(MediaType.MULTIPART_FORM_DATA);
 
 			if(tokenPresent) {
-
 				log.info("Simulating a valid json payload");
-				headers.set(Constants.Headers.JWT_HEADER, generateJwt(StringUtility.encodeSHA256(fileByte)));
-			}
 
-			String urlValidation = "http://localhost:" + webServerAppCtxt.getWebServer().getPort() + webServerAppCtxt.getServletContext().getContextPath() + "/v1.0.0/validate-creation";
+				if (fromGovway) {
+					headers.set(Constants.Headers.JWT_GOVWAY_HEADER, generateJwtGovwayPayload(fileByte));
+				} else {
+					headers.set(Constants.Headers.JWT_HEADER, generateJwt(fileByte, isValidMultipart));
+				}
+			}
+			
+			String urlValidation = "http://localhost:" + webServerAppCtxt.getWebServer().getPort() + webServerAppCtxt.getServletContext().getContextPath() + "/v1/documents/validation";
 
 			HttpEntity<LinkedMultiValueMap<String, Object>> requestEntity = new HttpEntity<>(map, headers);
 
-			ResponseEntity<ValidationCDAResDTO> response = restTemplate.exchange(urlValidation, HttpMethod.POST, requestEntity, ValidationCDAResDTO.class);
-			if(ActivityEnum.VALIDATION.equals(activity)) {
-				assertEquals(response.getStatusCode().value(), 200);
-			} else if(ActivityEnum.PRE_PUBLISHING.equals(activity)) {
-				assertEquals(response.getStatusCode().value(), 201);
+			ResponseEntity<ValidationResDTO> response = restTemplate.exchange(urlValidation, HttpMethod.POST, requestEntity, ValidationResDTO.class);
+			if(ActivityEnum.VERIFICA.equals(activity)) {
+				assertEquals(200, response.getStatusCode().value());
+			} else if(ActivityEnum.VALIDATION.equals(activity)) {
+				assertEquals(201, response.getStatusCode().value());
 			}
 
-			output.put(response.getBody().getWorkflowInstanceId(), ValidationResultEnum.OK);
+			output.put(response.getBody().getWorkflowInstanceId(), RestExecutionResultEnum.OK);
 
 		} catch (Exception ex) {
 			String message = ex.getMessage();
@@ -106,7 +118,7 @@ public abstract class AbstractTest {
 			String subString = message.substring(firstIndex, lastIndex+1);
 
 			ErrorResponseDTO errorClass = StringUtility.fromJSON(subString, ErrorResponseDTO.class);
-			output.put("ERROR", ValidationResultEnum.get(errorClass.getType()));
+			output.put("ERROR", RestExecutionResultEnum.get(errorClass.getType()));
 			log.error("Error : " + ex.getMessage());
 		}
 		return output;
@@ -115,12 +127,7 @@ public abstract class AbstractTest {
 	protected ValidationCDAReqDTO buildValidationReqDTO(ActivityEnum activity, HealthDataFormatEnum type, InjectionModeEnum mode) {
 		ValidationCDAReqDTO validationReq = ValidationCDAReqDTO.builder().
 				activity(activity).
-				tipoDocumentoLivAlto(TipoDocAltoLivEnum.REFERTO).
 				mode(mode).healthDataFormat(type).
-				assettoOrganizzativo(PracticeSettingCodeEnum.AD_PSC001).
-				identificativoPaziente(randomFiscalCode()).
-				tipoAttivitaClinica(AttivitaClinicaEnum.CONSULTO).
-				identificativoSottomissione("Identificativo sottomissione").
 				build(); 
 		
 		return validationReq;
@@ -132,12 +139,7 @@ public abstract class AbstractTest {
 			String identificativoSottomissione) {
 		ValidationCDAReqDTO validationReq = ValidationCDAReqDTO.builder().
 				activity(activity).
-				tipoDocumentoLivAlto(tipoDocLivelloAlto).
 				mode(mode).healthDataFormat(type).
-				assettoOrganizzativo(assettoOrganizzativo).
-				identificativoPaziente(identificativoPaziente).
-				tipoAttivitaClinica(tipoAttivitaClinica).
-				identificativoSottomissione(identificativoSottomissione).
 				build(); 
 		
 		return validationReq;
@@ -148,22 +150,90 @@ public abstract class AbstractTest {
 		return "RSSMRA22A01A399Z";
 	}
 
-	protected String generateJwt(final String documentHash) {
-		final JWTPayloadDTO jwtPayload = new JWTPayloadDTO("201123456", 1540890704, 1540918800, "1540918800", 
-			Constants.App.JWT_TOKEN_AUDIENCE, "RSSMRA22A01A399Z", "Regione Lazio", "201", 
-			"AAS", "RSSMRA22A01A399Z", true, "TREATMENT", null, "CREATE", documentHash);
+	protected String generateJwt(final byte[] file, final boolean isValidFile) {
 		
+		byte [] pdfFile = null;
+		if (isValidFile) {
+			pdfFile = file;
+		} else {
+			// To generate a jwt is necessary that the file is valid
+			pdfFile = FileUtility.getFileFromInternalResources("Files" + File.separator + "attachment" + File.separator + "CDA_OK_SIGNED.pdf");
+		}
+		final String documentHash = StringUtility.encodeSHA256(pdfFile);
+		final String cda = extractCDA(pdfFile);
+		String docType = null;
+		String personId = null;
+		if (cda != null) {
+			docType = getDocTypeFromCda(cda);
+			personId = getPersonIdFromCda(cda);
+		}
+
 		final JWTHeaderDTO jwtHeader = new JWTHeaderDTO("RS256", Constants.App.JWT_TOKEN_TYPE, null, "X5C cert base 64");
 
 		StringBuilder encodedJwtToken = new StringBuilder(Constants.App.BEARER_PREFIX) // Bearer prefix
 			.append(Base64.getEncoder().encodeToString(new Gson().toJson(jwtHeader).getBytes())) // Header
-			.append(".").append(Base64.getEncoder().encodeToString(new Gson().toJson(jwtPayload).getBytes())); // Payload
+			.append(".").append(generateJwtPayload(documentHash, personId, "RSSMRA22A01A399Z^^^&amp;2.16.840.1.113883.2.9.4.3.2&amp;ISO", docType)); // Payload
 		return encodedJwtToken.toString();
 	}
 
-	protected ResponseEntity<ValidationCDAResDTO> callPlainValidation(final String jwtToken, final byte[] file, final ValidationCDAReqDTO requestBody) {
+	private String getDocTypeFromCda(final String cda) {
+		org.jsoup.nodes.Document docT = Jsoup.parse(cda);
+		String code = docT.select("code").get(0).attr("code");
+		String codeSystem = docT.select("code").get(0).attr("codeSystem");
+		return "('" + code + "^^" + codeSystem + "')";
+	}
+
+	private String getPersonIdFromCda(final String cda) {
+		org.jsoup.nodes.Document docT = Jsoup.parse(cda);
+		return docT.select("patientRole > id").get(0).attr("extension");
+	}
+
+	protected String generateJwtPayload(final String documentHash, final String personId, final String subject, final String docType) {
+		
+		final JWTPayloadDTO jwtPayload = new JWTPayloadDTO("201123456", 1540890704, 1540918800, "1540918800", 
+		"fse-gateway", subject, "110", "Regione Marche", "Regione Marche",
+		"AAS", personId, true, "TREATMENT", docType, "CREATE", documentHash);
+		return Base64.getEncoder().encodeToString(new Gson().toJson(jwtPayload).getBytes());
+	}
+
+	@Autowired
+	CDACFG cdaCfg;
+
+	protected String extractCDA(final byte[] bytesPDF) {
+		String out = null;
+		out = PDFUtility.unenvelopeA2(bytesPDF);
+		if (StringUtility.isNullOrEmpty(out)) {
+			final Map<String, AttachmentDTO> attachments = PDFUtility.extractAttachments(bytesPDF);
+			if (!attachments.isEmpty()) {
+				if (attachments.size() == 1) {
+					out = new String(attachments.values().iterator().next().getContent());
+				} else {
+					final AttachmentDTO attDTO = attachments.get(cdaCfg.getCdaAttachmentName());
+					if (attDTO != null) {
+						out = new String(attDTO.getContent());
+					}
+				}
+			}
+		}
+		return out;
+	}
+
+	protected String generateJwtGovwayPayload(final byte[] file) {
+		
+		final String documentHash = StringUtility.encodeSHA256(file);
+		final String cda = extractCDA(file);
+		final String docType = getDocTypeFromCda(cda);
+		final String personId = getPersonIdFromCda(cda);
+
+		final JWTPayloadDTO jwtPayload = new JWTPayloadDTO("201123456", 1540890704, 1540918800, "1540918800", 
+		"fse-gateway", "RSSMRA22A01A399Z", "120", "Regione Lazio", "Regione Lazio",
+		"AAS", personId, true, "TREATMENT", docType, "CREATE", documentHash);
+		return Base64.getEncoder().encodeToString(new Gson().toJson(jwtPayload).getBytes());
+	}
+
+	protected ResponseEntity<ValidationResDTO> callPlainValidation(final String jwtToken, final byte[] file, final ValidationCDAReqDTO requestBody) {
 		String urlValidation = "http://localhost:" + webServerAppCtxt.getWebServer().getPort()
-				+ webServerAppCtxt.getServletContext().getContextPath() + "/v1.0.0/validate-creation";
+				+ webServerAppCtxt.getServletContext().getContextPath() + "/v1/documents/validation";
 
 		HttpHeaders headers = new HttpHeaders();
 		headers.setContentType(MediaType.MULTIPART_FORM_DATA);
@@ -179,13 +249,13 @@ public abstract class AbstractTest {
 		map.add("file",fileAsResource);
 		map.add("requestBody", requestBody);
 		
-		return restTemplate.exchange(urlValidation, HttpMethod.POST, new HttpEntity<>(map, headers), ValidationCDAResDTO.class);
+		return restTemplate.exchange(urlValidation, HttpMethod.POST, new HttpEntity<>(map, headers), ValidationResDTO.class);
 	}
 
-	protected ResponseEntity<PublicationCreationResDTO> callPlainPublication(final String jwtToken, final byte[] fileByte, 
+	protected ResponseEntity<PublicationResDTO> callPlainPublication(final String jwtToken, final byte[] fileByte, 
 		final PublicationCreationReqDTO requestBody) {
 		
-		String urlPublication = "http://localhost:" + webServerAppCtxt.getWebServer().getPort() + webServerAppCtxt.getServletContext().getContextPath() + "/v1.0.0/publish-creation";
+		String urlPublication = "http://localhost:" + webServerAppCtxt.getWebServer().getPort() + webServerAppCtxt.getServletContext().getContextPath() + "/v1/documents";
 
 		LinkedMultiValueMap<String, Object> map = new LinkedMultiValueMap<>();
 		ByteArrayResource fileAsResource = new ByteArrayResource(fileByte){
@@ -203,7 +273,90 @@ public abstract class AbstractTest {
 		headers.set(Constants.Headers.JWT_HEADER, jwtToken);
 
 		HttpEntity<LinkedMultiValueMap<String, Object>> requestEntity = new HttpEntity<>(map, headers);
-		return restTemplate.exchange(urlPublication, HttpMethod.POST, requestEntity, PublicationCreationResDTO.class);
+		return restTemplate.exchange(urlPublication, HttpMethod.POST, requestEntity, PublicationResDTO.class);
+	}
+
+	protected String generateWrongJwt(final String documentHash, boolean nullHeader, boolean nullPayload) {
+		JWTHeaderDTO jwtHeader = null;
+		JWTPayloadDTO jwtPayload = null;
+		if (!nullPayload) {
+			jwtPayload = new JWTPayloadDTO(
+					"201123456",
+					1540890704,
+					1540918800,
+					"1540918800",
+					"fse-gateway",
+					"RSSMRA22A01A399Z",
+					"120",
+					"Regione Lazio",
+					"201123456",
+					"AAS",
+					"RSSMRA22A01A399Z",
+					true,
+					"TREATMENT",
+					null,
+					"CREATE",
+					documentHash
+			);
+		}
+
+		if (!nullHeader) {
+			jwtHeader = new JWTHeaderDTO(
+					"RS256",
+					Constants.App.JWT_TOKEN_TYPE,
+					null,
+					"X5C cert base 64"
+			);
+		}
+
+		StringBuilder encodedJwtToken = new StringBuilder(Constants.App.BEARER_PREFIX) // Bearer prefix
+				.append(Base64.getEncoder().encodeToString(new Gson().toJson(jwtHeader).getBytes())) // Header
+				.append(".").append(Base64.getEncoder().encodeToString(new Gson().toJson(jwtPayload).getBytes())); // Payload
+		return encodedJwtToken.toString();
+	}
+
+	protected ValidationCDAReqDTO validateDataPreparation() {
+		ValidationCDAReqDTO validationRB = new ValidationCDAReqDTO();
+		validationRB.setActivity(ActivityEnum.VALIDATION);
+		validationRB.setHealthDataFormat(HealthDataFormatEnum.CDA);
+		validationRB.setMode(InjectionModeEnum.ATTACHMENT);
+		return validationRB;
+	}
+
+	protected PublicationCreationReqDTO publicationDataPreparation() {
+		PublicationCreationReqDTO publicationRB = new PublicationCreationReqDTO();
+		publicationRB.setWorkflowInstanceId(null); // Must be null if force publish
+		publicationRB.setTipologiaStruttura(HealthcareFacilityEnum.Ospedale);
+		publicationRB.setIdentificativoDoc(TestConstants.documentId);
+		publicationRB.setIdentificativoRep("identificativoRep");
+		publicationRB.setMode(InjectionModeEnum.ATTACHMENT);
+		publicationRB.setTipoDocumentoLivAlto(TipoDocAltoLivEnum.REF);
+		publicationRB.setAssettoOrganizzativo(PracticeSettingCodeEnum.AD_PSC055);
+		publicationRB.setAssettoOrganizzativo(PracticeSettingCodeEnum.AD_PSC055);
+		publicationRB.setTipoAttivitaClinica(AttivitaClinicaEnum.CON);
+		publicationRB.setIdentificativoSottomissione("identificativoSottomissione");
+		publicationRB.setForcePublish(true);
+		return publicationRB;
 	}
 	
+	protected boolean validationCF(Boolean prop, String fiscalCode) {
+		boolean result = false;
+		
+		if(fiscalCode!=null) {
+	    	if(Boolean.TRUE.equals(prop)) {
+	    		result = CfUtility.validaCF(fiscalCode) == CfUtility.CF_OK_16 || CfUtility.validaCF(fiscalCode) == CfUtility.CF_OK_11
+		            || CfUtility.validaCF(fiscalCode) == CfUtility.CF_ENI_OK || CfUtility.validaCF(fiscalCode) == CfUtility.CF_STP_OK;
+	    	} else {
+	    		result = (fiscalCode.length() == 16 && CfUtility.validaCF(fiscalCode) == CfUtility.CF_OK_16);
+	    	}
+    	} else {
+    		result = false;
+    	}
+		return result;
+		
+	}
+
+	public PublicationCreationReqDTO buildReqDTO() {
+		return JsonUtility.jsonToObject(TestConstants.mockRequest, PublicationCreationReqDTO.class);
+	}
 }

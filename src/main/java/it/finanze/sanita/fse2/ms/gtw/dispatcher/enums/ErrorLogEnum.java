@@ -2,6 +2,7 @@ package it.finanze.sanita.fse2.ms.gtw.dispatcher.enums;
 
 public enum ErrorLogEnum implements ILogEnum {
 
+	KO_GENERIC("KO-GENERIC", "Errore generico"),
 	KO_VAL("KO-VAL", "Errore nella validazione del CDA"),
 	KO_PUB("KO-PUB", "Errore nella pubblicazione del CDA"),
 	KO_INVALID_DATA("KO-INV-DATA", "Errore: dati di input non validi"),

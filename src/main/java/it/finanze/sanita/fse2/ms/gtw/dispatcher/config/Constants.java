@@ -43,7 +43,14 @@ public final class Constants {
 		 */
 		public static final String REPOSITORY_MONGO = "it.sanita.dispatcher.repository";
 		 
-		
+		public static final class Collections {
+
+			public static final String INI_EDS_INVOCATION = "ini_eds_invocation";
+
+			private Collections() {
+
+			}
+		}
 		private ComponentScan() {
 			//This method is intentionally left blank.
 		}
@@ -55,7 +62,13 @@ public final class Constants {
 		/**
 		 * JWT header field.
 		 */
-		public static final String JWT_HEADER = "Authorization";
+		public static final String JWT_HEADER = "FSE-JWT-Signature";
+
+		/**
+		 * JWT header field of GovWay.
+		 */
+		public static final String JWT_GOVWAY_HEADER = "GovWay-ModI-Info";
+		
 
 		private Headers() {
 			//This method is intentionally left blank.
@@ -65,6 +78,10 @@ public final class Constants {
  
 	public static final class Profile {
 		public static final String TEST = "test";
+		
+		public static final String DEV = "dev";
+
+		public static final String TEST_PREFIX = "test_";
 
 		/** 
 		 * Constructor.
@@ -77,15 +94,45 @@ public final class Constants {
 
 	public static final class App {
 		
-		public static final String JWT_TOKEN_AUDIENCE = "fse-gateway";
-
 		public static final String JWT_TOKEN_TYPE = "JWT";
 
 		public static final String BEARER_PREFIX = "Bearer ";
+		public static final String SIGNATURE_INFORMATION_ERROR = "Couldn't get signature information - returning false";
+        public static final String SHA_ERROR = "Errore in fase di calcolo SHA-256";
+        public static final String HOST_ERROR = "Error while retrieving host informations";
+		public static final String SHA_ALGORITHM = "SHA-256";
+		public static final String JWT_MISSING_ISSUER_PLACEHOLDER = "UNDEFINED_JWT_ISSUER";
+
+		public static final String MISSING_WORKFLOW_PLACEHOLDER = "UNKNOW_WORKFLOW_ID";
 
 		private App() {
 			//This method is intentionally left blank.
 		}
+	}
+	
+	public static final class OIDS {
+        public static final String OID_MEF = "2.16.840.1.113883.2.9.4.3.2";
+        
+        private OIDS() {
+            //This method is intentionally left blank.
+        }
+    }
+
+	public static final class Misc {
+		/**
+		 * Prefix for priority queues
+		 */
+		public static final String LOW_PRIORITY = "_LOW";
+		public static final String MEDIUM_PRIORITY = "_MEDIUM";
+		public static final String HIGH_PRIORITY = "_HIGH";
+        public static final String WARN_EXTRACTION_SELECTION = "Attenzione, non è stata selezionata la modalità di estrazione del CDA";
+		/**
+		 * Constructor.
+		 */
+		private Misc() {
+			//This method is intentionally left blank.
+		}
+
 	}
   
 	/**

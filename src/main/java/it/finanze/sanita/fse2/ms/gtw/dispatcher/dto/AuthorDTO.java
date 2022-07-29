@@ -13,6 +13,11 @@ import lombok.Data;
 @Data
 public class AuthorDTO extends AbstractDTO {
 
+	/**
+	 * Serial version uid.
+	 */
+	private static final long serialVersionUID = 7225899029789423608L;
+
 	@Schema(description = "Istituzione")
 	private final String Istitution;
 
