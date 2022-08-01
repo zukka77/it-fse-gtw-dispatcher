@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.bson.internal.Base64;
 import org.jsoup.Jsoup;
@@ -22,7 +21,6 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.SubmissionSetEntryDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.PublicationCreationReqDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.client.DocumentReferenceResDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.AttivitaClinicaEnum;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventCodeEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.LowLevelDocEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.BusinessException;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.ConnectionRefusedException;
@@ -95,8 +93,8 @@ public class DocumentReferenceSRV implements IDocumentReferenceSRV {
 			documentReferenceDTO.setHash(hash);
 			documentReferenceDTO.setFacilityTypeCode(requestBody.getTipologiaStruttura().getCode());
 			
-			if(requestBody.getAttiCliniciRegoleAccesso()!=null && !requestBody.getAttiCliniciRegoleAccesso().isEmpty()) {
-				documentReferenceDTO.setEventCode(requestBody.getAttiCliniciRegoleAccesso().stream().map(EventCodeEnum::getCode).collect(Collectors.toList()));
+			if(requestBody.getAttiCliniciRegoleAccesso()!=null && !requestBody.getAttiCliniciRegoleAccesso().isEmpty()) { 
+				documentReferenceDTO.setEventCode(requestBody.getAttiCliniciRegoleAccesso());
 			}
 			documentReferenceDTO.setPracticeSettingCode(requestBody.getAssettoOrganizzativo().getDescription());
 			documentReferenceDTO.setPatientID(sourcePatientId);
@@ -216,7 +214,7 @@ public class DocumentReferenceSRV implements IDocumentReferenceSRV {
 			de.setHealthcareFacilityTypeCode(requestBody.getTipologiaStruttura().getCode());
 			de.setHealthcareFacilityTypeCodeName(requestBody.getTipologiaStruttura().getCode());
 			if (!CollectionUtils.isEmpty(requestBody.getAttiCliniciRegoleAccesso())) {
-				de.setEventCodeList(requestBody.getAttiCliniciRegoleAccesso().stream().map(EventCodeEnum::getCode).collect(Collectors.toList()));
+				de.setEventCodeList(requestBody.getAttiCliniciRegoleAccesso());
 			}
 			de.setRepositoryUniqueId(requestBody.getIdentificativoRep());
 			de.setClassCode(requestBody.getTipoDocumentoLivAlto().getCode());

@@ -7,7 +7,6 @@ import javax.validation.constraints.Size;
 import io.swagger.v3.oas.annotations.media.Schema;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.AbstractDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.AttivitaClinicaEnum;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventCodeEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.HealthcareFacilityEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.PracticeSettingCodeEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.TipoDocAltoLivEnum;
@@ -29,7 +28,7 @@ public class PublicationMetadataReqDTO extends AbstractDTO {
 
 	@Schema(description = "Regole di accesso")
 	@Size(min = 0, max = 100)
-	private List<EventCodeEnum> attiCliniciRegoleAccesso;
+	private List<String> attiCliniciRegoleAccesso;
 
 	@Schema(description = "Tipo documento alto livello", required = true)
 	private TipoDocAltoLivEnum tipoDocumentoLivAlto;

@@ -146,27 +146,7 @@ public class KafkaSRV implements IKafkaSRV {
 
 		sendStatusMessage(traceId,workflowInstanceId, EventTypeEnum.PUBLICATION, eventStatus, message, identificativoDocumento, jwtClaimDTO,tipoAttivita);
 	}
-
-	@Override
-	public void sendReplaceStatus(final String traceId,final String workflowInstanceId, final EventStatusEnum eventStatus, final String message, 
-			final PublicationCreationReqDTO publicationReq, final JWTPayloadDTO jwtClaimDTO) {
-
-		String identificativoDocumento = null;
-		AttivitaClinicaEnum tipoAttivita = null;
-		if(publicationReq!=null)  {
-
-			if (publicationReq.getIdentificativoDoc()!=null) {
-				identificativoDocumento = publicationReq.getIdentificativoDoc();
-			}
-
-			if(publicationReq.getTipoAttivitaClinica()!=null) {
-				tipoAttivita = publicationReq.getTipoAttivitaClinica();
-			}
-		}
-		
-		sendStatusMessage(traceId,workflowInstanceId, EventTypeEnum.REPLACE, eventStatus, message, identificativoDocumento, jwtClaimDTO,tipoAttivita);
-	}
-
+	
 	@Override
 	public void sendFeedingStatus(final String traceId,final String workflowInstanceId, final EventStatusEnum eventStatus, final String message,
 								  final TSPublicationCreationReqDTO feedingReq, final JWTPayloadDTO jwtClaimDTO) {

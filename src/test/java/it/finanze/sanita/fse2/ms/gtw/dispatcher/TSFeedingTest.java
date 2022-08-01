@@ -8,6 +8,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -216,11 +217,16 @@ class TSFeedingTest extends AbstractTest {
             PracticeSettingCodeEnum assettoOrganizzativo, String identificativoPaziente, String dataInizioPrestazione,
             String dataFinePrestazione, String conservazioneSostitutiva, AttivitaClinicaEnum tipoAttivitaClinica,
             String identificativoSottomissione, boolean forcePublish) {
+    	
+    	List<String> regAcc = new ArrayList<>();
+    	for(EventCodeEnum en : regoleAccesso) {
+    		regAcc.add(en.getCode());
+    	}
         return TSPublicationCreationReqDTO.builder()
                 .healthDataFormat(healthDataFormat)
                 .mode(mode)
                 .tipologiaStruttura(tipologiaStruttura)
-                .regoleAccesso(regoleAccesso)
+                .regoleAccesso(regAcc)
                 .identificativoDoc(identificativoDoc)
                 .identificativoRep(identificativoRep)
                 .tipoDocumentoLivAlto(tipoDocumentoLivAlto)
@@ -290,7 +296,7 @@ class TSFeedingTest extends AbstractTest {
                 .healthDataFormat(HealthDataFormatEnum.CDA)
                 .mode(InjectionModeEnum.ATTACHMENT)
                 .tipologiaStruttura(HealthcareFacilityEnum.Ospedale)
-                .regoleAccesso(java.util.Arrays.asList(EventCodeEnum.P99))
+                .regoleAccesso(java.util.Arrays.asList(EventCodeEnum.P99.getCode()))
                 .identificativoDoc(StringUtility.generateUUID())
                 .identificativoRep(StringUtility.generateUUID())
                 .tipoDocumentoLivAlto(TipoDocAltoLivEnum.WOR)
@@ -313,7 +319,7 @@ class TSFeedingTest extends AbstractTest {
                 .healthDataFormat(HealthDataFormatEnum.CDA)
                 .mode(mode)
                 .tipologiaStruttura(HealthcareFacilityEnum.Ospedale)
-                .regoleAccesso(java.util.Arrays.asList(EventCodeEnum.P99))
+                .regoleAccesso(java.util.Arrays.asList(EventCodeEnum.P99.getCode()))
                 .identificativoDoc(StringUtility.generateUUID())
                 .identificativoRep(StringUtility.generateUUID())
                 .tipoDocumentoLivAlto(TipoDocAltoLivEnum.WOR)

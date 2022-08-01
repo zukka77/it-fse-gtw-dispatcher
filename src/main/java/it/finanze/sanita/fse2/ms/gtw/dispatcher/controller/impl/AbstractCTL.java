@@ -31,6 +31,7 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.ErrorResponseDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.LogTraceInfoDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ActivityEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ErrorInstanceEnum;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventCodeEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.InjectionModeEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.RawValidationEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.RestExecutionResultEnum;
@@ -220,6 +221,12 @@ public abstract class AbstractCTL implements Serializable {
     		out = "Il campo identificativo sottomissione deve essere valorizzato.";
     	} else if(jsonObj.getTipologiaStruttura()==null) {
     		out = "Il campo tipologia struttura deve essere valorizzato.";
+    	} else if(jsonObj.getAttiCliniciRegoleAccesso()!=null) {
+    		for(String attoClinico : jsonObj.getAttiCliniciRegoleAccesso()) {
+    			if(EventCodeEnum.fromValue(attoClinico)==null) {
+    				out = "Il campo event code " + attoClinico + " non è consentito";
+    			}
+    		}
     	}
     	return out;
     }
@@ -441,7 +448,7 @@ public abstract class AbstractCTL implements Serializable {
 				if(!RawValidationEnum.SEMANTIC_WARNING.equals(rawValidationRes.getResult())){
 					final ErrorResponseDTO error = ErrorResponseDTO.builder()
 							.type(result.getType()).title(result.getTitle())
-							.instance(ErrorInstanceEnum.SEMANTIC_ERROR.getInstance()).detail(errorDetail).build();
+							.instance("/validation/error").detail(errorDetail).build();
 	
 					throw new ValidationException(error);
 				}

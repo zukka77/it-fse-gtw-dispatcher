@@ -99,7 +99,7 @@ class DocumentReferenceTest extends AbstractTest {
 				identificativoRep("Identificativo rep").
 				identificativoSottomissione("identificativo sottomissione").
 				mode(InjectionModeEnum.ATTACHMENT).
-				attiCliniciRegoleAccesso(Arrays.asList(EventCodeEnum._94503_0)).
+				attiCliniciRegoleAccesso(Arrays.asList(EventCodeEnum._94503_0.getCode())).
 				tipoAttivitaClinica(AttivitaClinicaEnum.CON).
 				tipoDocumentoLivAlto(TipoDocAltoLivEnum.PRE).
 				tipologiaStruttura(HealthcareFacilityEnum.Ospedale).

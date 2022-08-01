@@ -6,7 +6,6 @@ import javax.validation.constraints.Size;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.AttivitaClinicaEnum;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventCodeEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.HealthDataFormatEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.HealthcareFacilityEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.InjectionModeEnum;
@@ -60,7 +59,7 @@ public class PublicationUpdateReqDTO extends PublicationMetadataReqDTO {
     		boolean forcePublish,
     		Boolean priorita,
     		HealthcareFacilityEnum tipologiaStruttura, 
-    		List<EventCodeEnum> attiCliniciRegoleAccesso, 
+    		List<String> attiCliniciRegoleAccesso, 
     		TipoDocAltoLivEnum tipoDocumentoLivAlto, 
     		PracticeSettingCodeEnum assettoOrganizzativo, 
     		String dataInizioPrestazione, 

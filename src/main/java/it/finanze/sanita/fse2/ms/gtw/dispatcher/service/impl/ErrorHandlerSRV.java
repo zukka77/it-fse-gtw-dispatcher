@@ -44,7 +44,7 @@ public class ErrorHandlerSRV implements IErrorHandlerSRV {
 
     @Override
     public void connectionRefusedExceptionHandler(Date startDateOperation, ValidationDataDTO validationInfo, JWTTokenDTO jwtToken, 
-        PublicationCreationReqDTO jsonObj, LogTraceInfoDTO traceInfoDTO, ConnectionRefusedException ex, final boolean isReplace) {
+        PublicationCreationReqDTO jsonObj, LogTraceInfoDTO traceInfoDTO, ConnectionRefusedException ex) {
         if (jsonObj == null || !Boolean.TRUE.equals(jsonObj.isForcePublish())) {
             cdaSRV.consumeHash(validationInfo.getHash());
         }
@@ -56,15 +56,9 @@ public class ErrorHandlerSRV implements IErrorHandlerSRV {
 
         EventStatusEnum errorEventStatus = errorUtility.computeErrorStatus(errorCategory);
 
-        if (isReplace) {
-            kafkaSRV.sendReplaceStatus(
+        kafkaSRV.sendPublicationStatus(
                 traceInfoDTO.getTraceID(), validationInfo.getWorkflowInstanceId(), errorEventStatus,
                 errorMessage, jsonObj, jwtToken != null ? jwtToken.getPayload() : null);
-        } else {
-            kafkaSRV.sendPublicationStatus(
-                    traceInfoDTO.getTraceID(), validationInfo.getWorkflowInstanceId(), errorEventStatus,
-                    errorMessage, jsonObj, jwtToken != null ? jwtToken.getPayload() : null);
-        }
 
         final RestExecutionResultEnum errorType = RestExecutionResultEnum.get(capturedErrorType);
 
@@ -75,7 +69,7 @@ public class ErrorHandlerSRV implements IErrorHandlerSRV {
 
     @Override
     public void publicationValidationExceptionHandler(Date startDateOperation, ValidationDataDTO validationInfo, JWTTokenDTO jwtToken, 
-        PublicationCreationReqDTO jsonObj, LogTraceInfoDTO traceInfoDTO, ValidationException e, final boolean isReplace) {
+        PublicationCreationReqDTO jsonObj, LogTraceInfoDTO traceInfoDTO, ValidationException e) {
         if (jsonObj == null || !Boolean.TRUE.equals(jsonObj.isForcePublish())) {
             cdaSRV.consumeHash(validationInfo.getHash());
         }
@@ -93,22 +87,16 @@ public class ErrorHandlerSRV implements IErrorHandlerSRV {
 
         EventStatusEnum errorEventStatus = errorUtility.computeErrorStatus(errorCategory);
 
-        if (isReplace) {
-            kafkaSRV.sendReplaceStatus(
-                    traceInfoDTO.getTraceID(), validationInfo.getWorkflowInstanceId(), errorEventStatus,
-                    errorMessage, jsonObj, jwtToken != null ? jwtToken.getPayload() : null);
-        } else {
-            kafkaSRV.sendPublicationStatus(
-                    traceInfoDTO.getTraceID(), validationInfo.getWorkflowInstanceId(), errorEventStatus,
-                    errorMessage, jsonObj, jwtToken != null ? jwtToken.getPayload() : null);
-        }
+        kafkaSRV.sendPublicationStatus(
+                traceInfoDTO.getTraceID(), validationInfo.getWorkflowInstanceId(), errorEventStatus,
+                errorMessage, jsonObj, jwtToken != null ? jwtToken.getPayload() : null);
         
 
         final RestExecutionResultEnum errorType = RestExecutionResultEnum.get(capturedErrorType);
 
         String issuer = (jwtToken != null && jwtToken.getPayload() != null && !StringUtility.isNullOrEmpty(jwtToken.getPayload().getIss())) ? jwtToken.getPayload().getIss() : "ISSUER_UNDEFINED";
         elasticLogger.error(errorMessage + " " + validationInfo.getWorkflowInstanceId(), OperationLogEnum.PUB_CDA2, ResultLogEnum.KO, startDateOperation, errorType.getErrorCategory(), issuer);
-        throw new ValidationPublicationErrorException(errorType, StringUtility.sanitizeMessage(errorType.getTitle()), errorInstance);
+        throw new ValidationPublicationErrorException(errorType,StringUtility.sanitizeMessage(errorMessage), errorInstance);
     }
 
     @Override
