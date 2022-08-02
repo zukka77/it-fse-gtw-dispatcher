@@ -6,11 +6,13 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.BDDMockito.given;
 
 import java.io.File;
 import java.util.Base64;
 import java.util.Date;
+import java.util.regex.Pattern;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -165,5 +167,14 @@ class UtilityTest extends AbstractTest{
 		final String header = new String(FileUtility.getFileFromInternalResources("Files" + File.separator + "jwt" + File.separator + "header.json"));
 		final String payload = new String(FileUtility.getFileFromInternalResources("Files" + File.separator + "jwt" + File.separator + "payload.json"));
 		log.info(Base64.getEncoder().encodeToString(header.getBytes()) + "." + Base64.getEncoder().encodeToString(payload.getBytes()));
+	}
+
+	@Test
+	void patternTest() {
+		final String devUrl = "http:localhost:9080";
+		final String prodUrl = "https://server-ok.com";
+		final Pattern pattern = Pattern.compile("^https://.*");
+		assertTrue(pattern.matcher(prodUrl).matches());
+		assertFalse(pattern.matcher(devUrl).matches());
 	}
 }

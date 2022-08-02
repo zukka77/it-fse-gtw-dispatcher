@@ -1,13 +1,12 @@
 package it.finanze.sanita.fse2.ms.gtw.dispatcher.service.impl;
 
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
-import java.util.List;
 
 import org.bson.internal.Base64;
 import org.jsoup.Jsoup;
+import org.jsoup.nodes.Element;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -181,18 +180,22 @@ public class DocumentReferenceSRV implements IDocumentReferenceSRV {
 		documentEntryDTO.setSourcePatientInfo(sourcePatientInfo);
 		String authorPerson = docCDA.select("ClinicalDocument > author").first().attr("extension");
 		documentEntryDTO.setAuthor(authorPerson);
-		String representedOrganizationName = docCDA.select("ClinicalDocument > documentationOf > serviceEvent > performer > assignedEntity > representedOrganization > name").first().text();
-		String representedOrganizationCode = docCDA.select("ClinicalDocument > documentationOf > serviceEvent > performer > assignedEntity > representedOrganization > asOrganizationPartOf > id").first().attr("extension");
-		documentEntryDTO.setRepresentedOrganizationName(representedOrganizationName);
-		documentEntryDTO.setRepresentedOrganizationCode(representedOrganizationCode);
+		Element representedOrganization = docCDA.select("ClinicalDocument > documentationOf > serviceEvent > performer > assignedEntity > representedOrganization").first();
+		if (representedOrganization != null) {
+			String representedOrganizationName = representedOrganization.select(" > name").text();
+			String representedOrganizationCode = representedOrganization.select(" > asOrganizationPartOf > id").first().attr("extension");
+			documentEntryDTO.setRepresentedOrganizationName(representedOrganizationName);
+			documentEntryDTO.setRepresentedOrganizationCode(representedOrganizationCode);
+		}
 
 		String root = docCDA.select("ClinicalDocument > id").first().attr("root");
 		String extension = requestBody.getIdentificativoDoc();
 		documentEntryDTO.setUniqueId(root + "^" + extension);
-		String ref = docCDA.select("ClinicalDocument > inFulfillmentOf > order > id").first().attr("extension");
-		List<String> refID = new ArrayList<>();
-		refID.add(ref);
-		documentEntryDTO.setReferenceIdList(refID);
+		Element idFullfillment = docCDA.select("ClinicalDocument > inFulfillmentOf > order > id").first();
+		if (idFullfillment != null) {
+			final String ref = idFullfillment.attr("extension");
+			documentEntryDTO.setReferenceIdList(Arrays.asList(ref));
+		}
 		return documentEntryDTO;
 	}
 

@@ -28,6 +28,9 @@
 		<sonar.exclusions>
 			src/main/java/it/finanze/sanita/fse2/ms/gtw/**/config/OpenApiCFG.java
 		</sonar.exclusions>
+		<!-- Sonar integration -->
+		<sonar.organization>ministero-salute</sonar.organization>
+		<sonar.host.url>https://sonarcloud.io</sonar.host.url>
 	</properties>
 
 	<dependencies>

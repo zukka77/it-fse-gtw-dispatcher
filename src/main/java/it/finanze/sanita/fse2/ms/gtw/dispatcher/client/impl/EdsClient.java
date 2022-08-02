@@ -3,17 +3,10 @@
  */
 package it.finanze.sanita.fse2.ms.gtw.dispatcher.client.impl;
 
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.List;
-
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpStatusCodeException;
@@ -22,6 +15,7 @@ import org.springframework.web.client.RestTemplate;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.IEdsClient;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.exceptions.ServerResponseException;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.MicroservicesURLCFG;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.EdsTraceResponseDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.BusinessException;
 import lombok.extern.slf4j.Slf4j;
 
@@ -45,8 +39,8 @@ public class EdsClient implements IEdsClient {
 	private MicroservicesURLCFG msUrlCFG;
 	
 	@Override
-	public Object delete(final String oid) {
-		Object output = null;
+	public EdsTraceResponseDTO delete(final String oid) {
+		EdsTraceResponseDTO output = null;
 		
 		try {
 			log.info("client.delete()");
@@ -56,7 +50,7 @@ public class EdsClient implements IEdsClient {
 			
 			// Build endpoint e call.
 			String endpoint = buildEndpoint("/v1/eds-delete");
-			ResponseEntity<Object> restExchange = rt.exchange(endpoint, HttpMethod.POST, entity, new ParameterizedTypeReference<Object>() {});
+			ResponseEntity<EdsTraceResponseDTO> restExchange = rt.exchange(endpoint, HttpMethod.POST, entity, EdsTraceResponseDTO.class);
 			
 			// Gestione response
 			if (HttpStatus.OK.equals(restExchange.getStatusCode()) && restExchange.getBody() != null) {
@@ -98,21 +92,4 @@ public class EdsClient implements IEdsClient {
 		return sb.toString();
 	}
 	
-	/**
-	 * Build header necessario per l'Autenticazione del servizio chiamante.
-	 *
-	 * @return the http headers
-	 */
-	private HttpHeaders buildHeaders() {
-		// PROVVISORI
-		List<String> values = new ArrayList<>();
-		values.add(MediaType.APPLICATION_JSON_VALUE);
-		values.add(StandardCharsets.UTF_8.name());
-
-		HttpHeaders headers = new HttpHeaders();
-		headers.put(HttpHeaders.ACCEPT, values);
-		headers.put(HttpHeaders.CONTENT_TYPE, values);
-		
-		return headers;
-	}
 }

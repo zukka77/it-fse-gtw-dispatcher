@@ -207,7 +207,7 @@ public abstract class AbstractCTL implements Serializable {
 						|| Constants.App.MISSING_WORKFLOW_PLACEHOLDER.equals(jsonObj.getWorkflowInstanceId()))) {
 
 			out = "Il campo workflow instance id non deve essere valorizzato in modalità force publish oppure in update.";
-		} else if (StringUtility.isNullOrEmpty(jsonObj.getIdentificativoDoc())) {
+		} else if (StringUtility.isNullOrEmpty(jsonObj.getIdentificativoDoc()) && !isReplace) {
     		out = "Il campo identificativo documento deve essere valorizzato.";
     	} else if (StringUtility.isNullOrEmpty(jsonObj.getIdentificativoRep())) {
     		out = "Il campo identificativo rep deve essere valorizzato.";

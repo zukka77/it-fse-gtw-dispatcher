@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class DeleteRequestDTO {
-    private String identificativoDocUpdate;
+    private String identificativoDelete;
     private String sub;
     private String iss;
     private String subject_organization;

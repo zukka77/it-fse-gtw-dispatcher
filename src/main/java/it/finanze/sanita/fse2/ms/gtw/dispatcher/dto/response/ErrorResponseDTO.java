@@ -9,6 +9,7 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.AbstractDTO;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 
 /**
@@ -21,6 +22,7 @@ import lombok.Data;
 @Data
 @Builder
 @AllArgsConstructor
+@EqualsAndHashCode(callSuper=false)
 public class ErrorResponseDTO extends AbstractDTO {
 
 	/**

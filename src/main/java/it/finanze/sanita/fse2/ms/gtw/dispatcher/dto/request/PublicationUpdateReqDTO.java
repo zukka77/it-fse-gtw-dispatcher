@@ -40,10 +40,6 @@ public class PublicationUpdateReqDTO extends PublicationMetadataReqDTO {
 	@Schema(description = "Modalità di iniezione del CDA")
 	private InjectionModeEnum mode;
 
-	@Schema(description = "Identificativo documento", required = true)
-	@Size(min = 0, max = 100)
-	private String identificativoDoc;
-
 	@Schema(description = "Identificativo repository", required = true)
 	@Size(min = 0, max = 100)
 	private String identificativoRep;
@@ -70,7 +66,6 @@ public class PublicationUpdateReqDTO extends PublicationMetadataReqDTO {
     	super(tipologiaStruttura, attiCliniciRegoleAccesso, tipoDocumentoLivAlto, assettoOrganizzativo, dataInizioPrestazione, dataFinePrestazione, conservazioneANorma, tipoAttivitaClinica, identificativoSottomissione);
     	this.healthDataFormat = healthDataFormat;
     	this.mode = mode;
-    	this.identificativoDoc = identificativoDoc;
     	this.identificativoRep = identificativoRep;
     }
     

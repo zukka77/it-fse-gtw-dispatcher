@@ -9,6 +9,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestTemplate;
 
@@ -63,7 +64,7 @@ public class IniClient implements IIniClient {
 			log.info("client.delete()");
 		} catch(ServerResponseException e0) {
 			throw e0;
-		} catch (HttpStatusCodeException e1) {
+		} catch (HttpClientErrorException e1) {
 			errorHandler(e1, "/delete");
 		} catch (Exception e) {
 			log.error("Errore durante l'invocazione dell' API delete(). ", e);
@@ -98,6 +99,41 @@ public class IniClient implements IIniClient {
 		StringBuilder sb = new StringBuilder(msUrlCFG.getIniClientHost()); // Base URL host
 		sb.append(endpoint);
 		return sb.toString();
+	}
+
+ 
+	
+	@Override
+	public IniTraceResponseDTO updateMetadati(String idDocumento) {
+		
+		IniTraceResponseDTO out = null;
+		try {
+			log.info("Update metadati %s : " + idDocumento);
+
+			// Build headers.
+			HttpEntity<Object> entity = new HttpEntity<>(idDocumento, null);
+			
+			// Build endpoint e call.
+			String endpoint = buildEndpoint("/v1/ini-delete");
+			ResponseEntity<IniTraceResponseDTO> restExchange = rt.exchange(endpoint, HttpMethod.PUT, entity, IniTraceResponseDTO.class);
+			
+			// Gestione response
+			if (HttpStatus.OK.equals(restExchange.getStatusCode()) && restExchange.getBody() != null) {
+				out = restExchange.getBody();
+				if(out!=null && Boolean.FALSE.equals(out.getEsito())) {
+					throw new ServerResponseException(out.getErrorMessage());
+				}
+			}  
+		} catch(ServerResponseException e0) {
+			throw e0;
+		} catch (HttpStatusCodeException e1) {
+			errorHandler(e1, "/ini-update");
+		} catch (Exception e) {
+			log.error("Errore durante l'invocazione dell' API delete(). ", e);
+			throw new BusinessException("Errore durante l'invocazione dell' API delete(). ", e);
+		}
+		
+		return out;
 	}
 	 
 	

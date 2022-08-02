@@ -44,7 +44,8 @@ public class ErrorHandlerSRV implements IErrorHandlerSRV {
 
     @Override
     public void connectionRefusedExceptionHandler(Date startDateOperation, ValidationDataDTO validationInfo, JWTTokenDTO jwtToken, 
-        PublicationCreationReqDTO jsonObj, LogTraceInfoDTO traceInfoDTO, ConnectionRefusedException ex) {
+        PublicationCreationReqDTO jsonObj, LogTraceInfoDTO traceInfoDTO, ConnectionRefusedException ex,
+        boolean isPublication) {
         if (jsonObj == null || !Boolean.TRUE.equals(jsonObj.isForcePublish())) {
             cdaSRV.consumeHash(validationInfo.getHash());
         }
@@ -63,13 +64,17 @@ public class ErrorHandlerSRV implements IErrorHandlerSRV {
         final RestExecutionResultEnum errorType = RestExecutionResultEnum.get(capturedErrorType);
 
         String issuer = (jwtToken != null && jwtToken.getPayload() != null && !StringUtility.isNullOrEmpty(jwtToken.getPayload().getIss())) ? jwtToken.getPayload().getIss() : "ISSUER_UNDEFINED";
-        elasticLogger.error(errorMessage + " " + validationInfo.getWorkflowInstanceId(), OperationLogEnum.PUB_CDA2, ResultLogEnum.KO, startDateOperation, errorType.getErrorCategory(), issuer);
+        if(isPublication) {
+        	elasticLogger.error(errorMessage + " " + validationInfo.getWorkflowInstanceId(), OperationLogEnum.PUB_CDA2, ResultLogEnum.KO, startDateOperation, errorType.getErrorCategory(), issuer);
+        } else {
+        	elasticLogger.error(errorMessage + " " + validationInfo.getWorkflowInstanceId(), OperationLogEnum.REPLACE_CDA2, ResultLogEnum.KO, startDateOperation, errorType.getErrorCategory(), issuer);
+        }
         throw new ValidationPublicationErrorException(errorType, StringUtility.sanitizeMessage(errorType.getTitle()), errorInstance);
     }
 
     @Override
     public void publicationValidationExceptionHandler(Date startDateOperation, ValidationDataDTO validationInfo, JWTTokenDTO jwtToken, 
-        PublicationCreationReqDTO jsonObj, LogTraceInfoDTO traceInfoDTO, ValidationException e) {
+        PublicationCreationReqDTO jsonObj, LogTraceInfoDTO traceInfoDTO, ValidationException e, boolean isPublication) {
         if (jsonObj == null || !Boolean.TRUE.equals(jsonObj.isForcePublish())) {
             cdaSRV.consumeHash(validationInfo.getHash());
         }
@@ -87,15 +92,23 @@ public class ErrorHandlerSRV implements IErrorHandlerSRV {
 
         EventStatusEnum errorEventStatus = errorUtility.computeErrorStatus(errorCategory);
 
-        kafkaSRV.sendPublicationStatus(
-                traceInfoDTO.getTraceID(), validationInfo.getWorkflowInstanceId(), errorEventStatus,
-                errorMessage, jsonObj, jwtToken != null ? jwtToken.getPayload() : null);
+        if(isPublication) {
+        	kafkaSRV.sendPublicationStatus(traceInfoDTO.getTraceID(), validationInfo.getWorkflowInstanceId(), errorEventStatus,
+        			errorMessage, jsonObj, jwtToken != null ? jwtToken.getPayload() : null);
+        } else {
+        	kafkaSRV.sendReplaceStatus(traceInfoDTO.getTraceID(), validationInfo.getWorkflowInstanceId(), errorEventStatus,
+        			errorMessage, jsonObj, jwtToken != null ? jwtToken.getPayload() : null);
+        }
         
 
         final RestExecutionResultEnum errorType = RestExecutionResultEnum.get(capturedErrorType);
 
         String issuer = (jwtToken != null && jwtToken.getPayload() != null && !StringUtility.isNullOrEmpty(jwtToken.getPayload().getIss())) ? jwtToken.getPayload().getIss() : "ISSUER_UNDEFINED";
-        elasticLogger.error(errorMessage + " " + validationInfo.getWorkflowInstanceId(), OperationLogEnum.PUB_CDA2, ResultLogEnum.KO, startDateOperation, errorType.getErrorCategory(), issuer);
+        if(isPublication) {
+        	elasticLogger.error(errorMessage + " " + validationInfo.getWorkflowInstanceId(), OperationLogEnum.PUB_CDA2, ResultLogEnum.KO, startDateOperation, errorType.getErrorCategory(), issuer);
+        } else {
+        	elasticLogger.error(errorMessage + " " + validationInfo.getWorkflowInstanceId(), OperationLogEnum.REPLACE_CDA2, ResultLogEnum.KO, startDateOperation, errorType.getErrorCategory(), issuer);
+        }
         throw new ValidationPublicationErrorException(errorType,StringUtility.sanitizeMessage(errorMessage), errorInstance);
     }
 

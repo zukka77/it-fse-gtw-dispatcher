@@ -31,10 +31,11 @@ public interface IErrorHandlerSRV {
      * @param jsonObj
      * @param traceInfoDTO
      * @param ex
+     * @param isPublication
      */
     void connectionRefusedExceptionHandler(Date startDateOperation, ValidationDataDTO validationInfo, JWTTokenDTO jwtToken, 
-        PublicationCreationReqDTO jsonObj, LogTraceInfoDTO traceInfoDTO, ConnectionRefusedException ex);
-
+            PublicationCreationReqDTO jsonObj, LogTraceInfoDTO traceInfoDTO, ConnectionRefusedException ex,
+            boolean isPublication);
     /**
      * Handle validation exception for publication ep.
      * 
@@ -44,10 +45,10 @@ public interface IErrorHandlerSRV {
      * @param jsonObj
      * @param traceInfoDTO
      * @param e
+     * @param isPublication
      */
     void publicationValidationExceptionHandler(Date startDateOperation, ValidationDataDTO validationInfo, JWTTokenDTO jwtToken, 
-        PublicationCreationReqDTO jsonObj, LogTraceInfoDTO traceInfoDTO, ValidationException e);
-
+            PublicationCreationReqDTO jsonObj, LogTraceInfoDTO traceInfoDTO, ValidationException e, boolean isPublication);
     /**
      * Handle connection refused exception for ts feeding ep
      * @param startDateOperation

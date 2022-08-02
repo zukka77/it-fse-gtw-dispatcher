@@ -4,6 +4,7 @@ public enum EventTypeEnum {
 
 	VALIDATION("VALIDATION"),
 	PUBLICATION("PUBLICATION"),
+	REPLACE("REPLACE"),
 	FEEDING("FEEDING"),
 	GENERIC_ERROR("Generic error from dispatcher");
 

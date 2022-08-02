@@ -378,8 +378,7 @@ class TSFeedingTest extends AbstractTest {
 		final ResponseEntity<TSPublicationCreationResDTO> responseTSfeeding = callPlainTSFeeding(jwtToken, file, requestBody);
 
 		assertDoesNotThrow(() -> callTSEndpoint(file, requestBody, true));
-		assertEquals("Attenzione , non è stata selezionata la modalità di estrazione del CDA", responseTSfeeding.getBody().getWarning());
-
+		assertEquals(Constants.Misc.WARN_EXTRACTION_SELECTION, responseTSfeeding.getBody().getWarning());
     }
 
 }

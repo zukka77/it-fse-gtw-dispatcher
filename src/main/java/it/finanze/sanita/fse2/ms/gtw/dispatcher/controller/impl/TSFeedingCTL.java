@@ -145,7 +145,7 @@ public class TSFeedingCTL extends AbstractCTL implements ITSFeedingCTL {
 		String warning = null;
 
 		if (jsonObj != null && jsonObj.getMode() == null) {
-			warning = "Attenzione , non è stata selezionata la modalità di estrazione del CDA";
+			warning = Constants.Misc.WARN_EXTRACTION_SELECTION;
 		}
 		
 		return new TSPublicationCreationResDTO(traceInfoDTO, workflowInstanceId, warning);

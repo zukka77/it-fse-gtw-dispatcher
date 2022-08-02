@@ -19,7 +19,6 @@ import java.util.Date;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.http.HttpStatus;
@@ -182,10 +181,9 @@ class PublicationTest extends AbstractTest {
 
     }
 
-
 	@Test
 	void jwtValidation () {
-		byte[] pdfAttachment = FileUtility.getFileFromInternalResources("Files/attachment/LDO_OK.pdf");
+		byte[] pdfAttachment = FileUtility.getFileFromInternalResources("Files/attachment/CDA_OK_SIGNED.pdf");
 		String encoded = StringUtility.encodeSHA256(pdfAttachment);
 		String token = generateJwt(pdfAttachment, true);
 		
@@ -499,14 +497,5 @@ class PublicationTest extends AbstractTest {
 				file,
 				publicationRB
 		));
-	}
-
-	@Test
-	void patternTest() {
-		final String devUrl = "http:localhost:9080";
-		final String prodUrl = "https://server-ok.com";
-		final Pattern pattern = Pattern.compile("^https://.*");
-		assertTrue(pattern.matcher(prodUrl).matches());
-		assertFalse(pattern.matcher(devUrl).matches());
 	}
 }
