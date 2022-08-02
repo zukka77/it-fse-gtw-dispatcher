@@ -5,7 +5,7 @@ on:
       - main
       - develop
       - release
-      - feature/UAT_200622
+      - feature/*
   pull_request:
     types: [opened, synchronize, reopened]
   workflow_dispatch:
@@ -18,15 +18,7 @@ on:
         options:
         - info
         - warning
-        - debug 
-      tags:
-        description: 'Sonar Integration'
-        required: false 
-        type: boolean
-      environment:
-        description: 'Environment to run tests against'
-        type: environment
-        required: true 
+        - debug
 jobs:
   build:
     name: Build
@@ -54,5 +46,5 @@ jobs:
       - name: Build and analyze
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
-          SONAR_TOKEN: 84a26caadc45937b31040e5a2926fe3ef1a8b238
+          SONAR_TOKEN: 29a278ce55d8d46d1b48d61a1632a6cfcb46dfd2
         run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=it.finanze.sanita.fse2:gtw-dispatcher-ms -DskipTests=true
