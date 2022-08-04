@@ -25,13 +25,18 @@ public class PublicationCreationResDTO extends ResponseDTO {
 	@Schema(description = "Dettaglio del warning")
 	private String warning;
 	
+	@Size(min = 0, max = 256)
+	@Schema(description = "Identificativo del workflow instance id")
+	private String workflowInstanceId;
+
 	public PublicationCreationResDTO() {
 		super();
 	}
 
-	public PublicationCreationResDTO(final LogTraceInfoDTO traceInfo,final String inWarning) {
+	public PublicationCreationResDTO(final LogTraceInfoDTO traceInfo, String inWarning,final String inWorkflowInstanceId) {
 		super(traceInfo);
 		warning = inWarning;
+		workflowInstanceId = inWorkflowInstanceId;
 	}
 	
 }

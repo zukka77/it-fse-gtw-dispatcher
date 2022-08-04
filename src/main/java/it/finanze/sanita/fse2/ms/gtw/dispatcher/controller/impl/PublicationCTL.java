@@ -182,7 +182,8 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 		}
 
 
-		elasticLogger.info(String.format("Publication CDA completed for transactionID %s", validationInfo.getWorkflowInstanceId()), OperationLogEnum.PUB_CDA2, ResultLogEnum.OK, startDateOperation, jwtToken.getPayload().getIss());
-		return new ResponseEntity<>(new PublicationCreationResDTO(getLogTraceInfo(), null), HttpStatus.CREATED);
+		elasticLogger.info(String.format("Publication CDA completed for workflow instance id %s", validationInfo.getWorkflowInstanceId()), OperationLogEnum.PUB_CDA2, ResultLogEnum.OK, startDateOperation, jwtToken.getPayload().getIss());
+		return new ResponseEntity<>(new PublicationCreationResDTO(getLogTraceInfo(), null, validationInfo.getWorkflowInstanceId()), HttpStatus.CREATED);
 	}
+	
 }
