@@ -6,7 +6,7 @@
 	<groupId>it.finanze.sanita.fse2</groupId>
 	<artifactId>gtw-dispatcher-ms</artifactId>
 	<name>gtw-dispatcher-ms</name>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>0.0.6-SNAPSHOT</version> <!-- SPRINT6 -->
 	<description>Gateway Dispatcher FSE</description>
 
 	<parent>
@@ -25,12 +25,10 @@
 		<config.infra>${project.basedir}/infrastructure</config.infra>
 		<container.output>target/container</container.output>
 		<container.output.runtime>${container.output}/runtime</container.output.runtime>
-		<sonar.exclusions>
-			src/main/java/it/finanze/sanita/fse2/ms/gtw/**/config/OpenApiCFG.java
-		</sonar.exclusions>
 		<!-- Sonar integration -->
 		<sonar.organization>ministero-salute</sonar.organization>
 		<sonar.host.url>https://sonarcloud.io</sonar.host.url>
+		<sonar.exclusions>src/main/java/it/finanze/sanita/fse2/ms/gtw/**/config/OpenApiCFG.java</sonar.exclusions>
 	</properties>
 
 	<dependencies>
