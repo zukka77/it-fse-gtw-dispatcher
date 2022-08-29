@@ -107,9 +107,7 @@ public interface IPublicationCTL {
 			@ApiResponse(responseCode = "504", description = "Endpoint request timed-out", content = @Content(mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE, schema = @Schema(implementation = ErrorResponseDTO.class)))})
 	ResponseEntity<PublicationResDTO> replace(@Size(min = 1, max = 256)@PathVariable(value = "identificativoDocUpdate", required = true) String identificativoDocUpdate, @RequestBody(required = false) PublicationUpdateReqDTO requestBody, @RequestPart("file") MultipartFile file, HttpServletRequest request);
 
-
-
-	@DeleteMapping(value = "/documents/{identificativoDelete}", produces = { MediaType.APPLICATION_JSON_VALUE })
+	@DeleteMapping(value = "/documents/{identificativoDocUpdate}", produces = { MediaType.APPLICATION_JSON_VALUE })
 	@ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ResponseDTO.class)))
 	@Operation(summary = "Eliminazione documento", description = "Elimina il documento identificato da oid fornito in input.")
 	@SecurityRequirements({
@@ -129,6 +127,6 @@ public interface IPublicationCTL {
 			@ApiResponse(responseCode = "502", description = "Invalid response received from the API Implementation", content = @Content(mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE, schema = @Schema(implementation = ErrorResponseDTO.class))),
 			@ApiResponse(responseCode = "503", description = "Service unavailable", content = @Content(mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE, schema = @Schema(implementation = ErrorResponseDTO.class))),
 			@ApiResponse(responseCode = "504", description = "Endpoint request timed-out", content = @Content(mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE, schema = @Schema(implementation = ErrorResponseDTO.class)))})
-	ResponseDTO delete(@Size(min = 1, max = 256)@PathVariable(value = "identificativoDelete", required = true) String identificativoDelete, HttpServletRequest request);
+	ResponseDTO delete(@Size(min = 1, max = 256)@PathVariable(value = "identificativoDocUpdate", required = true) String identificativoDocUpdate, HttpServletRequest request);
 	
 }

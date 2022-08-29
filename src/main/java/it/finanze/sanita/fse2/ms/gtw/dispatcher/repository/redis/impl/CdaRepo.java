@@ -21,7 +21,7 @@ public class CdaRepo extends AbstractRedisRepo implements ICdaRepo {
 	private static final long serialVersionUID = -3175044102992430693L;
 	
 	@Autowired
-	private CDACFG cdaCfg;
+	private transient CDACFG cdaCfg;
 
 	@Override
 	public void create(final String hashedCDA, final String wii) {

@@ -25,7 +25,7 @@
 		<config.infra>${project.basedir}/infrastructure</config.infra>
 		<container.output>target/container</container.output>
 		<container.output.runtime>${container.output}/runtime</container.output.runtime>
-		<!-- Sonar integration -->
+	 	<!-- Sonar integration -->
 		<sonar.organization>ministero-salute</sonar.organization>
 		<sonar.host.url>https://sonarcloud.io</sonar.host.url>
 		<sonar.exclusions>src/main/java/it/finanze/sanita/fse2/ms/gtw/**/config/OpenApiCFG.java</sonar.exclusions>
@@ -230,6 +230,7 @@
 				<configuration>
 					<excludes>
 						<exclude>src/main/java/it/finanze/sanita/fse2/ms/gtw/**/config/OpenApiCFG.java</exclude>
+						<exclude>src/main/java/it/finanze/sanita/fse2/ms/gtw/dispatcher/client/impl/**/*.*</exclude>
 					</excludes>
 				</configuration>
 				<executions>

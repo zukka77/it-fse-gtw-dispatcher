@@ -3,6 +3,7 @@
  */
 package it.finanze.sanita.fse2.ms.gtw.dispatcher.client.impl;
 
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.EdsMetadataUpdateReqDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
@@ -33,7 +34,7 @@ public class EdsClient implements IEdsClient {
 	private static final long serialVersionUID = 1497611210936387510L;
 	
 	@Autowired
-	private RestTemplate rt;
+	private transient RestTemplate restTemplate;
 	
 	@Autowired
 	private MicroservicesURLCFG msUrlCFG;
@@ -50,7 +51,7 @@ public class EdsClient implements IEdsClient {
 			
 			// Build endpoint e call.
 			String endpoint = buildEndpoint("/v1/eds-delete");
-			ResponseEntity<EdsTraceResponseDTO> restExchange = rt.exchange(endpoint, HttpMethod.POST, entity, EdsTraceResponseDTO.class);
+			ResponseEntity<EdsTraceResponseDTO> restExchange = restTemplate.exchange(endpoint, HttpMethod.POST, entity, EdsTraceResponseDTO.class);
 			
 			// Gestione response
 			if (HttpStatus.OK.equals(restExchange.getStatusCode()) && restExchange.getBody() != null) {
@@ -64,6 +65,35 @@ public class EdsClient implements IEdsClient {
 			throw new BusinessException("Errore durante l'invocazione dell' API delete(). ", e);
 		}
 		
+		return output;
+	}
+
+	@Override
+	public EdsTraceResponseDTO update(EdsMetadataUpdateReqDTO req) {
+		EdsTraceResponseDTO output = null;
+
+		try {
+			log.info("client.update()");
+
+			// Build headers.
+			HttpEntity<Object> entity = new HttpEntity<>(req, null);
+
+			// Build endpoint e call.
+			String endpoint = buildEndpoint("/v1/eds-update");
+			ResponseEntity<EdsTraceResponseDTO> restExchange = restTemplate.exchange(endpoint, HttpMethod.PUT, entity, EdsTraceResponseDTO.class);
+
+			// Gestione response
+			if (HttpStatus.OK.equals(restExchange.getStatusCode()) && restExchange.getBody() != null) {
+				output = restExchange.getBody();
+			}
+			log.info("client.update()");
+		} catch (HttpStatusCodeException e1) {
+			errorHandler(e1, "/update");
+		} catch (Exception e) {
+			log.error("Errore durante l'invocazione dell' API update(). ", e);
+			throw new BusinessException("Errore durante l'invocazione dell' API update(). ", e);
+		}
+
 		return output;
 	}
 

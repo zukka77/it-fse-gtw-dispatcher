@@ -276,7 +276,7 @@ public abstract class AbstractTest {
 		return restTemplate.exchange(urlPublication, HttpMethod.POST, requestEntity, PublicationResDTO.class);
 	}
 
-	protected String generateWrongJwt(final String documentHash, boolean nullHeader, boolean nullPayload) {
+	protected String generateWrongJwt(final String documentHash, boolean nullHeader, boolean nullPayload, boolean customResourceHl7) {
 		JWTHeaderDTO jwtHeader = null;
 		JWTPayloadDTO jwtPayload = null;
 		if (!nullPayload) {
@@ -294,7 +294,7 @@ public abstract class AbstractTest {
 					"RSSMRA22A01A399Z",
 					true,
 					"TREATMENT",
-					null,
+					customResourceHl7 ? "custom" : "('11502-2^^2.16.840.1.113883.6.1')",
 					"CREATE",
 					documentHash
 			);

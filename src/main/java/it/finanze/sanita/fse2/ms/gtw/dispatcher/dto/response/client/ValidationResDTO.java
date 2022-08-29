@@ -20,8 +20,8 @@ public class ValidationResDTO extends ResponseDTO {
 	 * Serial version uid.
 	 */
 	private static final long serialVersionUID = -2618965716083072681L;
-	
-	private final ValidationInfoDTO result;
+
+	private final transient ValidationInfoDTO result;
 	
 	public ValidationResDTO() {
 		super();

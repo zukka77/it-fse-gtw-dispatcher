@@ -3,6 +3,7 @@
  */
 package it.finanze.sanita.fse2.ms.gtw.dispatcher.client.impl;
 
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.IniMetadataUpdateReqDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
@@ -35,7 +36,7 @@ public class IniClient implements IIniClient {
 	private static final long serialVersionUID = 8054486322408383036L;
 	
 	@Autowired
-	private RestTemplate rt;
+	private transient RestTemplate restTemplate;
 	
 	@Autowired
 	private MicroservicesURLCFG msUrlCFG;
@@ -52,7 +53,7 @@ public class IniClient implements IIniClient {
 			
 			// Build endpoint e call.
 			String endpoint = buildEndpoint("/v1/ini-delete");
-			ResponseEntity<IniTraceResponseDTO> restExchange = rt.exchange(endpoint, HttpMethod.DELETE, entity, IniTraceResponseDTO.class);
+			ResponseEntity<IniTraceResponseDTO> restExchange = restTemplate.exchange(endpoint, HttpMethod.DELETE, entity, IniTraceResponseDTO.class);
 			
 			// Gestione response
 			if (HttpStatus.OK.equals(restExchange.getStatusCode()) && restExchange.getBody() != null) {
@@ -104,18 +105,18 @@ public class IniClient implements IIniClient {
  
 	
 	@Override
-	public IniTraceResponseDTO updateMetadati(String idDocumento) {
+	public IniTraceResponseDTO updateMetadati(IniMetadataUpdateReqDTO iniReq) {
 		
 		IniTraceResponseDTO out = null;
 		try {
-			log.info("Update metadati %s : " + idDocumento);
+			log.info("Update metadati %s : " + iniReq.getIdDoc());
 
 			// Build headers.
-			HttpEntity<Object> entity = new HttpEntity<>(idDocumento, null);
-			
+			HttpEntity<Object> entity = new HttpEntity<>(iniReq, null);
+
 			// Build endpoint e call.
-			String endpoint = buildEndpoint("/v1/ini-delete");
-			ResponseEntity<IniTraceResponseDTO> restExchange = rt.exchange(endpoint, HttpMethod.PUT, entity, IniTraceResponseDTO.class);
+			String endpoint = buildEndpoint("/v1/ini-update");
+			ResponseEntity<IniTraceResponseDTO> restExchange = restTemplate.exchange(endpoint, HttpMethod.PUT, entity, IniTraceResponseDTO.class);
 			
 			// Gestione response
 			if (HttpStatus.OK.equals(restExchange.getStatusCode()) && restExchange.getBody() != null) {
@@ -129,8 +130,8 @@ public class IniClient implements IIniClient {
 		} catch (HttpStatusCodeException e1) {
 			errorHandler(e1, "/ini-update");
 		} catch (Exception e) {
-			log.error("Errore durante l'invocazione dell' API delete(). ", e);
-			throw new BusinessException("Errore durante l'invocazione dell' API delete(). ", e);
+			log.error("Errore durante l'invocazione dell' API update(). ", e);
+			throw new BusinessException("Errore durante l'invocazione dell' API update(). ", e);
 		}
 		
 		return out;

@@ -138,7 +138,7 @@ class DeleteTest extends AbstractTest {
 		final String urlReplace = "http://localhost:" + webServerAppCtxt.getWebServer().getPort() + webServerAppCtxt.getServletContext().getContextPath() + "/v1/documents/" + documentId;
 
 		Map<String, String> param = new HashMap<>();
-		param.put("identificativoDelete", documentId);
+		param.put("identificativoDocUpdate", documentId);
 
 		HttpEntity<Map<String, String>> requestEntity = new HttpEntity<>(param, headers);
 		return restTemplate.exchange(urlReplace, HttpMethod.DELETE, requestEntity, ResponseDTO.class);

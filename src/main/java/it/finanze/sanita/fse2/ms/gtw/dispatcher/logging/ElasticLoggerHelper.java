@@ -30,7 +30,7 @@ public class ElasticLoggerHelper {
 	/* 
 	 * Specify here the format for the dates 
 	 */
-	private DateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss.SSS"); 
+	private final DateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss.SSS");
 
 	@Value("${log.elastic-search.enable}")
 	private boolean elasticLogEnable;

@@ -49,7 +49,7 @@ public class ValidationCTL extends AbstractCTL implements IValidationCTL {
 	private transient ElasticLoggerHelper elasticLogger;
 
 	@Autowired
-	private IErrorHandlerSRV errorHandlerSRV;
+	private transient IErrorHandlerSRV errorHandlerSRV;
 
 	 
 	@Override

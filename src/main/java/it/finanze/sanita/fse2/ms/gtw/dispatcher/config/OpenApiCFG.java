@@ -14,7 +14,6 @@ import io.swagger.v3.oas.annotations.enums.SecuritySchemeIn;
 import io.swagger.v3.oas.annotations.enums.SecuritySchemeType;
 import io.swagger.v3.oas.annotations.security.SecurityScheme;
 import io.swagger.v3.oas.annotations.security.SecuritySchemes;
-import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.Operation;
 import io.swagger.v3.oas.models.PathItem;
@@ -102,16 +101,9 @@ public class OpenApiCFG {
 
 	@Bean
 	public OpenAPI customOpenAPI() {
-		final String securitySchemeName = "bearerAuth";
-		
-		return new OpenAPI().addSecurityItem(new SecurityRequirement().addList(securitySchemeName))
-				.components(
-						new Components().addSecuritySchemes(securitySchemeName,
-								new io.swagger.v3.oas.models.security.SecurityScheme()
-										.name(securitySchemeName)
-										.description("JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token} [RFC8725](https://tools.ietf.org/html/RFC8725).\"")
-										.scheme("bearer")
-										.bearerFormat("JWT")));
+		return new OpenAPI()
+				.addSecurityItem(new SecurityRequirement().addList("bearerAuth"))
+				.addSecurityItem(new SecurityRequirement().addList("FSE-JWT-Signature"));
 	}
 
 	@Bean

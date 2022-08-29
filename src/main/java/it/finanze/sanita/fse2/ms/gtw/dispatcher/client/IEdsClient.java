@@ -3,6 +3,9 @@
  */
 package it.finanze.sanita.fse2.ms.gtw.dispatcher.client;
 
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.EdsMetadataUpdateReqDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.EdsTraceResponseDTO;
+
 import java.io.Serializable;
 
 /**
@@ -10,7 +13,8 @@ import java.io.Serializable;
  *
  */
 public interface IEdsClient extends Serializable {
-	
-	Object delete(final String oid);
+
+	EdsTraceResponseDTO delete(final String oid);
+	EdsTraceResponseDTO update(final EdsMetadataUpdateReqDTO req);
 
 }

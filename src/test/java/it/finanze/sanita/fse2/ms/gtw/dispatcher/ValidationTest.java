@@ -5,6 +5,8 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.when;
 
 import java.io.File;
 import java.math.BigDecimal;
@@ -15,11 +17,13 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.Map;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
@@ -27,12 +31,15 @@ import org.springframework.web.client.HttpClientErrorException;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.IValidatorClient;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.ValidationInfoDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.ValidationCDAReqDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.ValidationResDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ActivityEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.HealthDataFormatEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.InjectionModeEnum;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.RawValidationEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.RestExecutionResultEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.TipoDocAltoLivEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.ICdaSRV;
@@ -75,6 +82,14 @@ class ValidationTest extends AbstractTest {
 	 * Quanto di tempo di attesa tra due check adiacenti per comprendere se si è raggiunto il numero di test necessari.
 	 */
 	private static final int SLEEP_TIME = 100;
+
+	@MockBean
+	IValidatorClient validatorClient;
+
+	@BeforeEach
+	void mockValidatorClient() {
+		when(validatorClient.validate(anyString())).thenReturn(ValidationInfoDTO.builder().result(RawValidationEnum.OK).build());
+	}
 
     @Test
     @DisplayName("Wrong File Test")
@@ -332,6 +347,7 @@ class ValidationTest extends AbstractTest {
 		assertTrue(thrownException.getMessage().contains(RestExecutionResultEnum.MANDATORY_ELEMENT_ERROR.getType()));
 
 		requestBody.setActivity(ActivityEnum.VERIFICA);
+
 		final ResponseEntity<ValidationResDTO> validationResponse200 = callPlainValidation(jwtToken, file, requestBody);
 		assertNotNull(validationResponse200.getBody());
 		assertNotNull(validationResponse200.getBody().getWorkflowInstanceId());
@@ -353,9 +369,49 @@ class ValidationTest extends AbstractTest {
 				"Files" + File.separator + "attachment" + File.separator + "CDA_OK_SIGNED.pdf");
 
 		// null payload
-		final String jwtTokenNullPayload = generateWrongJwt(StringUtility.encodeSHA256(file), false, true);
+		final String jwtTokenNullPayload = generateWrongJwt(StringUtility.encodeSHA256(file), false, true, false);
 		ValidationCDAReqDTO requestBody2 = new ValidationCDAReqDTO();
 		assertThrows(HttpClientErrorException.Forbidden.class, () -> callPlainValidation(jwtTokenNullPayload, file, requestBody2));
 
 	}
+
+	@Test
+	@DisplayName("validate JWT error tests")
+	void validateJwtErrorTests() {
+		final byte[] file = FileUtility.getFileFromInternalResources(
+				"Files" + File.separator + "attachment" + File.separator + "CDA_OK_SIGNED.pdf");
+
+		// null payload
+		final String jwtTokenWrongPayload = generateWrongJwt(StringUtility.encodeSHA256(file), false, false, true);
+		ValidationCDAReqDTO requestBody = new ValidationCDAReqDTO();
+		requestBody.setActivity(ActivityEnum.VERIFICA);
+		assertThrows(HttpClientErrorException.Forbidden.class, () -> callPlainValidation(jwtTokenWrongPayload, file, requestBody));
+
+	}
+
+	@Test
+	@DisplayName("validator client error test")
+	void validatorClientErrorTest() {
+		byte[] pdfAttachment = FileUtility.getFileFromInternalResources("Files/attachment/pdf_msg_SATLED_LED_Lettera_di_Dimissione.pdf");
+		byte[] pdfResource = FileUtility.getFileFromInternalResources("Files/resource/cert1.pdf");
+
+		String cda = extractCDA(pdfAttachment);
+		final String hashedCdaAttachment = StringUtility.encodeSHA256B64(cda);
+
+		cdaSRV.consumeHash(hashedCdaAttachment);
+
+		cda = extractCDA(pdfResource);
+		final String hashedCdaResource = StringUtility.encodeSHA256B64(cda);
+
+		cdaSRV.consumeHash(hashedCdaResource);
+		when(validatorClient.validate(anyString())).thenReturn(ValidationInfoDTO.builder().result(RawValidationEnum.SYNTAX_ERROR).build());
+		Map<String, RestExecutionResultEnum> result = callValidation(
+				ActivityEnum.VERIFICA, HealthDataFormatEnum.CDA,
+				null,
+				pdfResource,
+				true, false, true);
+		assertEquals(RestExecutionResultEnum.SYNTAX_ERROR, result.values().iterator().next());
+	}
+
+
 }

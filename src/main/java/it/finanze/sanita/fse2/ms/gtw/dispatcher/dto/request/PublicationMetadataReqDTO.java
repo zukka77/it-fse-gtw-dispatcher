@@ -4,6 +4,7 @@ import java.util.List;
 
 import javax.validation.constraints.Size;
 
+import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Schema;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.AbstractDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.AttivitaClinicaEnum;
@@ -26,10 +27,10 @@ public class PublicationMetadataReqDTO extends AbstractDTO {
 	@Schema(description = "Tipologia struttura che ha prodotto il documento", required = true)
 	private HealthcareFacilityEnum tipologiaStruttura;
 
-	@Schema(description = "Regole di accesso")
 	@Size(min = 0, max = 100)
+    @ArraySchema(schema = @Schema(maxLength = 1000, description = "Regola di accesso"))
 	private List<String> attiCliniciRegoleAccesso;
-
+	
 	@Schema(description = "Tipo documento alto livello", required = true)
 	private TipoDocAltoLivEnum tipoDocumentoLivAlto;
 

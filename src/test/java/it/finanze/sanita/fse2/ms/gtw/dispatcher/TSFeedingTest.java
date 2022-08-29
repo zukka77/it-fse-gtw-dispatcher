@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,6 +53,7 @@ import lombok.extern.slf4j.Slf4j;
 @ComponentScan(basePackages = {Constants.ComponentScan.BASE})
 @ActiveProfiles(Constants.Profile.TEST)
 @Slf4j
+@Disabled("Ts feeding is not ready for Sprint 6")
 class TSFeedingTest extends AbstractTest {
 
 

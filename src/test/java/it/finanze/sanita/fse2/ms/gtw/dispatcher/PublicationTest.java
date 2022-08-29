@@ -13,12 +13,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.Date;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.http.HttpStatus;
@@ -358,6 +353,14 @@ class PublicationTest extends AbstractTest {
 		publicationRB.setWorkflowInstanceId("NON EXISTING");
 		thrownException = assertThrows(HttpClientErrorException.BadRequest.class, () -> callPlainPublication(jwtToken, file, publicationRB));
 		log.info(ExceptionUtils.getStackTrace(thrownException));
+
+		publicationRB.setWorkflowInstanceId(workflowInstanceId);
+		final String jwtWrongHashToken = generateWrongJwt("randomHash", false, false, false);
+		ResponseEntity<ValidationResDTO> responseValidation = callPlainValidation(jwtWrongHashToken, file, validationRB);
+		assertEquals(HttpStatus.SC_CREATED, responseValidation.getStatusCode().value());
+		publicationRB.setWorkflowInstanceId(Objects.requireNonNull(responseValidation.getBody()).getWorkflowInstanceId());
+		thrownException = assertThrows(HttpClientErrorException.BadRequest.class, () -> callPlainPublication(jwtWrongHashToken, file, publicationRB));
+		assertTrue(thrownException.getMessage().contains(RestExecutionResultEnum.DOCUMENT_HASH_VALIDATION_ERROR.getType()));
 	}
 	
 	@Test

@@ -23,6 +23,8 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.ResourceDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.ValidationCreationInputDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.ValidationDataDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.DeleteRequestDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.EdsMetadataUpdateReqDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.IniMetadataUpdateReqDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.PublicationCreationReqDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.PublicationMetadataReqDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.PublicationUpdateReqDTO;
@@ -30,7 +32,6 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.ErrorResponseDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.LogTraceInfoDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.PublicationResDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.ResponseDTO;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ActivityEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.DestinationTypeEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ErrorInstanceEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventStatusEnum;
@@ -80,7 +81,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 	private ICdaFacadeSRV cdaSRV;
 
 	@Autowired
-	private IErrorHandlerSRV errorHandlerSRV;
+	private transient IErrorHandlerSRV errorHandlerSRV;
 	
 	@Autowired
 	private IIniClient iniClient;
@@ -182,15 +183,46 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 				warning = Constants.Misc.WARN_EXTRACTION_SELECTION;
 			}
 			
-			return new ResponseEntity<>(new PublicationResDTO(traceInfoDTO, warning, validationInfo.getValidationData().getWorkflowInstanceId()), HttpStatus.CREATED);
+			return new ResponseEntity<>(new PublicationResDTO(traceInfoDTO, warning, validationInfo.getValidationData().getWorkflowInstanceId()), HttpStatus.OK);
 	}
 
 
 	@Override
 	public ResponseEntity<ResponseDTO> replaceMetadata(final String identificativoDoc,
 			final PublicationMetadataReqDTO requestBody, final HttpServletRequest request) {
-		// TODO Auto-generated method stub
-		return null;
+		
+		// Estrazione token
+		JWTTokenDTO jwtToken = null;
+		final Date startDateOperation = new Date();
+		
+		try {
+			if (Boolean.TRUE.equals(msCfg.getFromGovway())) {
+				jwtToken = extractAndValidateJWT(request.getHeader(Constants.Headers.JWT_GOVWAY_HEADER), msCfg.getFromGovway());
+			} else {
+				jwtToken = extractAndValidateJWT(request.getHeader(Constants.Headers.JWT_HEADER), msCfg.getFromGovway());
+			}
+
+			// Esecuzione richiesta verso ini-client
+			iniClient.updateMetadati(new IniMetadataUpdateReqDTO(identificativoDoc, jwtToken.getPayload(), StringUtility.fromJSONJackson(request.getParameter("requestBody"), PublicationMetadataReqDTO.class)));
+			
+			// Call to eds-client mock endpoint
+			edsClient.update(new EdsMetadataUpdateReqDTO(identificativoDoc, null, requestBody));
+	
+			elasticLogger.info(String.format("Update of CDA metadata completed for document with identifier %s", identificativoDoc), OperationLogEnum.UPDATE_METADATA_CDA2, ResultLogEnum.OK, startDateOperation, jwtToken.getPayload().getIss());
+		} catch (Exception e) {
+			final String issuer = jwtToken != null ? jwtToken.getPayload().getIss() : Constants.App.JWT_MISSING_ISSUER_PLACEHOLDER;
+			RestExecutionResultEnum errorInstance = RestExecutionResultEnum.GENERIC_ERROR;
+			if (e instanceof ValidationException) {
+				errorInstance = RestExecutionResultEnum.get(((ValidationException) e).getError().getType());
+			}
+
+			log.error(String.format("Error encountered while updating CDA metadata with identifier %s", identificativoDoc), e);
+			elasticLogger.error(String.format("Error while updating CDA metadata of document with identifier %s", identificativoDoc), OperationLogEnum.UPDATE_METADATA_CDA2, ResultLogEnum.KO, startDateOperation, errorInstance.getErrorCategory(), issuer);
+			throw e;
+		}
+		
+		// Return
+		return new ResponseEntity<>(new ResponseDTO(getLogTraceInfo()), HttpStatus.OK);
 	}
 
 	private ValidationCreationInputDTO validateInput(final MultipartFile file, final HttpServletRequest request, final boolean isReplace) {
@@ -210,7 +242,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 				final JWTTokenDTO jwtToken = extractAndValidateJWT(request.getHeader(Constants.Headers.JWT_HEADER), msCfg.getFromGovway());
 				validation.setJwtToken(jwtToken);
 			}
-			
+
 			PublicationCreationReqDTO jsonObj = getAndValidatePublicationReq(request.getParameter("requestBody"), isReplace);
 			validation.setJsonObj(jsonObj);
 
@@ -227,20 +259,15 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 			validation.setDocument(docT);
 			validation.setKafkaKey(key);
 	
-			if (!Boolean.TRUE.equals(jsonObj.isForcePublish()) && !isReplace) {
+			if (!Boolean.TRUE.equals(jsonObj.isForcePublish()) || isReplace) {
 				validationInfo = getValidationInfo(cda, jsonObj.getWorkflowInstanceId());
 			} else {
 				validationInfo.setWorkflowInstanceId(CdaUtility.getWorkflowInstanceId(docT));
 			}
-
-			if (isReplace) {
-				log.info("Validating CDA for replace");
-				validate(cda, ActivityEnum.REPLACE, validation.getValidationData().getWorkflowInstanceId());
-			}
 	
 			validation.setValidationData(validationInfo); // Updating validation info
 
-			if (!Boolean.TRUE.equals(jsonObj.isForcePublish()) && !isReplace) {
+			if (!Boolean.TRUE.equals(jsonObj.isForcePublish()) || isReplace) {
 				cdaSRV.consumeHash(validationInfo.getHash());
 			}
 			
@@ -271,7 +298,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 	}
 	
 	@Override
-	public ResponseDTO delete(String identificativoDelete, HttpServletRequest request) {
+	public ResponseDTO delete(String identificativoDocUpdate, HttpServletRequest request) {
 		
 		final Date startDateOperation = new Date();
 		JWTTokenDTO jwtToken = null;
@@ -283,11 +310,11 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 				jwtToken = extractAndValidateJWT(request.getHeader(Constants.Headers.JWT_HEADER), msCfg.getFromGovway());
 			}
 			
-			DeleteRequestDTO iniReq = buildRequestForIni(identificativoDelete, jwtToken);
+			DeleteRequestDTO iniReq = buildRequestForIni(identificativoDocUpdate, jwtToken);
 			iniClient.delete(iniReq);
-			edsClient.delete(identificativoDelete);
+			edsClient.delete(identificativoDocUpdate);
 	
-			elasticLogger.info(String.format("Deletion of CDA completed for document with identifier %s", identificativoDelete), OperationLogEnum.DELETE_CDA2, ResultLogEnum.OK, startDateOperation, jwtToken.getPayload().getIss());
+			elasticLogger.info(String.format("Deletion of CDA completed for document with identifier %s", identificativoDocUpdate), OperationLogEnum.DELETE_CDA2, ResultLogEnum.OK, startDateOperation, jwtToken.getPayload().getIss());
 		} catch (Exception e) {
 			final String issuer = jwtToken != null ? jwtToken.getPayload().getIss() : Constants.App.JWT_MISSING_ISSUER_PLACEHOLDER;
 			RestExecutionResultEnum errorInstance = RestExecutionResultEnum.GENERIC_ERROR;
@@ -295,8 +322,8 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 				errorInstance = RestExecutionResultEnum.get(((ValidationException) e).getError().getType());
 			}
 
-			log.error(String.format("Error encountered while deleting CDA with identifier %s", identificativoDelete), e);
-			elasticLogger.error(String.format("Error while deleting CDA of document with identifier %s", identificativoDelete), OperationLogEnum.DELETE_CDA2, ResultLogEnum.KO, startDateOperation, errorInstance.getErrorCategory(), issuer);
+			log.error(String.format("Error encountered while deleting CDA with identifier %s", identificativoDocUpdate), e);
+			elasticLogger.error(String.format("Error while deleting CDA of document with identifier %s", identificativoDocUpdate), OperationLogEnum.DELETE_CDA2, ResultLogEnum.KO, startDateOperation, errorInstance.getErrorCategory(), issuer);
 			throw e;
 		}
 		
@@ -309,7 +336,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 			JWTPayloadDTO jwtPayloadDTO = jwtTokenDTO.getPayload();
 			out = DeleteRequestDTO.builder().
 					action_id(jwtPayloadDTO.getAction_id()).
-					identificativoDelete(identificativoDocumento).
+					identificativoDocUpdate(identificativoDocumento).
 					iss(jwtPayloadDTO.getIss()).
 					locality(jwtPayloadDTO.getLocality()).
 					patient_consent(jwtPayloadDTO.getPatient_consent()).
