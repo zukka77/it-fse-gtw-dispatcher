@@ -42,6 +42,7 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.ValidationInfoDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.PublicationCreationReqDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.PublicationResDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.client.DocumentReferenceResDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ActivityEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.AttivitaClinicaEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventCodeEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.HealthDataFormatEnum;
@@ -83,9 +84,12 @@ class ReplaceTest extends AbstractTest {
 
 		mockDocumentRef();
 		mockFhirMapping();
-
+		
 		final byte[] pdfAttachment = FileUtility.getFileFromInternalResources("Files/attachment/" + filename);
 		final String idDocument = StringUtility.generateUUID();
+		
+		mockValidation(pdfAttachment);
+		
 		final ResponseEntity<PublicationResDTO> response = callReplace(idDocument, pdfAttachment);
 		final PublicationResDTO body = response.getBody();
 
@@ -99,6 +103,12 @@ class ReplaceTest extends AbstractTest {
 		assertEquals(idDocument, invocation.getIdentificativoDocUpdate(), "The same document Id should be present on the entity invocations");
 		assertEquals(3, invocation.getMetadata().size(), "The three metadata should have been present on invocations collection");
 		assertNotNull(invocation.getData(), "The data of invocation contains CDA info and cannot be null");
+	}
+
+	private void mockValidation(byte[] pdfAttachment) {
+		ValidationInfoDTO info = new ValidationInfoDTO(RawValidationEnum.OK, new ArrayList<>());
+		given(validatorClient.validate(anyString())).willReturn(info);
+		callValidation(ActivityEnum.VALIDATION, HealthDataFormatEnum.CDA, InjectionModeEnum.ATTACHMENT, pdfAttachment, true, false, true);
 	}
 
 	@ParameterizedTest
@@ -157,6 +167,7 @@ class ReplaceTest extends AbstractTest {
 	
 		rBody.setTipologiaStruttura(HealthcareFacilityEnum.Ospedale);
 	
+		mockValidation(pdfAttachment);
 		ResponseEntity<PublicationResDTO> response = callReplace(idDocument, pdfAttachment, rBody, true);
 		assertEquals(Constants.Misc.WARN_EXTRACTION_SELECTION, response.getBody().getWarning(), 
 			"Not providing injection mode should not stop the call but should return a warning");
@@ -164,7 +175,9 @@ class ReplaceTest extends AbstractTest {
 		assertNotNull(response.getBody().getWorkflowInstanceId(), "Workflow instance id should not be null");	
 
 		rBody.setMode(InjectionModeEnum.ATTACHMENT);
- 		response = callReplace(idDocument, pdfAttachment, rBody, true);
+		
+		mockValidation(pdfAttachment);
+		response = callReplace(idDocument, pdfAttachment, rBody, true);
 		assertTrue(StringUtility.isNullOrEmpty(response.getBody().getWarning()), "No warning should have be returned with a correct CDA");
 		assertNotNull(response.getBody().getWorkflowInstanceId(), "Workflow instance id should not be null");	
 	}
