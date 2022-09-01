@@ -22,6 +22,8 @@ public enum RestExecutionResultEnum {
 	FHIR_MAPPING_ERROR("/msg/fhir-mapping-type", "Mapping fhir fallito.", ErrorLogEnum.KO_FHIR),
 	FHIR_MAPPING_TIMEOUT("/msg/fhir-mapping-timeout", "Mapping fhir timeout.", ErrorLogEnum.KO_FHIR),
 	WORKFLOW_ID_ERROR("/msg/workflow-id-error-extraction", "Errore in fase di estrazione del workflow id.", ErrorLogEnum.KO_INVALID_DATA),
+	RECORD_NOT_FOUND("msg/record-not-found", "Record non trovato.", ErrorLogEnum.KO_INVALID_DATA),
+	SERVER_ERROR("msg/server-error", "Errore nella comunicazione con il client", ErrorLogEnum.KO_GENERIC),
 	GENERIC_ERROR("/msg/generic-error", "Errore generico.", ErrorLogEnum.KO_GENERIC);
 
 

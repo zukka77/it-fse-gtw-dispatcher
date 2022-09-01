@@ -2,9 +2,9 @@ package it.finanze.sanita.fse2.ms.gtw.dispatcher.service.impl;
 
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.Date;
 
-import org.bson.internal.Base64;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Element;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,7 +45,7 @@ public class DocumentReferenceSRV implements IDocumentReferenceSRV {
 		ResourceDTO output = new ResourceDTO();
 		try {
 			org.jsoup.nodes.Document docCDA = Jsoup.parse(cda);
-			String encodedCDA = Base64.encode(cda.getBytes());
+			String encodedCDA = Base64.getEncoder().encodeToString(cda.getBytes());
 			
 			DocumentReferenceDTO documentReferenceDTO = buildDocumentReferenceDTO(encodedCDA, requestBody, size, hash, sourcePatientId);
 			

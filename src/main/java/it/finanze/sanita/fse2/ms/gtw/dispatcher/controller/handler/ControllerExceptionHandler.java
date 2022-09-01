@@ -11,11 +11,14 @@ import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 import brave.Tracer;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.exceptions.RecordNotFoundException;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.exceptions.ServerResponseException;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.ErrorResponseDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.LogTraceInfoDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.ValidationErrorResponseDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ErrorInstanceEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.RestExecutionResultEnum;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.BusinessException;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.ConnectionRefusedException;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.ValidationErrorException;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.ValidationException;
@@ -113,7 +116,7 @@ public class ControllerExceptionHandler extends ResponseEntityExceptionHandler {
     }
     
     /**
-  	 * Management connection refused exception.
+  	 * Management generic server response exception.
   	 * 
   	 * @param ex		exception
   	 * @param request	request
@@ -122,9 +125,30 @@ public class ControllerExceptionHandler extends ResponseEntityExceptionHandler {
       @ExceptionHandler(value = {ServerResponseException.class})
       protected ResponseEntity<ErrorResponseDTO> handleServerException(final ServerResponseException ex, final WebRequest request) {
       	log.error("" , ex);  
-      	Integer status = 400;
+      	Integer status = 500;
       	
-      	ErrorResponseDTO out = new ErrorResponseDTO(getLogTraceInfo(), "/msg/server-error", "Server error", ExceptionUtils.getMessage(ex), status, "/msg/server-error");
+      	ErrorResponseDTO out = new ErrorResponseDTO(getLogTraceInfo(), RestExecutionResultEnum.SERVER_ERROR.getType(), RestExecutionResultEnum.SERVER_ERROR.getTitle(), ExceptionUtils.getMessage(ex), status, ErrorInstanceEnum.NO_INFO.getInstance());
+
+      	HttpHeaders headers = new HttpHeaders();
+          headers.setContentType(MediaType.APPLICATION_PROBLEM_JSON);
+          
+      	return new ResponseEntity<>(out, headers, status);
+      }
+
+
+	/**
+  	 * Management record not found exception received by clients.
+  	 * 
+  	 * @param ex		exception
+  	 * @param request	request
+  	 * @return			
+  	 */
+      @ExceptionHandler(value = {RecordNotFoundException.class})
+      protected ResponseEntity<ErrorResponseDTO> handleRecordNotFoundException(final RecordNotFoundException ex, final WebRequest request) {
+      	log.error("" , ex);  
+      	Integer status = 404;
+      	
+      	ErrorResponseDTO out = new ErrorResponseDTO(getLogTraceInfo(), RestExecutionResultEnum.RECORD_NOT_FOUND.getType(), RestExecutionResultEnum.RECORD_NOT_FOUND.getTitle(), ExceptionUtils.getMessage(ex), status, ErrorInstanceEnum.NO_INFO.getInstance());
 
       	HttpHeaders headers = new HttpHeaders();
           headers.setContentType(MediaType.APPLICATION_PROBLEM_JSON);
@@ -143,10 +167,21 @@ public class ControllerExceptionHandler extends ResponseEntityExceptionHandler {
 	 */
     @ExceptionHandler(value = {Exception.class})
     protected ResponseEntity<ErrorResponseDTO> handleGenericException(final Exception ex, final WebRequest request) {
-    	log.error("" , ex);  
     	Integer status = 500;
 
-		ErrorResponseDTO out = new ErrorResponseDTO(getLogTraceInfo(), "/msg/generic-error", "Errore generico", "Errore generico", status, "/msg/generic-error");
+		ErrorResponseDTO out = new ErrorResponseDTO(getLogTraceInfo(), RestExecutionResultEnum.GENERIC_ERROR.getType(), RestExecutionResultEnum.GENERIC_ERROR.getTitle(), "Errore generico", status, ErrorInstanceEnum.NO_INFO.getInstance());
+
+    	HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_PROBLEM_JSON);
+        
+    	return new ResponseEntity<>(out, headers, status);
+    }
+
+	@ExceptionHandler(value = {BusinessException.class})
+    protected ResponseEntity<ErrorResponseDTO> handleBusinessException(final BusinessException ex, final WebRequest request) {
+    	Integer status = 500;
+
+		ErrorResponseDTO out = new ErrorResponseDTO(getLogTraceInfo(), RestExecutionResultEnum.GENERIC_ERROR.getType(), RestExecutionResultEnum.GENERIC_ERROR.getTitle(), ExceptionUtils.getMessage(ex), status, ErrorInstanceEnum.NO_INFO.getInstance());
 
     	HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_PROBLEM_JSON);

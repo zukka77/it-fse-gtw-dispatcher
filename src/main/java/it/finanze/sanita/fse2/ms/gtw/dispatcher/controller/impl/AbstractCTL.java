@@ -224,7 +224,7 @@ public abstract class AbstractCTL implements Serializable {
     	} else if(jsonObj.getAttiCliniciRegoleAccesso()!=null) {
     		for(String attoClinico : jsonObj.getAttiCliniciRegoleAccesso()) {
     			if(EventCodeEnum.fromValue(attoClinico)==null) {
-    				out = "Il campo event code " + attoClinico + " non è consentito";
+    				out = "Il campo atti clinici " + attoClinico + " non è consentito";
     			}
     		}
     	}
@@ -508,7 +508,7 @@ public abstract class AbstractCTL implements Serializable {
 			final ErrorResponseDTO error = ErrorResponseDTO.builder()
 				.type(RestExecutionResultEnum.CDA_MATCH_ERROR.getType())
 				.title(RestExecutionResultEnum.CDA_MATCH_ERROR.getTitle())
-				.instance(RestExecutionResultEnum.CDA_MATCH_ERROR.getType())
+				.instance(ErrorInstanceEnum.CDA_NOT_VALIDATED.getInstance())
 				.detail("Il CDA non risulta validato").build();
 			
 			throw new ValidationException(error);

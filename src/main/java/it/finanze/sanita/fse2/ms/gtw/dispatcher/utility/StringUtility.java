@@ -211,8 +211,8 @@ public final class StringUtility {
 		} catch (UnrecognizedPropertyException ue) {
 			final ErrorResponseDTO error = ErrorResponseDTO.builder()
 				.type(RestExecutionResultEnum.MANDATORY_ELEMENT_ERROR.getType())
-				.instance(RestExecutionResultEnum.MANDATORY_ELEMENT_ERROR.getType())
-				.title(ErrorInstanceEnum.MISSING_MANDATORY_ELEMENT.getInstance())
+				.title(RestExecutionResultEnum.MANDATORY_ELEMENT_ERROR.getTitle())
+				.instance(ErrorInstanceEnum.MISSING_MANDATORY_ELEMENT.getInstance())
 				.detail("Parametro non riconosciuto all'interno della request nella conversione di " + clazz.getName())
 				.build();
 
@@ -220,8 +220,8 @@ public final class StringUtility {
 		} catch (final Exception e) {
 			final ErrorResponseDTO error = ErrorResponseDTO.builder()
 				.type(RestExecutionResultEnum.MANDATORY_ELEMENT_ERROR.getType())
-				.instance(RestExecutionResultEnum.MANDATORY_ELEMENT_ERROR.getType())
-				.title(ErrorInstanceEnum.MISSING_MANDATORY_ELEMENT.getInstance())
+				.title(RestExecutionResultEnum.MANDATORY_ELEMENT_ERROR.getTitle())
+				.instance(ErrorInstanceEnum.MISSING_MANDATORY_ELEMENT.getInstance())
 				.detail("Errore durante la conversione da json a oggetto " + clazz.getName())
 				.build();
 

@@ -6,10 +6,11 @@ import java.util.List;
 import io.swagger.v3.oas.annotations.media.Schema;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.AssettoOrgEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.AttivitaClinicaEnum;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.TipoDocAltoLivEnum;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.LowLevelDocEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.HealthcareFacilityEnum;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.LowLevelDocEnum;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.TipoDocAltoLivEnum;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 
 /**
@@ -18,6 +19,7 @@ import lombok.Data;
  * 	Metadata Document.
  */
 @Data
+@EqualsAndHashCode(callSuper=true)
 public class MetadataDocumentDTO extends AbstractDTO {
 
 	@Schema(description = "Tipo livello alto")

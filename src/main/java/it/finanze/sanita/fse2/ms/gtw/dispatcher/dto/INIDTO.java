@@ -2,6 +2,7 @@ package it.finanze.sanita.fse2.ms.gtw.dispatcher.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 
 /**
@@ -10,6 +11,7 @@ import lombok.Data;
  * 	Metadata INI.
  */
 @Data
+@EqualsAndHashCode(callSuper=true)
 public class INIDTO extends AbstractDTO {
 
 	@Schema(description = "Metadati utente")

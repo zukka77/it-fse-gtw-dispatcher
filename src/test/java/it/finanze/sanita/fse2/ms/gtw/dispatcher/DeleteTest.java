@@ -24,6 +24,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.exceptions.ServerResponseException;
@@ -79,7 +80,7 @@ class DeleteTest extends AbstractTest {
 
 		mockIniClient(HttpStatus.INTERNAL_SERVER_ERROR);
 		mockEdsClient(HttpStatus.OK);
-		assertThrows(HttpClientErrorException.BadRequest.class, () -> callDelete(idDocument));
+		assertThrows(HttpServerErrorException.InternalServerError.class, () -> callDelete(idDocument));
 	}
 
 	@Test
@@ -90,7 +91,7 @@ class DeleteTest extends AbstractTest {
 
 		mockIniClient(HttpStatus.OK);
 		mockEdsClient(HttpStatus.INTERNAL_SERVER_ERROR);
-		assertThrows(HttpClientErrorException.BadRequest.class, () -> callDelete(idDocument));
+		assertThrows(HttpServerErrorException.InternalServerError.class, () -> callDelete(idDocument));
 	}
 
 	void mockIniClient(final HttpStatus status) {

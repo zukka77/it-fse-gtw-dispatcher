@@ -5,6 +5,7 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.OperationalContextEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.RegionCodeEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.RoleEnum;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 
 /**
@@ -13,6 +14,7 @@ import lombok.Data;
  * 	Metadata user INI.
  */
 @Data
+@EqualsAndHashCode(callSuper=true)
 public class MetadataUserDTO extends AbstractDTO {
 
 	@Schema(description = "Identificativo")

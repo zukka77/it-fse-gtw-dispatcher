@@ -15,10 +15,12 @@ import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestTemplate;
 
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.IIniClient;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.exceptions.RecordNotFoundException;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.exceptions.ServerResponseException;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.MicroservicesURLCFG;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.DeleteRequestDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.IniTraceResponseDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.INIErrorEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.BusinessException;
 import lombok.extern.slf4j.Slf4j;
 
@@ -59,12 +61,16 @@ public class IniClient implements IIniClient {
 			if (HttpStatus.OK.equals(restExchange.getStatusCode()) && restExchange.getBody() != null) {
 				output = restExchange.getBody();
 				if(output!=null && Boolean.FALSE.equals(output.getEsito())) {
-					throw new ServerResponseException(output.getErrorMessage());
+					if(output.getErrorMessage().equals(INIErrorEnum.RECORD_NOT_FOUND.toString())){
+						throw new RecordNotFoundException(output.getErrorMessage());
+					}
+					throw new BusinessException(output.getErrorMessage());
 				}
 			}  
-			log.info("client.delete()");
-		} catch(ServerResponseException e0) {
+		} catch(RecordNotFoundException e0) {
 			throw e0;
+		} catch(BusinessException e1) {
+			throw e1;
 		} catch (HttpClientErrorException e1) {
 			errorHandler(e1, "/delete");
 		} catch (Exception e) {
@@ -122,13 +128,18 @@ public class IniClient implements IIniClient {
 			if (HttpStatus.OK.equals(restExchange.getStatusCode()) && restExchange.getBody() != null) {
 				out = restExchange.getBody();
 				if(out!=null && Boolean.FALSE.equals(out.getEsito())) {
-					throw new ServerResponseException(out.getErrorMessage());
+					if(out.getErrorMessage().equals(INIErrorEnum.RECORD_NOT_FOUND.toString())){
+						throw new RecordNotFoundException(out.getErrorMessage());
+					}
+					throw new BusinessException(out.getErrorMessage());
 				}
 			}  
-		} catch(ServerResponseException e0) {
+		} catch(RecordNotFoundException e0) {
 			throw e0;
-		} catch (HttpStatusCodeException e1) {
-			errorHandler(e1, "/ini-update");
+		} catch(BusinessException e1) {
+			throw e1;
+		} catch (HttpStatusCodeException e2) {
+			errorHandler(e2, "/ini-update");
 		} catch (Exception e) {
 			log.error("Errore durante l'invocazione dell' API update(). ", e);
 			throw new BusinessException("Errore durante l'invocazione dell' API update(). ", e);
