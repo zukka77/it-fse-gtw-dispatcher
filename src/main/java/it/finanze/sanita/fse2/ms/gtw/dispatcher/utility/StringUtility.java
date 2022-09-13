@@ -204,4 +204,18 @@ public final class StringUtility {
 		return out; 
 	}
 
+	/**
+	 * Metodo che permette data l'uri definita nelle prop di avere il nome del db
+	 * 
+	 * @param uri
+	 * @return string
+	 */
+	public static String getDatabaseName(final String uri) { 
+		int indexDBName = uri.lastIndexOf("/");
+		String nameWithReplica = uri.substring(indexDBName+1, uri.length()).trim();
+		if(nameWithReplica.contains("?")) {
+			nameWithReplica = nameWithReplica.substring(0, nameWithReplica.indexOf('?')).trim();
+		}
+		return nameWithReplica;
+	}
 }

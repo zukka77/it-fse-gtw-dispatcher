@@ -18,7 +18,15 @@ import org.springframework.data.mongodb.core.convert.MappingMongoConverter;
 import org.springframework.data.mongodb.core.mapping.MongoMappingContext;
 import org.springframework.data.mongodb.repository.config.EnableMongoRepositories;
 
+import com.mongodb.ConnectionString;
+import com.mongodb.MongoClientSettings;
+import com.mongodb.client.MongoClient;
+import com.mongodb.client.MongoClients;
+
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility;
  
 
 /**
@@ -36,9 +44,19 @@ public class MongoDatabaseCFG {
  
     final List<Converter<?, ?>> conversions = new ArrayList<>();
 
+    @Autowired
+    private MeterRegistry meter;
+    
     @Bean
     public MongoDatabaseFactory mongoDatabaseFactory(){
-        return new SimpleMongoClientDatabaseFactory(mongoPropertiesCFG.getUri());
+    	ConnectionString conn = new ConnectionString(mongoPropertiesCFG.getUri());
+    	MongoClientSettings settings = MongoClientSettings.builder()
+    			.applyConnectionString(conn)
+                .addCommandListener(new MongoMetricsCommandListener(meter))
+                .build();
+    	
+    	MongoClient client = MongoClients.create(settings);
+        return new SimpleMongoClientDatabaseFactory(client, StringUtility.getDatabaseName(mongoPropertiesCFG.getUri()));
     }
 
     @Bean
