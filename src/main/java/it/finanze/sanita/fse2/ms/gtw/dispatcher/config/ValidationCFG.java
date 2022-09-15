@@ -11,13 +11,6 @@ import lombok.Getter;
 @Configuration
 @Getter
 public class ValidationCFG {
-
-    /**
-     * Flag to configure validation event persistance policy.
-     */
-    @Value("${validation.save-error-events-only}")
-    private Boolean saveValidationErrorOnly;
-
     
 	@Value("${ms.dispatcher.other-config-prop-cf}")
 	private Boolean otherConfigFiscalCode;

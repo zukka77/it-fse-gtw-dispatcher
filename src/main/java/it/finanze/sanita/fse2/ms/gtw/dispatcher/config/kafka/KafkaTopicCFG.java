@@ -39,6 +39,12 @@ public class KafkaTopicCFG {
 	 */
 	@Value("${kafka.dispatcher-publisher.base-topic}")
 	private String dispatcherPublisherTopic;
+	
+	/**
+	 * Log publisher.
+	 */
+	@Value("${kafka.log.base-topic}")
+	private String logTopic;
 
 	@PostConstruct
 	public void afterInit() {

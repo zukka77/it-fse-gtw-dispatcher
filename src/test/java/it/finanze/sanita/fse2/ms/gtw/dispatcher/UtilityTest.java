@@ -31,7 +31,7 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ErrorLogEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.OperationLogEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ResultLogEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.UIDModeEnum;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.logging.ElasticLoggerHelper;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.impl.KafkaLoggerSRV;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.impl.UtilitySRV;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.CfUtility;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.FileUtility;
@@ -51,6 +51,10 @@ class UtilityTest extends AbstractTest{
 
     @MockBean
     ValidationCFG validationCfg;
+
+    @Autowired
+    KafkaLoggerSRV kafkaLogger;
+    
 
     @Test
     @DisplayName("Fiscal code check test")
@@ -96,7 +100,6 @@ class UtilityTest extends AbstractTest{
         final String fiscalCodeStp = "STP1234567891234";
         final String fiscalCodeNull = null;
     	
-        given(validationCfg.getSaveValidationErrorOnly()).willCallRealMethod();
         given(validationCfg.getOtherConfigFiscalCode()).willReturn(true);
 
     	//true validation prop
@@ -154,12 +157,10 @@ class UtilityTest extends AbstractTest{
     @Test
     @DisplayName("Logger test")
     void loggerTest() {
-        ElasticLoggerHelper log = new ElasticLoggerHelper();
-        assertDoesNotThrow(() -> log.trace("Trace", OperationLogEnum.PUB_CDA2, ResultLogEnum.KO, new Date(), "issuer"));
-        assertDoesNotThrow(() -> log.debug("Debug", OperationLogEnum.REDIS, ResultLogEnum.KO, new Date(), "issuer"));
-        assertDoesNotThrow(() -> log.error("Error", OperationLogEnum.TRAS_KAFKA, ResultLogEnum.KO, new Date(), ErrorLogEnum.KO_FHIR, "issuer"));
-        assertDoesNotThrow(() -> log.info("Info", OperationLogEnum.REDIS, ResultLogEnum.KO, new Date(), "issuer"));
-
+        assertDoesNotThrow(() -> kafkaLogger.trace("Trace", OperationLogEnum.PUB_CDA2, ResultLogEnum.KO, new Date(), "issuer"));
+        assertDoesNotThrow(() -> kafkaLogger.debug("Debug", OperationLogEnum.REDIS, ResultLogEnum.KO, new Date(), "issuer"));
+        assertDoesNotThrow(() -> kafkaLogger.error("Error", OperationLogEnum.TRAS_KAFKA, ResultLogEnum.KO, new Date(), ErrorLogEnum.KO_FHIR, "issuer"));
+        assertDoesNotThrow(() -> kafkaLogger.info("Info", OperationLogEnum.REDIS, ResultLogEnum.KO, new Date(), "issuer"));
     }
 
     @Test

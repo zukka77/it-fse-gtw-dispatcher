@@ -20,7 +20,6 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.ConnectionRefusedExce
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.ValidationErrorException;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.ValidationException;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.ValidationPublicationErrorException;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.logging.ElasticLoggerHelper;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.ICdaSRV;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.IErrorHandlerSRV;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.IKafkaSRV;
@@ -40,7 +39,7 @@ public class ErrorHandlerSRV implements IErrorHandlerSRV {
     private ICdaSRV cdaSRV;
 
     @Autowired
-    private ElasticLoggerHelper elasticLogger;
+    private KafkaLoggerSRV kafkaLogger;
 
     @Override
     public void connectionRefusedExceptionHandler(Date startDateOperation, ValidationDataDTO validationInfo, JWTTokenDTO jwtToken, 
@@ -65,9 +64,9 @@ public class ErrorHandlerSRV implements IErrorHandlerSRV {
 
         String issuer = (jwtToken != null && jwtToken.getPayload() != null && !StringUtility.isNullOrEmpty(jwtToken.getPayload().getIss())) ? jwtToken.getPayload().getIss() : "ISSUER_UNDEFINED";
         if(isPublication) {
-        	elasticLogger.error(errorMessage + " " + validationInfo.getWorkflowInstanceId(), OperationLogEnum.PUB_CDA2, ResultLogEnum.KO, startDateOperation, errorType.getErrorCategory(), issuer);
+        	kafkaLogger.error(errorMessage + " " + validationInfo.getWorkflowInstanceId(), OperationLogEnum.PUB_CDA2, ResultLogEnum.KO, startDateOperation, errorType.getErrorCategory(), issuer);
         } else {
-        	elasticLogger.error(errorMessage + " " + validationInfo.getWorkflowInstanceId(), OperationLogEnum.REPLACE_CDA2, ResultLogEnum.KO, startDateOperation, errorType.getErrorCategory(), issuer);
+        	kafkaLogger.error(errorMessage + " " + validationInfo.getWorkflowInstanceId(), OperationLogEnum.REPLACE_CDA2, ResultLogEnum.KO, startDateOperation, errorType.getErrorCategory(), issuer);
         }
         throw new ValidationPublicationErrorException(errorType, StringUtility.sanitizeMessage(errorType.getTitle()), errorInstance);
     }
@@ -105,9 +104,9 @@ public class ErrorHandlerSRV implements IErrorHandlerSRV {
 
         String issuer = (jwtToken != null && jwtToken.getPayload() != null && !StringUtility.isNullOrEmpty(jwtToken.getPayload().getIss())) ? jwtToken.getPayload().getIss() : "ISSUER_UNDEFINED";
         if(isPublication) {
-        	elasticLogger.error(errorMessage + " " + validationInfo.getWorkflowInstanceId(), OperationLogEnum.PUB_CDA2, ResultLogEnum.KO, startDateOperation, errorType.getErrorCategory(), issuer);
+        	kafkaLogger.error(errorMessage + " " + validationInfo.getWorkflowInstanceId(), OperationLogEnum.PUB_CDA2, ResultLogEnum.KO, startDateOperation, errorType.getErrorCategory(), issuer);
         } else {
-        	elasticLogger.error(errorMessage + " " + validationInfo.getWorkflowInstanceId(), OperationLogEnum.REPLACE_CDA2, ResultLogEnum.KO, startDateOperation, errorType.getErrorCategory(), issuer);
+        	kafkaLogger.error(errorMessage + " " + validationInfo.getWorkflowInstanceId(), OperationLogEnum.REPLACE_CDA2, ResultLogEnum.KO, startDateOperation, errorType.getErrorCategory(), issuer);
         }
         throw new ValidationPublicationErrorException(errorType,StringUtility.sanitizeMessage(errorMessage), errorInstance);
     }
@@ -130,7 +129,7 @@ public class ErrorHandlerSRV implements IErrorHandlerSRV {
         kafkaSRV.sendFeedingStatus(traceInfoDTO.getTraceID(), workflowInstanceId, errorEventStatus, errorMessage, jsonObj, jwtToken != null ? jwtToken.getPayload() : null);
 
         String issuer = (jwtToken != null && jwtToken.getPayload()!= null && !StringUtility.isNullOrEmpty(jwtToken.getPayload().getIss())) ? jwtToken.getPayload().getIss() : Constants.App.JWT_MISSING_ISSUER_PLACEHOLDER;
-        elasticLogger.error(errorMessage + " " + workflowInstanceId, OperationLogEnum.PUB_CDA2, ResultLogEnum.KO, startDateOperation, result.getErrorCategory(),issuer);
+        kafkaLogger.error(errorMessage + " " + workflowInstanceId, OperationLogEnum.PUB_CDA2, ResultLogEnum.KO, startDateOperation, result.getErrorCategory(),issuer);
         throw new ValidationPublicationErrorException(result, StringUtility.sanitizeMessage(e.getError().getDetail()), errorInstance);
     }
 
@@ -147,7 +146,7 @@ public class ErrorHandlerSRV implements IErrorHandlerSRV {
         String issuer = (jwtToken != null && jwtToken.getPayload() != null && !StringUtility.isNullOrEmpty(jwtToken.getPayload().getIss())) ? jwtToken.getPayload().getIss() : Constants.App.JWT_MISSING_ISSUER_PLACEHOLDER;
 
         kafkaSRV.sendFeedingStatus(traceInfoDTO.getTraceID(), workflowInstanceId, errorEventStatus, errorMessage, jsonObj, jwtToken != null ? jwtToken.getPayload() : null);
-        elasticLogger.error(errorMessage + " " + workflowInstanceId, OperationLogEnum.PUB_CDA2, ResultLogEnum.KO, startDateOperation, result.getErrorCategory(),issuer);
+        kafkaLogger.error(errorMessage + " " + workflowInstanceId, OperationLogEnum.PUB_CDA2, ResultLogEnum.KO, startDateOperation, result.getErrorCategory(),issuer);
         throw new ValidationPublicationErrorException(result, StringUtility.sanitizeMessage(ex.getMessage()), errorInstance);
     }
 
@@ -169,7 +168,7 @@ public class ErrorHandlerSRV implements IErrorHandlerSRV {
         kafkaSRV.sendValidationStatus(traceInfoDTO.getTraceID(), workflowInstanceId, errorEventStatus, errorMessage, jwtToken != null ? jwtToken.getPayload() : null);
 
         String issuer = (jwtToken !=null && jwtToken.getPayload()!=null && !StringUtility.isNullOrEmpty(jwtToken.getPayload().getIss())) ? jwtToken.getPayload().getIss() : Constants.App.JWT_MISSING_ISSUER_PLACEHOLDER;
-        elasticLogger.error(e.getError().getDetail() + " " + workflowInstanceId, OperationLogEnum.VAL_CDA2, ResultLogEnum.KO, startDateOperation, validationResult.getErrorCategory(), issuer);
+        kafkaLogger.error(e.getError().getDetail() + " " + workflowInstanceId, OperationLogEnum.VAL_CDA2, ResultLogEnum.KO, startDateOperation, validationResult.getErrorCategory(), issuer);
         throw new ValidationErrorException(validationResult, StringUtility.sanitizeMessage(e.getError().getDetail()), workflowInstanceId, errorInstance);
     }
 

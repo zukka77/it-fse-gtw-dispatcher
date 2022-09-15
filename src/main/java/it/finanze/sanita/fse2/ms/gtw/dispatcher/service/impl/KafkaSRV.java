@@ -199,4 +199,10 @@ public class KafkaSRV implements IKafkaSRV {
 			throw new BusinessException(ex);
 		}
 	}
+
+	@Override
+	public void sendLoggerStatus(final String log) {
+		sendMessage(kafkaTopicCFG.getLogTopic(), "KEY", log, true);
+		
+	}
 }

@@ -10,7 +10,6 @@ import javax.annotation.Nullable;
 
 import org.jsoup.Jsoup;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -79,9 +78,6 @@ public abstract class AbstractCTL implements Serializable {
 
 	@Autowired
 	private UtilitySRV utilitySrv;
-
-	@Value("${sign.verification.mode}")
-    private String signVerificationMode;
 
 	protected LogTraceInfoDTO getLogTraceInfo() {
 		LogTraceInfoDTO out = new LogTraceInfoDTO(null, null);

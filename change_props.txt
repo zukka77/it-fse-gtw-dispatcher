@@ -1,0 +1,10 @@
+15/07/2022
+
+Removed:
+log.elastic.level
+log.logstash.url
+log.elastic-search.enable
+sign.verification.mode
+
+Add:
+kafka.log.base-topic=MDS-SA-0004_FU_001_LOG

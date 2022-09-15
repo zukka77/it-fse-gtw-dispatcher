@@ -22,9 +22,9 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventStatusEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.OperationLogEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ResultLogEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.ValidationException;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.logging.ElasticLoggerHelper;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.IErrorHandlerSRV;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.IKafkaSRV;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.impl.KafkaLoggerSRV;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.CdaUtility;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility;
 
@@ -43,10 +43,10 @@ public class ValidationCTL extends AbstractCTL implements IValidationCTL {
 	private static final long serialVersionUID = 278537982196195315L;
 
 	@Autowired
-	private IKafkaSRV kafkaSRV;
-
+	private IKafkaSRV kafkaSRV; 
+	
 	@Autowired
-	private transient ElasticLoggerHelper elasticLogger;
+	private KafkaLoggerSRV kafkaLogger;
 
 	@Autowired
 	private transient IErrorHandlerSRV errorHandlerSRV;
@@ -85,7 +85,8 @@ public class ValidationCTL extends AbstractCTL implements IValidationCTL {
 			kafkaSRV.sendValidationStatus(traceInfoDTO.getTraceID(),workflowInstanceId, EventStatusEnum.SUCCESS, message, jwtToken != null ? jwtToken.getPayload() : null);
 
 			String issuer = (jwtToken != null && jwtToken.getPayload() != null && !StringUtility.isNullOrEmpty(jwtToken.getPayload().getIss())) ? jwtToken.getPayload().getIss() : Constants.App.JWT_MISSING_ISSUER_PLACEHOLDER;
-			elasticLogger.info("Validation CDA completed for workflow instance Id " + workflowInstanceId, OperationLogEnum.VAL_CDA2, ResultLogEnum.OK, startDateOperation, issuer);
+			
+			kafkaLogger.info("Validation CDA completed for workflow instance Id " + workflowInstanceId, OperationLogEnum.VAL_CDA2, ResultLogEnum.OK, startDateOperation, issuer);
 			request.setAttribute("JWT_ISSUER", issuer);
 		} catch (final ValidationException e) {
 			errorHandlerSRV.validationExceptionHandler(startDateOperation, traceInfoDTO, workflowInstanceId, jwtToken, e);
