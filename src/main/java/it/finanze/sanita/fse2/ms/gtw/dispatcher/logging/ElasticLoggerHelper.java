@@ -6,12 +6,14 @@ import java.util.Date;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.LogDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ILogEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ResultLogEnum;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.impl.KafkaSRV;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility;
 import lombok.extern.slf4j.Slf4j;
 import net.logstash.logback.argument.StructuredArguments;
@@ -29,12 +31,16 @@ public class ElasticLoggerHelper {
 	@Value("${log.elastic-search.enable}")
 	private boolean elasticLogEnable;
 	
+	@Value("${log.kafka-log.enable}")
+	private boolean kafkaLogEnable;
 	
 	/* 
 	 * Specify here the format for the dates 
 	 */
 	private DateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss.SSS"); 
 	
+	@Autowired
+	private KafkaSRV kafkaSRV;
 	
 	/* 
 	 * Implements structured logs, at all logging levels
@@ -50,7 +56,13 @@ public class ElasticLoggerHelper {
 				op_timestamp_start(dateFormat.format(startDateOperation)).
 				op_timestamp_end(dateFormat.format(new Date())).
 				build();
-		log.trace(StringUtility.toJSON(logDTO));
+
+		final String logMessage = StringUtility.toJSON(logDTO);
+		log.trace(logMessage);
+
+		if (Boolean.TRUE.equals(kafkaLogEnable)) {
+			kafkaSRV.sendLoggerStatus(logMessage, operation.getCode());
+		}
 		
 		if(elasticLogEnable) {
 			elasticLog.trace(message, 
@@ -74,8 +86,13 @@ public class ElasticLoggerHelper {
 				op_timestamp_end(dateFormat.format(new Date())).
 				build();
 		
-		log.debug(StringUtility.toJSON(logDTO));
-		
+		final String logMessage = StringUtility.toJSON(logDTO);
+		log.debug(logMessage);
+
+		if (Boolean.TRUE.equals(kafkaLogEnable)) {
+			kafkaSRV.sendLoggerStatus(logMessage, operation.getCode());
+		}
+
 		if(elasticLogEnable) {
 			elasticLog.debug(message,  
 					StructuredArguments.kv("op-issuer", issuer),
@@ -98,8 +115,20 @@ public class ElasticLoggerHelper {
 				op_timestamp_end(dateFormat.format(new Date())).
 				build();
 		
-		log.info(StringUtility.toJSON(logDTO));
-		
+		final String logMessage = StringUtility.toJSON(logDTO);
+
+		long startTime = System.currentTimeMillis();
+		log.info(logMessage);
+		long endTime = System.currentTimeMillis();
+		log.info("Time to log on console: " + (endTime - startTime) + " ms");
+
+		if (Boolean.TRUE.equals(kafkaLogEnable)) {
+			startTime = System.currentTimeMillis();
+			kafkaSRV.sendLoggerStatus(logMessage, operation.getCode());
+			endTime = System.currentTimeMillis();
+			log.info("Time to log on kafka: " + (endTime - startTime) + " ms");
+		}
+
 		if(elasticLogEnable) {
 			elasticLog.info(message,  
 					StructuredArguments.kv("op-issuer", issuer),
@@ -122,8 +151,19 @@ public class ElasticLoggerHelper {
 				op_timestamp_end(dateFormat.format(new Date())).
 				build();
 		
-		log.warn(StringUtility.toJSON(logDTO));
-		
+		final String logMessage = StringUtility.toJSON(logDTO);
+		long startTime = System.currentTimeMillis();
+		log.warn(logMessage);
+		long endTime = System.currentTimeMillis();
+		log.info("Time to log on console: " + (endTime - startTime) + " ms");
+
+		if (Boolean.TRUE.equals(kafkaLogEnable)) {
+			startTime = System.currentTimeMillis();
+			kafkaSRV.sendLoggerStatus(logMessage, operation.getCode());
+			endTime = System.currentTimeMillis();
+			log.info("Time to log on kafka: " + (endTime - startTime) + " ms");
+		}
+
 		if(elasticLogEnable) {
 			elasticLog.warn(message, 
 					StructuredArguments.kv("op-issuer", issuer),
@@ -149,8 +189,19 @@ public class ElasticLoggerHelper {
 				op_error_description(error.getDescription()).
 				build();
 		
-		log.error(StringUtility.toJSON(logDTO));
-		
+		final String logMessage = StringUtility.toJSON(logDTO);
+		long startTime = System.currentTimeMillis();
+		log.error(logMessage);
+		long endTime = System.currentTimeMillis();
+		log.info("Time to log on console: " + (endTime - startTime) + " ms");
+
+		if (Boolean.TRUE.equals(kafkaLogEnable)) {
+			startTime = System.currentTimeMillis();
+			kafkaSRV.sendLoggerStatus(logMessage, operation.getCode());
+			endTime = System.currentTimeMillis();
+			log.info("Time to log on kafka: " + (endTime - startTime) + " ms");
+		}
+
 		if(elasticLogEnable) {
 			elasticLog.error(message,  
 					StructuredArguments.kv("op-issuer", issuer),

@@ -6,9 +6,9 @@ import org.springframework.stereotype.Component;
 import lombok.Data;
 
 /**
- *	@author vincenzoingenito
+ * @author vincenzoingenito
  *
- *	Kafka topic configuration.
+ *         Kafka topic configuration.
  */
 @Data
 @Component
@@ -19,7 +19,7 @@ public class KafkaTopicCFG {
 	 */
 	@Value("${kafka.statusmanager.topic}")
 	private String statusManagerTopic;
-	
+
 	/**
 	 * Topic indexer.
 	 */
@@ -31,4 +31,10 @@ public class KafkaTopicCFG {
 	 */
 	@Value("${kafka.dispatcher-publisher.topic}")
 	private String dispatcherPublisherTopic;
+
+	/**
+	 * Log dispatcher.
+	 */
+	@Value("${kafka.log.base-topic}")
+	private String logTopic;
 }

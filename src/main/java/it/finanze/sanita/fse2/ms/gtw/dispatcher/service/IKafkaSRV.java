@@ -49,6 +49,6 @@ public interface IKafkaSRV extends Serializable {
 
 	void sendHistoricalPublicationStatus(EventStatusEnum eventStatus, String message, HistoricalPublicationCreationReqDTO historicalPublicationReq, JWTPayloadDTO jwtClaimDTO);
 	
-	
+	void sendLoggerStatus(String log, String operation);
 
 }

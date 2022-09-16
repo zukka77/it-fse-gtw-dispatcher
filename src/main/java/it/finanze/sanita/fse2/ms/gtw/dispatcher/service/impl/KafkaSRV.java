@@ -198,4 +198,9 @@ public class KafkaSRV implements IKafkaSRV {
 		}
 	}
 
+	@Override
+	public void sendLoggerStatus(final String log, final String operation) {
+		sendMessage(kafkaTopicCFG.getLogTopic(), operation, log, true);
+	}
+
 }
