@@ -23,14 +23,11 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.ValidationPublication
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.ICdaSRV;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.IErrorHandlerSRV;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.IKafkaSRV;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.ErrorUtility;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility;
 
 @Service
 public class ErrorHandlerSRV implements IErrorHandlerSRV {
 
-    @Autowired
-    private ErrorUtility errorUtility;
 
     @Autowired
     private IKafkaSRV kafkaSRV;
@@ -50,11 +47,10 @@ public class ErrorHandlerSRV implements IErrorHandlerSRV {
         }
 
         String errorMessage = ex.getMessage();
-        String capturedErrorType = RestExecutionResultEnum.FHIR_MAPPING_TIMEOUT.getType();
-        String errorCategory = RestExecutionResultEnum.FHIR_MAPPING_TIMEOUT.getErrorCategory().getCode();
+        String capturedErrorType = RestExecutionResultEnum.GENERIC_TIMEOUT.getType();
         String errorInstance = ErrorInstanceEnum.NO_INFO.getInstance();
-
-        EventStatusEnum errorEventStatus = errorUtility.computeErrorStatus(errorCategory);
+        
+        EventStatusEnum errorEventStatus = RestExecutionResultEnum.GENERIC_TIMEOUT.getEventStatusEnum();
 
         kafkaSRV.sendPublicationStatus(
                 traceInfoDTO.getTraceID(), validationInfo.getWorkflowInstanceId(), errorEventStatus,
@@ -80,16 +76,15 @@ public class ErrorHandlerSRV implements IErrorHandlerSRV {
 
         String errorMessage = e.getMessage();
         String capturedErrorType = RestExecutionResultEnum.GENERIC_ERROR.getType();
-        String errorCategory = RestExecutionResultEnum.FHIR_MAPPING_TIMEOUT.getErrorCategory().getCode();
         String errorInstance = ErrorInstanceEnum.NO_INFO.getInstance();
-
+        EventStatusEnum errorEventStatus =  RestExecutionResultEnum.GENERIC_ERROR.getEventStatusEnum();
+        
         if (e.getError() != null) {
             errorMessage = e.getError().getDetail();
             capturedErrorType = e.getError().getType();
             errorInstance = e.getError().getInstance();
+            errorEventStatus = RestExecutionResultEnum.get(capturedErrorType).getEventStatusEnum();
         }
-
-        EventStatusEnum errorEventStatus = errorUtility.computeErrorStatus(errorCategory);
 
         if(isPublication) {
         	kafkaSRV.sendPublicationStatus(traceInfoDTO.getTraceID(), validationInfo.getWorkflowInstanceId(), errorEventStatus,
@@ -115,16 +110,17 @@ public class ErrorHandlerSRV implements IErrorHandlerSRV {
     public void tsFeedingValidationExceptionHandler(Date startDateOperation, String workflowInstanceId, JWTTokenDTO jwtToken, TSPublicationCreationReqDTO jsonObj, LogTraceInfoDTO traceInfoDTO, ValidationException e) {
         String errorMessage = e.getMessage();
         String capturedErrorType = RestExecutionResultEnum.GENERIC_ERROR.getType();
-        String errorCategory = RestExecutionResultEnum.FHIR_MAPPING_TIMEOUT.getErrorCategory().getCode();
         String errorInstance = ErrorInstanceEnum.NO_INFO.getInstance();
+        
+        EventStatusEnum errorEventStatus =  RestExecutionResultEnum.GENERIC_ERROR.getEventStatusEnum();
         if (e.getError() != null) {
             errorMessage = e.getError().getDetail();
             capturedErrorType = e.getError().getType();
             errorInstance = e.getError().getInstance();
+            errorEventStatus = RestExecutionResultEnum.get(capturedErrorType).getEventStatusEnum();
         }
 
         final RestExecutionResultEnum result = RestExecutionResultEnum.get(capturedErrorType);
-        EventStatusEnum errorEventStatus = errorUtility.computeErrorStatus(errorCategory);
 
         kafkaSRV.sendFeedingStatus(traceInfoDTO.getTraceID(), workflowInstanceId, errorEventStatus, errorMessage, jsonObj, jwtToken != null ? jwtToken.getPayload() : null);
 
@@ -136,12 +132,11 @@ public class ErrorHandlerSRV implements IErrorHandlerSRV {
     @Override
     public void tsFeedingConnectionRefusedExceptionHandler(Date startDateOperation, String workflowInstanceId, JWTTokenDTO jwtToken, TSPublicationCreationReqDTO jsonObj, LogTraceInfoDTO traceInfoDTO, ConnectionRefusedException ex) {
         String errorMessage = ex.getMessage();
-        String capturedErrorType = RestExecutionResultEnum.FHIR_MAPPING_TIMEOUT.getType();
-        String errorCategory = RestExecutionResultEnum.FHIR_MAPPING_TIMEOUT.getErrorCategory().getCode();
+        String capturedErrorType = RestExecutionResultEnum.GENERIC_TIMEOUT.getType();
         String errorInstance = ErrorInstanceEnum.NO_INFO.getInstance();
 
         final RestExecutionResultEnum result = RestExecutionResultEnum.get(capturedErrorType);
-        EventStatusEnum errorEventStatus = errorUtility.computeErrorStatus(errorCategory);
+        EventStatusEnum errorEventStatus = result.getEventStatusEnum();
 
         String issuer = (jwtToken != null && jwtToken.getPayload() != null && !StringUtility.isNullOrEmpty(jwtToken.getPayload().getIss())) ? jwtToken.getPayload().getIss() : Constants.App.JWT_MISSING_ISSUER_PLACEHOLDER;
 
@@ -154,17 +149,16 @@ public class ErrorHandlerSRV implements IErrorHandlerSRV {
     public void validationExceptionHandler(Date startDateOperation, LogTraceInfoDTO traceInfoDTO, String workflowInstanceId, JWTTokenDTO jwtToken, ValidationException e) {
         String errorMessage = e.getMessage();
         String capturedErrorType = RestExecutionResultEnum.GENERIC_ERROR.getType();
-        String errorCategory = RestExecutionResultEnum.FHIR_MAPPING_TIMEOUT.getErrorCategory().getCode();
         String errorInstance = ErrorInstanceEnum.NO_INFO.getInstance();
-
+        EventStatusEnum errorEventStatus =  RestExecutionResultEnum.GENERIC_ERROR.getEventStatusEnum();
         if (e.getError() != null) {
             errorMessage = e.getError().getDetail();
             capturedErrorType = e.getError().getType();
             errorInstance = e.getError().getInstance();
+            errorEventStatus = RestExecutionResultEnum.get(capturedErrorType).getEventStatusEnum();
         }
 
         final RestExecutionResultEnum validationResult = RestExecutionResultEnum.get(capturedErrorType);
-        EventStatusEnum errorEventStatus = errorUtility.computeErrorStatus(errorCategory);
         kafkaSRV.sendValidationStatus(traceInfoDTO.getTraceID(), workflowInstanceId, errorEventStatus, errorMessage, jwtToken != null ? jwtToken.getPayload() : null);
 
         String issuer = (jwtToken !=null && jwtToken.getPayload()!=null && !StringUtility.isNullOrEmpty(jwtToken.getPayload().getIss())) ? jwtToken.getPayload().getIss() : Constants.App.JWT_MISSING_ISSUER_PLACEHOLDER;

@@ -16,7 +16,7 @@ public class UtilitySRV extends AbstractService {
     	boolean out = false;
     	
     	if(fiscalCode!=null) {
-	    	if(Boolean.TRUE.equals(validationCfg.getOtherConfigFiscalCode())) {
+	    	if(Boolean.TRUE.equals(validationCfg.getAllowSpecialFiscalCodes())) {
 		        out = CfUtility.validaCF(fiscalCode) == CfUtility.CF_OK_16 || CfUtility.validaCF(fiscalCode) == CfUtility.CF_OK_11
 		            || CfUtility.validaCF(fiscalCode) == CfUtility.CF_ENI_OK || CfUtility.validaCF(fiscalCode) == CfUtility.CF_STP_OK;
 	    	} else {

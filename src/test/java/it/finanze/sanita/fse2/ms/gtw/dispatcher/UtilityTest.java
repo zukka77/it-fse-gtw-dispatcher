@@ -100,7 +100,7 @@ class UtilityTest extends AbstractTest{
         final String fiscalCodeStp = "STP1234567891234";
         final String fiscalCodeNull = null;
     	
-        given(validationCfg.getOtherConfigFiscalCode()).willReturn(true);
+        given(validationCfg.getAllowSpecialFiscalCodes()).willReturn(true);
 
     	//true validation prop
     	assertEquals(true, utilitySrv.isValidCf(fiscalCode16));
@@ -110,7 +110,7 @@ class UtilityTest extends AbstractTest{
     	assertEquals(true, utilitySrv.isValidCf(fiscalCodeStp));
     	assertEquals(false, utilitySrv.isValidCf(fiscalCodeNull));
         
-        given(validationCfg.getOtherConfigFiscalCode()).willReturn(false);
+        given(validationCfg.getAllowSpecialFiscalCodes()).willReturn(false);
 
     	//false validation prop
     	assertEquals(true, utilitySrv.isValidCf(fiscalCode16));
@@ -120,7 +120,7 @@ class UtilityTest extends AbstractTest{
     	assertEquals(false, utilitySrv.isValidCf(fiscalCodeStp));
     	assertEquals(false, utilitySrv.isValidCf(fiscalCodeNull));
 
-        given(validationCfg.getOtherConfigFiscalCode()).willReturn(null);
+        given(validationCfg.getAllowSpecialFiscalCodes()).willReturn(null);
 
         //null validation prop
     	assertEquals(true, utilitySrv.isValidCf(fiscalCode16));

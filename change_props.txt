@@ -1,10 +1,23 @@
-15/07/2022
+Legenda: 
+R - Removed
+A - Add
 
-Removed:
+
+15/07/2022
+R:
 log.elastic.level
 log.logstash.url
 log.elastic-search.enable
 sign.verification.mode
 
-Add:
+A:
 kafka.log.base-topic=MDS-SA-0004_FU_001_LOG
+
+16/09/2022
+R:
+ms.dispatcher.errors.blocking-list
+ms.dispatcher.errors.non-blocking-list
+ms.dispatcher.other-config-prop-cf
+
+A:
+validation.allow-special-fiscal-code=

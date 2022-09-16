@@ -12,7 +12,7 @@ import lombok.Getter;
 @Getter
 public class ValidationCFG {
     
-	@Value("${ms.dispatcher.other-config-prop-cf}")
-	private Boolean otherConfigFiscalCode;
+	@Value("${validation.allow-special-fiscal-code}")
+	private Boolean allowSpecialFiscalCodes;
     
 }
