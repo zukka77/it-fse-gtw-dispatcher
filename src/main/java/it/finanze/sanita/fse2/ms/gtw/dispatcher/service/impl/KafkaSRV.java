@@ -100,9 +100,8 @@ public class KafkaSRV implements IKafkaSRV {
 		}
 
 		if(result != null) {
-			SendResult<String,String> sendResult = (SendResult<String,String>) result;
-			out = sendResult.getRecordMetadata();
-			log.info("Send success.");
+			SendResult<String,String> sendResult = (SendResult<String, String>) result;
+			out = sendResult.getRecordMetadata();	
 		}
 
 		return out;
@@ -117,7 +116,7 @@ public class KafkaSRV implements IKafkaSRV {
 			TipoDocAltoLivEnum documentType,
 			DestinationTypeEnum destinationType
 	) {
-		log.info("Destinazione: {}", destinationType.name());
+		log.debug("Destination: {}", destinationType.name());
 		try {
 			String destTopic = priorityUtility.computeTopic(priorityFromRequest, destinationType, documentType);
 			sendMessage(destTopic, key, kafkaValue,true);

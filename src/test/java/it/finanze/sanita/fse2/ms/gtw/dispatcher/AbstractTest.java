@@ -89,7 +89,7 @@ public abstract class AbstractTest {
 			headers.setContentType(MediaType.MULTIPART_FORM_DATA);
 
 			if(tokenPresent) {
-				log.info("Simulating a valid json payload");
+				log.debug("Simulating a valid json payload");
 
 				if (fromGovway) {
 					headers.set(Constants.Headers.JWT_GOVWAY_HEADER, generateJwtGovwayPayload(fileByte));

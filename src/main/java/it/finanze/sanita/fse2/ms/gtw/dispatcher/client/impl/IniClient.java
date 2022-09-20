@@ -48,7 +48,7 @@ public class IniClient implements IIniClient {
 		IniTraceResponseDTO output = null;
 		
 		try {
-			log.info("client.delete()");
+			log.debug("INI Client - Calling Ini to execute delete operation");
 
 			// Build headers.
 			HttpEntity<Object> entity = new HttpEntity<>(iniReq, null);
@@ -115,7 +115,7 @@ public class IniClient implements IIniClient {
 		
 		IniTraceResponseDTO out = null;
 		try {
-			log.info("Update metadati %s : " + iniReq.getIdDoc());
+			log.debug("INI Client - Calling INI to execute update metadati :{}", iniReq.getIdDoc());
 
 			// Build headers.
 			HttpEntity<Object> entity = new HttpEntity<>(iniReq, null);

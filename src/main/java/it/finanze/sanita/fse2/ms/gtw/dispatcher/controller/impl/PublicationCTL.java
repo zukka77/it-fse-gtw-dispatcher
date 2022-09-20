@@ -160,7 +160,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 					throw validationInfo.getValidationError();
 				}
 
-				log.info("Executing replace of document: {}", identificativoDocUpdate);
+				log.debug("Executing replace of document: {}", identificativoDocUpdate);
 				iniInvocationSRV.replace(validationInfo.getValidationData().getWorkflowInstanceId(), validationInfo.getFhirResource(), validationInfo.getJwtToken(), identificativoDocUpdate);
 				
 				final IndexerValueDTO kafkaValue = new IndexerValueDTO(validationInfo.getValidationData().getWorkflowInstanceId(), identificativoDocUpdate);
@@ -221,7 +221,6 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 			throw e;
 		}
 		
-		// Return
 		return new ResponseEntity<>(new ResponseDTO(getLogTraceInfo()), HttpStatus.OK);
 	}
 

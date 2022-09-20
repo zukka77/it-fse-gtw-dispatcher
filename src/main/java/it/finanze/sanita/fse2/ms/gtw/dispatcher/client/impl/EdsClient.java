@@ -44,7 +44,7 @@ public class EdsClient implements IEdsClient {
 		EdsTraceResponseDTO output = null;
 		
 		try {
-			log.info("client.delete()");
+			log.debug("EDS Client - Calling EDS to execute delete operation");
 
 			// Build headers.
 			HttpEntity<Object> entity = new HttpEntity<>(oid, null);
@@ -57,7 +57,7 @@ public class EdsClient implements IEdsClient {
 			if (HttpStatus.OK.equals(restExchange.getStatusCode()) && restExchange.getBody() != null) {
 				output = restExchange.getBody();
 			}
-			log.info("client.delete()");
+			log.debug("EDS Client - Deletion operation executed successfully");
 		} catch (HttpStatusCodeException e1) {
 			errorHandler(e1, "/delete");
 		} catch (Exception e) {
@@ -73,7 +73,7 @@ public class EdsClient implements IEdsClient {
 		EdsTraceResponseDTO output = null;
 
 		try {
-			log.info("client.update()");
+			log.debug("EDS Client - Calling EDS to execute update operation");
 
 			// Build headers.
 			HttpEntity<Object> entity = new HttpEntity<>(req, null);
@@ -86,7 +86,7 @@ public class EdsClient implements IEdsClient {
 			if (HttpStatus.OK.equals(restExchange.getStatusCode()) && restExchange.getBody() != null) {
 				output = restExchange.getBody();
 			}
-			log.info("client.update()");
+			log.debug("EDS Client - Update operation executed successfully");
 		} catch (HttpStatusCodeException e1) {
 			errorHandler(e1, "/update");
 		} catch (Exception e) {

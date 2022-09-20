@@ -35,7 +35,7 @@ public class FhirMappingClient implements IFhirMappingClient {
 	@Override
 	public DocumentReferenceResDTO callConvertCdaInBundle(final FhirResourceDTO resourceToConvert) {
 		DocumentReferenceResDTO out = null;
-		log.info("Calling create document reference - START");
+		log.debug("Fhir Mapping Client - Calling Fhir Mapping to execute conversion");
 		HttpHeaders headers = new HttpHeaders();
 		headers.set("Content-Type", "application/json");
 
@@ -45,7 +45,7 @@ public class FhirMappingClient implements IFhirMappingClient {
 		try {
 			response = restTemplate.exchange(msUrlCFG.getFhirMappingHost() + "/v1/document-reference", HttpMethod.POST, entity, DocumentReferenceResDTO.class);
 			out = response.getBody();
-			log.info("{} status returned from Fhir mapping Client", response.getStatusCode());
+			log.debug("{} status returned from Fhir Mapping Client", response.getStatusCode());
 		} catch(ResourceAccessException cex) {
 			log.error("Connect error while call document reference ep :" + cex);
 			throw new ConnectionRefusedException(msUrlCFG.getFhirMappingHost(),"Connection refused");

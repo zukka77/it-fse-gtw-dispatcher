@@ -95,7 +95,7 @@ class DeleteTest extends AbstractTest {
 	}
 
 	void mockIniClient(final HttpStatus status) {
-		log.info("Mocking INI client");
+		log.debug("Mocking INI client");
 
 		if (status.is2xxSuccessful()) {
 			IniTraceResponseDTO response = new IniTraceResponseDTO();
@@ -114,7 +114,7 @@ class DeleteTest extends AbstractTest {
 
 
 	void mockEdsClient(final HttpStatus status) {
-		log.info("Mocking EDS client");
+		log.debug("Mocking EDS client");
 
 		if (status.is2xxSuccessful()) {
 			EdsTraceResponseDTO response = new EdsTraceResponseDTO();
