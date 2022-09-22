@@ -167,6 +167,10 @@ class UtilityTest extends AbstractTest{
 	void generateJwtFromFiles() {
 		final String header = new String(FileUtility.getFileFromInternalResources("Files" + File.separator + "jwt" + File.separator + "header.json"));
 		final String payload = new String(FileUtility.getFileFromInternalResources("Files" + File.separator + "jwt" + File.separator + "payload.json"));
+		
+		assertNotNull(header);
+		assertNotNull(payload);
+		
 		log.info(Base64.getEncoder().encodeToString(header.getBytes()) + "." + Base64.getEncoder().encodeToString(payload.getBytes()));
 	}
 
