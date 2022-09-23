@@ -75,8 +75,8 @@ public class IniEdsInvocationSRV implements IIniEdsInvocationSRV {
 			etyToSave = iniInvocationRepo.insert(etyToSave);
 			output = !StringUtility.isNullOrEmpty(etyToSave.getId());
 		} catch(Exception ex) {
-			log.error("Error while insert ini invocation item : " , ex);
-			throw new BusinessException("Error while insert ini invocation item : " , ex);
+			log.error("Error in replace while insert ini invocation item : " , ex);
+			throw new BusinessException("Error in replace while insert ini invocation item : " , ex);
 		}
 		return output; 
 	}

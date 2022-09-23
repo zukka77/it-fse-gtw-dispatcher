@@ -29,6 +29,8 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public final class StringUtility {
 
+	private static final String ERROR_MSG = "Errore in fase di calcolo sha";
+
 	/**
 	 * Private constructor to avoid instantiation.
 	 */
@@ -57,7 +59,7 @@ public final class StringUtility {
 		    final MessageDigest digest = MessageDigest.getInstance(Constants.App.SHA_ALGORITHM);
 		    return Hex.encodeHexString(digest.digest(objectToEncode));
 		} catch (final Exception e) {
-			log.error("Errore in fase di calcolo sha", e);
+			log.error(ERROR_MSG, e);
 			throw new BusinessException(Constants.App.SHA_ERROR, e);
 		}
 	}
@@ -74,7 +76,7 @@ public final class StringUtility {
 		    final byte[] hash = digest.digest(objectToEncode.getBytes());
 		    return encodeBase64(hash);
 		} catch (final Exception e) {
-			log.error("Errore in fase di calcolo sha", e);
+			log.error(ERROR_MSG, e);
 			throw new BusinessException(Constants.App.SHA_ERROR, e);
 		}
 	}
@@ -91,7 +93,7 @@ public final class StringUtility {
 		    final byte[] hash = digest.digest(objectToEncode.getBytes());
 		    return encodeHex(hash);
 		} catch (final Exception e) {
-			log.error("Errore in fase di calcolo sha", e);
+			log.error(ERROR_MSG, e);
 			throw new BusinessException(Constants.App.SHA_ERROR, e);
 		}
 	}

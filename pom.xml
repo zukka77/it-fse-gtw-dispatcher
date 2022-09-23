@@ -239,7 +239,6 @@
 				<configuration>
 					<excludes>
 						<exclude>src/main/java/it/finanze/sanita/fse2/ms/gtw/**/config/OpenApiCFG.java</exclude>
-						<exclude>src/main/java/it/finanze/sanita/fse2/ms/gtw/dispatcher/client/impl/**/*.*</exclude>
 					</excludes>
 				</configuration>
 				<executions>

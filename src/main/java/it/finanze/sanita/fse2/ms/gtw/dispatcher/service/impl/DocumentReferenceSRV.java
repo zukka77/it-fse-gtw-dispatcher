@@ -35,6 +35,9 @@ public class DocumentReferenceSRV implements IDocumentReferenceSRV {
 	 * Serial version uid.
 	 */
 	private static final long serialVersionUID = 6613399511662450678L;
+	private static final String PATH_CUSTODIAN_ID = "ClinicalDocument > custodian > assignedCustodian > representedCustodianOrganization > id";
+	private static final String ERROR_MSG = "Error while create document reference request ";
+	private static final String EXTENSION_ATTRIBUTE = "extension";
 
 	@Autowired
 	private FhirMappingClient client;
@@ -103,8 +106,8 @@ public class DocumentReferenceSRV implements IDocumentReferenceSRV {
 			documentReferenceDTO.setServiceStopTime(requestBody.getDataInizioPrestazione());
 			documentReferenceDTO.setIdentificativoDoc(requestBody.getIdentificativoDoc());
 		} catch(Exception ex) {
-			log.error("Error while create document reference request " , ex);
-			throw new BusinessException("Error while create document reference request " , ex);
+			log.error(ERROR_MSG , ex);
+			throw new BusinessException(ERROR_MSG , ex);
 		}
 		return documentReferenceDTO;
 	}
@@ -120,8 +123,8 @@ public class DocumentReferenceSRV implements IDocumentReferenceSRV {
 		} catch(ConnectionRefusedException crex) {
 			throw crex;
 		} catch(Exception ex) {
-			log.error("Error while create document reference request " , ex);
-			throw new BusinessException("Error while create document reference request " , ex);
+			log.error(ERROR_MSG , ex);
+			throw new BusinessException(ERROR_MSG , ex);
 		}
 		return out;
 	}
@@ -145,8 +148,8 @@ public class DocumentReferenceSRV implements IDocumentReferenceSRV {
 	
 	private SubmissionSetEntryDTO extractedInfoForSubmissionSetEntry(final org.jsoup.nodes.Document docCDA, String identificativoSottomissione) {
 		SubmissionSetEntryDTO sse = new SubmissionSetEntryDTO();
-		String sourceIdRoot = docCDA.select("ClinicalDocument > custodian > assignedCustodian > representedCustodianOrganization > id").first().attr("root");
-		String sourceIdExtension = docCDA.select("ClinicalDocument > custodian > assignedCustodian > representedCustodianOrganization > id").first().attr("extension");
+		String sourceIdRoot = docCDA.select(PATH_CUSTODIAN_ID).first().attr("root");
+		String sourceIdExtension = docCDA.select(PATH_CUSTODIAN_ID).first().attr(EXTENSION_ATTRIBUTE);
 		sse.setSourceId(sourceIdRoot + "." + sourceIdExtension);
 		sse.setUniqueID(identificativoSottomissione);
 		return sse;
@@ -156,7 +159,7 @@ public class DocumentReferenceSRV implements IDocumentReferenceSRV {
 	private DocumentEntryDTO extractedInfoForDocumentEntry(
 			org.jsoup.nodes.Document docCDA, PublicationCreationReqDTO requestBody) {
 		DocumentEntryDTO documentEntryDTO = new DocumentEntryDTO();
-		String patientID = docCDA.select("ClinicalDocument > custodian > assignedCustodian > representedCustodianOrganization > id").first().attr("extension");
+		String patientID = docCDA.select(PATH_CUSTODIAN_ID).first().attr(EXTENSION_ATTRIBUTE);
 		documentEntryDTO.setPatientId(patientID);
 		String confidentialityCode = docCDA.select("ClinicalDocument > confidentialityCode").first().attr("code");
 		String confidentialityCodeDisplayName = docCDA.select("ClinicalDocument > confidentialityCode").first().attr("displayName");
@@ -174,16 +177,16 @@ public class DocumentReferenceSRV implements IDocumentReferenceSRV {
 		} else {
 			documentEntryDTO.setFormatCodeName(null);
 		}
-		String legalAuth = docCDA.select("ClinicalDocument > legalAuthenticator > assignedEntity > id").first().attr("extension");
+		String legalAuth = docCDA.select("ClinicalDocument > legalAuthenticator > assignedEntity > id").first().attr(EXTENSION_ATTRIBUTE);
 		documentEntryDTO.setLegalAuthenticator(legalAuth);
 		String sourcePatientInfo = docCDA.select("ClinicalDocument > recordTarget > patientRole").first().text();
 		documentEntryDTO.setSourcePatientInfo(sourcePatientInfo);
-		String authorPerson = docCDA.select("ClinicalDocument > author").first().attr("extension");
+		String authorPerson = docCDA.select("ClinicalDocument > author").first().attr(EXTENSION_ATTRIBUTE);
 		documentEntryDTO.setAuthor(authorPerson);
 		Element representedOrganization = docCDA.select("ClinicalDocument > documentationOf > serviceEvent > performer > assignedEntity > representedOrganization").first();
 		if (representedOrganization != null) {
 			String representedOrganizationName = representedOrganization.select(" > name").text();
-			String representedOrganizationCode = representedOrganization.select(" > asOrganizationPartOf > id").first().attr("extension");
+			String representedOrganizationCode = representedOrganization.select(" > asOrganizationPartOf > id").first().attr(EXTENSION_ATTRIBUTE);
 			documentEntryDTO.setRepresentedOrganizationName(representedOrganizationName);
 			documentEntryDTO.setRepresentedOrganizationCode(representedOrganizationCode);
 		}
@@ -193,7 +196,7 @@ public class DocumentReferenceSRV implements IDocumentReferenceSRV {
 		documentEntryDTO.setUniqueId(root + "^" + extension);
 		Element idFullfillment = docCDA.select("ClinicalDocument > inFulfillmentOf > order > id").first();
 		if (idFullfillment != null) {
-			final String ref = idFullfillment.attr("extension");
+			final String ref = idFullfillment.attr(EXTENSION_ATTRIBUTE);
 			documentEntryDTO.setReferenceIdList(Arrays.asList(ref));
 		}
 		return documentEntryDTO;
