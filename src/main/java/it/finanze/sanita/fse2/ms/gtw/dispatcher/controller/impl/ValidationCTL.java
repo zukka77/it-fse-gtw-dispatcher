@@ -66,6 +66,8 @@ public class ValidationCTL extends AbstractCTL implements IValidationCTL {
 	@Override
 	public ResponseEntity<ValidationCDAResDTO> validationCDA(ValidationCDAReqDTO requestBody, MultipartFile file, HttpServletRequest request) {
 
+		Long sumTime = 0L;
+		
 		String workflowInstanceId = "";
 		Date startDateOperation = new Date();
 		
@@ -74,19 +76,18 @@ public class ValidationCTL extends AbstractCTL implements IValidationCTL {
 		String warning = null;
 		JWTTokenDTO jwtToken = null;
 		
-		Date startDateExtractJwt = new Date();
-		log.info("START EXTRACT JWT: " + startDateExtractJwt);
+		Long startDateExtractJwt = System.currentTimeMillis();
 		if (Boolean.TRUE.equals(msCfg.getFromGovway())) {
 			jwtToken = extractJWT(request.getHeader(Constants.Headers.JWT_GOVWAY_HEADER), msCfg.getFromGovway());
 		} else {
 			jwtToken = extractJWT(request.getHeader(Constants.Headers.JWT_HEADER), msCfg.getFromGovway());
 		}
-		Long endDateExtract = new Date().getTime() - startDateExtractJwt.getTime();
-		log.info("END EXTRACT JWT: " + endDateExtract);
+		Long endDateExtract = System.currentTimeMillis() - startDateExtractJwt;
+		sumTime+=endDateExtract;
+		log.info("EXTRACT JWT: " + endDateExtract + " ms");
 
 		ValidationCDAReqDTO jsonObj = getValidationJSONObject(request.getParameter("requestBody"));
 		if (jsonObj==null) {
-
 			try {
 				ObjectMapper mapper = new ObjectMapper();
 				mapper.readValue(request.getParameter("requestBody"), ValidationCDAReqDTO.class);
@@ -101,11 +102,7 @@ public class ValidationCTL extends AbstractCTL implements IValidationCTL {
 				msgResult = "Il JWT deve essere valorizzato.";
 				result = ValidationResultEnum.MANDATORY_ELEMENT_ERROR_TOKEN;
 			} else {
-				Date startDateValidateJwt = new Date();
-				log.info("START VALIDATE JWT: " + startDateValidateJwt);
-				if (!Boolean.TRUE.equals(msCfg.getFromGovway())) {
-					// msgResult = JWTHeaderDTO.validateHeader(jwtToken.getHeader());
-				}
+				Long startDateValidateJwt = System.currentTimeMillis();
 				if (msgResult == null) {
 					msgResult = JWTPayloadDTO.validatePayload(jwtToken.getPayload());
 				}
@@ -113,23 +110,24 @@ public class ValidationCTL extends AbstractCTL implements IValidationCTL {
 					result = ValidationResultEnum.INVALID_TOKEN_FIELD;
 				}
 				
-				Long endDateValidate = new Date().getTime() - startDateValidateJwt.getTime();
-				log.info("END VALIDATE JWT: " + endDateValidate);
+				Long endDateValidate = System.currentTimeMillis() - startDateValidateJwt;
+				sumTime+=endDateValidate;
+				log.info("VALIDATE PAYLOAD JWT: " + endDateValidate + " ms");
 			}
 			if (!StringUtility.isNullOrEmpty(msgResult)) {
 				if (result == null) {
 					result = ValidationResultEnum.MANDATORY_ELEMENT_ERROR_TOKEN;
 				}
 			} else {
-				
-				Date startDateMandatoryJwt = new Date();
-				log.info("START MANDATORY ELEMENTS: " + startDateMandatoryJwt);
+				Long startDateMandatoryElements = System.currentTimeMillis();
 				msgResult = checkValidationMandatoryElements(jsonObj);
-				Long endDateMandatoryJwt = new Date().getTime() - startDateMandatoryJwt.getTime();
-				log.info("END MANDATORY ELEMENTS: " + endDateMandatoryJwt);
+				Long endDateMandatoryElements = System.currentTimeMillis() - startDateMandatoryElements;
+				sumTime+=endDateMandatoryElements;
+				log.info("MANDATORY ELEMENTS VALIDATION : " + endDateMandatoryElements + " ms");
 				if (!StringUtility.isNullOrEmpty(msgResult)) {
 					result = ValidationResultEnum.MANDATORY_ELEMENT_ERROR;
 				} else { 
+						Long startCheckFile = System.currentTimeMillis();
 						byte[] bytes = checkFile(file);
 						if (bytes == null) {
 							msgResult = "Il file deve essere valorizzato";
@@ -139,25 +137,39 @@ public class ValidationCTL extends AbstractCTL implements IValidationCTL {
 								result = ValidationResultEnum.DOCUMENT_TYPE_ERROR;
 								msgResult = "Il file deve essere un PDF.";
 							} else {
-								Date startDateExtractCDA = new Date();
-								log.info("START EXTRACT CDA: " + startDateExtractCDA);
+								Long endCheckFile = System.currentTimeMillis() - startCheckFile;
+								sumTime+=endCheckFile;
+								log.info("CHECK FILE END : " + endCheckFile + " ms");
+								
+								Long startDateExtractCDA = System.currentTimeMillis();
 								String cda = extractCDA(bytes, jsonObj.getMode());
-								Long endDateExtractCDA = new Date().getTime() - startDateExtractCDA.getTime();
-								log.info("END EXTRACT CDA : " + endDateExtractCDA);
+								Long endDateExtractCDA = System.currentTimeMillis() - startDateExtractCDA;
+								sumTime+=endDateExtractCDA;
+								log.info("EXTRACT CDA : " + endDateExtractCDA + " ms");
+								
 								if (StringUtility.isNullOrEmpty(cda)) {
 									result = ValidationResultEnum.MINING_CDA_ERROR;
 									msgResult = "Errore generico in fase di estrazione del CDA dal file.";
 								} else {
+									Long generateWII = System.currentTimeMillis();
 									String cxi = extractInfo(cda);	
 									workflowInstanceId = cxi + "." + StringUtility.generateTransactionUID(null) + "^^^^urn:ihe:iti:xdw:2013:workflowInstanceId";
+									Long endGenerateWII = System.currentTimeMillis() - generateWII;
+									sumTime+=endGenerateWII;
+									log.info("GENERATE WII : " + endGenerateWII + " ms");
+									
+									Long validateJwt = System.currentTimeMillis();
 									msgResult = validateJWT(jwtToken, cda);
+									Long endValidateJWT = System.currentTimeMillis() - validateJwt;
+									sumTime+=endValidateJWT;
+									log.info("VALIDATE FIELD JWT : " + endValidateJWT + " ms");
+									
 									if (StringUtils.isEmpty(msgResult)) {
-										
-										Date startDateValidateMs = new Date();
-										log.info("START VALIDATION MS: " + startDateValidateMs);
+										Long startValidateMs = System.currentTimeMillis();
 										ValidationInfoDTO validationRes = validate(cda, jsonObj.getActivity(), workflowInstanceId);
-										Long endDateValidateMs = new Date().getTime() - startDateValidateMs.getTime();
-										log.info("END VALIDATION MS : " + endDateValidateMs);
+										Long endDateValidateMs = System.currentTimeMillis() - startValidateMs;
+										sumTime+=endDateValidateMs;
+										log.info("END REST CALL VALIDATION MS : " + endDateValidateMs);
 										if(validationRes!=null && !RawValidationEnum.OK.equals(validationRes.getResult())) {
 											msgResult = validationRes.getMessage()!=null ? validationRes.getMessage().stream().collect(Collectors.joining(",")) : null;
 											if (RawValidationEnum.SYNTAX_ERROR.equals(validationRes.getResult())) {
@@ -187,20 +199,18 @@ public class ValidationCTL extends AbstractCTL implements IValidationCTL {
 		
 		LogTraceInfoDTO traceInfoDTO = getLogTraceInfo();
 
-		Date startDateSendMs = new Date();
-		log.info("START KAFKA STATUS : " + startDateSendMs);
+		Long startStatus = System.currentTimeMillis();
 		if(StringUtility.isNullOrEmpty(msgResult)) {
 			kafkaSRV.sendValidationStatus(traceInfoDTO.getTraceID(), workflowInstanceId, EventStatusEnum.SUCCESS, null, jsonObj, jwtToken != null ? jwtToken.getPayload() : null);
         } else {
 			kafkaSRV.sendValidationStatus(traceInfoDTO.getTraceID(),workflowInstanceId, EventStatusEnum.ERROR, msgResult, jsonObj, jwtToken != null ? jwtToken.getPayload() : null);
         }
-		
-		Long endDateSendMs = new Date().getTime() - startDateSendMs.getTime();
-		log.info("END KAFKA STATUS : " + endDateSendMs);
+		Long endDateStatus = System.currentTimeMillis() - startStatus;
+		sumTime+=endDateStatus;
+		log.info("KAFKA STATUS : " + endDateStatus + " ms");
 
 		
-		Date startDateChiusura = new Date();
-		log.info("START FINAL OPERATION: " + startDateChiusura);
+		Long startDateChiusura = System.currentTimeMillis();
 		if (!ValidationResultEnum.OK.equals(result)) {
 			final String issuer = jwtToken != null && jwtToken.getPayload() != null ? jwtToken.getPayload().getIss() : "NO_ISSUER";
 
@@ -219,10 +229,11 @@ public class ValidationCTL extends AbstractCTL implements IValidationCTL {
 		}
 		
 		request.setAttribute("JWT_ISSUER", jwtToken.getPayload().getIss());
+		Long endDateChiusura = System.currentTimeMillis() - startDateChiusura;
+		sumTime+=endDateChiusura;
+		log.info("FINAL OPERATION : " + endDateChiusura + " ms");
 		
-		Long endDateChiusura = new Date().getTime() - startDateChiusura.getTime();
-		log.info("END FINAL OPERATION : " + endDateChiusura);
-		
+		log.info("TOTAL SUM WITHOUT AUDIT : " + sumTime + " ms"); 
 		if (jsonObj!=null && ActivityEnum.VALIDATION.equals(jsonObj.getActivity())){
 			return new ResponseEntity<>(new ValidationCDAResDTO(getLogTraceInfo(), workflowInstanceId,warning), HttpStatus.CREATED);
 		} 

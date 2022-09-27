@@ -45,7 +45,7 @@ public class ValidatorClient extends AbstractClient implements IValidatorClient 
     @Override
     @CircuitBreaker(name = "validationCDA")
     public ValidationInfoDTO validate(final String cda) {
-        log.info("Calling Validation Client to validate CDA...");
+        log.debug("Calling Validation Client to validate CDA...");
         ValidationInfoDTO out = null;
         HttpHeaders headers = new HttpHeaders();
         headers.set("Content-Type", "application/json");
@@ -60,8 +60,8 @@ public class ValidatorClient extends AbstractClient implements IValidatorClient 
         	response = restTemplate.exchange(msUrlCFG.getValidatorHost() + "/v1.0.0/validate", HttpMethod.POST, entity, ValidationResDTO.class);
         	if (response != null) {
         		ValidationResDTO result = response.getBody();
-        		log.info("{} status returned from Validator Client", response.getStatusCode());
-        		log.info("{} body returned from Validator Client", result);
+        		log.debug("{} status returned from Validator Client", response.getStatusCode());
+        		log.debug("{} body returned from Validator Client", result);
         		if (result!=null) {
         			out = result.getResult();
         		}

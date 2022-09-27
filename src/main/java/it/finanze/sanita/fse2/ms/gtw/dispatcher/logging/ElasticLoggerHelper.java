@@ -117,16 +117,13 @@ public class ElasticLoggerHelper {
 		
 		final String logMessage = StringUtility.toJSON(logDTO);
 
-		long startTime = System.currentTimeMillis();
-		log.info(logMessage);
-		long endTime = System.currentTimeMillis();
-		log.info("Time to log on console: " + (endTime - startTime) + " ms");
+		log.debug(logMessage);
 
 		if (Boolean.TRUE.equals(kafkaLogEnable)) {
-			startTime = System.currentTimeMillis();
+			Long startTime = System.currentTimeMillis();
 			kafkaSRV.sendLoggerStatus(logMessage, operation.getCode());
-			endTime = System.currentTimeMillis();
-			log.info("Time to log on kafka: " + (endTime - startTime) + " ms");
+			Long endTime = System.currentTimeMillis();
+			log.debug("KAFKA LOG : " + (endTime - startTime) + " ms");
 		}
 
 		if(elasticLogEnable) {

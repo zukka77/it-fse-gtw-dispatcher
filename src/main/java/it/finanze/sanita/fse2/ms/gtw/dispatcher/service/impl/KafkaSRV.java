@@ -10,7 +10,6 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.SendResult;
 import org.springframework.stereotype.Service;
 
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.kafka.KafkaPropertiesCFG;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.kafka.KafkaTopicCFG;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.JWTPayloadDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.KafkaStatusManagerDTO;
@@ -24,7 +23,6 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventStatusEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventTypeEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.BusinessException;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.IKafkaSRV;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.EncryptDecryptUtility;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility;
 import lombok.extern.slf4j.Slf4j;
 
@@ -42,9 +40,6 @@ public class KafkaSRV implements IKafkaSRV {
 	 * Serial version uid.
 	 */
 	private static final long serialVersionUID = 987723954716001270L;
-
-	@Autowired
-	private KafkaPropertiesCFG kafkaPropCFG;
 	
 	@Autowired
 	private KafkaTopicCFG kafkaTopicCFG;
@@ -95,7 +90,7 @@ public class KafkaSRV implements IKafkaSRV {
 		if(result != null) {
 			SendResult<String,String> sendResult = (SendResult<String,String>) result;
 			out = sendResult.getRecordMetadata();
-			log.info("Send success.");
+			log.debug("Send success.");
 		}
 
 		return out;
@@ -105,8 +100,7 @@ public class KafkaSRV implements IKafkaSRV {
 	@Override
 	public void notifyIndexer(final String transactionId) {
 		try {
-			String message = EncryptDecryptUtility.encryptObject(kafkaPropCFG.getCrypto(), transactionId);
-			sendMessage(kafkaTopicCFG.getDispatcherIndexerTopic(), "validation", message,true);
+			sendMessage(kafkaTopicCFG.getDispatcherIndexerTopic(), "validation", transactionId,true);
 		} catch (Exception e) {
 			log.error("Error sending kafka message", e);
 			throw new BusinessException(e);
@@ -117,8 +111,7 @@ public class KafkaSRV implements IKafkaSRV {
 	@Override
 	public void notifyPublisher(final String transactionId) {
 		try {
-			String message = EncryptDecryptUtility.encryptObject(kafkaPropCFG.getCrypto(), transactionId);
-			sendMessage(kafkaTopicCFG.getDispatcherPublisherTopic(), "validation", message,true);
+			sendMessage(kafkaTopicCFG.getDispatcherPublisherTopic(), "validation", transactionId,true);
 		} catch (Exception e) {
 			log.error("Error sending kafka message", e);
 			throw new BusinessException(e);
@@ -190,8 +183,7 @@ public class KafkaSRV implements IKafkaSRV {
 					build();
 			 
 			String json = StringUtility.toJSONJackson(statusManagerMessage);
-			String cryptoMessage = EncryptDecryptUtility.encryptObject(kafkaPropCFG.getCrypto(), json);
-			sendMessage(kafkaTopicCFG.getStatusManagerTopic(), transactionId, cryptoMessage, true);
+			sendMessage(kafkaTopicCFG.getStatusManagerTopic(), transactionId, json, true);
 		} catch(Exception ex) {
 			log.error("Error while send status message on indexer : " , ex);
 			throw new BusinessException(ex);

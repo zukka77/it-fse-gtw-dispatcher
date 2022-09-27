@@ -300,8 +300,8 @@ public abstract class AbstractCTL implements Serializable {
 				String code = docT.select("code").get(0).attr("code");
 				String codeSystem = docT.select("code").get(0).attr("codeSystem");
 				String hl7Type = "('" + code + "^^" + codeSystem + "')";
-				log.info("Document type found on CDA: {}", hl7Type);
-				log.info("Document type found on JWT: {}", jwtToken.getPayload().getResource_hl7_type());
+				log.debug("Document type found on CDA: {}", hl7Type);
+				log.debug("Document type found on JWT: {}", jwtToken.getPayload().getResource_hl7_type());
 				
 				String patientRoleCF = docT.select("patientRole > id").get(0).attr("extension");
 				
@@ -311,8 +311,8 @@ public abstract class AbstractCTL implements Serializable {
 				
 				if(StringUtility.isNullOrEmpty(errorMsg)) {
 					final String [] chunks = jwtToken.getPayload().getPerson_id().split("\\^");
-					log.info("Person id fiscal code found in JWT token: {}", chunks[0]);
-					log.info("Person id fiscal code found in CDA: {}", patientRoleCF);
+					log.debug("Person id fiscal code found in JWT token: {}", chunks[0]);
+					log.debug("Person id fiscal code found in CDA: {}", patientRoleCF);
 					if(!chunks[0].equals(patientRoleCF)) {
 						errorMsg = "JWT payload: person id diverso dal patient del CDA";
 					}

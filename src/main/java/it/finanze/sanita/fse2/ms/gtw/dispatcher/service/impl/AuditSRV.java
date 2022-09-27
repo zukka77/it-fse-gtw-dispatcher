@@ -40,6 +40,7 @@ public class AuditSRV implements IAuditSRV {
 	@Override
 	public void saveAuditReqRes(HttpServletRequest httpServletRequest,Object body) {
 		try {
+			Long auditStart = System.currentTimeMillis();
 			String[] requestBody = httpServletRequest.getParameterMap().get("requestBody");
  
 			if(requestBody!=null) {
@@ -52,10 +53,10 @@ public class AuditSRV implements IAuditSRV {
 				auditMap.put("jwt_issuer", httpServletRequest.getAttribute("JWT_ISSUER"));
 				httpServletRequest.removeAttribute("JWT_ISSUER");
 				
-				if(auditMap!=null) {
-					auditServiceRepo.save(auditMap);   
-				}   
+				auditServiceRepo.save(auditMap);   
 			}
+			Long endAudit = System.currentTimeMillis() - auditStart;
+			log.info("SAVE AUDIT : " + endAudit + " ms");
 
 		} catch(Exception ex) {
 			log.error("Errore nel salvataggio dell'audit : ", ex);
