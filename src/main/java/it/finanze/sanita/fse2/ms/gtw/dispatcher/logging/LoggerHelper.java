@@ -90,7 +90,7 @@ public class LoggerHelper {
 				build();
 		
 		final String logMessage = StringUtility.toJSON(logDTO);
-//		log.info(logMessage);
+		log.info(logMessage);
 		if (Boolean.TRUE.equals(kafkaLogEnable)) {
 			kafkaLog.info(logMessage);
 		}
