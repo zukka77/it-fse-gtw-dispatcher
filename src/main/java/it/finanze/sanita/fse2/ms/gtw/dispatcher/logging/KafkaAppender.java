@@ -2,6 +2,7 @@ package it.finanze.sanita.fse2.ms.gtw.dispatcher.logging;
 
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import org.apache.kafka.clients.producer.KafkaProducer;
@@ -14,10 +15,9 @@ import org.apache.kafka.common.serialization.ByteArraySerializer;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.Appender;
 import ch.qos.logback.core.spi.AppenderAttachableImpl;
+import lombok.extern.slf4j.Slf4j;
 
-/**
- * @since 0.0.1
- */
+@Slf4j
 public class KafkaAppender<E> extends KafkaAppenderConfig<E> {
 
     /**
@@ -56,7 +56,6 @@ public class KafkaAppender<E> extends KafkaAppenderConfig<E> {
     public void start() {
         // only error free appenders should be activated
         if (!checkPrerequisites()) return;
-
         if (partition != null && partition < 0) {
             partition = null;
         }
@@ -125,8 +124,11 @@ public class KafkaAppender<E> extends KafkaAppenderConfig<E> {
 
         final Producer<byte[], byte[]> producer = lazyProducer.get();
         if (producer != null) {
+        	log.info("Send message log with lazy producer");
+        	log.info("Delivery strategy : " + deliveryStrategy);
             deliveryStrategy.send(lazyProducer.get(), record, e, failedDeliveryCallback);
         } else {
+        	log.info("Failed send msg");
             failedDeliveryCallback.onFailedDelivery(e, null);
         }
     }
@@ -140,6 +142,10 @@ public class KafkaAppender<E> extends KafkaAppenderConfig<E> {
     }
 
     protected Producer<byte[], byte[]> createProducer() {
+    	log.info("Create producer log");
+    	for(Entry<String, Object> prod : producerConfig.entrySet()) {
+    		log.info("KEY : " + prod.getKey() + " VALUE:" + prod.getValue());
+    	}
         return new KafkaProducer<>(new HashMap<>(producerConfig));
     }
 
@@ -182,6 +188,7 @@ public class KafkaAppender<E> extends KafkaAppenderConfig<E> {
         protected Producer<byte[], byte[]> initialize() {
             Producer<byte[], byte[]> producer = null;
             try {
+            	log.info("Inizializzazione producer log");
                 producer = createProducer();
             } catch (Exception e) {
                 addError("error creating producer", e);

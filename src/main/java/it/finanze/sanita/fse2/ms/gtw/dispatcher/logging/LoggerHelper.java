@@ -3,12 +3,16 @@ package it.finanze.sanita.fse2.ms.gtw.dispatcher.logging;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Iterator;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import ch.qos.logback.classic.LoggerContext;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.Appender;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.LogDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ILogEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ResultLogEnum;
@@ -52,6 +56,7 @@ public class LoggerHelper {
 		final String logMessage = StringUtility.toJSON(logDTO);
 		log.trace(logMessage);
 
+		log.info("Kafka log enable : " + kafkaLogEnable);
 		if (Boolean.TRUE.equals(kafkaLogEnable)) {
 			kafkaLog.trace(logMessage);
 		}
@@ -71,7 +76,7 @@ public class LoggerHelper {
 		
 		final String logMessage = StringUtility.toJSON(logDTO);
 		log.debug(logMessage);
-
+		log.info("Kafka log enable : " + kafkaLogEnable);
 		if (Boolean.TRUE.equals(kafkaLogEnable)) {
 			kafkaLog.debug(logMessage);
 		}
@@ -92,8 +97,10 @@ public class LoggerHelper {
 		
 		final String logMessage = StringUtility.toJSON(logDTO);
 		log.info(logMessage);
+		log.info("Kafka log enable : " + kafkaLogEnable);
 		if (Boolean.TRUE.equals(kafkaLogEnable)) {
 			kafkaLog.info(logMessage);
+			log.info("After send kafka message");
 		}
 	} 
 	
@@ -111,7 +118,7 @@ public class LoggerHelper {
 		
 		final String logMessage = StringUtility.toJSON(logDTO);
 		log.warn(logMessage);
- 
+		log.info("Kafka log enable : " + kafkaLogEnable);
 		if (Boolean.TRUE.equals(kafkaLogEnable)) {
 			kafkaLog.warn(logMessage);
 		}
@@ -136,7 +143,7 @@ public class LoggerHelper {
 		
 		final String logMessage = StringUtility.toJSON(logDTO);
 		log.error(logMessage);
-
+		log.info("Kafka log enable : " + kafkaLogEnable);
 		if (Boolean.TRUE.equals(kafkaLogEnable)) {
 			kafkaLog.error(logMessage);
 		}

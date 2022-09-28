@@ -8,9 +8,6 @@ import ch.qos.logback.core.UnsynchronizedAppenderBase;
 import ch.qos.logback.core.encoder.Encoder;
 import ch.qos.logback.core.spi.AppenderAttachable;
 
-/**
- * @since 0.0.1
- */
 public abstract class KafkaAppenderConfig<E> extends UnsynchronizedAppenderBase<E> implements AppenderAttachable<E> {
 
     protected String topic = null;
@@ -43,7 +40,7 @@ public abstract class KafkaAppenderConfig<E> extends UnsynchronizedAppenderBase<
             addError("No encoder set for the appender named [\"" + name + "\"].");
             errorFree = false;
         }
-
+        
         if (keyingStrategy == null) {
             addInfo("No explicit keyingStrategy set for the appender named [\"" + name + "\"]. Using default NoKeyKeyingStrategy.");
             keyingStrategy = new NoKeyKeyingStrategy();
