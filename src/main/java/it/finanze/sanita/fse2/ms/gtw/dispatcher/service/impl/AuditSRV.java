@@ -50,9 +50,13 @@ public class AuditSRV implements IAuditSRV {
 				auditMap.put("end_time", new Date());
 				auditMap.put("request", StringUtility.fromJSON(requestBody[0], Object.class));
 				auditMap.put("response", body);
-				auditMap.put("jwt_issuer", httpServletRequest.getAttribute("JWT_ISSUER"));
-				httpServletRequest.removeAttribute("JWT_ISSUER");
 				
+				String jwtIssuer = (String)httpServletRequest.getAttribute("JWT_ISSUER");
+				if(StringUtility.isNullOrEmpty(jwtIssuer)) {
+					jwtIssuer = "ISSUER_NON_PRESENTE";
+				}
+				auditMap.put("jwt_issuer", jwtIssuer);
+				httpServletRequest.removeAttribute("JWT_ISSUER");
 				auditServiceRepo.save(auditMap);   
 			}
 			Long endAudit = System.currentTimeMillis() - auditStart;

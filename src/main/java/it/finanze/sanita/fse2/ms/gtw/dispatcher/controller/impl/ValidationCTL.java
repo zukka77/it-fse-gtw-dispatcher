@@ -67,7 +67,7 @@ public class ValidationCTL extends AbstractCTL implements IValidationCTL {
 	public ResponseEntity<ValidationCDAResDTO> validationCDA(ValidationCDAReqDTO requestBody, MultipartFile file, HttpServletRequest request) {
 
 		Long sumTime = 0L;
-		
+		String issuer = "";
 		String workflowInstanceId = "";
 		String documentType = Constants.App.UNKNOWN_DOCUMENT_TYPE;
 		Date startDateOperation = new Date();
@@ -114,6 +114,8 @@ public class ValidationCTL extends AbstractCTL implements IValidationCTL {
 				Long endDateValidate = System.currentTimeMillis() - startDateValidateJwt;
 				sumTime+=endDateValidate;
 				log.info("VALIDATE PAYLOAD JWT: " + endDateValidate + " ms");
+				issuer = jwtToken != null && jwtToken.getPayload() != null ? jwtToken.getPayload().getIss() : "NO_ISSUER";
+				request.setAttribute("JWT_ISSUER", jwtToken.getPayload().getIss());
 			}
 			if (!StringUtility.isNullOrEmpty(msgResult)) {
 				if (result == null) {
@@ -214,13 +216,13 @@ public class ValidationCTL extends AbstractCTL implements IValidationCTL {
 		
 		Long startDateChiusura = System.currentTimeMillis();
 		if (!ValidationResultEnum.OK.equals(result)) {
-			final String issuer = jwtToken != null && jwtToken.getPayload() != null ? jwtToken.getPayload().getIss() : "NO_ISSUER";
+//			final String issuer = jwtToken != null && jwtToken.getPayload() != null ? jwtToken.getPayload().getIss() : "NO_ISSUER";
 
 			elasticLogger.error(msgResult + " " + workflowInstanceId, OperationLogEnum.VAL_CDA2, ResultLogEnum.KO, startDateOperation, result != null ? result.getErrorCategory() : null, issuer, documentType);
 			throw new ValidationErrorException(result, msgResult, workflowInstanceId);
 		}
 
-		final String issuer = jwtToken != null && jwtToken.getPayload() != null ? jwtToken.getPayload().getIss() : "NO_ISSUER";
+//		final String issuer = jwtToken != null && jwtToken.getPayload() != null ? jwtToken.getPayload().getIss() : "NO_ISSUER";
 
 		elasticLogger.info("Validation CDA completed for workflow instance id " + workflowInstanceId, OperationLogEnum.VAL_CDA2, ResultLogEnum.OK, startDateOperation,
 			issuer, documentType);
@@ -230,7 +232,6 @@ public class ValidationCTL extends AbstractCTL implements IValidationCTL {
 			warning = "[" + schematronWarn + "[WARNING_EXTRACT]Attenzione, non è stata selezionata la modalità di estrazione del CDA]";
 		}
 		
-		request.setAttribute("JWT_ISSUER", jwtToken.getPayload().getIss());
 		Long endDateChiusura = System.currentTimeMillis() - startDateChiusura;
 		sumTime+=endDateChiusura;
 		log.info("FINAL OPERATION : " + endDateChiusura + " ms");
