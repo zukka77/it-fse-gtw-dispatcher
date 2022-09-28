@@ -23,7 +23,7 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.OperationLogEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.PublicationResultEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ResultLogEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.ValidationPublicationErrorException;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.logging.ElasticLoggerHelper;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.logging.LoggerHelper;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.IDocumentReferenceSRV;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.IKafkaSRV;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.facade.ICdaFacadeSRV;
@@ -36,7 +36,7 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility;
  *
  *  Publication controller.
  */
-@RestController
+//@RestController
 public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 	/**
 	 * Serial version uid.
@@ -56,7 +56,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 	private MicroservicesURLCFG msCfg;
 	
 	@Autowired
-	private ElasticLoggerHelper elasticLogger;
+	private LoggerHelper elasticLogger;
 
 	@Autowired
 	private ICdaFacadeSRV cdaSRV;

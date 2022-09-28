@@ -33,7 +33,7 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ResultLogEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ValidationResultEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.BusinessException;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.ValidationErrorException;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.logging.ElasticLoggerHelper;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.logging.LoggerHelper;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.IKafkaSRV;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.PDFUtility;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility;
@@ -61,7 +61,7 @@ public class ValidationCTL extends AbstractCTL implements IValidationCTL {
 	private IKafkaSRV kafkaSRV;
 
 	@Autowired
-	private ElasticLoggerHelper elasticLogger;
+	private LoggerHelper elasticLogger;
 	
 	@Override
 	public ResponseEntity<ValidationCDAResDTO> validationCDA(ValidationCDAReqDTO requestBody, MultipartFile file, HttpServletRequest request) {
