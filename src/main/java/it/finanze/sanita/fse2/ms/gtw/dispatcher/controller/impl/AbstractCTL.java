@@ -34,7 +34,6 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.TSPublicationCreatio
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.ValidationCDAReqDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.LogTraceInfoDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ActivityEnum;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.AttivitaClinicaEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventCodeEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.InjectionModeEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.PublicationResultEnum;
@@ -458,6 +457,19 @@ public abstract class AbstractCTL implements Serializable {
     protected ValidationDataDTO getValidationInfo(final String cda, @Nullable final String wii) {
 		final String hashedCDA = StringUtility.encodeSHA256B64(cda);
 		return cdaFacadeSRV.retrieveValidationInfo(hashedCDA, wii);
+	}
+
+	protected String getDocumentType(final String cda) {
+		String title = Constants.App.UNKNOWN_DOCUMENT_TYPE;
+		try {
+			org.jsoup.nodes.Document docT = Jsoup.parse(cda);
+			title = docT.select("ClinicalDocument > title").text();
+		} catch(Exception ex) {
+			log.error("Error while extracting document type from CDA", ex);
+			throw new BusinessException("Error while extracting document type from CDA", ex);
+		}
+
+		return title;
 	}
     
     protected String checkFormatDate(final String dataInizio, final String dataFine) {

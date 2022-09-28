@@ -88,6 +88,8 @@ public final class Constants {
 
 		public static final String MISSING_WORKFLOW_PLACEHOLDER = "UNKNOW_WORKFLOW_ID";
 
+		public static final String UNKNOWN_DOCUMENT_TYPE = "UNKNOWN_DOCUMENT_TYPE";
+
 		private App() {
 			//This method is intentionally left blank.
 		}

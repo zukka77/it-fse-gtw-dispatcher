@@ -6,7 +6,6 @@ import javax.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants;
@@ -24,10 +23,8 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.PublicationResultEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ResultLogEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.ValidationPublicationErrorException;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.logging.LoggerHelper;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.IDocumentReferenceSRV;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.IKafkaSRV;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.facade.ICdaFacadeSRV;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.impl.IniEdsInvocationSRV;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.PDFUtility;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility;
 /**
@@ -46,11 +43,11 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 	@Autowired
 	private IKafkaSRV kafkaSRV;
 
-	@Autowired
-	private IDocumentReferenceSRV documentReferenceSRV;
+	// @Autowired
+	// private IDocumentReferenceSRV documentReferenceSRV;
 
-	@Autowired
-	private IniEdsInvocationSRV iniInvocationSRV;
+	// @Autowired
+	// private IniEdsInvocationSRV iniInvocationSRV;
 
 	@Autowired
 	private MicroservicesURLCFG msCfg;
@@ -80,6 +77,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 		PublicationOutputDTO out = null;
 
 		String cda = "";
+		String documentType = Constants.App.UNKNOWN_DOCUMENT_TYPE;
 		if (jsonObj==null) {
 			out = PublicationOutputDTO.builder().msg("I parametri json devono essere valorizzati.").result(PublicationResultEnum.MANDATORY_ELEMENT_ERROR).build();
 		} else {
@@ -122,6 +120,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 							if (!StringUtility.isNullOrEmpty(validateJWT(jwtToken, cda))) {
 								out = PublicationOutputDTO.builder().msg(PublicationResultEnum.INVALID_TOKEN_FIELD.getTitle()).result(PublicationResultEnum.INVALID_TOKEN_FIELD).build();
 							} else /**if(!jsonObj.isForcePublish())**/ {
+								documentType = getDocumentType(cda);
 								validationInfo = getValidationInfo(cda, jsonObj.getWorkflowInstanceId());
 
 								if (!validationInfo.isCdaValidated()) {
@@ -177,12 +176,11 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 
 		if (out!=null) {
 			final String issuer = jwtToken != null && jwtToken.getPayload() != null ? jwtToken.getPayload().getIss() : null;
-			elasticLogger.error(out.getMsg() + " " + validationInfo.getWorkflowInstanceId(), OperationLogEnum.PUB_CDA2, ResultLogEnum.KO, startDateOperation, out.getResult().getErrorCategory(), issuer);
+			elasticLogger.error(out.getMsg() + " " + validationInfo.getWorkflowInstanceId(), OperationLogEnum.PUB_CDA2, ResultLogEnum.KO, startDateOperation, out.getResult().getErrorCategory(), issuer, documentType);
 			throw new ValidationPublicationErrorException(out.getResult(), out.getMsg());
 		}
 
-
-		elasticLogger.info(String.format("Publication CDA completed for workflow instance id %s", validationInfo.getWorkflowInstanceId()), OperationLogEnum.PUB_CDA2, ResultLogEnum.OK, startDateOperation, jwtToken.getPayload().getIss());
+		elasticLogger.info(String.format("Publication CDA completed for workflow instance id %s", validationInfo.getWorkflowInstanceId()), OperationLogEnum.PUB_CDA2, ResultLogEnum.OK, startDateOperation, jwtToken.getPayload().getIss(), documentType);
 		return new ResponseEntity<>(new PublicationCreationResDTO(getLogTraceInfo(), null, validationInfo.getWorkflowInstanceId()), HttpStatus.CREATED);
 	}
 	

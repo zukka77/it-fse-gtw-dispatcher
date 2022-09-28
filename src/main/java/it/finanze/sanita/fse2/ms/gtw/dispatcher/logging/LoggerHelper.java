@@ -77,8 +77,8 @@ public class LoggerHelper {
 		}
 	} 
 	 
-	public void info(String message, ILogEnum operation,  
-			ResultLogEnum result, Date startDateOperation, String issuer) {
+	public void info(String message, ILogEnum operation, ResultLogEnum result, 
+		Date startDateOperation, String issuer, String documentType) {
 		
 		LogDTO logDTO = LogDTO.builder().
 				op_issuer(issuer).
@@ -87,6 +87,7 @@ public class LoggerHelper {
 				op_result(result.getCode()).
 				op_timestamp_start(dateFormat.format(startDateOperation)).
 				op_timestamp_end(dateFormat.format(new Date())).
+				op_document_type(documentType).
 				build();
 		
 		final String logMessage = StringUtility.toJSON(logDTO);
@@ -119,7 +120,7 @@ public class LoggerHelper {
 	
 	public void error(String message, ILogEnum operation,  
 			   ResultLogEnum result, Date startDateOperation,
-			   ILogEnum error, String issuer) {
+			   ILogEnum error, String issuer, String documentType) {
 		
 		LogDTO logDTO = LogDTO.builder().
 				op_issuer(issuer).
@@ -130,6 +131,7 @@ public class LoggerHelper {
 				op_timestamp_end(dateFormat.format(new Date())).
 				op_error(error.getCode()).
 				op_error_description(error.getDescription()).
+				op_document_type(documentType).
 				build();
 		
 		final String logMessage = StringUtility.toJSON(logDTO);
