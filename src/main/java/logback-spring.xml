@@ -1,28 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
 
-	<springProperty scope="context" name="springAppName" source="spring.application.name" />
-	
+	<springProperty scope="context" name="springAppName"
+		source="spring.application.name" />
+
 	<!-- <property name="LOGS" value="${APP_LOGGING_ROOT:-application-log}/logs" 
 		/> <property name="FILE_NAME" value="springboot-liberty-project" /> -->
 	<springProfile name="default">
 		<property resource="/deployments/application.properties" />
-		<property name="CONSOLE_LOG_PATTERN"
-		value="DEFAULT RES %d{yyyy-MM-dd HH:mm:ss.SSS} %5p [${springAppName},trace: %X{X-B3-TraceId:-} span: %X{X-B3-SpanId:-}, parent: %X{X-B3-ParentSpanId:-} exportable: %X{X-Span-Export:-},] %m%n%throwable" />
 	</springProfile>
 	<springProfile name="dev">
 		<property resource="application-dev.properties" />
-		<property name="CONSOLE_LOG_PATTERN"
-		value="DEV RES %d{yyyy-MM-dd HH:mm:ss.SSS} %5p [${springAppName},trace: %X{X-B3-TraceId:-} span: %X{X-B3-SpanId:-}, parent: %X{X-B3-ParentSpanId:-} exportable: %X{X-Span-Export:-},] %m%n%throwable" />
 	</springProfile>
 	<springProfile name="test">
 		<property resource="application-test.properties" />
-		<property name="CONSOLE_LOG_PATTERN"
-		value="TEST RES %d{yyyy-MM-dd HH:mm:ss.SSS} %5p [${springAppName},trace: %X{X-B3-TraceId:-} span: %X{X-B3-SpanId:-}, parent: %X{X-B3-ParentSpanId:-} exportable: %X{X-Span-Export:-},] %m%n%throwable" />
 	</springProfile>
 
-	<springProperty scope="context" name="springAppName" source="spring.application.name" />
- 
+	<property name="CONSOLE_LOG_PATTERN"
+		value="%d{yyyy-MM-dd HH:mm:ss.SSS} %5p [${springAppName},trace: %X{X-B3-TraceId:-} span: %X{X-B3-SpanId:-}, parent: %X{X-B3-ParentSpanId:-} exportable: %X{X-Span-Export:-},] %m%n%throwable" />
+		
 	<appender name="console"
 		class="ch.qos.logback.core.ConsoleAppender">
 		<layout class="ch.qos.logback.classic.PatternLayout">
@@ -52,22 +48,29 @@
 
 	<logger name="kafka-logger" level="${log.elastic.level}"
 		additivity="false">
-		<appender name="kafka-appender" class="it.finanze.sanita.fse2.ms.gtw.dispatcher.logging.KafkaAppender">
-			<encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+		<appender name="kafka-appender"
+			class="it.finanze.sanita.fse2.ms.gtw.dispatcher.logging.KafkaAppender">
+			<encoder
+				class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
 				<pattern>%msg%n</pattern>
 			</encoder>
 
 			<topic>${kafka.log.base-topic}</topic>
-			<keyingStrategy class="it.finanze.sanita.fse2.ms.gtw.dispatcher.logging.HostNameKeyingStrategy" />
-			<deliveryStrategy class="it.finanze.sanita.fse2.ms.gtw.dispatcher.logging.BlockingDeliveryStrategy">
+			<keyingStrategy
+				class="it.finanze.sanita.fse2.ms.gtw.dispatcher.logging.HostNameKeyingStrategy" />
+			<deliveryStrategy
+				class="it.finanze.sanita.fse2.ms.gtw.dispatcher.logging.BlockingDeliveryStrategy">
 				<timeout>0</timeout>
 			</deliveryStrategy>
 
-			<producerConfig>bootstrap.servers=${kafka.bootstrap-servers}</producerConfig>
+			<producerConfig>bootstrap.servers=${kafka.bootstrap-servers}
+			</producerConfig>
 
-			<producerConfig>metadata.fetch.timeout.ms=99999999999</producerConfig>
+			<producerConfig>metadata.fetch.timeout.ms=99999999999
+			</producerConfig>
 			<producerConfig>metadata.fetch.timeout.ms=0</producerConfig>
-			<producerConfig>client.id=${kafka.producer.client-id}</producerConfig>
+			<producerConfig>client.id=${kafka.producer.client-id}
+			</producerConfig>
 		</appender>
 	</logger>
 
