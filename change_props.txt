@@ -25,3 +25,11 @@ ms.dispatcher.errors.non-blocking-list
 ms.dispatcher.other-config-prop-cf
 A:
 validation.allow-special-fiscal-code=
+
+29/09/2022
+R:
+ms.url.eds-client-service.update
+ms.url.eds-client-service.delete
+ms.url.ini-client-service.delete
+ms.url.ini-client-service.update
+ms.url.ini-client-service.mock

@@ -50,7 +50,7 @@ public class IniEdsInvocationSRV implements IIniEdsInvocationSRV {
 		out.setData(Document.parse(bundleJson));
 
 		if (!StringUtility.isNullOrEmpty(identificativoDocumento)) {
-			out.setIdentificativoDocUpdate(identificativoDocumento);
+			out.setIdDoc(identificativoDocumento);
 		}
 		
 		List<Document> metadata = new ArrayList<>();

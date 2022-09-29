@@ -3,6 +3,7 @@
  */
 package it.finanze.sanita.fse2.ms.gtw.dispatcher.client.impl;
 
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.IniMetadataUpdateReqDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
@@ -54,26 +55,19 @@ public class IniClient implements IIniClient {
 			HttpEntity<Object> entity = new HttpEntity<>(iniReq, null);
 			
 			// Build endpoint e call.
-			String endpoint = buildEndpoint(msUrlCFG.getIniClientDeletePath());
+			String endpoint = msUrlCFG.getIniClientHost() + Constants.Client.Ini.DELETE_PATH;
 			ResponseEntity<IniTraceResponseDTO> restExchange = restTemplate.exchange(endpoint, HttpMethod.DELETE, entity, IniTraceResponseDTO.class);
-			boolean isSuccessfulResponse = HttpStatus.OK.equals(restExchange.getStatusCode()) && restExchange.getBody() != null;
 
 			// Gestione response
-			if (isSuccessfulResponse) {
-				output = restExchange.getBody();
-				if (output != null && Boolean.FALSE.equals(output.getEsito())) {
-					if (output.getErrorMessage().equals(INIErrorEnum.RECORD_NOT_FOUND.toString())){
-						throw new RecordNotFoundException(output.getErrorMessage());
-					}
-					throw new BusinessException(output.getErrorMessage());
+			output = restExchange.getBody();
+			if (output != null && Boolean.FALSE.equals(output.getEsito())) {
+				if (output.getErrorMessage().equals(INIErrorEnum.RECORD_NOT_FOUND.toString())){
+					throw new RecordNotFoundException(output.getErrorMessage());
 				}
-			} else if (msUrlCFG.getIniMockEnabled()) {
-				return restExchange.getBody();
+				throw new BusinessException(output.getErrorMessage());
 			}
-		} catch(RecordNotFoundException e0) { 
+		} catch(RecordNotFoundException | BusinessException e0) {
 			throw e0;
-		} catch (BusinessException e1) {
-			throw e1;
 		} catch (HttpClientErrorException e1) {
 			errorHandler(e1, "/delete");
 		} catch (Exception e) {
@@ -83,9 +77,6 @@ public class IniClient implements IIniClient {
 		
 		return output;
 	}
- 
-
-	 
 	
 	/**
 	 * Error handler.
@@ -99,21 +90,6 @@ public class IniClient implements IIniClient {
 		throw new ServerResponseException(endpoint, msg, e1.getStatusCode(), e1.getRawStatusCode(), e1.getLocalizedMessage());
 	}
 	
-	/**
-	 * Builder endpoint Settings API.
-	 *
-	 * @param endpoint the endpoint
-	 * @return the string
-	 */
-	private String buildEndpoint(final String endpoint) {
-		// Build dell'endpoint da invocare.
-		StringBuilder sb = new StringBuilder(msUrlCFG.getIniClientHost()); // Base URL host
-		sb.append(endpoint);
-		return sb.toString();
-	}
-
- 
-	
 	@Override
 	public IniTraceResponseDTO updateMetadati(IniMetadataUpdateReqDTO iniReq) {
 		
@@ -125,26 +101,19 @@ public class IniClient implements IIniClient {
 			HttpEntity<Object> entity = new HttpEntity<>(iniReq, null);
 
 			// Build endpoint e call.
-			String endpoint = buildEndpoint(msUrlCFG.getIniClientUpdatePath());
+			String endpoint = msUrlCFG.getIniClientHost() + Constants.Client.Ini.UPDATE_PATH;
 			ResponseEntity<IniTraceResponseDTO> restExchange = restTemplate.exchange(endpoint, HttpMethod.PUT, entity, IniTraceResponseDTO.class);
-			boolean isSuccessfulResponse = HttpStatus.OK.equals(restExchange.getStatusCode()) && restExchange.getBody() != null;
 
 			// Gestione response
-			if (isSuccessfulResponse) {
-				out = restExchange.getBody();
-				if (out!=null && Boolean.FALSE.equals(out.getEsito())) {
-					if(out.getErrorMessage().equals(INIErrorEnum.RECORD_NOT_FOUND.toString())){
-						throw new RecordNotFoundException(out.getErrorMessage());
-					}
-					throw new BusinessException(out.getErrorMessage());
+			out = restExchange.getBody();
+			if (out!=null && Boolean.FALSE.equals(out.getEsito())) {
+				if(out.getErrorMessage().equals(INIErrorEnum.RECORD_NOT_FOUND.toString())){
+					throw new RecordNotFoundException(out.getErrorMessage());
 				}
-			} else if (msUrlCFG.getIniMockEnabled()) {
-				return restExchange.getBody();
+				throw new BusinessException(out.getErrorMessage());
 			}
-		} catch(RecordNotFoundException e0) {
+		} catch(RecordNotFoundException | BusinessException e0) {
 			throw e0;
-		} catch (BusinessException e1) {
-			throw e1;
 		} catch (HttpStatusCodeException e2) {
 			errorHandler(e2, "/ini-update");
 		} catch (Exception e) {
@@ -154,6 +123,4 @@ public class IniClient implements IIniClient {
 		
 		return out;
 	}
-	 
-	
 }

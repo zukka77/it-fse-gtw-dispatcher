@@ -76,7 +76,7 @@ class ReplaceTest extends AbstractTest {
 		assertEquals(1, invocations.size(), "Only one insertion should have been made");
 		
 		final IniEdsInvocationETY invocation = invocations.get(0);
-		assertEquals(idDocument, invocation.getIdentificativoDocUpdate(), "The same document Id should be present on the entity invocations");
+		assertEquals(idDocument, invocation.getIdDoc(), "The same document Id should be present on the entity invocations");
 		assertEquals(3, invocation.getMetadata().size(), "The three metadata should have been present on invocations collection");
 		assertNotNull(invocation.getData(), "The data of invocation contains CDA info and cannot be null");
 	}
