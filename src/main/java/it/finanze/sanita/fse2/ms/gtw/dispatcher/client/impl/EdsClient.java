@@ -22,7 +22,6 @@ import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author AndreaPerquoti
- *
  */
 @Slf4j
 @Component
@@ -50,8 +49,7 @@ public class EdsClient implements IEdsClient {
 			HttpEntity<Object> entity = new HttpEntity<>(oid, null);
 			
 			// Build endpoint e call.
-			String endpoint = buildEndpoint(msUrlCFG.getEdsClientDeletePath());
-			ResponseEntity<EdsTraceResponseDTO> restExchange = restTemplate.exchange(endpoint, HttpMethod.DELETE, entity, EdsTraceResponseDTO.class);
+			ResponseEntity<EdsTraceResponseDTO> restExchange = restTemplate.exchange(msUrlCFG.getEdsClientHost() +"/v1/eds-delete", HttpMethod.DELETE, entity, EdsTraceResponseDTO.class);
 			
 			// Gestione response
 			if (HttpStatus.OK.equals(restExchange.getStatusCode()) && restExchange.getBody() != null) {
@@ -79,8 +77,7 @@ public class EdsClient implements IEdsClient {
 			HttpEntity<Object> entity = new HttpEntity<>(req, null);
 
 			// Build endpoint e call.
-			String endpoint = buildEndpoint(msUrlCFG.getEdsClientUpdatePath());
-			ResponseEntity<EdsTraceResponseDTO> restExchange = restTemplate.exchange(endpoint, HttpMethod.PUT, entity, EdsTraceResponseDTO.class);
+			ResponseEntity<EdsTraceResponseDTO> restExchange = restTemplate.exchange(msUrlCFG.getEdsClientHost() +"/v1/eds-update", HttpMethod.PUT, entity, EdsTraceResponseDTO.class);
 
 			// Gestione response
 			if (HttpStatus.OK.equals(restExchange.getStatusCode()) && restExchange.getBody() != null) {
@@ -108,18 +105,6 @@ public class EdsClient implements IEdsClient {
 		String msg = "Errore durante l'invocazione dell' API " + endpoint + ". Il sistema ha restituito un " + e1.getStatusCode();
 		throw new ServerResponseException(endpoint, msg, e1.getStatusCode(), e1.getRawStatusCode(), e1.getLocalizedMessage());
 	}
-	
-	/**
-	 * Builder endpoint Settings API.
-	 *
-	 * @param endpoint the endpoint
-	 * @return the string
-	 */
-	private String buildEndpoint(final String endpoint) {
-		// Build dell'endpoint da invocare.
-		StringBuilder sb = new StringBuilder(msUrlCFG.getEdsClientHost()); // Base URL host
-		sb.append(endpoint);
-		return sb.toString();
-	}
+ 
 	
 }

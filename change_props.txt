@@ -4,7 +4,6 @@ A - Add
 
 
 15/09/2022
-
 Removed:
 log.elastic.level
 log.logstash.url
@@ -14,14 +13,13 @@ sign.verification.mode
 A:
 kafka.log.base-topic=MDS-SA-0004_FU_001_LOG
 
-### Se popolata con true consente di accettare i codici fiscali CF_OK_11, CF_ENI_OK, CF_STP_OK, altrimenti la validazione accetta solo CF_OK_16
-validation.allow-special-fiscal-code=
 
 16/09/2022
-
 R:
 ms.dispatcher.errors.blocking-list
 ms.dispatcher.errors.non-blocking-list
 ms.dispatcher.other-config-prop-cf
 A:
+### Se popolata con true consente di accettare i codici fiscali CF_OK_11, CF_ENI_OK, CF_STP_OK, altrimenti la validazione accetta solo CF_OK_16
 validation.allow-special-fiscal-code=
+

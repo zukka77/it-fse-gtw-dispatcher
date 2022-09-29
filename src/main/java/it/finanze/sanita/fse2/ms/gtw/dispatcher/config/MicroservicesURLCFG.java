@@ -44,34 +44,10 @@ public class MicroservicesURLCFG implements Serializable {
 	private String edsClientHost;
 
 	/**
-	 * EDS Update path.
-	 */
-	@Value("${ms.url.eds-client-service.update}")
-	private String edsClientUpdatePath;
-
-	/**
-	 * EDS Delete path.
-	 */
-	@Value("${ms.url.eds-client-service.delete}")
-	private String edsClientDeletePath;
-
-	/**
 	 * INI Client host.
 	 */
 	@Value("${ms.url.ini-client-service}")
 	private String iniClientHost;
-
-	/**
-	 * INI Update path.
-	 */
-	@Value("${ms.url.ini-client-service.update}")
-	private String iniClientUpdatePath;
-
-	/**
-	 * INI Delete path.
-	 */
-	@Value("${ms.url.ini-client-service.delete}")
-	private String iniClientDeletePath;
 
 	@Value("${ms-calls.are-from-govway}")
 	private Boolean fromGovway;
@@ -82,14 +58,7 @@ public class MicroservicesURLCFG implements Serializable {
 	@Value("${ms.ana-service.enable-validation}")
 	private Boolean anaEnableValidation;
 	
-	/**
-	 * XSLT / MAP
-	 * true  = /v1/document-reference-engine
-	 * false = /v1/document-reference
-	 */
-	@Value("${ms.document-reference-engine}")
-	private Boolean docReferenceEngine;
+	@Value("${ms.calls.transform-engine}")
+	private Boolean callTransformEngine;
 
-	@Value("${ms.url.ini-client-service.mock}")
-	private Boolean iniMockEnabled;
 }

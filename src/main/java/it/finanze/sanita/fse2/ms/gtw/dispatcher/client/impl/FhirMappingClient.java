@@ -1,8 +1,5 @@
 package it.finanze.sanita.fse2.ms.gtw.dispatcher.client.impl;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpEntity;
@@ -46,8 +43,7 @@ public class FhirMappingClient implements IFhirMappingClient {
 		ResponseEntity<TransformResDTO> response = null;
 		
 		try {
-			if(msUrlCFG.getDocReferenceEngine()) {
-				// TRUE : MAP
+			if(Boolean.TRUE.equals(msUrlCFG.getCallTransformEngine())) {
 				headers.setContentType(MediaType.MULTIPART_FORM_DATA);
 				// HttpEntity<?> entityMap = new HttpEntity<>(resourceToConvert, headers); // ????
 				
@@ -57,7 +53,6 @@ public class FhirMappingClient implements IFhirMappingClient {
 						return "file";
 					}
 				};
-
 				LinkedMultiValueMap<String, Object> map = new LinkedMultiValueMap();
 				map.add("file",fileAsResource);
 
@@ -66,15 +61,12 @@ public class FhirMappingClient implements IFhirMappingClient {
 				HttpEntity<LinkedMultiValueMap<String, Object>> requestEntity = new HttpEntity<>(map, headers);			
 				response = restTemplate.exchange(msUrlCFG.getFhirMappingEngineHost() + "/v1/documents/transform", HttpMethod.POST, requestEntity, TransformResDTO.class);	
 				log.info("{} status returned from Fhir mapping engine Client", response.getStatusCode());
-			}
-			else {
-				// FALSE : XSLM
+			} else {
 				headers.set("Content-Type", "application/json");
 				HttpEntity<?> entityXslm = new HttpEntity<>(resourceToConvert, headers);
 				response = restTemplate.exchange(msUrlCFG.getFhirMappingHost() + "/v1/documents/transform", HttpMethod.POST, entityXslm, TransformResDTO.class);
 				log.info("{} status returned from Fhir mapping Client", response.getStatusCode());
 			}
-			
 			out = response.getBody();
 			log.debug("{} status returned from Fhir Mapping Client", response.getStatusCode());
 		} catch(ResourceAccessException cex) {
