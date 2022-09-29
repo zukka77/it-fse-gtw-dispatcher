@@ -41,7 +41,7 @@ public class ErrorHandlerSRV implements IErrorHandlerSRV {
     @Override
     public void connectionRefusedExceptionHandler(Date startDateOperation, ValidationDataDTO validationInfo, JWTTokenDTO jwtToken, 
         PublicationCreationReqDTO jsonObj, LogTraceInfoDTO traceInfoDTO, ConnectionRefusedException ex,
-        boolean isPublication) {
+        boolean isPublication, final String documentType) {
         if (jsonObj == null || !Boolean.TRUE.equals(jsonObj.isForcePublish())) {
             cdaSRV.consumeHash(validationInfo.getHash());
         }
@@ -69,7 +69,7 @@ public class ErrorHandlerSRV implements IErrorHandlerSRV {
 
     @Override
     public void publicationValidationExceptionHandler(Date startDateOperation, ValidationDataDTO validationInfo, JWTTokenDTO jwtToken, 
-        PublicationCreationReqDTO jsonObj, LogTraceInfoDTO traceInfoDTO, ValidationException e, boolean isPublication) {
+        PublicationCreationReqDTO jsonObj, LogTraceInfoDTO traceInfoDTO, ValidationException e, boolean isPublication, final String documentType) {
         if (jsonObj == null || !Boolean.TRUE.equals(jsonObj.isForcePublish())) {
             cdaSRV.consumeHash(validationInfo.getHash());
         }
@@ -107,7 +107,8 @@ public class ErrorHandlerSRV implements IErrorHandlerSRV {
     }
 
     @Override
-    public void tsFeedingValidationExceptionHandler(Date startDateOperation, String workflowInstanceId, JWTTokenDTO jwtToken, TSPublicationCreationReqDTO jsonObj, LogTraceInfoDTO traceInfoDTO, ValidationException e) {
+    public void tsFeedingValidationExceptionHandler(Date startDateOperation, String workflowInstanceId, JWTTokenDTO jwtToken, 
+        TSPublicationCreationReqDTO jsonObj, LogTraceInfoDTO traceInfoDTO, ValidationException e, final String documentType) {
         String errorMessage = e.getMessage();
         String capturedErrorType = RestExecutionResultEnum.GENERIC_ERROR.getType();
         String errorInstance = ErrorInstanceEnum.NO_INFO.getInstance();
@@ -130,7 +131,8 @@ public class ErrorHandlerSRV implements IErrorHandlerSRV {
     }
 
     @Override
-    public void tsFeedingConnectionRefusedExceptionHandler(Date startDateOperation, String workflowInstanceId, JWTTokenDTO jwtToken, TSPublicationCreationReqDTO jsonObj, LogTraceInfoDTO traceInfoDTO, ConnectionRefusedException ex) {
+    public void tsFeedingConnectionRefusedExceptionHandler(Date startDateOperation, String workflowInstanceId, JWTTokenDTO jwtToken, 
+        TSPublicationCreationReqDTO jsonObj, LogTraceInfoDTO traceInfoDTO, ConnectionRefusedException ex, final String documentType) {
         String errorMessage = ex.getMessage();
         String capturedErrorType = RestExecutionResultEnum.GENERIC_TIMEOUT.getType();
         String errorInstance = ErrorInstanceEnum.NO_INFO.getInstance();
@@ -146,7 +148,9 @@ public class ErrorHandlerSRV implements IErrorHandlerSRV {
     }
 
     @Override
-    public void validationExceptionHandler(Date startDateOperation, LogTraceInfoDTO traceInfoDTO, String workflowInstanceId, JWTTokenDTO jwtToken, ValidationException e) {
+    public void validationExceptionHandler(Date startDateOperation, LogTraceInfoDTO traceInfoDTO, String workflowInstanceId, JWTTokenDTO jwtToken, 
+        ValidationException e, final String documentType) {
+        
         String errorMessage = e.getMessage();
         String capturedErrorType = RestExecutionResultEnum.GENERIC_ERROR.getType();
         String errorInstance = ErrorInstanceEnum.NO_INFO.getInstance();

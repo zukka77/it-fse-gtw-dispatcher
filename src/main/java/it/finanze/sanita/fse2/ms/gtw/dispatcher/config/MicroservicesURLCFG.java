@@ -8,49 +8,88 @@ import org.springframework.context.annotation.Configuration;
 import lombok.Getter;
 
 /**
- *  @author CPIERASC
- *  Microservices URL.
+ * @author CPIERASC Microservices URL.
  */
 @Configuration
 @Getter
 public class MicroservicesURLCFG implements Serializable {
 
-    /**
+	/**
 	 * Serial version uid.
 	 */
 	private static final long serialVersionUID = -1778677709932831654L;
 
-	/** 
-     *  Validator host.
-     */
+	/**
+	 * Validator host.
+	 */
 	@Value("${ms.url.gtw-validator-service}")
 	private String validatorHost;
-	
-	/** 
-     *  Validator host.
-     */
+
+	/**
+	 * Validator host.
+	 */
 	@Value("${ms.url.gtw-fhir-mapping-service}")
 	private String fhirMappingHost;
 	
-	/** 
-	 *  EDS Client host.
+	/**
+	 * Validator host.
+	 */
+	@Value("${ms.url.gtw-fhir-mapping-engine-service}")
+	private String fhirMappingEngineHost;
+
+	/**
+	 * EDS Client host.
 	 */
 	@Value("${ms.url.eds-client-service}")
 	private String edsClientHost;
-	
-	/** 
-	 *  EDS Client host.
+
+	/**
+	 * EDS Update path.
+	 */
+	@Value("${ms.url.eds-client-service.update}")
+	private String edsClientUpdatePath;
+
+	/**
+	 * EDS Delete path.
+	 */
+	@Value("${ms.url.eds-client-service.delete}")
+	private String edsClientDeletePath;
+
+	/**
+	 * INI Client host.
 	 */
 	@Value("${ms.url.ini-client-service}")
 	private String iniClientHost;
 
-    @Value("${ms-calls.are-from-govway}")
+	/**
+	 * INI Update path.
+	 */
+	@Value("${ms.url.ini-client-service.update}")
+	private String iniClientUpdatePath;
+
+	/**
+	 * INI Delete path.
+	 */
+	@Value("${ms.url.ini-client-service.delete}")
+	private String iniClientDeletePath;
+
+	@Value("${ms-calls.are-from-govway}")
 	private Boolean fromGovway;
-    
-     @Value("${ms.url.ana-service}")
-     private String anaHost;
-     
-     @Value("${ms.ana-service.enable-validation}")
-     private Boolean anaEnableValidation;
-     
+
+	@Value("${ms.url.ana-service}")
+	private String anaHost;
+
+	@Value("${ms.ana-service.enable-validation}")
+	private Boolean anaEnableValidation;
+	
+	/**
+	 * XSLT / MAP
+	 * true  = /v1/document-reference-engine
+	 * false = /v1/document-reference
+	 */
+	@Value("${ms.document-reference-engine}")
+	private Boolean docReferenceEngine;
+
+	@Value("${ms.url.ini-client-service.mock}")
+	private Boolean iniMockEnabled;
 }

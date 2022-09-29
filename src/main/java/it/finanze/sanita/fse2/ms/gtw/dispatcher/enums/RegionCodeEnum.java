@@ -1,5 +1,7 @@
 package it.finanze.sanita.fse2.ms.gtw.dispatcher.enums;
 
+import lombok.Getter;
+
 public enum RegionCodeEnum {
 
 	SASN("001","SASN"),
@@ -27,20 +29,15 @@ public enum RegionCodeEnum {
 	MS("999","Ministero della Salute"),
 	INI("000","INI");
 	
+	@Getter
 	private String code;
+	
+	@Getter
 	private String description;
 
 	private RegionCodeEnum(String inCode, String inDescription) {
 		code = inCode;
 		description = inDescription;
-	}
-
-	public String getDescription() {
-		return description;
-	}
-
-	public String getCode() {
-		return code;
 	}
 
 }

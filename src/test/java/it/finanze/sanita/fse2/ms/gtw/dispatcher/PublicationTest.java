@@ -1,45 +1,8 @@
 package it.finanze.sanita.fse2.ms.gtw.dispatcher;
 
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assumptions.assumeFalse;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.BDDMockito.given;
-
-import java.io.File;
-import java.util.*;
-
-import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.apache.http.HttpStatus;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.core.io.ByteArrayResource;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.RestTemplate;
-
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.IValidatorClient;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.impl.FhirMappingClient;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.MicroservicesURLCFG;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.FhirResourceDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.JWTPayloadDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.JWTTokenDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.ResourceDTO;
@@ -49,22 +12,41 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.ValidationCDAReqDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.ErrorResponseDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.PublicationResDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.ValidationResDTO;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.client.DocumentReferenceResDTO;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ActivityEnum;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.AttivitaClinicaEnum;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventCodeEnum;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.HealthDataFormatEnum;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.HealthcareFacilityEnum;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.InjectionModeEnum;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.PracticeSettingCodeEnum;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.RawValidationEnum;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.RestExecutionResultEnum;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.TipoDocAltoLivEnum;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.client.TransformResDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.*;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.repository.redis.impl.CdaRepo;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.facade.ICdaFacadeSRV;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.FileUtility;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.apache.http.HttpStatus;
+import org.bson.Document;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.mock.mockito.SpyBean;
+import org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.http.*;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.ResourceAccessException;
+import org.springframework.web.client.RestTemplate;
+
+import java.io.File;
+import java.util.*;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assumptions.assumeFalse;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
 
 @Slf4j
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -78,14 +60,11 @@ class PublicationTest extends AbstractTest {
 	@Autowired
 	private ServletWebServerApplicationContext webServerAppCtxt;
 
-	@Autowired
+	@SpyBean
 	private RestTemplate restTemplate;
 
 	@MockBean
 	private IValidatorClient validatorClient;
-
-	@MockBean
-	private FhirMappingClient client;
 
 	@MockBean
 	private MicroservicesURLCFG msCfg;
@@ -121,10 +100,12 @@ class PublicationTest extends AbstractTest {
 	@Test
 	@DisplayName("Validation + Publication")
 	void testPublication() {
-		DocumentReferenceResDTO ref = new DocumentReferenceResDTO();
+		TransformResDTO ref = new TransformResDTO();
 		ref.setErrorMessage("");
-		ref.setJson("{\"json\" : \"json\"}");
-		given(client.callConvertCdaInBundle(any(FhirResourceDTO.class))).willReturn(ref);
+		ref.setJson(Document.parse("{\"json\" : \"json\"}"));
+		//given(client.callConvertCdaInBundle(any(FhirResourceDTO.class))).willReturn(ref);
+		doReturn(new ResponseEntity<>(ref, org.springframework.http.HttpStatus.OK))
+				.when(restTemplate).exchange(anyString(), eq(HttpMethod.POST), any(HttpEntity.class), eq(TransformResDTO.class));
 
 		byte[] pdfAttachment = FileUtility.getFileFromInternalResources("Files/attachment/CDA_OK_SIGNED.pdf");
 
@@ -291,8 +272,11 @@ class PublicationTest extends AbstractTest {
 	@Test
 	void publicationErrorTest() {
 
-		given(client.callConvertCdaInBundle(any(FhirResourceDTO.class))).willReturn(new DocumentReferenceResDTO("", "{\"json\" : \"json\"}"));
-        final byte[] file = FileUtility.getFileFromInternalResources("Files" + File.separator + "attachment" + File.separator + "CDA_OK_SIGNED.pdf");
+		//given(client.callConvertCdaInBundle(any(FhirResourceDTO.class))).willReturn(new TransformResDTO("", "{\"json\" : \"json\"}"));
+		doReturn(new ResponseEntity<>(new TransformResDTO("", Document.parse("{\"json\" : \"json\"}")), org.springframework.http.HttpStatus.OK))
+				.when(restTemplate).exchange(anyString(), eq(HttpMethod.POST), any(HttpEntity.class), eq(TransformResDTO.class));
+
+		final byte[] file = FileUtility.getFileFromInternalResources("Files" + File.separator + "attachment" + File.separator + "CDA_OK_SIGNED.pdf");
 		final String jwtToken = generateJwt(file, true);
 		
 		ValidationCDAReqDTO validationRB = validateDataPreparation();
@@ -366,8 +350,10 @@ class PublicationTest extends AbstractTest {
 	@Test
 	void publicationWarningTest() {
 
-		given(client.callConvertCdaInBundle(any(FhirResourceDTO.class))).willReturn(new DocumentReferenceResDTO("", "{\"json\" : \"json\"}"));
-        final byte[] file = FileUtility.getFileFromInternalResources("Files" + File.separator + "attachment" + File.separator + "CDA_OK_SIGNED.pdf");
+		//given(client.callConvertCdaInBundle(any(FhirResourceDTO.class))).willReturn(new TransformResDTO("", "{\"json\" : \"json\"}"));
+        doReturn(new ResponseEntity<>(new TransformResDTO("", Document.parse("{\"json\" : \"json\"}")), org.springframework.http.HttpStatus.OK))
+				.when(restTemplate).exchange(anyString(), eq(HttpMethod.POST), any(HttpEntity.class), eq(TransformResDTO.class));
+		final byte[] file = FileUtility.getFileFromInternalResources("Files" + File.separator + "attachment" + File.separator + "CDA_OK_SIGNED.pdf");
 		final String jwtToken = generateJwt(file, true);
 		
 		ValidationCDAReqDTO validationRB = validateDataPreparation();
@@ -403,8 +389,11 @@ class PublicationTest extends AbstractTest {
 	@Test
 	void publicationForcedTest() {
 
-		given(client.callConvertCdaInBundle(any(FhirResourceDTO.class))).willReturn(new DocumentReferenceResDTO("", "{\"json\" : \"json\"}"));
-        final byte[] file = FileUtility.getFileFromInternalResources("Files" + File.separator + "attachment" + File.separator + "CDA_OK_SIGNED.pdf");
+		//given(client.callConvertCdaInBundle(any(FhirResourceDTO.class))).willReturn(new TransformResDTO("", "{\"json\" : \"json\"}"));
+		doReturn(new ResponseEntity<>(new TransformResDTO("", Document.parse("{\"json\" : \"json\"}")), org.springframework.http.HttpStatus.OK))
+				.when(restTemplate).exchange(anyString(), eq(HttpMethod.POST), any(HttpEntity.class), eq(TransformResDTO.class));
+
+		final byte[] file = FileUtility.getFileFromInternalResources("Files" + File.separator + "attachment" + File.separator + "CDA_OK_SIGNED.pdf");
 		final String jwtToken = generateJwt(file, true);
 		
 		final ValidationCDAReqDTO validationRB = validateDataPreparation();
@@ -466,10 +455,13 @@ class PublicationTest extends AbstractTest {
 	}
 
 	private void mockDocumentRef() {
-		DocumentReferenceResDTO ref = new DocumentReferenceResDTO();
+		TransformResDTO ref = new TransformResDTO();
 		ref.setErrorMessage("");
-		ref.setJson("{\"json\" : \"json\"}");
-		given(client.callConvertCdaInBundle(any(FhirResourceDTO.class))).willReturn(ref);
+		ref.setJson(Document.parse("{\"json\" : \"json\"}"));
+		//given(client.callConvertCdaInBundle(any(FhirResourceDTO.class))).willReturn(ref);
+		doReturn(new ResponseEntity<>(ref, org.springframework.http.HttpStatus.OK))
+				.when(restTemplate).exchange(anyString(), eq(HttpMethod.POST), any(HttpEntity.class), eq(TransformResDTO.class));
+
 	}
 
 	@Test
@@ -492,8 +484,44 @@ class PublicationTest extends AbstractTest {
 		ResourceDTO fhirResourcesDTO = new ResourceDTO();
 		fhirResourcesDTO.setErrorMessage("Errore generico");
 
-		given(client.callConvertCdaInBundle(any(FhirResourceDTO.class)))
-				.willReturn(new DocumentReferenceResDTO("Errore generico", null));
+		/*given(client.callConvertCdaInBundle(any(FhirResourceDTO.class)))
+				.willReturn(new TransformResDTO("Errore generico", null));*/
+		doReturn(new ResponseEntity<>(new TransformResDTO("Errore generico", null), org.springframework.http.HttpStatus.OK))
+				.when(restTemplate).exchange(anyString(), eq(HttpMethod.POST), any(HttpEntity.class), eq(TransformResDTO.class));
+
+
+		assertThrows(HttpClientErrorException.BadRequest.class, () -> callPlainPublication(
+				jwtToken,
+				file,
+				publicationRB
+		));
+	}
+
+	@Test
+	@DisplayName("error fhir mapping connection refused")
+	void errorFhirResourceConnectionRefusedTest() {
+		final byte[] file = FileUtility.getFileFromInternalResources("Files" + File.separator + "attachment" + File.separator + "CDA_OK_SIGNED.pdf");
+		final String jwtToken = generateJwt(file, true);
+
+		final ValidationCDAReqDTO validationRB = validateDataPreparation();
+
+		// Mocking validator
+		final ValidationInfoDTO info = new ValidationInfoDTO(RawValidationEnum.OK, new ArrayList<>());
+		given(validatorClient.validate(anyString())).willReturn(info);
+
+		final ResponseEntity<ValidationResDTO> validationResponse = callPlainValidation(jwtToken, file, validationRB);
+		assumeFalse(validationResponse == null);
+
+		final PublicationCreationReqDTO publicationRB = publicationDataPreparation();
+
+		ResourceDTO fhirResourcesDTO = new ResourceDTO();
+		fhirResourcesDTO.setErrorMessage("Errore generico");
+
+		/*given(client.callConvertCdaInBundle(any(FhirResourceDTO.class)))
+				.willReturn(new TransformResDTO("Errore generico", null));*/
+		doThrow(new ResourceAccessException(""))
+				.when(restTemplate).exchange(anyString(), eq(HttpMethod.POST), any(HttpEntity.class), eq(TransformResDTO.class));
+
 
 		assertThrows(HttpClientErrorException.BadRequest.class, () -> callPlainPublication(
 				jwtToken,

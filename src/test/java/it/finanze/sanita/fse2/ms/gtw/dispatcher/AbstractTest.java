@@ -96,9 +96,8 @@ public abstract class AbstractTest {
 				} else {
 					headers.set(Constants.Headers.JWT_HEADER, generateJwt(fileByte, isValidMultipart));
 				}
-			}
-			
-			String urlValidation = "http://localhost:" + webServerAppCtxt.getWebServer().getPort() + webServerAppCtxt.getServletContext().getContextPath() + "/v1/documents/validation";
+			} 
+			String urlValidation = getBaseUrl() + "/v1/documents/validation";
 
 			HttpEntity<LinkedMultiValueMap<String, Object>> requestEntity = new HttpEntity<>(map, headers);
 
@@ -124,6 +123,10 @@ public abstract class AbstractTest {
 		return output;
 	}
 	
+	protected String getBaseUrl() {
+		return "http://localhost:" + webServerAppCtxt.getWebServer().getPort() + webServerAppCtxt.getServletContext().getContextPath();
+	}
+
 	protected ValidationCDAReqDTO buildValidationReqDTO(ActivityEnum activity, HealthDataFormatEnum type, InjectionModeEnum mode) {
 		ValidationCDAReqDTO validationReq = ValidationCDAReqDTO.builder().
 				activity(activity).
@@ -255,7 +258,7 @@ public abstract class AbstractTest {
 	protected ResponseEntity<PublicationResDTO> callPlainPublication(final String jwtToken, final byte[] fileByte, 
 		final PublicationCreationReqDTO requestBody) {
 		
-		String urlPublication = "http://localhost:" + webServerAppCtxt.getWebServer().getPort() + webServerAppCtxt.getServletContext().getContextPath() + "/v1/documents";
+		String urlPublication = getBaseUrl() + "/v1/documents";
 
 		LinkedMultiValueMap<String, Object> map = new LinkedMultiValueMap<>();
 		ByteArrayResource fileAsResource = new ByteArrayResource(fileByte){

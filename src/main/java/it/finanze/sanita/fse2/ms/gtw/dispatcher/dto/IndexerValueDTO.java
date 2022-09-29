@@ -1,5 +1,6 @@
 package it.finanze.sanita.fse2.ms.gtw.dispatcher.dto;
 
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ProcessorOperationEnum;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -20,4 +21,9 @@ public class IndexerValueDTO {
      * Identifier of document to be updated. Is not {@code null} only if the notification is sent for update.
      */
     private String identificativoDocUpdate;
+
+    /**
+     * Enum of the operation to perform on EDS
+     */
+    private ProcessorOperationEnum edsDPOperation;
 }

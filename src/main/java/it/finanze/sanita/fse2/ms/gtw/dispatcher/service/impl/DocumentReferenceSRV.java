@@ -18,7 +18,7 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.FhirResourceDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.ResourceDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.SubmissionSetEntryDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.PublicationCreationReqDTO;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.client.DocumentReferenceResDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.client.TransformResDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.AttivitaClinicaEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.LowLevelDocEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.BusinessException;
@@ -52,12 +52,12 @@ public class DocumentReferenceSRV implements IDocumentReferenceSRV {
 			
 			DocumentReferenceDTO documentReferenceDTO = buildDocumentReferenceDTO(encodedCDA, requestBody, size, hash, sourcePatientId);
 			
-			DocumentReferenceResDTO resDTO = callFhirMapping(documentReferenceDTO, cda);
+			TransformResDTO resDTO = callFhirMapping(documentReferenceDTO, cda);
 			
 			if (!StringUtility.isNullOrEmpty(resDTO.getErrorMessage())) {
 				output.setErrorMessage(resDTO.getErrorMessage());
 			} else {
-				output.setBundleJson(resDTO.getJson());
+				output.setBundleJson(StringUtility.toJSON(resDTO.getJson()));
 				
 				try {
 					SubmissionSetEntryDTO submissionSetEntryDTO = createSubmissionSetEntry(docCDA,requestBody.getTipoAttivitaClinica().getCode(),
@@ -112,8 +112,8 @@ public class DocumentReferenceSRV implements IDocumentReferenceSRV {
 		return documentReferenceDTO;
 	}
 	
-	private DocumentReferenceResDTO callFhirMapping(final DocumentReferenceDTO documentReferenceDTO, final String cda) {
-		DocumentReferenceResDTO out = null;
+	private TransformResDTO callFhirMapping(final DocumentReferenceDTO documentReferenceDTO, final String cda) {
+		TransformResDTO out = null;
 		try {
 			
 			FhirResourceDTO req = new FhirResourceDTO();

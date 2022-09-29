@@ -11,8 +11,8 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-@AllArgsConstructor
-public class PublicationResDTO extends ResponseDTO {
+@AllArgsConstructor 
+public class PublicationResDTO extends ResponseDTO { 
 
 	/**
 	 * Serial version uid.

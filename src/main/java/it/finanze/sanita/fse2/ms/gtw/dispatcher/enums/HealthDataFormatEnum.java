@@ -6,14 +6,13 @@ import lombok.NoArgsConstructor;
 public enum HealthDataFormatEnum {
 
 	CDA("V");
-//	DICOM_SR("D");
 
 	private String code;
 
 	private HealthDataFormatEnum(String inCode) {
 		code = inCode;
 	}
-	
+
 	public String getCode() {
 		return code;
 	}

@@ -1,5 +1,7 @@
 package it.finanze.sanita.fse2.ms.gtw.dispatcher.enums;
 
+import lombok.Getter;
+
 public enum EventCodeEnum {
 
 	P99("P99", "Oscuramento del documento"),
@@ -11,20 +13,15 @@ public enum EventCodeEnum {
 	pay("pay", "Prescrizione farmaceutica non a carico SSN"),
 	PUBLICPOL("PUBLICPOL", "Prescrizione farmaceutica SSN");
 
+	@Getter
 	private String code;
-	public String getCode() {
-		return code;
-	}
 
+	@Getter
 	private String description;
 
 	private EventCodeEnum(String inCode, String inDescription) {
 		code = inCode;
 		description = inDescription;
-	}
-
-	public String getDescription() {
-		return description;
 	}
 
 	public static EventCodeEnum fromValue(final String code) {

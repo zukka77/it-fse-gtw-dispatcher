@@ -271,8 +271,8 @@ public abstract class AbstractCTL implements Serializable {
 						jwtToken = new JWTTokenDTO(JWTPayloadDTO.extractPayload(payload));
 					} else {
 						payload = new String(Base64.getDecoder().decode(chunks[1]));
-						// Building the object asserts that all required values are present
-						jwtToken = new JWTTokenDTO(JWTPayloadDTO.extractPayload(payload));
+						// Building the object asserts that all required values are present 
+						jwtToken = new JWTTokenDTO(JWTPayloadDTO.extractPayload(payload)); 
 					}
 				} else {
 					// Getting header and payload removing the "Bearer " prefix

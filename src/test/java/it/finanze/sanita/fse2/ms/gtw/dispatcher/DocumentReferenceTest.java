@@ -13,6 +13,7 @@ import java.util.Arrays;
 import java.util.Base64;
 import java.util.Date;
 
+import org.bson.Document;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,7 +29,7 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.JWTPayloadDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.JWTTokenDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.ResourceDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.PublicationCreationReqDTO;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.client.DocumentReferenceResDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.client.TransformResDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.AttivitaClinicaEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventCodeEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.HealthDataFormatEnum;
@@ -61,9 +62,9 @@ class DocumentReferenceTest extends AbstractTest {
 	@DisplayName("createDocumentReference OK")
 	void createDocumentReferenceOkTest() {
 		String workflowInstanceId = StringUtility.generateUUID();
-		DocumentReferenceResDTO res = new DocumentReferenceResDTO();
+		TransformResDTO res = new TransformResDTO();
 		res.setErrorMessage("");
-		res.setJson("{\"json\" : \"json\"}");
+		res.setJson(Document.parse("{\"json\" : \"json\"}"));
 		given(client.callConvertCdaInBundle(any(FhirResourceDTO.class))).willReturn(res);
 		byte[] cdaFile = FileUtility.getFileFromInternalResources("Files" + File.separator + "Esempio CDA2_Referto Medicina di Laboratorio v6_OK.xml");
 		String cda = new String(cdaFile);
@@ -112,7 +113,7 @@ class DocumentReferenceTest extends AbstractTest {
 	@DisplayName("createDocumentReference error")
 	void createDocumentReferenceErrorTest() {
 		String workflowInstanceId = StringUtility.generateUUID();
-		DocumentReferenceResDTO res = new DocumentReferenceResDTO();
+		TransformResDTO res = new TransformResDTO();
 		res.setErrorMessage("errorMessage");
 		given(client.callConvertCdaInBundle(any(FhirResourceDTO.class))).willReturn(res);
 		byte[] cdaFile = FileUtility.getFileFromInternalResources("Files" + File.separator + "Esempio CDA2_Referto Medicina di Laboratorio v6_OK.xml");
@@ -130,9 +131,9 @@ class DocumentReferenceTest extends AbstractTest {
 	@DisplayName("createDocumentReferenceErrorConnectionRefused Test")
 	void createDocumentReferenceConnectionRefusedTest() {
 		String workflowInstanceId = StringUtility.generateUUID();
-		DocumentReferenceResDTO res = new DocumentReferenceResDTO();
+		TransformResDTO res = new TransformResDTO();
 		res.setErrorMessage("");
-		res.setJson("{\"json\" : \"json\"}");
+		res.setJson(Document.parse("{\"json\" : \"json\"}"));
 		given(client.callConvertCdaInBundle(any(FhirResourceDTO.class))).willThrow(ConnectionRefusedException.class);
 		byte[] cdaFile = FileUtility.getFileFromInternalResources("Files" + File.separator + "Esempio CDA2_Referto Medicina di Laboratorio v6_OK.xml");
 		String cda = new String(cdaFile);
@@ -146,9 +147,9 @@ class DocumentReferenceTest extends AbstractTest {
 	@DisplayName("createDocumentReferenceErrorBusinessException Test")
 	void createDocumentReferenceErrorBusinessException() {
 		String workflowInstanceId = StringUtility.generateUUID();
-		DocumentReferenceResDTO res = new DocumentReferenceResDTO();
+		TransformResDTO res = new TransformResDTO();
 		res.setErrorMessage("");
-		res.setJson("{\"json\" : \"json\"}");
+		res.setJson(Document.parse("{\"json\" : \"json\"}"));
 		given(client.callConvertCdaInBundle(any(FhirResourceDTO.class))).willThrow(BusinessException.class);
 		byte[] cdaFile = FileUtility.getFileFromInternalResources("Files" + File.separator + "Esempio CDA2_Referto Medicina di Laboratorio v6_OK.xml");
 		String cda = new String(cdaFile);

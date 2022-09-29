@@ -50,8 +50,8 @@ public class EdsClient implements IEdsClient {
 			HttpEntity<Object> entity = new HttpEntity<>(oid, null);
 			
 			// Build endpoint e call.
-			String endpoint = buildEndpoint("/v1/eds-delete");
-			ResponseEntity<EdsTraceResponseDTO> restExchange = restTemplate.exchange(endpoint, HttpMethod.POST, entity, EdsTraceResponseDTO.class);
+			String endpoint = buildEndpoint(msUrlCFG.getEdsClientDeletePath());
+			ResponseEntity<EdsTraceResponseDTO> restExchange = restTemplate.exchange(endpoint, HttpMethod.DELETE, entity, EdsTraceResponseDTO.class);
 			
 			// Gestione response
 			if (HttpStatus.OK.equals(restExchange.getStatusCode()) && restExchange.getBody() != null) {
@@ -61,8 +61,8 @@ public class EdsClient implements IEdsClient {
 		} catch (HttpStatusCodeException e1) {
 			errorHandler(e1, "/delete");
 		} catch (Exception e) {
-			log.error("Errore durante l'invocazione dell' API delete(). ", e);
-			throw new BusinessException("Errore durante l'invocazione dell' API delete(). ", e);
+			log.error("Errore durante l'invocazione di EDS dell' API delete(). ", e);
+			throw new BusinessException("Errore durante l'invocazione di EDS dell' API delete(). ", e);
 		}
 		
 		return output;
@@ -79,7 +79,7 @@ public class EdsClient implements IEdsClient {
 			HttpEntity<Object> entity = new HttpEntity<>(req, null);
 
 			// Build endpoint e call.
-			String endpoint = buildEndpoint("/v1/eds-update");
+			String endpoint = buildEndpoint(msUrlCFG.getEdsClientUpdatePath());
 			ResponseEntity<EdsTraceResponseDTO> restExchange = restTemplate.exchange(endpoint, HttpMethod.PUT, entity, EdsTraceResponseDTO.class);
 
 			// Gestione response
@@ -90,8 +90,8 @@ public class EdsClient implements IEdsClient {
 		} catch (HttpStatusCodeException e1) {
 			errorHandler(e1, "/update");
 		} catch (Exception e) {
-			log.error("Errore durante l'invocazione dell' API update(). ", e);
-			throw new BusinessException("Errore durante l'invocazione dell' API update(). ", e);
+			log.error("Errore durante l'invocazione di EDS dell' API update(). ", e);
+			throw new BusinessException("Errore durante l'invocazione di EDS dell' API update(). ", e);
 		}
 
 		return output;

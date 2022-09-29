@@ -1,7 +1,9 @@
-package it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.client;
+package it.finanze.sanita.fse2.ms.gtw.dispatcher.dto;
 
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.AbstractDTO;
-import lombok.AllArgsConstructor;
+import javax.validation.constraints.Size;
+
+import org.bson.Document;
+
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
@@ -14,17 +16,18 @@ import lombok.NoArgsConstructor;
  */
 @Data
 @NoArgsConstructor
-@AllArgsConstructor
-@EqualsAndHashCode(callSuper=true)
-public class DocumentReferenceResDTO extends AbstractDTO {
+@EqualsAndHashCode(callSuper = true)
+public class TransformResDTO extends AbstractDTO {
 
 	/**
 	 * Serial version uid.
 	 */
 	private static final long serialVersionUID = -2618965716083072681L;
 	
+	@Size(min = 0, max = 1000)
 	private String errorMessage;
 	
-	private String json;
+	@Size(min = 0, max = 1000)
+	private Document json;
 	
 }

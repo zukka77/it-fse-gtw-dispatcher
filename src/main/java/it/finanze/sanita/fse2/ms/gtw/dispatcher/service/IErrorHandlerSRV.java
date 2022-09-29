@@ -20,7 +20,7 @@ public interface IErrorHandlerSRV {
      * @param jwtToken
      * @param e
      */
-    void validationExceptionHandler(Date startDateOperation, LogTraceInfoDTO traceInfoDTO, String workflowInstanceId, JWTTokenDTO jwtToken, ValidationException e);
+    void validationExceptionHandler(Date startDateOperation, LogTraceInfoDTO traceInfoDTO, String workflowInstanceId, JWTTokenDTO jwtToken, ValidationException e, String documentType);
 
     /**
      * Handle connection refused exception for publication ep
@@ -35,7 +35,7 @@ public interface IErrorHandlerSRV {
      */
     void connectionRefusedExceptionHandler(Date startDateOperation, ValidationDataDTO validationInfo, JWTTokenDTO jwtToken, 
             PublicationCreationReqDTO jsonObj, LogTraceInfoDTO traceInfoDTO, ConnectionRefusedException ex,
-            boolean isPublication);
+            boolean isPublication, String documentType);
     /**
      * Handle validation exception for publication ep.
      * 
@@ -48,7 +48,7 @@ public interface IErrorHandlerSRV {
      * @param isPublication
      */
     void publicationValidationExceptionHandler(Date startDateOperation, ValidationDataDTO validationInfo, JWTTokenDTO jwtToken, 
-            PublicationCreationReqDTO jsonObj, LogTraceInfoDTO traceInfoDTO, ValidationException e, boolean isPublication);
+            PublicationCreationReqDTO jsonObj, LogTraceInfoDTO traceInfoDTO, ValidationException e, boolean isPublication, String documentType);
     /**
      * Handle connection refused exception for ts feeding ep
      * @param startDateOperation
@@ -58,7 +58,7 @@ public interface IErrorHandlerSRV {
      * @param traceInfoDTO
      * @param e
      */
-    void tsFeedingValidationExceptionHandler(Date startDateOperation, String workflowInstanceId, JWTTokenDTO jwtToken, TSPublicationCreationReqDTO jsonObj, LogTraceInfoDTO traceInfoDTO, ValidationException e);
+    void tsFeedingValidationExceptionHandler(Date startDateOperation, String workflowInstanceId, JWTTokenDTO jwtToken, TSPublicationCreationReqDTO jsonObj, LogTraceInfoDTO traceInfoDTO, ValidationException e, String documentType);
 
     /**
      * Handle validation exception for ts feeding ep
@@ -69,6 +69,6 @@ public interface IErrorHandlerSRV {
      * @param traceInfoDTO
      * @param ex
      */
-    void tsFeedingConnectionRefusedExceptionHandler(Date startDateOperation, String workflowInstanceId, JWTTokenDTO jwtToken, TSPublicationCreationReqDTO jsonObj, LogTraceInfoDTO traceInfoDTO, ConnectionRefusedException ex);
+    void tsFeedingConnectionRefusedExceptionHandler(Date startDateOperation, String workflowInstanceId, JWTTokenDTO jwtToken, TSPublicationCreationReqDTO jsonObj, LogTraceInfoDTO traceInfoDTO, ConnectionRefusedException ex, String documentType);
 
 }

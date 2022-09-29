@@ -20,13 +20,12 @@ public abstract class AbstractService implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	@Autowired
-	private Tracer tracer;
+	private transient Tracer tracer;
 
 	protected LogTraceInfoDTO getLogTraceInfo() {
 		LogTraceInfoDTO out = new LogTraceInfoDTO(null, null);
 		if (tracer.currentSpan() != null) {
-			out = new LogTraceInfoDTO(
-					tracer.currentSpan().context().spanIdString(),
+			out = new LogTraceInfoDTO(tracer.currentSpan().context().spanIdString(),
 					tracer.currentSpan().context().traceIdString());
 		}
 		return out;

@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import org.bson.Document;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -36,7 +37,7 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.FhirResourceDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.TSPublicationCreationReqDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.ErrorResponseDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.TSPublicationCreationResDTO;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.client.DocumentReferenceResDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.client.TransformResDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.AttivitaClinicaEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventCodeEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.HealthDataFormatEnum;
@@ -56,16 +57,14 @@ import lombok.extern.slf4j.Slf4j;
 @Disabled("Ts feeding is not ready for Sprint 6")
 class TSFeedingTest extends AbstractTest {
 
-
 	@Autowired
-    private ServletWebServerApplicationContext webServerAppCtxt;
+    ServletWebServerApplicationContext webServerAppCtxt;
 
     @Autowired
-	private RestTemplate restTemplate;
+	RestTemplate restTemplate;
 
     @MockBean
-	private FhirMappingClient fhirMappingClient;
-
+	FhirMappingClient fhirMappingClient;
 
     @Test
     @DisplayName("Happy path")
@@ -74,9 +73,9 @@ class TSFeedingTest extends AbstractTest {
         byte[] pdfAttachment = FileUtility.getFileFromInternalResources("Files/attachment/CDA_OK_SIGNED.pdf");
 
         // mock fhir mapping call
-        DocumentReferenceResDTO ref = new DocumentReferenceResDTO();
+        TransformResDTO ref = new TransformResDTO();
 		ref.setErrorMessage("");
-		ref.setJson("{\"json\" : \"json\"}");
+		ref.setJson(Document.parse("{\"json\" : \"json\"}"));
 		given(fhirMappingClient.callConvertCdaInBundle(any(FhirResourceDTO.class))).willReturn(ref);
 
         //PublicationResultEnum result = callTSEndpoint(pdfAttachment, null);
@@ -92,9 +91,9 @@ class TSFeedingTest extends AbstractTest {
         TSPublicationCreationReqDTO requestBody = buildTSRequestBody(true);
 
         // mock fhir mapping call
-        DocumentReferenceResDTO ref = new DocumentReferenceResDTO();
+        TransformResDTO ref = new TransformResDTO();
 		ref.setErrorMessage("");
-		ref.setJson("{\"json\" : \"json\"}");
+		ref.setJson(Document.parse("{\"json\" : \"json\"}"));
 		given(fhirMappingClient.callConvertCdaInBundle(any(FhirResourceDTO.class))).willReturn(ref);
 
         assertDoesNotThrow(() -> callTSEndpoint(pdfAttachment, requestBody, true));
@@ -371,9 +370,9 @@ class TSFeedingTest extends AbstractTest {
         TSPublicationCreationReqDTO requestBody = buildTSRequestBody(null);
         
         // mock fhir mapping call
-        DocumentReferenceResDTO ref = new DocumentReferenceResDTO();
+        TransformResDTO ref = new TransformResDTO();
 		ref.setErrorMessage("");
-		ref.setJson("{\"json\" : \"json\"}");
+		ref.setJson(Document.parse("{\"json\" : \"json\"}"));
 		
 		given(fhirMappingClient.callConvertCdaInBundle(any(FhirResourceDTO.class))).willReturn(ref);
 		

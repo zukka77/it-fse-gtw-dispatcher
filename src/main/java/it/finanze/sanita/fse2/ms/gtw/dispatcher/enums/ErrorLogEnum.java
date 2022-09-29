@@ -1,5 +1,7 @@
 package it.finanze.sanita.fse2.ms.gtw.dispatcher.enums;
 
+import lombok.Getter;
+
 public enum ErrorLogEnum implements ILogEnum {
 
 	KO_GENERIC("KO-GENERIC", "Errore generico"),
@@ -15,12 +17,10 @@ public enum ErrorLogEnum implements ILogEnum {
 	KO_REDIS("KO-REDIS", "Errore nella chiamata a Redis"),
 	KO_REDIS_NOT_FOUND("KO-REDIS-NOT-FOUND", "Elemento non trovato in cache"); 
 
+	@Getter
 	private String code;
-	
-	public String getCode() {
-		return code;
-	}
 
+	@Getter
 	private String description;
 
 	private ErrorLogEnum(String inCode, String inDescription) {
@@ -28,9 +28,4 @@ public enum ErrorLogEnum implements ILogEnum {
 		description = inDescription;
 	}
 
-	public String getDescription() {
-		return description;
-	}
-
 }
-

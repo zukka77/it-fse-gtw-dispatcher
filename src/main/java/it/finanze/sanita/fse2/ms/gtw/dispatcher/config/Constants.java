@@ -103,7 +103,8 @@ public final class Constants {
 		public static final String SHA_ALGORITHM = "SHA-256";
 		public static final String JWT_MISSING_ISSUER_PLACEHOLDER = "UNDEFINED_JWT_ISSUER";
 
-		public static final String MISSING_WORKFLOW_PLACEHOLDER = "UNKNOW_WORKFLOW_ID";
+		public static final String MISSING_WORKFLOW_PLACEHOLDER = "UNKNOWN_WORKFLOW_ID";
+		public static final String MISSING_DOC_TYPE_PLACEHOLDER = "UNKNOWN_DOCUMENT_TYPE";
 
 		private App() {
 			//This method is intentionally left blank.

@@ -120,7 +120,7 @@ class IniClientTest {
         responseMock.setEsito(true);
         Mockito.doReturn(new ResponseEntity<>(responseMock, HttpStatus.BAD_GATEWAY)).when(restTemplate)
                 .exchange(anyString(), eq(HttpMethod.PUT), any(HttpEntity.class), eq(IniTraceResponseDTO.class));
-        assertNull(iniClient.updateMetadati(requestBody));
+        assertNull(iniClient.updateMetadati(requestBody).getErrorMessage());
     }
 
     @Test

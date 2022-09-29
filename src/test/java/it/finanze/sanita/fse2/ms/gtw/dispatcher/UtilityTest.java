@@ -44,7 +44,7 @@ import lombok.extern.slf4j.Slf4j;
  * @author Simone Lungarella
  */
 @Slf4j
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, properties = {"ms.dispatcher.other-config-prop-cf=true"})
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, properties = {"validation.allow-special-fiscal-code=true"})
 @ComponentScan(basePackages = { Constants.ComponentScan.BASE })
 @ActiveProfiles(Constants.Profile.TEST)
 class UtilityTest extends AbstractTest{
@@ -159,7 +159,7 @@ class UtilityTest extends AbstractTest{
     void loggerTest() {
         assertDoesNotThrow(() -> kafkaLogger.trace("Trace", OperationLogEnum.PUB_CDA2, ResultLogEnum.KO, new Date(), "issuer"));
         assertDoesNotThrow(() -> kafkaLogger.debug("Debug", OperationLogEnum.REDIS, ResultLogEnum.KO, new Date(), "issuer"));
-        assertDoesNotThrow(() -> kafkaLogger.error("Error", OperationLogEnum.TRAS_KAFKA, ResultLogEnum.KO, new Date(), ErrorLogEnum.KO_FHIR, "issuer"));
+        assertDoesNotThrow(() -> kafkaLogger.error("Error", OperationLogEnum.TRAS_CDA2, ResultLogEnum.KO, new Date(), ErrorLogEnum.KO_FHIR, "issuer"));
         assertDoesNotThrow(() -> kafkaLogger.info("Info", OperationLogEnum.REDIS, ResultLogEnum.KO, new Date(), "issuer"));
     }
 

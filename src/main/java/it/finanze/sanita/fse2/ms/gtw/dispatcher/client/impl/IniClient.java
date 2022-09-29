@@ -54,32 +54,36 @@ public class IniClient implements IIniClient {
 			HttpEntity<Object> entity = new HttpEntity<>(iniReq, null);
 			
 			// Build endpoint e call.
-			String endpoint = buildEndpoint("/v1/ini-delete");
+			String endpoint = buildEndpoint(msUrlCFG.getIniClientDeletePath());
 			ResponseEntity<IniTraceResponseDTO> restExchange = restTemplate.exchange(endpoint, HttpMethod.DELETE, entity, IniTraceResponseDTO.class);
-			
+			boolean isSuccessfulResponse = HttpStatus.OK.equals(restExchange.getStatusCode()) && restExchange.getBody() != null;
+
 			// Gestione response
-			if (HttpStatus.OK.equals(restExchange.getStatusCode()) && restExchange.getBody() != null) {
+			if (isSuccessfulResponse) {
 				output = restExchange.getBody();
-				if(output!=null && Boolean.FALSE.equals(output.getEsito())) {
-					if(output.getErrorMessage().equals(INIErrorEnum.RECORD_NOT_FOUND.toString())){
+				if (output != null && Boolean.FALSE.equals(output.getEsito())) {
+					if (output.getErrorMessage().equals(INIErrorEnum.RECORD_NOT_FOUND.toString())){
 						throw new RecordNotFoundException(output.getErrorMessage());
 					}
 					throw new BusinessException(output.getErrorMessage());
 				}
-			}  
-		} catch(RecordNotFoundException e0) {
+			} else if (msUrlCFG.getIniMockEnabled()) {
+				return restExchange.getBody();
+			}
+		} catch(RecordNotFoundException e0) { 
 			throw e0;
-		} catch(BusinessException e1) {
+		} catch (BusinessException e1) {
 			throw e1;
 		} catch (HttpClientErrorException e1) {
 			errorHandler(e1, "/delete");
 		} catch (Exception e) {
-			log.error("Errore durante l'invocazione dell' API delete(). ", e);
-			throw new BusinessException("Errore durante l'invocazione dell' API delete(). ", e);
+			log.error("Errore durante l'invocazione di INI dell'API delete(). ", e);
+			throw new BusinessException("Errore durante l'invocazione di INI dell'API delete(). ", e);
 		}
 		
 		return output;
 	}
+ 
 
 	 
 	
@@ -121,22 +125,25 @@ public class IniClient implements IIniClient {
 			HttpEntity<Object> entity = new HttpEntity<>(iniReq, null);
 
 			// Build endpoint e call.
-			String endpoint = buildEndpoint("/v1/ini-update");
+			String endpoint = buildEndpoint(msUrlCFG.getIniClientUpdatePath());
 			ResponseEntity<IniTraceResponseDTO> restExchange = restTemplate.exchange(endpoint, HttpMethod.PUT, entity, IniTraceResponseDTO.class);
-			
+			boolean isSuccessfulResponse = HttpStatus.OK.equals(restExchange.getStatusCode()) && restExchange.getBody() != null;
+
 			// Gestione response
-			if (HttpStatus.OK.equals(restExchange.getStatusCode()) && restExchange.getBody() != null) {
+			if (isSuccessfulResponse) {
 				out = restExchange.getBody();
-				if(out!=null && Boolean.FALSE.equals(out.getEsito())) {
+				if (out!=null && Boolean.FALSE.equals(out.getEsito())) {
 					if(out.getErrorMessage().equals(INIErrorEnum.RECORD_NOT_FOUND.toString())){
 						throw new RecordNotFoundException(out.getErrorMessage());
 					}
 					throw new BusinessException(out.getErrorMessage());
 				}
-			}  
+			} else if (msUrlCFG.getIniMockEnabled()) {
+				return restExchange.getBody();
+			}
 		} catch(RecordNotFoundException e0) {
 			throw e0;
-		} catch(BusinessException e1) {
+		} catch (BusinessException e1) {
 			throw e1;
 		} catch (HttpStatusCodeException e2) {
 			errorHandler(e2, "/ini-update");
