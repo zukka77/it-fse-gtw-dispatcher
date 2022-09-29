@@ -7,7 +7,7 @@
 		<property file="application.properties" />
 	</springProfile>
 	<springProfile name="dev">
-		<property file="application-dev.properties" />
+		<property resource="application-dev.properties" />
 	</springProfile>
 	<springProfile name="test">
 		<property file="application-test.properties" />
@@ -18,7 +18,7 @@
 
 	<property name="CONSOLE_LOG_PATTERN"
 		value="%d{yyyy-MM-dd HH:mm:ss.SSS} %5p [${springAppName},trace: %X{X-B3-TraceId:-} span: %X{X-B3-SpanId:-}, parent: %X{X-B3-ParentSpanId:-} exportable: %X{X-Span-Export:-},] %m%n%throwable" />
-		
+
 	<appender name="console"
 		class="ch.qos.logback.core.ConsoleAppender">
 		<layout class="ch.qos.logback.classic.PatternLayout">
@@ -56,21 +56,21 @@
 			</encoder>
 
 			<topic>${kafka.log.base-topic}</topic>
-			<keyingStrategy
-				class="it.finanze.sanita.fse2.ms.gtw.dispatcher.logging.HostNameKeyingStrategy" />
-			<deliveryStrategy
-				class="it.finanze.sanita.fse2.ms.gtw.dispatcher.logging.BlockingDeliveryStrategy">
+			<keyingStrategy class="it.finanze.sanita.fse2.ms.gtw.dispatcher.logging.HostNameKeyingStrategy" />
+			<deliveryStrategy class="it.finanze.sanita.fse2.ms.gtw.dispatcher.logging.BlockingDeliveryStrategy">
 				<timeout>0</timeout>
 			</deliveryStrategy>
 
-			<producerConfig>bootstrap.servers=${kafka.bootstrap-servers}
-			</producerConfig>
-
-			<producerConfig>metadata.fetch.timeout.ms=99999999999
-			</producerConfig>
-			<producerConfig>metadata.fetch.timeout.ms=0</producerConfig>
-			<producerConfig>client.id=${kafka.producer.client-id}
-			</producerConfig>
+			<producerConfig>bootstrap.servers=${kafka.bootstrap-servers}</producerConfig>
+			<producerConfig>metadata.fetch.timeout.ms=99999999999</producerConfig>
+			<producerConfig>client.id=${kafka.producer.client-id}</producerConfig>
+			<springProfile name="default">
+				<producerConfig>security.protocol=${kafka.properties.security.protocol}</producerConfig>
+				<producerConfig>sasl.mechanism=${kafka.properties.sasl.mechanism}</producerConfig>
+				<producerConfig>kafka.properties.sasl.jaas.config=${kafka.properties.sasl.jaas.config}</producerConfig>
+				<producerConfig>ssl.truststore.location=${kafka.properties.ssl.truststore.location}</producerConfig>
+				<producerConfig>ssl.truststore.password=${kafka.properties.ssl.truststore.password}</producerConfig>
+			</springProfile>
 		</appender>
 	</logger>
 
