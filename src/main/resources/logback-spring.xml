@@ -5,21 +5,22 @@
 		/> <property name="FILE_NAME" value="springboot-liberty-project" /> -->
 	<springProfile name="default">
 		<property resource="/deployments/application.properties" />
+		<property name="CONSOLE_LOG_PATTERN"
+		value="DEFAULT RES %d{yyyy-MM-dd HH:mm:ss.SSS} %5p [${springAppName},trace: %X{X-B3-TraceId:-} span: %X{X-B3-SpanId:-}, parent: %X{X-B3-ParentSpanId:-} exportable: %X{X-Span-Export:-},] %m%n%throwable" />
 	</springProfile>
 	<springProfile name="dev">
 		<property resource="application-dev.properties" />
+		<property name="CONSOLE_LOG_PATTERN"
+		value="DEV RES %d{yyyy-MM-dd HH:mm:ss.SSS} %5p [${springAppName},trace: %X{X-B3-TraceId:-} span: %X{X-B3-SpanId:-}, parent: %X{X-B3-ParentSpanId:-} exportable: %X{X-Span-Export:-},] %m%n%throwable" />
 	</springProfile>
 	<springProfile name="test">
 		<property resource="application-test.properties" />
+		<property name="CONSOLE_LOG_PATTERN"
+		value="TEST RES %d{yyyy-MM-dd HH:mm:ss.SSS} %5p [${springAppName},trace: %X{X-B3-TraceId:-} span: %X{X-B3-SpanId:-}, parent: %X{X-B3-ParentSpanId:-} exportable: %X{X-Span-Export:-},] %m%n%throwable" />
 	</springProfile>
 
-	<springProperty scope="context" name="springAppName"
-		source="spring.application.name" />
-
-	<!-- You can override this to have a custom pattern -->
-	<property name="CONSOLE_LOG_PATTERN"
-		value=" %d{yyyy-MM-dd HH:mm:ss.SSS} %5p [${springAppName},trace: %X{X-B3-TraceId:-} span: %X{X-B3-SpanId:-}, parent: %X{X-B3-ParentSpanId:-} exportable: %X{X-Span-Export:-},] %m%n%throwable" />
-
+	<springProperty scope="context" name="springAppName" source="spring.application.name" />
+ 
 	<appender name="console"
 		class="ch.qos.logback.core.ConsoleAppender">
 		<layout class="ch.qos.logback.classic.PatternLayout">
