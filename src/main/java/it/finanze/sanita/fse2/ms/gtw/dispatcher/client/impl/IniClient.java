@@ -8,7 +8,6 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.IniMetadataUpdateReq
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
@@ -37,17 +36,17 @@ public class IniClient implements IIniClient {
 	 * Serial version uid.
 	 */
 	private static final long serialVersionUID = 8054486322408383036L;
-	
+
 	@Autowired
 	private transient RestTemplate restTemplate;
-	
+
 	@Autowired
 	private MicroservicesURLCFG msUrlCFG;
-	
+
 	@Override
 	public IniTraceResponseDTO delete(final DeleteRequestDTO iniReq) {
 		IniTraceResponseDTO output = null;
-		
+
 		try {
 			log.debug("INI Client - Calling Ini to execute delete operation");
 
@@ -72,9 +71,9 @@ public class IniClient implements IIniClient {
 			errorHandler(e1, "/delete");
 		} catch (Exception e) {
 			log.error("Errore durante l'invocazione di INI dell'API delete(). ", e);
-			throw new BusinessException("Errore durante l'invocazione di INI dell'API delete(). ", e);
+			throw e;
 		}
-		
+
 		return output;
 	}
 	
@@ -92,7 +91,7 @@ public class IniClient implements IIniClient {
 	
 	@Override
 	public IniTraceResponseDTO updateMetadati(IniMetadataUpdateReqDTO iniReq) {
-		
+
 		IniTraceResponseDTO out = null;
 		try {
 			log.debug("INI Client - Calling INI to execute update metadati :{}", iniReq.getIdDoc());
@@ -118,9 +117,9 @@ public class IniClient implements IIniClient {
 			errorHandler(e2, "/ini-update");
 		} catch (Exception e) {
 			log.error("Errore durante l'invocazione dell' API update(). ", e);
-			throw new BusinessException("Errore durante l'invocazione dell' API update(). ", e);
+			throw e;
 		}
-		
+
 		return out;
 	}
 }

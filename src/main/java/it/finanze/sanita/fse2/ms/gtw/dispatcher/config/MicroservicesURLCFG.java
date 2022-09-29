@@ -58,11 +58,7 @@ public class MicroservicesURLCFG implements Serializable {
 	@Value("${ms.ana-service.enable-validation}")
 	private Boolean anaEnableValidation;
 	
-	/**
-	 * XSLT / MAP
-	 * true  = /v1/document-reference-engine
-	 * false = /v1/document-reference
-	 */
-	@Value("${ms.document-reference-engine}")
-	private Boolean docReferenceEngine;
+	@Value("${ms.calls.transform-engine}")
+	private Boolean callTransformEngine;
+
 }
