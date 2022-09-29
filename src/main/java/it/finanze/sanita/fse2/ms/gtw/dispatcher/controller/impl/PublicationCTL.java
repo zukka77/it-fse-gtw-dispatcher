@@ -6,6 +6,7 @@ import javax.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants;
@@ -33,7 +34,7 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility;
  *
  *  Publication controller.
  */
-//@RestController
+@RestController
 public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 	/**
 	 * Serial version uid.
