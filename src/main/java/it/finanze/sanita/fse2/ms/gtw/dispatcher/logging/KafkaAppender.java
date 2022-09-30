@@ -150,7 +150,7 @@ public class KafkaAppender<E> extends KafkaAppenderConfig<E> {
     		}
     		out = new KafkaProducer<>(new HashMap<>(producerConfig));
     	} catch(Exception ex) {
-    		log.error("Error while create producer with props : " + ex);
+    		log.error("Error while create producer with props : " , ex);
     		throw new BusinessException("Error while create producer with props : " + ex);
     	}
         return out;
@@ -193,7 +193,8 @@ public class KafkaAppender<E> extends KafkaAppenderConfig<E> {
             	log.info("Inizializzazione producer log");
                 producer = createProducer();
             } catch (Exception e) {
-            	log.error("Error creating producer :" + e);
+            	log.error("Error creating producer :", e);
+            	addError("error creating producer", e);
             }
             return producer;
         }
