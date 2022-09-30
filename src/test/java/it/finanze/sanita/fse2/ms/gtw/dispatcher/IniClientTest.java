@@ -53,7 +53,7 @@ class IniClientTest {
     void updateConnectionRefusedErrorTest() {
         Mockito.doThrow(new ConnectionRefusedException("url", "Error: connection refused")).when(restTemplate)
                 .exchange(anyString(), eq(HttpMethod.PUT), any(HttpEntity.class), eq(IniTraceResponseDTO.class));
-        assertThrows(BusinessException.class, () -> iniClient.updateMetadati(requestBody));
+        assertThrows(ConnectionRefusedException.class, () -> iniClient.updateMetadati(requestBody));
     }
 
     @Test
