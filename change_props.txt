@@ -30,3 +30,8 @@ ms.url.eds-client-service.delete
 ms.url.ini-client-service.delete
 ms.url.ini-client-service.update
 ms.url.ini-client-service.mock
+
+30/09/2022
+A:
+log.elastic.level=trace
+log.kafka-log.enable=true

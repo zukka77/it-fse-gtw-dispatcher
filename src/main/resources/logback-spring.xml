@@ -10,7 +10,7 @@
 		<property resource="application-dev.properties" />
 	</springProfile>
 	<springProfile name="test">
-		<property file="application-test.properties" />
+		<property resource="application-test.properties" />
 	</springProfile>
 
 	<springProperty scope="context" name="springAppName"

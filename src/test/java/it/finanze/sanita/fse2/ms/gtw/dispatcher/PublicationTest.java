@@ -103,7 +103,6 @@ class PublicationTest extends AbstractTest {
 		TransformResDTO ref = new TransformResDTO();
 		ref.setErrorMessage("");
 		ref.setJson(Document.parse("{\"json\" : \"json\"}"));
-		//given(client.callConvertCdaInBundle(any(FhirResourceDTO.class))).willReturn(ref);
 		doReturn(new ResponseEntity<>(ref, org.springframework.http.HttpStatus.OK))
 				.when(restTemplate).exchange(anyString(), eq(HttpMethod.POST), any(HttpEntity.class), eq(TransformResDTO.class));
 
