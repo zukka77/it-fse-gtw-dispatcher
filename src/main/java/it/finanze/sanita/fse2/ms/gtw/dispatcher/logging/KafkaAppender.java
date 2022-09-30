@@ -15,6 +15,7 @@ import org.apache.kafka.common.serialization.ByteArraySerializer;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.Appender;
 import ch.qos.logback.core.spi.AppenderAttachableImpl;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.BusinessException;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -37,7 +38,6 @@ public class KafkaAppender<E> extends KafkaAppenderConfig<E> {
     };
 
     public KafkaAppender() {
-        // setting these as config values sidesteps an unnecessary warning (minor bug in KafkaProducer)
         addProducerConfigValue(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, ByteArraySerializer.class.getName());
         addProducerConfigValue(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, ByteArraySerializer.class.getName());
     }
@@ -72,7 +72,7 @@ public class KafkaAppender<E> extends KafkaAppenderConfig<E> {
             try {
                 lazyProducer.get().close();
             } catch (KafkaException e) {
-                this.addWarn("Failed to shut down kafka producer: " + e.getMessage(), e);
+            	log.error("Failed to shut down kafka producer: " + e.getMessage(), e);
             }
             lazyProducer = null;
         }
@@ -142,11 +142,18 @@ public class KafkaAppender<E> extends KafkaAppenderConfig<E> {
     }
 
     protected Producer<byte[], byte[]> createProducer() {
-    	log.info("Create producer log");
-    	for(Entry<String, Object> prod : producerConfig.entrySet()) {
-    		log.info("KEY : " + prod.getKey() + " VALUE:" + prod.getValue());
+    	Producer<byte[], byte[]> out = null;
+    	try {
+    		log.info("Create producer log");
+    		for(Entry<String, Object> prod : producerConfig.entrySet()) {
+    			log.info("KEY : " + prod.getKey() + " VALUE:" + prod.getValue());
+    		}
+    		out = new KafkaProducer<>(new HashMap<>(producerConfig));
+    	} catch(Exception ex) {
+    		log.error("Error while create producer with props : " + ex);
+    		throw new BusinessException("Error while create producer with props : " + ex);
     	}
-        return new KafkaProducer<>(new HashMap<>(producerConfig));
+        return out;
     }
 
     private void deferAppend(E event) {
@@ -161,12 +168,7 @@ public class KafkaAppender<E> extends KafkaAppenderConfig<E> {
             super.doAppend(event);
         }
     }
-
-    /**
-     * Lazy initializer for producer, patterned after commons-lang.
-     *
-     * @see <a href="https://commons.apache.org/proper/commons-lang/javadocs/api-3.4/org/apache/commons/lang3/concurrent/LazyInitializer.html">LazyInitializer</a>
-     */
+ 
     private class LazyProducer {
 
         private volatile Producer<byte[], byte[]> producer;
@@ -191,7 +193,7 @@ public class KafkaAppender<E> extends KafkaAppenderConfig<E> {
             	log.info("Inizializzazione producer log");
                 producer = createProducer();
             } catch (Exception e) {
-                addError("error creating producer", e);
+            	log.error("Error creating producer :" + e);
             }
             return producer;
         }
