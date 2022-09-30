@@ -63,7 +63,7 @@ public interface IPublicationCTL {
 	@ApiParam(value = "auth token")
 	ResponseEntity<PublicationResDTO> create(@RequestBody(required = false) PublicationCreationReqDTO requestBody, @RequestPart("file") MultipartFile file, HttpServletRequest request);
 
-	@PutMapping(value = "/documents/{identificativoDocUpdate}/metadata", produces = { MediaType.APPLICATION_JSON_VALUE })
+	@PutMapping(value = "/documents/{idDoc}/metadata", produces = { MediaType.APPLICATION_JSON_VALUE })
 	@ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = PublicationResDTO.class)))
 	@Operation(summary = "Pubblicazione aggiornamento metadati", description = "Pubblicazione aggiornamento metadati dato l'identificativo documento.")
 	@SecurityRequirements({
@@ -83,9 +83,9 @@ public interface IPublicationCTL {
 			@ApiResponse(responseCode = "502", description = "Invalid response received from the API Implementation", content = @Content(mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE, schema = @Schema(implementation = ErrorResponseDTO.class))),
 			@ApiResponse(responseCode = "503", description = "Service unavailable", content = @Content(mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE, schema = @Schema(implementation = ErrorResponseDTO.class))),
 			@ApiResponse(responseCode = "504", description = "Endpoint request timed-out", content = @Content(mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE, schema = @Schema(implementation = ErrorResponseDTO.class)))})
-	ResponseEntity<ResponseDTO> updateMetadata(@Size(min = 1, max = 256)@PathVariable(value = "identificativoDocUpdate" , required = true) String identificativoDocUpdate, @RequestBody(required = true) PublicationMetadataReqDTO requestBody, HttpServletRequest request);
+	ResponseEntity<ResponseDTO> updateMetadata(@Size(min = 1, max = 256)@PathVariable(value = "idDoc" , required = true) String idDoc, @RequestBody(required = true) PublicationMetadataReqDTO requestBody, HttpServletRequest request);
 
-	@PutMapping(value = "/documents/{identificativoDocUpdate}", produces = { MediaType.APPLICATION_JSON_VALUE }, consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
+	@PutMapping(value = "/documents/{idDoc}", produces = { MediaType.APPLICATION_JSON_VALUE }, consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
 	@ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = PublicationResDTO.class)))
 	@Operation(summary = "Pubblicazione replace documenti", description = "Sostituisce il documento identificato da oid fornito in input.")
 	@SecurityRequirements({
@@ -105,9 +105,9 @@ public interface IPublicationCTL {
 			@ApiResponse(responseCode = "502", description = "Invalid response received from the API Implementation", content = @Content(mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE, schema = @Schema(implementation = ErrorResponseDTO.class))),
 			@ApiResponse(responseCode = "503", description = "Service unavailable", content = @Content(mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE, schema = @Schema(implementation = ErrorResponseDTO.class))),
 			@ApiResponse(responseCode = "504", description = "Endpoint request timed-out", content = @Content(mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE, schema = @Schema(implementation = ErrorResponseDTO.class)))})
-	ResponseEntity<PublicationResDTO> replace(@Size(min = 1, max = 256)@PathVariable(value = "identificativoDocUpdate", required = true) String identificativoDocUpdate, @RequestBody(required = false) PublicationUpdateReqDTO requestBody, @RequestPart("file") MultipartFile file, HttpServletRequest request);
+	ResponseEntity<PublicationResDTO> replace(@Size(min = 1, max = 256)@PathVariable(value = "idDoc", required = true) String idDoc, @RequestBody(required = false) PublicationUpdateReqDTO requestBody, @RequestPart("file") MultipartFile file, HttpServletRequest request);
 
-	@DeleteMapping(value = "/documents/{identificativoDocUpdate}", produces = { MediaType.APPLICATION_JSON_VALUE })
+	@DeleteMapping(value = "/documents/{idDoc}", produces = { MediaType.APPLICATION_JSON_VALUE })
 	@ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ResponseDTO.class)))
 	@Operation(summary = "Eliminazione documento", description = "Elimina il documento identificato da oid fornito in input.")
 	@SecurityRequirements({
@@ -127,6 +127,6 @@ public interface IPublicationCTL {
 			@ApiResponse(responseCode = "502", description = "Invalid response received from the API Implementation", content = @Content(mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE, schema = @Schema(implementation = ErrorResponseDTO.class))),
 			@ApiResponse(responseCode = "503", description = "Service unavailable", content = @Content(mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE, schema = @Schema(implementation = ErrorResponseDTO.class))),
 			@ApiResponse(responseCode = "504", description = "Endpoint request timed-out", content = @Content(mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE, schema = @Schema(implementation = ErrorResponseDTO.class)))})
-	ResponseDTO delete(@Size(min = 1, max = 256)@PathVariable(value = "identificativoDocUpdate", required = true) String identificativoDocUpdate, HttpServletRequest request);
+	ResponseDTO delete(@Size(min = 1, max = 256)@PathVariable(value = "idDoc", required = true) String idDoc, HttpServletRequest request);
 	
 }

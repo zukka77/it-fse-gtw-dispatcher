@@ -23,3 +23,10 @@ A:
 ### Se popolata con true consente di accettare i codici fiscali CF_OK_11, CF_ENI_OK, CF_STP_OK, altrimenti la validazione accetta solo CF_OK_16
 validation.allow-special-fiscal-code=
 
+29/09/2022
+R:
+ms.url.eds-client-service.update
+ms.url.eds-client-service.delete
+ms.url.ini-client-service.delete
+ms.url.ini-client-service.update
+ms.url.ini-client-service.mock

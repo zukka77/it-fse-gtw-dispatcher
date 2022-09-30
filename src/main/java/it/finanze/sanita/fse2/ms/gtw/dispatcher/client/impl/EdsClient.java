@@ -3,6 +3,7 @@
  */
 package it.finanze.sanita.fse2.ms.gtw.dispatcher.client.impl;
 
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.EdsMetadataUpdateReqDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
@@ -44,12 +45,10 @@ public class EdsClient implements IEdsClient {
 		
 		try {
 			log.debug("EDS Client - Calling EDS to execute delete operation");
-
-			// Build headers.
-			HttpEntity<Object> entity = new HttpEntity<>(oid, null);
 			
 			// Build endpoint e call.
-			ResponseEntity<EdsTraceResponseDTO> restExchange = restTemplate.exchange(msUrlCFG.getEdsClientHost() +"/v1/eds-delete", HttpMethod.DELETE, entity, EdsTraceResponseDTO.class);
+			String endpoint = msUrlCFG.getEdsClientHost() + Constants.Client.Eds.DELETE_PATH.replace(Constants.Client.Eds.ID_DOC_PLACEHOLDER, oid);
+			ResponseEntity<EdsTraceResponseDTO> restExchange = restTemplate.exchange(endpoint, HttpMethod.DELETE, null, EdsTraceResponseDTO.class);
 			
 			// Gestione response
 			if (HttpStatus.OK.equals(restExchange.getStatusCode()) && restExchange.getBody() != null) {
@@ -77,7 +76,8 @@ public class EdsClient implements IEdsClient {
 			HttpEntity<Object> entity = new HttpEntity<>(req, null);
 
 			// Build endpoint e call.
-			ResponseEntity<EdsTraceResponseDTO> restExchange = restTemplate.exchange(msUrlCFG.getEdsClientHost() +"/v1/eds-update", HttpMethod.PUT, entity, EdsTraceResponseDTO.class);
+			String endpoint = msUrlCFG.getEdsClientHost() + Constants.Client.Eds.UPDATE_PATH.replace(Constants.Client.Eds.ID_DOC_PLACEHOLDER, req.getIdDoc());
+			ResponseEntity<EdsTraceResponseDTO> restExchange = restTemplate.exchange(endpoint, HttpMethod.PUT, entity, EdsTraceResponseDTO.class);
 
 			// Gestione response
 			if (HttpStatus.OK.equals(restExchange.getStatusCode()) && restExchange.getBody() != null) {
@@ -105,6 +105,5 @@ public class EdsClient implements IEdsClient {
 		String msg = "Errore durante l'invocazione dell' API " + endpoint + ". Il sistema ha restituito un " + e1.getStatusCode();
 		throw new ServerResponseException(endpoint, msg, e1.getStatusCode(), e1.getRawStatusCode(), e1.getLocalizedMessage());
 	}
- 
 	
 }

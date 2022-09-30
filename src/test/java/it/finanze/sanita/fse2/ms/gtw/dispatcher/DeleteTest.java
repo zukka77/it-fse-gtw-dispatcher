@@ -142,13 +142,13 @@ class DeleteTest extends AbstractTest {
 			response.setEsito(status.is2xxSuccessful());
 			response.setErrorMessage(status.is2xxSuccessful() ? null : "Test error");
 			Mockito.doReturn(new ResponseEntity<>(response, status)).when(restTemplate)
-					.exchange(anyString(), eq(HttpMethod.DELETE), any(HttpEntity.class), ArgumentMatchers.eq(EdsTraceResponseDTO.class));
+					.exchange(anyString(), eq(HttpMethod.DELETE), eq(null), ArgumentMatchers.eq(EdsTraceResponseDTO.class));
 		} else if (status.is4xxClientError()) {
 			Mockito.doThrow(new RestClientException("")).when(restTemplate)
-					.exchange(anyString(), eq(HttpMethod.DELETE), any(HttpEntity.class), ArgumentMatchers.eq(EdsTraceResponseDTO.class));
+					.exchange(anyString(), eq(HttpMethod.DELETE), eq(null), ArgumentMatchers.eq(EdsTraceResponseDTO.class));
 		} else {
 			Mockito.doThrow(new BusinessException("")).when(restTemplate)
-					.exchange(anyString(), eq(HttpMethod.DELETE), any(HttpEntity.class), ArgumentMatchers.eq(EdsTraceResponseDTO.class));
+					.exchange(anyString(), eq(HttpMethod.DELETE), eq(null), ArgumentMatchers.eq(EdsTraceResponseDTO.class));
 		}
 	}
 
@@ -159,10 +159,7 @@ class DeleteTest extends AbstractTest {
 
 		final String urlReplace = "http://localhost:" + webServerAppCtxt.getWebServer().getPort() + webServerAppCtxt.getServletContext().getContextPath() + "/v1/documents/" + documentId;
 
-		Map<String, String> param = new HashMap<>();
-		param.put("identificativoDocUpdate", documentId);
-
-		HttpEntity<Map<String, String>> requestEntity = new HttpEntity<>(param, headers);
+		HttpEntity<?> requestEntity = new HttpEntity<>(null, headers);
 		return restTemplate.exchange(urlReplace, HttpMethod.DELETE, requestEntity, ResponseDTO.class);
 	}
 

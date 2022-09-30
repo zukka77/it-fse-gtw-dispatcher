@@ -3,6 +3,10 @@
  */
 package it.finanze.sanita.fse2.ms.gtw.dispatcher.client.impl;
 
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.IniMetadataUpdateReqDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.ProfileUtility;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
@@ -17,7 +21,6 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.exceptions.RecordNotFound
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.exceptions.ServerResponseException;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.MicroservicesURLCFG;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.DeleteRequestDTO;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.IniMetadataUpdateReqDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.IniTraceResponseDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.INIErrorEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.BusinessException;
@@ -40,6 +43,9 @@ public class IniClient implements IIniClient {
 	private transient RestTemplate restTemplate;
 
 	@Autowired
+	private transient ProfileUtility profileUtility;
+
+	@Autowired
 	private MicroservicesURLCFG msUrlCFG;
 
 	@Override
@@ -51,19 +57,15 @@ public class IniClient implements IIniClient {
 
 			// Build headers.
 			HttpEntity<Object> entity = new HttpEntity<>(iniReq, null);
-
+			
 			// Build endpoint e call.
-			ResponseEntity<IniTraceResponseDTO> restExchange = restTemplate.exchange(msUrlCFG.getIniClientHost() + "/v1/ini-delete", HttpMethod.DELETE, entity, IniTraceResponseDTO.class);
+			String endpoint = msUrlCFG.getIniClientHost() + Constants.Client.Ini.DELETE_PATH;
+			ResponseEntity<IniTraceResponseDTO> restExchange = restTemplate.exchange(endpoint, HttpMethod.DELETE, entity, IniTraceResponseDTO.class);
+
+			// Gestione response
 			output = restExchange.getBody();
-			if (output != null && Boolean.FALSE.equals(output.getEsito())) {
-				if (output.getErrorMessage().equals(INIErrorEnum.RECORD_NOT_FOUND.toString())){
-					throw new RecordNotFoundException(output.getErrorMessage());
-				}
-				throw new BusinessException(output.getErrorMessage());
-			} else {
-				throw new BusinessException("Failed delete on ini");
-			}
-		} catch(RecordNotFoundException e0) { 
+			this.checkResponseFromIni(output);
+		} catch(RecordNotFoundException | BusinessException e0) {
 			throw e0;
 		} catch (HttpClientErrorException e1) {
 			errorHandler(e1, "/delete");
@@ -74,8 +76,7 @@ public class IniClient implements IIniClient {
 
 		return output;
 	}
-
-
+	
 	/**
 	 * Error handler.
 	 *
@@ -87,11 +88,9 @@ public class IniClient implements IIniClient {
 		String msg = "Errore durante l'invocazione dell' API " + endpoint + ". Il sistema ha restituito un " + e1.getStatusCode();
 		throw new ServerResponseException(endpoint, msg, e1.getStatusCode(), e1.getRawStatusCode(), e1.getLocalizedMessage());
 	}
-
-
+	
 	@Override
 	public IniTraceResponseDTO updateMetadati(IniMetadataUpdateReqDTO iniReq) {
-
 		IniTraceResponseDTO out = null;
 		try {
 			log.debug("INI Client - Calling INI to execute update metadati :{}", iniReq.getIdDoc());
@@ -100,18 +99,13 @@ public class IniClient implements IIniClient {
 			HttpEntity<Object> entity = new HttpEntity<>(iniReq, null);
 
 			// Build endpoint e call.
-			ResponseEntity<IniTraceResponseDTO> restExchange = restTemplate.exchange(msUrlCFG.getIniClientHost() + "/v1/ini-update", HttpMethod.PUT, entity, IniTraceResponseDTO.class);
+			String endpoint = msUrlCFG.getIniClientHost() + Constants.Client.Ini.UPDATE_PATH;
+			ResponseEntity<IniTraceResponseDTO> restExchange = restTemplate.exchange(endpoint, HttpMethod.PUT, entity, IniTraceResponseDTO.class);
+
 			// Gestione response
 			out = restExchange.getBody();
-			if (out!=null && Boolean.FALSE.equals(out.getEsito())) {
-				if(out.getErrorMessage().equals(INIErrorEnum.RECORD_NOT_FOUND.toString())){
-					throw new RecordNotFoundException(out.getErrorMessage());
-				}
-				throw new BusinessException(out.getErrorMessage());
-			} else {
-				throw new BusinessException("Failed update metadati on ini");
-			}
-		} catch(RecordNotFoundException e0) {
+			this.checkResponseFromIni(out);
+		} catch(RecordNotFoundException | BusinessException e0) {
 			throw e0;
 		} catch (HttpStatusCodeException e2) {
 			errorHandler(e2, "/ini-update");
@@ -123,5 +117,22 @@ public class IniClient implements IIniClient {
 		return out;
 	}
 
-
+	/**
+	 * Check response from INI
+	 * @param out
+	 */
+	private void checkResponseFromIni(IniTraceResponseDTO out) {
+		if (!profileUtility.isDevProfile() && out != null && Boolean.FALSE.equals(out.getEsito())) {
+			if (!StringUtils.isEmpty(out.getErrorMessage())) {
+				boolean notFound = out.getErrorMessage().equals(INIErrorEnum.RECORD_NOT_FOUND.toString());
+				if (notFound) {
+					throw new RecordNotFoundException(out.getErrorMessage());
+				} else {
+					throw new BusinessException(out.getErrorMessage());
+				}
+			} else {
+				throw new BusinessException("INI operation(): Generic error");
+			}
+		}
+	}
 }

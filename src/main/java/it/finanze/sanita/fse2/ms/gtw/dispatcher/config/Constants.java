@@ -135,6 +135,23 @@ public final class Constants {
 		}
 
 	}
+
+	public static final class Client {
+		private Client() {}
+		public static final class Ini {
+			private Ini() {}
+
+			public static final String DELETE_PATH = "/v1/ini-delete";
+			public static final String UPDATE_PATH = "/v1/ini-update";
+		}
+
+		public static final class Eds {
+			private Eds() {}
+			public static final String DELETE_PATH = "/v1/documents/{idDoc}";
+			public static final String UPDATE_PATH = "/v1/documents/{idDoc}/metadata";
+			public static final String ID_DOC_PLACEHOLDER = "{idDoc}";
+		}
+	}
   
 	/**
 	 *	Constants.
