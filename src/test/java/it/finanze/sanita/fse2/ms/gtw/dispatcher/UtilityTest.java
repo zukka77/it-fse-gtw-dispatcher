@@ -31,7 +31,7 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ErrorLogEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.OperationLogEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ResultLogEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.UIDModeEnum;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.impl.KafkaLoggerSRV;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.logging.LoggerHelper;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.impl.UtilitySRV;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.CfUtility;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.FileUtility;
@@ -53,9 +53,8 @@ class UtilityTest extends AbstractTest{
     ValidationCFG validationCfg;
 
     @Autowired
-    KafkaLoggerSRV kafkaLogger;
+    LoggerHelper logger;
     
-
     @Test
     @DisplayName("Fiscal code check test")
     void fiscalCodeTest () {
@@ -157,10 +156,10 @@ class UtilityTest extends AbstractTest{
     @Test
     @DisplayName("Logger test")
     void loggerTest() {
-        assertDoesNotThrow(() -> kafkaLogger.trace("Trace", OperationLogEnum.PUB_CDA2, ResultLogEnum.KO, new Date(), "issuer"));
-        assertDoesNotThrow(() -> kafkaLogger.debug("Debug", OperationLogEnum.REDIS, ResultLogEnum.KO, new Date(), "issuer"));
-        assertDoesNotThrow(() -> kafkaLogger.error("Error", OperationLogEnum.TRAS_CDA2, ResultLogEnum.KO, new Date(), ErrorLogEnum.KO_FHIR, "issuer"));
-        assertDoesNotThrow(() -> kafkaLogger.info("Info", OperationLogEnum.REDIS, ResultLogEnum.KO, new Date(), "issuer"));
+        assertDoesNotThrow(() -> logger.trace("Trace", OperationLogEnum.PUB_CDA2, ResultLogEnum.KO, new Date(), "issuer"));
+        assertDoesNotThrow(() -> logger.debug("Debug", OperationLogEnum.REDIS, ResultLogEnum.KO, new Date(), "issuer"));
+        assertDoesNotThrow(() -> logger.error("Error", OperationLogEnum.TRAS_CDA2, ResultLogEnum.KO, new Date(), ErrorLogEnum.KO_FHIR, "issuer", Constants.App.MISSING_DOC_TYPE_PLACEHOLDER));
+        assertDoesNotThrow(() -> logger.info("Info", OperationLogEnum.REDIS, ResultLogEnum.KO, new Date(), "issuer", Constants.App.MISSING_DOC_TYPE_PLACEHOLDER));
     }
 
     @Test

@@ -15,12 +15,12 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.*;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.BusinessException;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.ConnectionRefusedException;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.ValidationException;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.logging.LoggerHelper;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.IDocumentReferenceSRV;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.IErrorHandlerSRV;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.IKafkaSRV;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.facade.ICdaFacadeSRV;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.impl.IniEdsInvocationSRV;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.impl.KafkaLoggerSRV;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.CdaUtility;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility;
 import lombok.extern.slf4j.Slf4j;
@@ -57,7 +57,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 	private IniEdsInvocationSRV iniInvocationSRV;
 
 	@Autowired
-	private transient KafkaLoggerSRV kafkaLogger;
+	private transient LoggerHelper logger;
 
 	@Autowired
 	private ICdaFacadeSRV cdaSRV;
@@ -102,7 +102,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 			kafkaSRV.notifyChannel(validationInfo.getKafkaKey(), new Gson().toJson(kafkaValue), priorityType, validationInfo.getJsonObj().getTipoDocumentoLivAlto(), DestinationTypeEnum.INDEXER);
 			kafkaSRV.sendPublicationStatus(traceInfoDTO.getTraceID(), validationInfo.getValidationData().getWorkflowInstanceId(), EventStatusEnum.SUCCESS, null, validationInfo.getJsonObj(), validationInfo.getJwtToken() != null ? validationInfo.getJwtToken().getPayload() : null);
 			
-			kafkaLogger.info(String.format("Publication CDA completed for workflow instance id %s", validationInfo.getValidationData().getWorkflowInstanceId()), OperationLogEnum.PUB_CDA2, ResultLogEnum.OK, startDateOperation, validationInfo.getJwtToken().getPayload().getIss());
+			logger.info(String.format("Publication CDA completed for workflow instance id %s", validationInfo.getValidationData().getWorkflowInstanceId()), OperationLogEnum.PUB_CDA2, ResultLogEnum.OK, startDateOperation, validationInfo.getJwtToken().getPayload().getIss(), CdaUtility.getDocumentType(validationInfo.getDocument()));
 		} catch (ConnectionRefusedException ce) {
 			errorHandlerSRV.connectionRefusedExceptionHandler(startDateOperation, validationInfo.getValidationData(), validationInfo.getJwtToken(), validationInfo.getJsonObj(), traceInfoDTO, ce,
 					true, CdaUtility.getDocumentType(validationInfo.getDocument()));
@@ -148,7 +148,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 				kafkaSRV.notifyChannel(validationInfo.getKafkaKey(), new Gson().toJson(kafkaValue), PriorityTypeEnum.LOW, validationInfo.getJsonObj().getTipoDocumentoLivAlto(), DestinationTypeEnum.INDEXER);
 				kafkaSRV.sendReplaceStatus(traceInfoDTO.getTraceID(), validationInfo.getValidationData().getWorkflowInstanceId(), EventStatusEnum.SUCCESS, null, validationInfo.getJsonObj(), validationInfo.getJwtToken() != null ? validationInfo.getJwtToken().getPayload() : null);
 
-				kafkaLogger.info(String.format("Replace CDA completed for workflow instance id %s", validationInfo.getValidationData().getWorkflowInstanceId()), OperationLogEnum.REPLACE_CDA2, ResultLogEnum.OK, startDateOperation, validationInfo.getJwtToken().getPayload().getIss());
+				logger.info(String.format("Replace CDA completed for workflow instance id %s", validationInfo.getValidationData().getWorkflowInstanceId()), OperationLogEnum.REPLACE_CDA2, ResultLogEnum.OK, startDateOperation, validationInfo.getJwtToken().getPayload().getIss(), CdaUtility.getDocumentType(validationInfo.getDocument()));
 			} catch (ConnectionRefusedException ce) {
 				errorHandlerSRV.connectionRefusedExceptionHandler(startDateOperation, validationInfo.getValidationData(), validationInfo.getJwtToken(), validationInfo.getJsonObj(), traceInfoDTO, ce,
 						false, CdaUtility.getDocumentType(validationInfo.getDocument()));
@@ -168,8 +168,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 
 
 	@Override
-	public ResponseEntity<ResponseDTO> updateMetadata(final String identificativoDoc,
-													  final PublicationMetadataReqDTO requestBody, final HttpServletRequest request) {
+	public ResponseEntity<ResponseDTO> updateMetadata(final String identificativoDoc, final PublicationMetadataReqDTO requestBody, final HttpServletRequest request) {
 		
 		// Estrazione token
 		JWTTokenDTO jwtToken = null;
@@ -184,13 +183,10 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 
 			PublicationMetadataReqDTO jsonObj = StringUtility.fromJSONJackson(request.getParameter("requestBody"), PublicationMetadataReqDTO.class);
 
-			// Esecuzione richiesta verso ini-client
 			iniClient.updateMetadati(new IniMetadataUpdateReqDTO(identificativoDoc, jwtToken.getPayload(), jsonObj));
-
-			// Call to eds-client mock endpoint
 			edsClient.update(new EdsMetadataUpdateReqDTO(identificativoDoc, null, jsonObj));
 
-			kafkaLogger.info(String.format("Update of CDA metadata completed for document with identifier %s", identificativoDoc), OperationLogEnum.UPDATE_METADATA_CDA2, ResultLogEnum.OK, startDateOperation, jwtToken.getPayload().getIss());
+			logger.info(String.format("Update of CDA metadata completed for document with identifier %s", identificativoDoc), OperationLogEnum.UPDATE_METADATA_CDA2, ResultLogEnum.OK, startDateOperation, jwtToken.getPayload().getIss(), Constants.App.MISSING_DOC_TYPE_PLACEHOLDER);
 		} catch (Exception e) {
 			final String issuer = jwtToken != null ? jwtToken.getPayload().getIss() : Constants.App.JWT_MISSING_ISSUER_PLACEHOLDER;
 			RestExecutionResultEnum errorInstance = RestExecutionResultEnum.GENERIC_ERROR;
@@ -199,7 +195,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 			}
 
 			log.error(String.format("Error encountered while updating CDA metadata with identifier %s", identificativoDoc), e);
-			kafkaLogger.error(String.format("Error while updating CDA metadata of document with identifier %s", identificativoDoc), OperationLogEnum.UPDATE_METADATA_CDA2, ResultLogEnum.KO, startDateOperation, errorInstance.getErrorCategory(), issuer);
+			logger.error(String.format("Error while updating CDA metadata of document with identifier %s", identificativoDoc), OperationLogEnum.UPDATE_METADATA_CDA2, ResultLogEnum.KO, startDateOperation, errorInstance.getErrorCategory(), issuer, Constants.App.MISSING_DOC_TYPE_PLACEHOLDER);
 			throw e;
 		}
 		
@@ -295,7 +291,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 			iniClient.delete(iniReq);
 			edsClient.delete(identificativoDocUpdate);
 	
-			kafkaLogger.info(String.format("Deletion of CDA completed for document with identifier %s", identificativoDocUpdate), OperationLogEnum.DELETE_CDA2, ResultLogEnum.OK, startDateOperation, jwtToken.getPayload().getIss());
+			logger.info(String.format("Deletion of CDA completed for document with identifier %s", identificativoDocUpdate), OperationLogEnum.DELETE_CDA2, ResultLogEnum.OK, startDateOperation, jwtToken.getPayload().getIss(), Constants.App.MISSING_DOC_TYPE_PLACEHOLDER);
 		} catch (Exception e) {
 			final String issuer = jwtToken != null ? jwtToken.getPayload().getIss() : Constants.App.JWT_MISSING_ISSUER_PLACEHOLDER;
 			RestExecutionResultEnum errorInstance = RestExecutionResultEnum.GENERIC_ERROR;
@@ -304,7 +300,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 			}
 
 			log.error(String.format("Error encountered while deleting CDA with identifier %s", identificativoDocUpdate), e);
-			kafkaLogger.error(String.format("Error while deleting CDA of document with identifier %s", identificativoDocUpdate), OperationLogEnum.DELETE_CDA2, ResultLogEnum.KO, startDateOperation, errorInstance.getErrorCategory(), issuer);
+			logger.error(String.format("Error while deleting CDA of document with identifier %s", identificativoDocUpdate), OperationLogEnum.DELETE_CDA2, ResultLogEnum.KO, startDateOperation, errorInstance.getErrorCategory(), issuer, Constants.App.MISSING_DOC_TYPE_PLACEHOLDER);
 			throw e;
 		}
 		

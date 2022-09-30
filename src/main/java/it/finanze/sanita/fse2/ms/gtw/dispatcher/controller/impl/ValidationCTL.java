@@ -23,17 +23,16 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventStatusEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.OperationLogEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ResultLogEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.ValidationException;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.logging.LoggerHelper;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.IErrorHandlerSRV;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.IKafkaSRV;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.impl.KafkaLoggerSRV;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.CdaUtility;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility;
 
 /**
+ * Validation controller.
  *
  * @author CPIERASC
- *
- *         Validation controller.
  */
 @RestController
 public class ValidationCTL extends AbstractCTL implements IValidationCTL {
@@ -47,7 +46,7 @@ public class ValidationCTL extends AbstractCTL implements IValidationCTL {
 	private IKafkaSRV kafkaSRV;
 
 	@Autowired
-	private transient KafkaLoggerSRV kafkaLogger;
+	private transient LoggerHelper logger;
 
 	@Autowired
 	private transient IErrorHandlerSRV errorHandlerSRV;
@@ -93,11 +92,13 @@ public class ValidationCTL extends AbstractCTL implements IValidationCTL {
 					&& !StringUtility.isNullOrEmpty(jwtToken.getPayload().getIss())) ? jwtToken.getPayload().getIss()
 							: Constants.App.JWT_MISSING_ISSUER_PLACEHOLDER;
 
-			kafkaLogger.info("Validation CDA completed for workflow instance Id " + workflowInstanceId,
-					OperationLogEnum.VAL_CDA2, ResultLogEnum.OK, startDateOperation, issuer);
+			logger.info("Validation CDA completed for workflow instance Id " + workflowInstanceId,
+					OperationLogEnum.VAL_CDA2, ResultLogEnum.OK, startDateOperation, issuer,
+					CdaUtility.getDocumentType(docT));
 			request.setAttribute("JWT_ISSUER", issuer);
 		} catch (final ValidationException e) {
-			errorHandlerSRV.validationExceptionHandler(startDateOperation, traceInfoDTO, workflowInstanceId, jwtToken, e, CdaUtility.getDocumentType(docT));
+			errorHandlerSRV.validationExceptionHandler(startDateOperation, traceInfoDTO, workflowInstanceId, jwtToken,
+					e, CdaUtility.getDocumentType(docT));
 		}
 
 		if (jsonObj != null && jsonObj.getMode() == null) {
