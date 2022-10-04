@@ -51,7 +51,6 @@ public class LoggerHelper {
 		final String logMessage = StringUtility.toJSON(logDTO);
 		log.trace(logMessage);
 
-		log.info("Kafka log enable : " + kafkaLogEnable);
 		if (Boolean.TRUE.equals(kafkaLogEnable)) {
 			kafkaLog.trace(logMessage);
 		}
@@ -71,7 +70,6 @@ public class LoggerHelper {
 		
 		final String logMessage = StringUtility.toJSON(logDTO);
 		log.debug(logMessage);
-		log.info("Kafka log enable : " + kafkaLogEnable);
 		if (Boolean.TRUE.equals(kafkaLogEnable)) {
 			kafkaLog.debug(logMessage);
 		}
@@ -92,7 +90,6 @@ public class LoggerHelper {
 		
 		final String logMessage = StringUtility.toJSON(logDTO);
 		log.info(logMessage);
-		log.info("Kafka log enable : " + kafkaLogEnable);
 		if (Boolean.TRUE.equals(kafkaLogEnable)) {
 			kafkaLog.info(logMessage);
 			log.info("After send kafka message");
@@ -113,7 +110,6 @@ public class LoggerHelper {
 		
 		final String logMessage = StringUtility.toJSON(logDTO);
 		log.warn(logMessage);
-		log.info("Kafka log enable : " + kafkaLogEnable);
 		if (Boolean.TRUE.equals(kafkaLogEnable)) {
 			kafkaLog.warn(logMessage);
 		}
@@ -138,7 +134,6 @@ public class LoggerHelper {
 		
 		final String logMessage = StringUtility.toJSON(logDTO);
 		log.error(logMessage);
-		log.info("Kafka log enable : " + kafkaLogEnable);
 		if (Boolean.TRUE.equals(kafkaLogEnable)) {
 			kafkaLog.error(logMessage);
 		}

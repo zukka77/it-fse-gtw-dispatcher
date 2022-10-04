@@ -60,12 +60,12 @@ public class FhirMappingClient implements IFhirMappingClient {
 
 				HttpEntity<LinkedMultiValueMap<String, Object>> requestEntity = new HttpEntity<>(map, headers);			
 				response = restTemplate.exchange(msUrlCFG.getFhirMappingEngineHost() + "/v1/documents/transform", HttpMethod.POST, requestEntity, TransformResDTO.class);	
-				log.info("{} status returned from Fhir mapping engine Client", response.getStatusCode());
+				log.debug("{} status returned from Fhir mapping engine Client", response.getStatusCode());
 			} else {
 				headers.set("Content-Type", "application/json");
 				HttpEntity<?> entityXslm = new HttpEntity<>(resourceToConvert, headers);
 				response = restTemplate.exchange(msUrlCFG.getFhirMappingHost() + "/v1/documents/transform", HttpMethod.POST, entityXslm, TransformResDTO.class);
-				log.info("{} status returned from Fhir mapping Client", response.getStatusCode());
+				log.debug("{} status returned from Fhir mapping Client", response.getStatusCode());
 			}
 			out = response.getBody();
 			log.debug("{} status returned from Fhir Mapping Client", response.getStatusCode());

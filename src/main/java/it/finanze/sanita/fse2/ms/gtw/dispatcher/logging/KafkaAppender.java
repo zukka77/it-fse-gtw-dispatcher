@@ -124,11 +124,11 @@ public class KafkaAppender<E> extends KafkaAppenderConfig<E> {
 
         final Producer<byte[], byte[]> producer = lazyProducer.get();
         if (producer != null) {
-        	log.info("Send message log with lazy producer");
-        	log.info("Delivery strategy : " + deliveryStrategy);
+        	log.debug("Send message log with lazy producer");
+        	log.debug("Delivery strategy : " + deliveryStrategy);
             deliveryStrategy.send(lazyProducer.get(), record, e, failedDeliveryCallback);
         } else {
-        	log.info("Failed send msg");
+        	log.warn("Failed send msg");
             failedDeliveryCallback.onFailedDelivery(e, null);
         }
     }
@@ -144,9 +144,9 @@ public class KafkaAppender<E> extends KafkaAppenderConfig<E> {
     protected Producer<byte[], byte[]> createProducer() {
     	Producer<byte[], byte[]> out = null;
     	try {
-    		log.info("Create producer log");
+    		log.debug("Create producer log");
     		for(Entry<String, Object> prod : producerConfig.entrySet()) {
-    			log.info("KEY : " + prod.getKey() + " VALUE:" + prod.getValue());
+    			log.debug("KEY : " + prod.getKey() + " VALUE:" + prod.getValue());
     		}
     		out = new KafkaProducer<>(new HashMap<>(producerConfig));
     	} catch(Exception ex) {
@@ -190,7 +190,7 @@ public class KafkaAppender<E> extends KafkaAppenderConfig<E> {
         protected Producer<byte[], byte[]> initialize() {
             Producer<byte[], byte[]> producer = null;
             try {
-            	log.info("Inizializzazione producer log");
+            	log.debug("Inizializzazione producer log");
                 producer = createProducer();
             } catch (Exception e) {
             	log.error("Error creating producer :", e);

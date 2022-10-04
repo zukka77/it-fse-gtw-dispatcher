@@ -59,13 +59,13 @@ public class PriorityUtility {
      */
     private String computePriorityPerDocumentType(TipoDocAltoLivEnum documentType) {
         if (priorityDocumentCFG.getLowPriorityDocuments().contains(documentType.getCode())) {
-            log.info("Low priority document: {}", documentType.getCode());
+            log.debug("Low priority document: {}", documentType.getCode());
             return Constants.Misc.LOW_PRIORITY;
         } else if (priorityDocumentCFG.getMediumPriorityDocuments().contains(documentType.getCode())) {
-            log.info("Medium priority document: {}", documentType.getCode());
+            log.debug("Medium priority document: {}", documentType.getCode());
             return Constants.Misc.MEDIUM_PRIORITY;
         } else {
-            log.info("High priority document: {}", documentType.getCode());
+            log.debug("High priority document: {}", documentType.getCode());
             return Constants.Misc.HIGH_PRIORITY;
         }
     }
