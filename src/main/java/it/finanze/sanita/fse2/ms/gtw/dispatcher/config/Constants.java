@@ -45,8 +45,17 @@ public final class Constants {
 		 
 		public static final class Collections {
 
-			public static final String INI_EDS_INVOCATION = "ini_eds_invocation";
+			/** 
+			 * INI EDS Invocation Collection 
+			 */
+			public static final String INI_EDS_INVOCATION = "ini_eds_invocation"; 
+			
+			/** 
+			 * Collection where validated documents info is saved
+			 */
+			public static final String VALIDATED_DOCUMENTS = "validated_documents"; 
 
+			
 			private Collections() {
 
 			}
