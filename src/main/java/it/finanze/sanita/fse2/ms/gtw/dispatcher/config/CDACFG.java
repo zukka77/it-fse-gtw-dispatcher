@@ -22,7 +22,5 @@ public class CDACFG {
 	/** 
      *  CDA validation ttl.
      */
-	@Value("${cda.redis.validation-ttl}")
-	private Long validationTTL;
 	
 }

@@ -11,21 +11,25 @@ import static org.mockito.Mockito.when;
 import java.io.File;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Map;
 
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.ComponentScan;
+import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.web.client.HttpClientErrorException;
@@ -53,6 +57,8 @@ import lombok.extern.slf4j.Slf4j;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ComponentScan(basePackages = {Constants.ComponentScan.BASE})
 @ActiveProfiles(Constants.Profile.TEST)
+@TestInstance(Lifecycle.PER_CLASS)
+
 class ValidationTest extends AbstractTest {
 
 
@@ -87,6 +93,23 @@ class ValidationTest extends AbstractTest {
 
 	@MockBean
 	IValidatorClient validatorClient;
+
+	@Autowired
+    public MongoTemplate mongo;
+
+	@BeforeAll
+	void createCollection(){
+		ValidatedDocumentsETY ety = new ValidatedDocumentsETY();
+		ety.setHashCda("hdkdkd");
+		ety.setInsertionDate(new Date());
+
+        mongo.save(ety);
+	}
+
+	@AfterAll
+	void dropCollection(){
+		mongo.dropCollection("validated_documents");
+	}
 
 	@BeforeEach
 	void mockValidatorClient() {

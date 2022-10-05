@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 /**
  * Model to save validated documents info.
  */
-@Document(collection = "{@validatedDocumentsBean}")
+@Document(collection = "#{@validatedDocumentsBean}")
 @Data
 @NoArgsConstructor
 public class ValidatedDocumentsETY {

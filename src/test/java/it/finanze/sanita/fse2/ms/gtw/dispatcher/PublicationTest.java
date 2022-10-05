@@ -14,7 +14,8 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.PublicationResDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.ValidationResDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.client.TransformResDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.*;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.repository.redis.impl.CdaRepo;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.repository.entity.ValidatedDocumentsETY;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.repository.mongo.impl.ValidatedDocumentsRepo;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.facade.ICdaFacadeSRV;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.FileUtility;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility;
@@ -70,7 +71,7 @@ class PublicationTest extends AbstractTest {
 	private MicroservicesURLCFG msCfg;
 
 	@Autowired
-	private CdaRepo cdaRepo;
+	private ValidatedDocumentsRepo cdaRepo;
 
 	@Test
 	void t1() {
@@ -119,8 +120,7 @@ class PublicationTest extends AbstractTest {
 			transactionId = firstKey.get();
 		}
 
-		cdaRepo.create("6XpKL8W/lQjXvnZ24wFNts5itL07id7suEe+YluhfcY=", "wfid");
-
+		cdaRepo.create(ValidatedDocumentsETY.setContent("6XpKL8W/lQjXvnZ24wFNts5itL07id7suEe+YluhfcY=", "wfid"));
 		PublicationCreationReqDTO reqDTO = buildReqDTO();
 
 		RestExecutionResultEnum resPublication = callPublication(pdfAttachment, reqDTO, transactionId, false, true);
@@ -446,7 +446,7 @@ class PublicationTest extends AbstractTest {
 			transactionId = firstKey.get();
 		}
 
-		cdaRepo.create("6XpKL8W/lQjXvnZ24wFNts5itL07id7suEe+YluhfcY=", "wfid");
+		cdaRepo.create(ValidatedDocumentsETY.setContent("6XpKL8W/lQjXvnZ24wFNts5itL07id7suEe+YluhfcY=", "wfid"));
 		PublicationCreationReqDTO reqDTO = buildReqDTO();
 
 		final RestExecutionResultEnum resPublication = callPublication(pdfAttachment, reqDTO, transactionId, msCfg.getFromGovway(), true);

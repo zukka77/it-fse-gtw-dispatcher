@@ -10,6 +10,7 @@ import org.springframework.stereotype.Repository;
 import com.mongodb.MongoException;
 import com.mongodb.client.result.DeleteResult;
 
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.ValidationDataDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.BusinessException;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.repository.entity.ValidatedDocumentsETY;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.repository.mongo.IValidatedDocumentsRepo;
@@ -83,18 +84,34 @@ public class ValidatedDocumentsRepo implements IValidatedDocumentsRepo {
         return output;
     }
 
+    ValidationDataDTO parseEtyToDTo (ValidatedDocumentsETY ety){
+        // se output null oggetto con validatedFalse
+        ValidationDataDTO dto = new ValidationDataDTO();
+        if (ety == null){
+            dto.setCdaValidated(false);
+        } else {
+            dto.setHash(ety.getHashCda());
+            dto.setCdaValidated(true);
+            dto.setWorkflowInstanceId(ety.getWorkflowInstanceId());
+        }
+        return dto;
+    }
+
     @Override
-    public ValidatedDocumentsETY findItemByHash(String hash) {
-        ValidatedDocumentsETY output;
+    public ValidationDataDTO findItemByHash(String hash) {
+        ValidationDataDTO output;
+        ValidatedDocumentsETY ety;
         Query query = new Query();
         query.addCriteria(
             Criteria.where("hash_cda").is(hash)
         );
         try {
-            output = mongoTemplate.findOne(query, ValidatedDocumentsETY.class);
+            ety = mongoTemplate.findOne(query, ValidatedDocumentsETY.class);
+            output = parseEtyToDTo(ety);
         } catch(MongoException e){
             throw new BusinessException("Unable to retrieve validated doc by hash", e);
         }
+
         return output;
     }
 }

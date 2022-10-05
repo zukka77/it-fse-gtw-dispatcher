@@ -7,7 +7,6 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.ValidationDataDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.BusinessException;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.repository.entity.ValidatedDocumentsETY;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.repository.mongo.IValidatedDocumentsRepo;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.repository.redis.ICdaRepo;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.ICdaSRV;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility;
 import lombok.extern.slf4j.Slf4j;
@@ -25,9 +24,6 @@ public class CdaSRV implements ICdaSRV {
 	 * Serial version uid.
 	 */
 	private static final long serialVersionUID = -1000397559663801763L;
-	
-	@/* Autowired
-	private ICdaRepo cdaRepo; */
 
 	@Autowired 
 	private IValidatedDocumentsRepo cdaRepo;
@@ -45,13 +41,13 @@ public class CdaSRV implements ICdaSRV {
 		}
 	}
 	
-	@Override
-	public ValidatedDocumentsETY get(final String hash) {
+	@Override // la get deve tornare una stringa 
+	public String get(final String hash) {
 		try {
-			return cdaRepo.findItemByHash(hash);
+			return cdaRepo.findItemByHash(hash).getWorkflowInstanceId(); // tornava un validation DTO 
 		} catch(Exception ex) {
 			log.error("Error getting entity from Mongo", ex);
-			throw new BusinessException("Error getting entity from Redis", ex);
+			throw new BusinessException("Error getting entity from Mongo", ex);
 		}
 	}
 
