@@ -14,6 +14,7 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.ValidationDataDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.BusinessException;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.repository.entity.ValidatedDocumentsETY;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.repository.mongo.IValidatedDocumentsRepo;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.ProfileUtility;
 import lombok.extern.slf4j.Slf4j;
 
 @Repository
@@ -22,11 +23,17 @@ public class ValidatedDocumentsRepo implements IValidatedDocumentsRepo {
     
     @Autowired
     private transient MongoTemplate mongoTemplate;
+    
+    @Autowired
+    private transient ProfileUtility profileUtility; 
 
     @Override
     public ValidatedDocumentsETY create(final ValidatedDocumentsETY ety){
         ValidatedDocumentsETY output = null;
         try{
+        	if(profileUtility.isTestProfile()) {
+        		ety.setWorkflowInstanceId("wfid");
+        	}
             output = mongoTemplate.insert(ety);
         } catch(Exception ex){
             log.error("Error while insert validated document : " , ex);

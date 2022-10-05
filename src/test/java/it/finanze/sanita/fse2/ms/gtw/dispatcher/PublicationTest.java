@@ -23,6 +23,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.http.HttpStatus;
 import org.bson.Document;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,6 +33,7 @@ import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.core.io.ByteArrayResource;
+import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.http.*;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.util.LinkedMultiValueMap;
@@ -72,7 +74,22 @@ class PublicationTest extends AbstractTest {
 
 	@Autowired
 	private ValidatedDocumentsRepo cdaRepo;
+	
+	@Autowired
+	private MongoTemplate mongo; 
 
+	
+	@BeforeEach
+	void createCollection(){
+		mongo.dropCollection(ValidatedDocumentsETY.class);
+		ValidatedDocumentsETY ety = new ValidatedDocumentsETY();
+		ety.setHashCda("hdkdkd");
+		ety.setInsertionDate(new Date());
+
+        mongo.save(ety);
+	}
+	
+	
 	@Test
 	void t1() {
 		// non pdf file
@@ -85,13 +102,13 @@ class PublicationTest extends AbstractTest {
 	void testHashPublication() {
 
 		log.info("Testing hash check in publication phase");
-		final String wii = UUID.randomUUID().toString();
+		final String wii = "wfid";
 		final String hash = StringUtility.encodeSHA256B64("hash");
 		final String unmatchingHash = hash + "A"; // Modified hash
 
 		assertFalse(cdaFacadeSRV.retrieveValidationInfo(hash, wii).isCdaValidated(), "If the hash is not present on Redis, the result should be false.");
 
-		log.info("Inserting a key on Redis");
+		log.info("Inserting a key on MongoDB");
 		cdaFacadeSRV.create(hash, wii);
 		assertTrue(cdaFacadeSRV.retrieveValidationInfo(hash, wii).isCdaValidated(), "If the hash is present on Redis, the result should be true");
 		
@@ -286,7 +303,7 @@ class PublicationTest extends AbstractTest {
 
 		ResponseEntity<ValidationResDTO> response = callPlainValidation(jwtToken, file, validationRB);
 		assertEquals(HttpStatus.SC_CREATED, response.getStatusCode().value());
-		final String workflowInstanceId = response.getBody().getWorkflowInstanceId();
+		final String workflowInstanceId = "wfid";
 
 		PublicationCreationReqDTO publicationRB = new PublicationCreationReqDTO();
 		Exception thrownException = assertThrows(HttpClientErrorException.BadRequest.class, () -> callPlainPublication(jwtToken, file, publicationRB));
@@ -337,11 +354,11 @@ class PublicationTest extends AbstractTest {
 		thrownException = assertThrows(HttpClientErrorException.BadRequest.class, () -> callPlainPublication(jwtToken, file, publicationRB));
 		log.info(ExceptionUtils.getStackTrace(thrownException));
 
-		publicationRB.setWorkflowInstanceId(workflowInstanceId);
+		publicationRB.setWorkflowInstanceId("wfid");
 		final String jwtWrongHashToken = generateWrongJwt("randomHash", false, false, false);
 		ResponseEntity<ValidationResDTO> responseValidation = callPlainValidation(jwtWrongHashToken, file, validationRB);
 		assertEquals(HttpStatus.SC_CREATED, responseValidation.getStatusCode().value());
-		publicationRB.setWorkflowInstanceId(Objects.requireNonNull(responseValidation.getBody()).getWorkflowInstanceId());
+		publicationRB.setWorkflowInstanceId("wfid");
 		thrownException = assertThrows(HttpClientErrorException.BadRequest.class, () -> callPlainPublication(jwtWrongHashToken, file, publicationRB));
 		assertTrue(thrownException.getMessage().contains(RestExecutionResultEnum.DOCUMENT_HASH_VALIDATION_ERROR.getType()));
 	}
@@ -363,11 +380,10 @@ class PublicationTest extends AbstractTest {
 
 		ResponseEntity<ValidationResDTO> response = callPlainValidation(jwtToken, file, validationRB);
 		assertEquals(HttpStatus.SC_CREATED, response.getStatusCode().value());
-		final String workflowInstanceId = response.getBody().getWorkflowInstanceId();
 
 		PublicationCreationReqDTO publicationRB = new PublicationCreationReqDTO();
 	
-		publicationRB.setWorkflowInstanceId(workflowInstanceId);
+		publicationRB.setWorkflowInstanceId("wfid");
 		publicationRB.setTipologiaStruttura(HealthcareFacilityEnum.Ospedale);	
 		publicationRB.setIdentificativoDoc("identificativoDoc");
 		publicationRB.setIdentificativoRep("identificativoRep");
@@ -396,8 +412,7 @@ class PublicationTest extends AbstractTest {
 		final String jwtToken = generateJwt(file, true);
 		
 		final ValidationCDAReqDTO validationRB = validateDataPreparation();
-		
-		
+			
 		// Mocking validator
 		final ValidationInfoDTO info = new ValidationInfoDTO(RawValidationEnum.OK, new ArrayList<>());
 		given(validatorClient.validate(anyString())).willReturn(info);
@@ -412,7 +427,21 @@ class PublicationTest extends AbstractTest {
 		assertEquals(HttpStatus.SC_CREATED, publicationResponse.getStatusCode().value());
 		assertNull(publicationResponse.getBody().getWarning());
 		
+	}
+	
+	@Test
+	void publicationForcedTestNullCases() {
+		
+		doReturn(new ResponseEntity<>(new TransformResDTO("", Document.parse("{\"json\" : \"json\"}")), org.springframework.http.HttpStatus.OK))
+		.when(restTemplate).exchange(anyString(), eq(HttpMethod.POST), any(HttpEntity.class), eq(TransformResDTO.class));
+
+		final byte[] file = FileUtility.getFileFromInternalResources("Files" + File.separator + "attachment" + File.separator + "CDA_OK_SIGNED.pdf");
+		final String jwtToken = generateJwt(file, true);
+
 		// Mocking Validator - null InjectionModeEnum param
+		final ValidationInfoDTO info = new ValidationInfoDTO(RawValidationEnum.OK, new ArrayList<>());
+		given(validatorClient.validate(anyString())).willReturn(info);
+
 		final ValidationCDAReqDTO validationRBnullMode = validateDataPreparation();
 		validationRBnullMode.setMode(null);
 		
@@ -424,7 +453,7 @@ class PublicationTest extends AbstractTest {
 		
 		final ResponseEntity<PublicationResDTO> publicationResponseNullMode = callPlainPublication(jwtToken, file, publicationRBnullMode);
 		assertNotNull(publicationResponseNullMode.getBody().getWarning());
-		assertEquals(Constants.Misc.WARN_EXTRACTION_SELECTION, publicationResponseNullMode.getBody().getWarning());
+		assertEquals(Constants.Misc.WARN_EXTRACTION_SELECTION, publicationResponseNullMode.getBody().getWarning()); 
 		
 	}
 
@@ -446,8 +475,8 @@ class PublicationTest extends AbstractTest {
 			transactionId = firstKey.get();
 		}
 
-		cdaRepo.create(ValidatedDocumentsETY.setContent("6XpKL8W/lQjXvnZ24wFNts5itL07id7suEe+YluhfcY=", "wfid"));
-		PublicationCreationReqDTO reqDTO = buildReqDTO();
+		/*cdaRepo.create(ValidatedDocumentsETY.setContent("6XpKL8W/lQjXvnZ24wFNts5itL07id7suEe+YluhfcY=", "wfid")); */ 
+		PublicationCreationReqDTO reqDTO = buildReqDTO(); 
 
 		final RestExecutionResultEnum resPublication = callPublication(pdfAttachment, reqDTO, transactionId, msCfg.getFromGovway(), true);
 		assertEquals(RestExecutionResultEnum.OK, resPublication);

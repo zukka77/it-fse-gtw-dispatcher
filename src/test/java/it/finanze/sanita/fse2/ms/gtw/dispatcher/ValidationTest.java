@@ -97,8 +97,9 @@ class ValidationTest extends AbstractTest {
 	@Autowired
     public MongoTemplate mongo;
 
-	@BeforeAll
+	@BeforeEach
 	void createCollection(){
+		mongo.dropCollection(ValidatedDocumentsETY.class);
 		ValidatedDocumentsETY ety = new ValidatedDocumentsETY();
 		ety.setHashCda("hdkdkd");
 		ety.setInsertionDate(new Date());
@@ -106,10 +107,10 @@ class ValidationTest extends AbstractTest {
         mongo.save(ety);
 	}
 
-	@AfterAll
+	/*@AfterAll
 	void dropCollection(){
 		mongo.dropCollection("validated_documents");
-	}
+	} */ 
 
 	@BeforeEach
 	void mockValidatorClient() {
@@ -180,12 +181,16 @@ class ValidationTest extends AbstractTest {
     @DisplayName("Pre Publish Test")
     void prePublishTest() {
 
-    	byte[] pdfAttachment = FileUtility.getFileFromInternalResources("Files/attachment/pdf_msg_SATLED_LED_Lettera_di_Dimissione.pdf");
+    	byte[] pdfAttachment = FileUtility.getFileFromInternalResources("Files" + File.separator + 
+    			"attachment" + File.separator + "pdf_msg_SATLED_LED_Lettera_di_Dimissione.pdf");
     	byte[] pdfResource = FileUtility.getFileFromInternalResources("Files/resource/cert1.pdf");
 
     	Map<String, RestExecutionResultEnum> result = callValidation(ActivityEnum.VALIDATION, HealthDataFormatEnum.CDA, InjectionModeEnum.ATTACHMENT, pdfResource, true, false, true);
     	assertEquals(RestExecutionResultEnum.MINING_CDA_ERROR, result.values().iterator().next());
 
+    	result = callValidation(ActivityEnum.VALIDATION, HealthDataFormatEnum.CDA, InjectionModeEnum.RESOURCE, pdfAttachment, true, false, true);
+    	assertEquals(RestExecutionResultEnum.MINING_CDA_ERROR, result.values().iterator().next());
+    	
 		String cda = extractCDA(pdfAttachment);
 		String hashedCda = StringUtility.encodeSHA256B64(cda);
 
@@ -196,24 +201,52 @@ class ValidationTest extends AbstractTest {
     	assertEquals(RestExecutionResultEnum.OK, result.values().iterator().next());
     	assertNotNull(cdaSRV.get(hashedCda), "La transazione non deve essere presente.");
 
-		cda = extractCDA(pdfResource);
-		hashedCda = StringUtility.encodeSHA256B64(cda);
+    	
+    }
+    
+    @Test
+    @DisplayName("Pre Publish Test Second") 
+    void prePublishTestSecond() {
+    	
+    	byte[] pdfAttachment = FileUtility.getFileFromInternalResources("Files" + File.separator + 
+    			"attachment" + File.separator + "pdf_msg_SATLED_LED_Lettera_di_Dimissione.pdf");
+    	byte[] pdfResource = FileUtility.getFileFromInternalResources("Files/resource/cert1.pdf");
 
-    	result = callValidation(ActivityEnum.VALIDATION, HealthDataFormatEnum.CDA, InjectionModeEnum.RESOURCE, pdfResource, true, false, true);
+		String cda = extractCDA(pdfResource);
+		String hashedCda = StringUtility.encodeSHA256B64(cda);
+
+		Map<String, RestExecutionResultEnum> result = callValidation(ActivityEnum.VALIDATION, HealthDataFormatEnum.CDA, InjectionModeEnum.RESOURCE, pdfResource, true, false, true);
     	assertEquals(RestExecutionResultEnum.OK, result.values().iterator().next());
     	assertNotNull(cdaSRV.get(hashedCda), "La transazione non deve essere presente.");
 
+    	result = callValidation(ActivityEnum.VALIDATION, HealthDataFormatEnum.CDA, InjectionModeEnum.ATTACHMENT, pdfResource, true, false, true);
+    	assertEquals(RestExecutionResultEnum.MINING_CDA_ERROR, result.values().iterator().next());
+
 		cda = extractCDA(pdfAttachment);
 		hashedCda = StringUtility.encodeSHA256B64(cda);
-
+		
     	result = callValidation(ActivityEnum.VALIDATION, HealthDataFormatEnum.CDA, null, pdfAttachment, true, false, true);
     	assertEquals(RestExecutionResultEnum.OK, result.values().iterator().next());
     	assertNotNull(cdaSRV.get(hashedCda), "La transazione non deve essere presente.");
 
-		cda = extractCDA(pdfResource);
-		hashedCda = StringUtility.encodeSHA256B64(cda);
+    }
+    
+    @Test
+    @DisplayName("Pre Publish Test - Null Cases")
+    void prePublishTestNullCases() {
+    	
+    	byte[] pdfAttachment = FileUtility.getFileFromInternalResources("Files" + File.separator + 
+    			"attachment" + File.separator + "pdf_msg_SATLED_LED_Lettera_di_Dimissione.pdf");
+    	byte[] pdfResource = FileUtility.getFileFromInternalResources("Files/resource/cert1.pdf");
+    	
+		String cda = extractCDA(pdfResource);
+		String hashedCda = StringUtility.encodeSHA256B64(cda);
 
-    	result = callValidation(ActivityEnum.VALIDATION, HealthDataFormatEnum.CDA, null, pdfResource, true, false, true);
+		Map<String, RestExecutionResultEnum> result = callValidation(ActivityEnum.VALIDATION, HealthDataFormatEnum.CDA, null, pdfResource, true, false, true);
+    	assertEquals(RestExecutionResultEnum.OK, result.values().iterator().next());
+    	assertNotNull(cdaSRV.get(hashedCda), "La transazione non deve essere presente.");
+    	
+		result = callValidation(ActivityEnum.VALIDATION, HealthDataFormatEnum.CDA, null, pdfAttachment, true, false, true);
     	assertEquals(RestExecutionResultEnum.OK, result.values().iterator().next());
     	assertNotNull(cdaSRV.get(hashedCda), "La transazione non deve essere presente.");
 

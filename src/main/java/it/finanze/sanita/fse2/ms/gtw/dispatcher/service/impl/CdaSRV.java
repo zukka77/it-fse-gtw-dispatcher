@@ -32,7 +32,7 @@ public class CdaSRV implements ICdaSRV {
 	public void create(final String hashedCDA, final String wii) {
 		if (cdaRepo.isItemInserted(hashedCDA)){
 			throw new BusinessException("Cannot insert the given document, it already exists");
-		}
+		}  
 		try {
 			cdaRepo.create(ValidatedDocumentsETY.setContent(hashedCDA, wii));
 		} catch(Exception ex) {
