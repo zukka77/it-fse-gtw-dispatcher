@@ -3,6 +3,7 @@ package it.finanze.sanita.fse2.ms.gtw.dispatcher.service.facade;
 import java.io.Serializable;
 
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.ValidationDataDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.repository.entity.ValidatedDocumentsETY;
 
 /**
  * @author vincenzoingenito
@@ -25,7 +26,7 @@ public interface ICdaFacadeSRV extends Serializable {
 	 * @param hash The key to search.
 	 * @return The value of the key: {@code hash}.
 	 */
-	String get(String hash);
+	ValidatedDocumentsETY get(String hash);
 
 	/**
 	 * Check presence of the hash on Redis for the transaction Id.

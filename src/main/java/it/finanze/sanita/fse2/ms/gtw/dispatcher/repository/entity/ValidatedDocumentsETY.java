@@ -1,7 +1,6 @@
 package it.finanze.sanita.fse2.ms.gtw.dispatcher.repository.entity;
 
 import java.util.Date;
-import java.util.List;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -37,6 +36,16 @@ public class ValidatedDocumentsETY {
 	private String primaryKeySchema; 
 	
 	@Field(name = "insertion_date")
-	private Date insertionDate; 	
-	
+	private Date insertionDate;
+
+	public static ValidatedDocumentsETY setContent(String hash, String wii) {
+        ValidatedDocumentsETY entity = new ValidatedDocumentsETY();
+        Date now = new Date();
+        entity.setHashCda(hash);
+		entity.setWorkflowInstanceId(wii);
+        entity.setInsertionDate(now);
+        return entity;
+    }
 }
+
+

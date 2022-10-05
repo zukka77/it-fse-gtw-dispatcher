@@ -4,9 +4,6 @@ import java.util.Date;
 
 import javax.validation.constraints.Size;
 
-import org.bson.Document;
-import org.springframework.data.mongodb.core.mapping.Field;
-
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
