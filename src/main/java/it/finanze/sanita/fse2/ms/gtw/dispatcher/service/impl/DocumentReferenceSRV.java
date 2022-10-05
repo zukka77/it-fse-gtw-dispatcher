@@ -50,7 +50,7 @@ public class DocumentReferenceSRV implements IDocumentReferenceSRV {
 			final org.jsoup.nodes.Document docCDA = Jsoup.parse(cda);
 			final String encodedCDA = Base64.getEncoder().encodeToString(cda.getBytes());
 			
-			final DocumentReferenceDTO documentReferenceDTO = buildDocumentReferenceDTO(encodedCDA, requestBody, size, hash, sourcePatientId);
+			final DocumentReferenceDTO documentReferenceDTO = buildDocumentReferenceDTO(encodedCDA, requestBody, size, hash);
 			
 			final TransformResDTO resDTO = callFhirMapping(documentReferenceDTO, cda);
 			
@@ -60,7 +60,7 @@ public class DocumentReferenceSRV implements IDocumentReferenceSRV {
 				output.setBundleJson(StringUtility.toJSON(resDTO.getJson()));
 				
 				try {
-					final SubmissionSetEntryDTO submissionSetEntryDTO = createSubmissionSetEntry(docCDA,requestBody.getTipoAttivitaClinica().getCode(),
+					final SubmissionSetEntryDTO submissionSetEntryDTO = createSubmissionSetEntry(docCDA, requestBody.getTipoAttivitaClinica().getCode(),
 							requestBody.getIdentificativoSottomissione());
 					output.setSubmissionSetEntryJson(StringUtility.toJSON(submissionSetEntryDTO));
 				} catch(final Exception ex) {
@@ -87,7 +87,7 @@ public class DocumentReferenceSRV implements IDocumentReferenceSRV {
 	}
 	
 	private DocumentReferenceDTO buildDocumentReferenceDTO(final String encodedCDA, final PublicationCreationReqDTO requestBody,
-			final Integer size, final String hash,final String sourcePatientId) {
+			final Integer size, final String hash) {
 		final DocumentReferenceDTO documentReferenceDTO = new DocumentReferenceDTO();
 		try {
 			documentReferenceDTO.setEncodedCDA(encodedCDA);
@@ -99,7 +99,6 @@ public class DocumentReferenceSRV implements IDocumentReferenceSRV {
 				documentReferenceDTO.setEventCode(requestBody.getAttiCliniciRegoleAccesso());
 			}
 			documentReferenceDTO.setPracticeSettingCode(requestBody.getAssettoOrganizzativo().getDescription());
-			documentReferenceDTO.setPatientID(sourcePatientId);
 			documentReferenceDTO.setTipoDocumentoLivAlto(requestBody.getTipoDocumentoLivAlto().getCode());
 			documentReferenceDTO.setRepositoryUniqueID(requestBody.getIdentificativoRep());
 			documentReferenceDTO.setServiceStartTime(requestBody.getDataInizioPrestazione());
