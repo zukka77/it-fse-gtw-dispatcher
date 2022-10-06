@@ -157,9 +157,9 @@ class UtilityTest extends AbstractTest{
     @DisplayName("Logger test")
     void loggerTest() {
         assertDoesNotThrow(() -> logger.trace("Trace", OperationLogEnum.PUB_CDA2, ResultLogEnum.KO, new Date(), "issuer"));
-        assertDoesNotThrow(() -> logger.debug("Debug", OperationLogEnum.REDIS, ResultLogEnum.KO, new Date(), "issuer"));
+        assertDoesNotThrow(() -> logger.debug("Debug", OperationLogEnum.MONGO, ResultLogEnum.KO, new Date(), "issuer"));
         assertDoesNotThrow(() -> logger.error("Error", OperationLogEnum.TRAS_CDA2, ResultLogEnum.KO, new Date(), ErrorLogEnum.KO_FHIR, "issuer", Constants.App.MISSING_DOC_TYPE_PLACEHOLDER));
-        assertDoesNotThrow(() -> logger.info("Info", OperationLogEnum.REDIS, ResultLogEnum.KO, new Date(), "issuer", Constants.App.MISSING_DOC_TYPE_PLACEHOLDER));
+        assertDoesNotThrow(() -> logger.info("Info", OperationLogEnum.MONGO, ResultLogEnum.KO, new Date(), "issuer", Constants.App.MISSING_DOC_TYPE_PLACEHOLDER));
     }
 
     @Test

@@ -117,7 +117,7 @@ class ReplaceTest extends AbstractTest {
 		
 		callValidation(ActivityEnum.VALIDATION, HealthDataFormatEnum.CDA, InjectionModeEnum.ATTACHMENT, pdfAttachment, true, false, true);
 	
-		// Inserting validated document on Redis
+		// Inserting validated document on Mongo
 		final String hash = StringUtility.encodeSHA256B64(extractCDA(pdfAttachment));
 
 		cdaRepo.create(ValidatedDocumentsETY.setContent(hash, "wii"));

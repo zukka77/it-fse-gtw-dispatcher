@@ -28,7 +28,7 @@ public interface ICdaFacadeSRV extends Serializable {
 	String get(String hash);
 
 	/**
-	 * Check presence of the hash on Redis for the transaction Id.
+	 * Check presence of the hash on Mongo for the transaction Id.
 	 * 
 	 * @param hashToValidate The hash to validate.
 	 * @param txID The key to use to search hash.
@@ -37,7 +37,7 @@ public interface ICdaFacadeSRV extends Serializable {
 	ValidationDataDTO retrieveValidationInfo(String hashToValidate, String txID);
 
 	/**
-	 * Deletes a record on Redis identified by its {@code hashToConsume}.
+	 * Deletes a record on Mongo identified by its {@code hashToConsume}.
 	 * 
 	 * @param hashToConsume The record key to delete.
 	 * @return {@code true} if deleted, {@code false} otherwise.

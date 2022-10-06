@@ -61,7 +61,7 @@ public class CdaSRV implements ICdaSRV {
 			final String value = cdaRepo.findItemByHash(hashPublication).getWorkflowInstanceId();
 
 			if (value == null) {
-				log.debug("Hash of CDA not found in redis, the CDA may be not validated");
+				log.debug("Hash of CDA not found in Mongo, the CDA may be not validated");
 			} else {
 				data.setCdaValidated(true);
 				data.setWorkflowInstanceId(value);
@@ -70,8 +70,8 @@ public class CdaSRV implements ICdaSRV {
 				}
 			}
 		} catch (Exception e) {
-			log.error(String.format("Error while retrieving item with transaction ID: %s from Redis.", wiiPublication), e);
-			throw new BusinessException(String.format("Error while retrieving item with transaction ID: %s from Redis.", wiiPublication), e);
+			log.error(String.format("Error while retrieving item with transaction ID: %s from MongoDB.", wiiPublication), e);
+			throw new BusinessException(String.format("Error while retrieving item with transaction ID: %s from MongoDB.", wiiPublication), e);
 		}
 
 		return data;
@@ -86,8 +86,8 @@ public class CdaSRV implements ICdaSRV {
 				consumed = cdaRepo.deleteItem(hashToConsume);
 			}
 		} catch (Exception e) {
-			log.error("Error while consuming hash from Redis", e);
-			throw new BusinessException("Error while consuming hash from Redis", e);
+			log.error("Error while consuming hash from MongoDB", e);
+			throw new BusinessException("Error while consuming hash from MongoDB", e);
 		}
 		return consumed;
 	}

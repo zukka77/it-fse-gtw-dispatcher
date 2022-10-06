@@ -489,7 +489,7 @@ public abstract class AbstractCTL implements Serializable {
 	}
 
 	/**
-	 * Retrieve validation info of CDA on Redis.
+	 * Retrieve validation info of CDA on MongoDB.
 	 * 
 	 * @param cda CDA to check validation of.
 	 * @param wii WorkflowTransactionId, is not mandatory in publication. If not

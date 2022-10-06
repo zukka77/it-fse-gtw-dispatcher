@@ -106,13 +106,13 @@ class PublicationTest extends AbstractTest {
 		final String hash = StringUtility.encodeSHA256B64("hash");
 		final String unmatchingHash = hash + "A"; // Modified hash
 
-		assertFalse(cdaFacadeSRV.retrieveValidationInfo(hash, wii).isCdaValidated(), "If the hash is not present on Redis, the result should be false.");
+		assertFalse(cdaFacadeSRV.retrieveValidationInfo(hash, wii).isCdaValidated(), "If the hash is not present on Mongo, the result should be false.");
 
 		log.info("Inserting a key on MongoDB");
 		cdaFacadeSRV.create(hash, wii);
-		assertTrue(cdaFacadeSRV.retrieveValidationInfo(hash, wii).isCdaValidated(), "If the hash is present on Redis, the result should be true");
+		assertTrue(cdaFacadeSRV.retrieveValidationInfo(hash, wii).isCdaValidated(), "If the hash is present on Mongo, the result should be true");
 		
-		assertFalse(cdaFacadeSRV.retrieveValidationInfo(unmatchingHash, wii).isCdaValidated(), "If the hash present on Redis is different from expected one, the result should be false");
+		assertFalse(cdaFacadeSRV.retrieveValidationInfo(unmatchingHash, wii).isCdaValidated(), "If the hash present on Mongo is different from expected one, the result should be false");
 	}
 
 	@Test
