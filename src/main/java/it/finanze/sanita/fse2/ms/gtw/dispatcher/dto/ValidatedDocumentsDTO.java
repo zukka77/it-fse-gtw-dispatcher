@@ -34,12 +34,6 @@ public class ValidatedDocumentsDTO extends AbstractDTO {
 	@Size(min = 0, max = 1000)
 	private String primaryKeyTransf; 
 	
-	@Size(min = 0, max = 1000)
-	private String primaryKeySchematron; 
-	
-	@Size(min = 0, max = 1000)
-	private String primaryKeySchema; 
-	
 	private Date insertionDate; 
 
 }

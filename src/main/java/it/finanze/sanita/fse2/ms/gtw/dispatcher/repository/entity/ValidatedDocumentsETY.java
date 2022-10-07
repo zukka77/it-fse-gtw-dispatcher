@@ -29,21 +29,16 @@ public class ValidatedDocumentsETY {
 	@Field(name = "pkey_transf")
 	private String primaryKeyTransf; 
 	
-	@Field(name = "pkey_schematron")
-	private String primaryKeySchematron; 
-	
-	@Field(name = "pkey_schema")
-	private String primaryKeySchema; 
-	
 	@Field(name = "insertion_date")
 	private Date insertionDate;
 
-	public static ValidatedDocumentsETY setContent(String hash, String wii) {
+	public static ValidatedDocumentsETY setContent(String hash, String wii, String objectID) {
         ValidatedDocumentsETY entity = new ValidatedDocumentsETY();
         Date now = new Date();
         entity.setHashCda(hash);
 		entity.setWorkflowInstanceId(wii);
         entity.setInsertionDate(now);
+		entity.setPrimaryKeyTransf(objectID);
         return entity;
     }
 }

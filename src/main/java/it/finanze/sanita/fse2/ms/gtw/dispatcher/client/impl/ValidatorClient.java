@@ -49,6 +49,7 @@ public class ValidatorClient extends AbstractClient implements IValidatorClient 
         
         ValidationReqDTO req = new ValidationReqDTO();
         req.setCda(cda);
+        req.setCallTransformEngine(msUrlCFG.getCallTransformEngine());
 
         HttpEntity<?> entity = new HttpEntity<>(req, headers);
         
