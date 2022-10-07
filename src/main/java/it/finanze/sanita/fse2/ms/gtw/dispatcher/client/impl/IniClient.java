@@ -122,7 +122,7 @@ public class IniClient implements IIniClient {
 	 * @param out
 	 */
 	private void checkResponseFromIni(IniTraceResponseDTO out) {
-		if (!profileUtility.isDevProfile() && out != null && Boolean.FALSE.equals(out.getEsito())) {
+		if (!profileUtility.isDevOrDockerProfile() && out != null && Boolean.FALSE.equals(out.getEsito())) {
 			if (!StringUtils.isEmpty(out.getErrorMessage())) {
 				boolean notFound = out.getErrorMessage().equals(INIErrorEnum.RECORD_NOT_FOUND.toString());
 				if (notFound) {
