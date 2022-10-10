@@ -328,7 +328,7 @@ class PublicationTest extends AbstractTest {
 		publicationRB.setIdentificativoDoc(TestConstants.documentId);
 		assertDoesNotThrow(() -> callPlainPublication(jwtToken, file, publicationRB));
 		
-		thrownException = assertThrows(HttpClientErrorException.Forbidden.class, () -> callPlainPublication(null, file, publicationRB));
+		thrownException = assertThrows(HttpClientErrorException.BadRequest.class, () -> callPlainPublication(null, file, publicationRB));
 		
 		thrownException = assertThrows(HttpClientErrorException.BadRequest.class, () -> callPlainPublication(jwtToken, new byte[0], publicationRB));
 		assertTrue(thrownException.getMessage().contains(RestExecutionResultEnum.EMPTY_FILE_ERROR.getType()));
