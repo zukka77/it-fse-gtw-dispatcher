@@ -17,6 +17,9 @@ public class ValidationInfoDTO {
 	private RawValidationEnum result;
 	
 	private List<String> message;
+	
+	private String structureID; 
+	
+	private String transformID; 
 
-	private String objectID;
 }

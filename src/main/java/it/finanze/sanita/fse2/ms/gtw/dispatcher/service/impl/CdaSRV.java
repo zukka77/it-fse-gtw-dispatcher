@@ -29,12 +29,12 @@ public class CdaSRV implements ICdaSRV {
 	private IValidatedDocumentsRepo cdaRepo;
 	
 	@Override
-	public void create(final String hashedCDA, final String wii, String objID) {
+	public void create(final String hashedCDA, final String wii, String objID, String transfID) {
 		if (cdaRepo.isItemInserted(hashedCDA)){
 			throw new BusinessException("Cannot insert the given document, it already exists");
 		}  
 		try {
-			cdaRepo.create(ValidatedDocumentsETY.setContent(hashedCDA, wii, objID));
+			cdaRepo.create(ValidatedDocumentsETY.setContent(hashedCDA, wii, objID, transfID));
 		} catch(Exception ex) {
 			log.error("Error creating cda :" ,ex);
 			throw new BusinessException("Error creating cda :" ,ex);

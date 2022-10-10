@@ -20,9 +20,6 @@ import lombok.Setter;
 public class ValidationReqDTO extends AbstractDTO {
 
     @Schema(description = "CDA")
-    private String cda;
-
-    @Schema(description = "transformEngine")
-	private boolean callTransformEngine;
+    private String cda; 
 
 }
