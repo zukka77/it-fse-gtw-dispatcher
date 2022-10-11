@@ -255,6 +255,9 @@ public abstract class AbstractCTL implements Serializable {
 	private JWTTokenDTO extractJWT(final String jwt, final boolean isFromGovway) {
 		JWTTokenDTO jwtToken = null;
 		String errorInstance = ErrorInstanceEnum.MISSING_JWT_FIELD.getInstance();
+		String detail = RestExecutionResultEnum.MANDATORY_ELEMENT_ERROR_TOKEN.getTitle();
+		String title = RestExecutionResultEnum.MANDATORY_ELEMENT_ERROR_TOKEN.getTitle();
+		String type = RestExecutionResultEnum.MANDATORY_ELEMENT_ERROR_TOKEN.getType();
 		try {
 			if (!StringUtility.isNullOrEmpty(jwt)) {
 				log.debug("Decoding JWT");
@@ -283,17 +286,20 @@ public abstract class AbstractCTL implements Serializable {
 					jwtToken = new JWTTokenDTO(JWTPayloadDTO.extractPayload(payload));
 				}
 			} else {
+				type = RestExecutionResultEnum.MISSING_TOKEN.getType();
+				title = RestExecutionResultEnum.MISSING_TOKEN.getTitle();
 				errorInstance = ErrorInstanceEnum.MISSING_JWT.getInstance();
+				detail = "Attenzione il jwt fornito risulta essere vuoto";
 				throw new BusinessException("Token missing");
 			}
 		} catch (final Exception e) {
 			log.error("Error while reading JWT payload", e);
 
 			final ErrorResponseDTO error = ErrorResponseDTO.builder()
-				.type(RestExecutionResultEnum.MANDATORY_ELEMENT_ERROR_TOKEN.getType())
-				.title(RestExecutionResultEnum.MANDATORY_ELEMENT_ERROR_TOKEN.getTitle())
+				.type(type)
+				.title(title)
 				.instance(errorInstance)
-				.detail(RestExecutionResultEnum.MANDATORY_ELEMENT_ERROR_TOKEN.getTitle())
+				.detail(detail)
 				.build();
 
 			throw new ValidationException(error);

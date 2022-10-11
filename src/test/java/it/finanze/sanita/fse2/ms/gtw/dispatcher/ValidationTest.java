@@ -357,7 +357,7 @@ class ValidationTest extends AbstractTest {
 		final ResponseEntity<ValidationResDTO> validationRes = callPlainValidation(jwtToken, file, requestBody);
 		assertTrue(StringUtility.isNullOrEmpty(validationRes.getBody().getWarning()));
 		
-		thrownException = assertThrows(HttpClientErrorException.Forbidden.class, () -> callPlainValidation(null, file, requestBody));
+		thrownException = assertThrows(HttpClientErrorException.BadRequest.class, () -> callPlainValidation(null, file, requestBody));
 		thrownException = assertThrows(HttpClientErrorException.BadRequest.class, () -> callPlainValidation(jwtToken, new byte[0], requestBody));
 		assertTrue(thrownException.getMessage().contains(RestExecutionResultEnum.EMPTY_FILE_ERROR.getType()));
 	}
