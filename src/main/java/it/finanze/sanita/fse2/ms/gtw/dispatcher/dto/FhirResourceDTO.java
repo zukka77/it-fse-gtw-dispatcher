@@ -8,4 +8,7 @@ public class FhirResourceDTO {
 	private DocumentReferenceDTO documentReferenceDTO;
 	
 	private String cda;
+	
+	private String objectId;  
+	
 }

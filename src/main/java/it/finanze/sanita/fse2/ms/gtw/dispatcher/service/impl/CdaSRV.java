@@ -51,6 +51,15 @@ public class CdaSRV implements ICdaSRV {
 		}
 	}
 
+	@Override 
+	public ValidationDataDTO getByWorkflowInstanceId(final String wid) {
+		try {
+			return cdaRepo.findItemByWorkflowInstanceId(wid); // tornava un validation DTO 
+		} catch(Exception ex) {
+			log.error("Error getting entity from Mongo", ex);
+			throw new BusinessException("Error getting entity from Mongo", ex);
+		}
+	}
 	 @Override
 	public ValidationDataDTO retrieveValidationInfo(final String hashPublication, final String wiiPublication) {
 		ValidationDataDTO data = new ValidationDataDTO();

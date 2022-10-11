@@ -9,5 +9,6 @@ public interface IValidatedDocumentsRepo extends Serializable {
     boolean deleteItem(String hash);
     ValidatedDocumentsETY findItemById(String id);
     ValidationDataDTO findItemByHash(String hash); // tornava la chiave (string)
+    ValidationDataDTO findItemByWorkflowInstanceId(String wid); // tornava la chiave (string)
     boolean isItemInserted(String hash);
 }

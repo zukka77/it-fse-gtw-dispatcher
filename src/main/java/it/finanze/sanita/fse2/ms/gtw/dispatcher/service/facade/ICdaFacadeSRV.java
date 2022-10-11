@@ -28,6 +28,8 @@ public interface ICdaFacadeSRV extends Serializable {
 	 */
 	String get(String hash);
 
+	ValidationDataDTO getByWorkflowInstanceId(String wid);
+
 	/**
 	 * Check presence of the hash on Mongo for the transaction Id.
 	 * 

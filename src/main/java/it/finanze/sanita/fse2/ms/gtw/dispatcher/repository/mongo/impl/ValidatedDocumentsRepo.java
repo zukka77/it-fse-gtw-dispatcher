@@ -10,6 +10,7 @@ import org.springframework.stereotype.Repository;
 import com.mongodb.MongoException;
 import com.mongodb.client.result.DeleteResult;
 
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.ValidatedDocumentsDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.ValidationDataDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.BusinessException;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.repository.entity.ValidatedDocumentsETY;
@@ -90,6 +91,24 @@ public class ValidatedDocumentsRepo implements IValidatedDocumentsRepo {
         }
         return output;
     }
+    
+    @Override
+    public ValidationDataDTO findItemByWorkflowInstanceId(String wid) {
+        ValidationDataDTO output;
+        ValidatedDocumentsETY ety;
+        Query query = new Query();
+        query.addCriteria(
+            Criteria.where("w_id").is(wid)
+        );
+        try {
+            ety = mongoTemplate.findOne(query, ValidatedDocumentsETY.class);
+            output = parseEtyToDTo(ety);
+        } catch(MongoException e){
+            throw new BusinessException("Unable to retrieve validated doc by hash", e);
+        }
+
+        return output;
+    }
 
     ValidationDataDTO parseEtyToDTo (ValidatedDocumentsETY ety){
         // se output null oggetto con validatedFalse
@@ -100,6 +119,8 @@ public class ValidatedDocumentsRepo implements IValidatedDocumentsRepo {
             dto.setHash(ety.getHashCda());
             dto.setCdaValidated(true);
             dto.setWorkflowInstanceId(ety.getWorkflowInstanceId());
+            dto.setTransformId(ety.getPrimaryKeyTransf()); 
+            dto.setStructureId(ety.getPrimaryKeyStructure());
         }
         return dto;
     }

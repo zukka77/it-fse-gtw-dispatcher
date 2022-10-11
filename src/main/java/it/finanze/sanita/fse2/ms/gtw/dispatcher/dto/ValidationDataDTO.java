@@ -13,5 +13,9 @@ public class ValidationDataDTO {
 
     private boolean cdaValidated;
 
-    private String workflowInstanceId;
+    private String workflowInstanceId; 
+    
+    private String transformId; 
+    
+    private String structureId; 
 }

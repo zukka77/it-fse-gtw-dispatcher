@@ -64,7 +64,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 
 	@Autowired
 	private transient IErrorHandlerSRV errorHandlerSRV;
-	
+		
 	@Autowired
 	private IIniClient iniClient;
 	
@@ -77,7 +77,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 		final LogTraceInfoDTO traceInfoDTO = getLogTraceInfo();
 
 		ValidationCreationInputDTO validationInfo = new ValidationCreationInputDTO();
-		validationInfo.setValidationData(new ValidationDataDTO(null, false, Constants.App.MISSING_WORKFLOW_PLACEHOLDER));
+		validationInfo.setValidationData(new ValidationDataDTO(null, false, Constants.App.MISSING_WORKFLOW_PLACEHOLDER, null, null));
 
 		try {
 			validationInfo = validateInput(file, request, false);
@@ -128,7 +128,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 			final LogTraceInfoDTO traceInfoDTO = getLogTraceInfo();
 
 			ValidationCreationInputDTO validationInfo = new ValidationCreationInputDTO();
-			validationInfo.setValidationData(new ValidationDataDTO(null, false, Constants.App.MISSING_WORKFLOW_PLACEHOLDER));
+			validationInfo.setValidationData(new ValidationDataDTO(null, false, Constants.App.MISSING_WORKFLOW_PLACEHOLDER, null, null));
 
 			try {
 				validationInfo = validateInput(file, request, true);
@@ -215,6 +215,9 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 		
 		validation.setValidationData(validationInfo);
 
+		String transformId = ""; 
+		String structureId = ""; 
+		
 		try {
 			final JWTTokenDTO jwtToken;
 			if (Boolean.TRUE.equals(msCfg.getFromGovway())) {
@@ -249,6 +252,9 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 			validation.setValidationData(validationInfo); // Updating validation info
 
 			if (!Boolean.TRUE.equals(jsonObj.isForcePublish()) || isReplace) {
+				ValidationDataDTO validatedDocument = cdaSRV.getByWorkflowInstanceId(validationInfo.getWorkflowInstanceId()); 
+				transformId = validatedDocument.getTransformId(); 
+				structureId = validatedDocument.getStructureId(); 
 				cdaSRV.consumeHash(validationInfo.getHash());
 			}
 			
@@ -258,7 +264,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 			validateDocumentHash(documentSha256, validation.getJwtToken());
 	
 			final ResourceDTO fhirResourcesDTO = documentReferenceSRV.createFhirResources(cda, jsonObj, bytePDF.length, documentSha256,
-				validation.getJwtToken().getPayload().getPerson_id());
+				validation.getJwtToken().getPayload().getPerson_id(), structureId, transformId);
 	
 			validation.setFhirResource(fhirResourcesDTO);
 			if(!StringUtility.isNullOrEmpty(fhirResourcesDTO.getErrorMessage())) {
