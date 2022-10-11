@@ -28,7 +28,7 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.impl.EdsClient;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.EdsMetadataUpdateReqDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.PublicationMetadataReqDTO;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.EdsTraceResponseDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.EdsResponseDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.BusinessException;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.ConnectionRefusedException;
 
@@ -54,24 +54,24 @@ class EdsClientTest {
     @DisplayName("Update - updateConnectionRefusedErrorTest")
     void updateConnectionRefusedErrorTest() {
         Mockito.doThrow(new ConnectionRefusedException("url", "Error: connection refused")).when(restTemplate)
-                .exchange(anyString(), eq(HttpMethod.PUT), any(HttpEntity.class), eq(EdsTraceResponseDTO.class));
+                .exchange(anyString(), eq(HttpMethod.PUT), any(HttpEntity.class), eq(EdsResponseDTO.class));
         assertThrows(BusinessException.class, () -> edsClient.update(requestBody));
     }
 
     @Test
     @DisplayName("Update - updateRecordGenericExceptionTest")
     void updateRecordGenericExceptionTest() {
-        EdsTraceResponseDTO responseMock = new EdsTraceResponseDTO();
+        EdsResponseDTO responseMock = new EdsResponseDTO();
         responseMock.setEsito(false);
         Mockito.doThrow(new BusinessException("Error")).when(restTemplate)
-                .exchange(anyString(), eq(HttpMethod.PUT), any(HttpEntity.class), eq(EdsTraceResponseDTO.class));
+                .exchange(anyString(), eq(HttpMethod.PUT), any(HttpEntity.class), eq(EdsResponseDTO.class));
         assertThrows(BusinessException.class, () -> edsClient.update(requestBody));
     }
 
     @Test
     @DisplayName("Update - updateHttpStatucCodeExceptionTest")
     void updateHttpStatusCodeExceptionTest() {
-        EdsTraceResponseDTO responseMock = new EdsTraceResponseDTO();
+        EdsResponseDTO responseMock = new EdsResponseDTO();
         responseMock.setEsito(false);
         Mockito.doThrow(new HttpStatusCodeException(HttpStatus.MULTI_STATUS) {
                     @Override
@@ -79,28 +79,28 @@ class EdsClientTest {
                         return super.getStatusCode();
                     }
                 }).when(restTemplate)
-                .exchange(anyString(), eq(HttpMethod.PUT), any(HttpEntity.class), eq(EdsTraceResponseDTO.class));
+                .exchange(anyString(), eq(HttpMethod.PUT), any(HttpEntity.class), eq(EdsResponseDTO.class));
         assertThrows(ServerResponseException.class, () -> edsClient.update(requestBody));
     }
 
     @Test
     @DisplayName("Update - updateRecord Success test")
     void updateRecordSuccessTest() {
-        EdsTraceResponseDTO responseMock = new EdsTraceResponseDTO();
+        EdsResponseDTO responseMock = new EdsResponseDTO();
         responseMock.setEsito(true);
         Mockito.doReturn(new ResponseEntity<>(responseMock, HttpStatus.OK)).when(restTemplate)
-                .exchange(anyString(), eq(HttpMethod.PUT), any(HttpEntity.class), eq(EdsTraceResponseDTO.class));
-        EdsTraceResponseDTO responseDTO = edsClient.update(requestBody);
+                .exchange(anyString(), eq(HttpMethod.PUT), any(HttpEntity.class), eq(EdsResponseDTO.class));
+        EdsResponseDTO responseDTO = edsClient.update(requestBody);
         assertEquals(responseDTO, responseMock);
     }
 
     @Test
     @DisplayName("Update - updateRecordHttpErrorTest")
     void updateRecordHttpErrorTest() {
-        EdsTraceResponseDTO responseMock = new EdsTraceResponseDTO();
+        EdsResponseDTO responseMock = new EdsResponseDTO();
         responseMock.setEsito(true);
         Mockito.doReturn(new ResponseEntity<>(responseMock, HttpStatus.BAD_GATEWAY)).when(restTemplate)
-                .exchange(anyString(), eq(HttpMethod.PUT), any(HttpEntity.class), eq(EdsTraceResponseDTO.class));
+                .exchange(anyString(), eq(HttpMethod.PUT), any(HttpEntity.class), eq(EdsResponseDTO.class));
         assertNull(edsClient.update(requestBody));
     }
 
@@ -108,7 +108,7 @@ class EdsClientTest {
     @DisplayName("Update - updateRecordHttpBodyNullTest")
     void updateRecordHttpBodyNullTest() {
         Mockito.doReturn(new ResponseEntity<>(null, HttpStatus.BAD_GATEWAY)).when(restTemplate)
-                .exchange(anyString(), eq(HttpMethod.PUT), any(HttpEntity.class), eq(EdsTraceResponseDTO.class));
+                .exchange(anyString(), eq(HttpMethod.PUT), any(HttpEntity.class), eq(EdsResponseDTO.class));
         assertNull(edsClient.update(requestBody));
     }
 }

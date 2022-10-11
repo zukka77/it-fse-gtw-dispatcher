@@ -36,7 +36,7 @@ import com.google.gson.Gson;
 
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.PublicationMetadataReqDTO;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.EdsTraceResponseDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.EdsResponseDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.IniTraceResponseDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.ResponseDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.INIErrorEnum;
@@ -148,19 +148,17 @@ class UpdateTest extends AbstractTest {
 		log.info("Mocking EDS client");
 
 		if (status.is2xxSuccessful()) {
-			EdsTraceResponseDTO response = new EdsTraceResponseDTO();
-			response.setSpanID(StringUtility.generateUUID());
-			response.setTraceID(StringUtility.generateUUID());
+			EdsResponseDTO response = new EdsResponseDTO();
 			response.setEsito(status.is2xxSuccessful());
 			response.setErrorMessage(status.is2xxSuccessful() ? null : "Test error");
 			Mockito.doReturn(new ResponseEntity<>(response, status)).when(restTemplate)
-					.exchange(anyString(), eq(HttpMethod.PUT), any(HttpEntity.class), ArgumentMatchers.eq(EdsTraceResponseDTO.class));
+					.exchange(anyString(), eq(HttpMethod.PUT), any(HttpEntity.class), ArgumentMatchers.eq(EdsResponseDTO.class));
 		} else if (status.is4xxClientError()) {
 			Mockito.doThrow(new RestClientException("")).when(restTemplate)
-					.exchange(anyString(), eq(HttpMethod.PUT), any(HttpEntity.class), ArgumentMatchers.eq(EdsTraceResponseDTO.class));
+					.exchange(anyString(), eq(HttpMethod.PUT), any(HttpEntity.class), ArgumentMatchers.eq(EdsResponseDTO.class));
 		} else {
 			Mockito.doThrow(new BusinessException("")).when(restTemplate)
-					.exchange(anyString(), eq(HttpMethod.PUT), any(HttpEntity.class), eq(EdsTraceResponseDTO.class));
+					.exchange(anyString(), eq(HttpMethod.PUT), any(HttpEntity.class), eq(EdsResponseDTO.class));
 		}
 	}
 

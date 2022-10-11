@@ -1,19 +1,53 @@
 package it.finanze.sanita.fse2.ms.gtw.dispatcher.controller.impl;
 
+import java.util.Date;
+
+import javax.servlet.http.HttpServletRequest;
+
+import org.jsoup.Jsoup;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
+
 import com.google.gson.Gson;
+
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.IEdsClient;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.IIniClient;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.controller.IPublicationCTL;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.*;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.*;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.IndexerValueDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.JWTPayloadDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.JWTTokenDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.ResourceDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.ValidationCreationInputDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.ValidationDataDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.DeleteRequestDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.EdsMetadataUpdateReqDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.IniMetadataUpdateReqDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.PublicationCreationReqDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.PublicationMetadataReqDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.PublicationUpdateReqDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.EdsResponseDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.ErrorResponseDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.IniTraceResponseDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.LogTraceInfoDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.PublicationResDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.ResponseDTO;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.*;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.DestinationTypeEnum;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ErrorInstanceEnum;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventStatusEnum;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.OperationLogEnum;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.PriorityTypeEnum;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ProcessorOperationEnum;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.RestExecutionResultEnum;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ResultLogEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.BusinessException;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.ConnectionRefusedException;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.EdsException;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.IniException;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.MockEnabledException;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.ValidationException;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.logging.LoggerHelper;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.IDocumentReferenceSRV;
@@ -22,17 +56,9 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.IKafkaSRV;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.facade.ICdaFacadeSRV;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.impl.IniEdsInvocationSRV;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.CdaUtility;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.ProfileUtility;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility;
 import lombok.extern.slf4j.Slf4j;
-import org.jsoup.Jsoup;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.multipart.MultipartFile;
-
-import javax.servlet.http.HttpServletRequest;
-import java.util.Date;
 /**
  *
  * @author CPIERASC
@@ -70,6 +96,9 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 	
 	@Autowired
 	private IEdsClient edsClient;
+
+	@Autowired
+	private ProfileUtility profileUtils;
 
 	@Override
 	public ResponseEntity<PublicationResDTO> create(final PublicationCreationReqDTO requestBody, final MultipartFile file, final HttpServletRequest request) {
@@ -168,8 +197,9 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 
 
 	@Override
-	public ResponseEntity<ResponseDTO> updateMetadata(final String idDoc,
-													  final PublicationMetadataReqDTO requestBody, final HttpServletRequest request) {
+	public ResponseEntity<ResponseDTO> updateMetadata(final String idDoc, final PublicationMetadataReqDTO requestBody, final HttpServletRequest request) {
+		
+		final boolean isTestEnvironment = profileUtils.isDevOrDockerProfile();
 		
 		// Estrazione token
 		JWTTokenDTO jwtToken = null;
@@ -184,13 +214,27 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 
 			PublicationMetadataReqDTO jsonObj = StringUtility.fromJSONJackson(request.getParameter("requestBody"), PublicationMetadataReqDTO.class);
 
-			// Esecuzione richiesta verso ini-client
-			iniClient.updateMetadati(new IniMetadataUpdateReqDTO(idDoc, jwtToken.getPayload(), jsonObj));
+			final IniTraceResponseDTO iniResponse = iniClient.updateMetadati(new IniMetadataUpdateReqDTO(idDoc, jwtToken.getPayload(), jsonObj));
+			
+			EdsResponseDTO edsResponse = null;
+			if (iniResponse.getEsito() || isTestEnvironment) {
+				log.debug("Ini response is OK, proceeding with EDS");
+			    edsResponse = edsClient.update(new EdsMetadataUpdateReqDTO(idDoc, null, jsonObj));
+			} else {
+				throw new IniException("Error encountered while sending update information to INI client");
+			}
 
-			// Call to eds-client mock endpoint
-			edsClient.update(new EdsMetadataUpdateReqDTO(idDoc, null, jsonObj));
+			if (!isTestEnvironment && (edsResponse == null || !edsResponse.getEsito())) {
+				throw new EdsException("Error encountered while sending update information to EDS client");
+			}
+
+			if (isTestEnvironment) {
+				throw new MockEnabledException(iniResponse.getErrorMessage(), edsResponse != null ? edsResponse.getErrorMessage() : null);
+			}
 
 			logger.info(String.format("Update of CDA metadata completed for document with identifier %s", idDoc), OperationLogEnum.UPDATE_METADATA_CDA2, ResultLogEnum.OK, startDateOperation, jwtToken.getPayload().getIss(), Constants.App.MISSING_DOC_TYPE_PLACEHOLDER);
+		} catch (MockEnabledException me) {
+			throw me;
 		} catch (Exception e) {
 			final String issuer = jwtToken != null ? jwtToken.getPayload().getIss() : Constants.App.JWT_MISSING_ISSUER_PLACEHOLDER;
 			RestExecutionResultEnum errorInstance = RestExecutionResultEnum.GENERIC_ERROR;
@@ -282,6 +326,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 	public ResponseDTO delete(String idDoc, HttpServletRequest request) {
 		
 		final Date startDateOperation = new Date();
+		final boolean isTestEnvironment = profileUtils.isDevOrDockerProfile();
 		JWTTokenDTO jwtToken = null;
 
 		try {
@@ -291,11 +336,28 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 				jwtToken = extractAndValidateJWT(request.getHeader(Constants.Headers.JWT_HEADER), msCfg.getFromGovway());
 			}
 			
-			DeleteRequestDTO iniReq = buildRequestForIni(idDoc, jwtToken);
-			iniClient.delete(iniReq);
-			edsClient.delete(idDoc);
-	
+			final DeleteRequestDTO iniReq = buildRequestForIni(idDoc, jwtToken);
+			final IniTraceResponseDTO iniResponse = iniClient.delete(iniReq);
+			
+			EdsResponseDTO edsResponse = null;
+			if (iniResponse.getEsito() || isTestEnvironment) {
+				log.debug("Ini response is OK, proceeding with EDS");
+				edsResponse = edsClient.delete(idDoc);
+			} else {
+				throw new IniException("Error encountered while sending delete information to INI client");
+			}
+
+			if (!isTestEnvironment && (edsResponse == null || !edsResponse.getEsito())) {
+				throw new EdsException("Error encountered while sending delete information to EDS client");
+			}
+
+			if (isTestEnvironment) {
+				throw new MockEnabledException(iniResponse.getErrorMessage(), edsResponse != null ? edsResponse.getErrorMessage() : null);
+			}
+
 			logger.info(String.format("Deletion of CDA completed for document with identifier %s", idDoc), OperationLogEnum.DELETE_CDA2, ResultLogEnum.OK, startDateOperation, jwtToken.getPayload().getIss(), Constants.App.MISSING_DOC_TYPE_PLACEHOLDER);
+		} catch(MockEnabledException me) {
+			throw me;
 		} catch (Exception e) {
 			final String issuer = jwtToken != null ? jwtToken.getPayload().getIss() : Constants.App.JWT_MISSING_ISSUER_PLACEHOLDER;
 			RestExecutionResultEnum errorInstance = RestExecutionResultEnum.GENERIC_ERROR;

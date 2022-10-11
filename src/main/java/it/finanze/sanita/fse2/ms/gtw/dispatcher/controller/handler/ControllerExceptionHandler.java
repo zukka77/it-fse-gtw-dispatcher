@@ -3,6 +3,7 @@ package it.finanze.sanita.fse2.ms.gtw.dispatcher.controller.handler;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -20,6 +21,7 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ErrorInstanceEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.RestExecutionResultEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.BusinessException;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.ConnectionRefusedException;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.MockEnabledException;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.ValidationErrorException;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.ValidationException;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.ValidationPublicationErrorException;
@@ -93,6 +95,34 @@ public class ControllerExceptionHandler extends ResponseEntityExceptionHandler {
         
     	return new ResponseEntity<>(ex.getError(), headers, status);
     }
+
+	/**
+	 * 
+	 * @param ex
+	 * @param request
+	 * @return
+	 */
+	@ExceptionHandler(value = {MockEnabledException.class})
+    protected ResponseEntity<ErrorResponseDTO> handleMockException(final MockEnabledException ex, final WebRequest request) {
+
+        final HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_PROBLEM_JSON);
+        
+		StringBuilder detailedMessage = new StringBuilder("{");
+		if (!StringUtility.isNullOrEmpty(ex.getIniErrorMessage())) {
+			detailedMessage.append("INI Error Message: ").append(ex.getIniErrorMessage());
+		}
+
+		if (!StringUtility.isNullOrEmpty(ex.getEdsErrorMessage())) {
+			detailedMessage.append(", ").append("EDS Error Message: ").append(ex.getEdsErrorMessage());
+		}
+		detailedMessage.append("}");
+
+		ErrorResponseDTO out = new ErrorResponseDTO(getLogTraceInfo(), "/msg/mocked-service", "Mock enabled, this exception won't stop continuing to process the request.", detailedMessage.toString(), HttpStatus.INTERNAL_SERVER_ERROR.value(), "/msg/mocked-service");
+
+    	return new ResponseEntity<>(out, headers, HttpStatus.INTERNAL_SERVER_ERROR.value());
+    }
+	
 
     /**
 	 * Management connection refused exception.

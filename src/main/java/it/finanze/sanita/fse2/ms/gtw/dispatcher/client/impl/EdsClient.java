@@ -17,7 +17,7 @@ import org.springframework.web.client.RestTemplate;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.IEdsClient;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.exceptions.ServerResponseException;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.MicroservicesURLCFG;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.EdsTraceResponseDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.EdsResponseDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.BusinessException;
 import lombok.extern.slf4j.Slf4j;
 
@@ -40,15 +40,15 @@ public class EdsClient implements IEdsClient {
 	private MicroservicesURLCFG msUrlCFG;
 	
 	@Override
-	public EdsTraceResponseDTO delete(final String oid) {
-		EdsTraceResponseDTO output = null;
+	public EdsResponseDTO delete(final String oid) {
+		EdsResponseDTO output = null;
 		
 		try {
 			log.debug("EDS Client - Calling EDS to execute delete operation");
 			
 			// Build endpoint e call.
 			String endpoint = msUrlCFG.getEdsClientHost() + Constants.Client.Eds.DELETE_PATH.replace(Constants.Client.Eds.ID_DOC_PLACEHOLDER, oid);
-			ResponseEntity<EdsTraceResponseDTO> restExchange = restTemplate.exchange(endpoint, HttpMethod.DELETE, null, EdsTraceResponseDTO.class);
+			ResponseEntity<EdsResponseDTO> restExchange = restTemplate.exchange(endpoint, HttpMethod.DELETE, null, EdsResponseDTO.class);
 			
 			// Gestione response
 			if (HttpStatus.OK.equals(restExchange.getStatusCode()) && restExchange.getBody() != null) {
@@ -66,8 +66,8 @@ public class EdsClient implements IEdsClient {
 	}
 
 	@Override
-	public EdsTraceResponseDTO update(EdsMetadataUpdateReqDTO req) {
-		EdsTraceResponseDTO output = null;
+	public EdsResponseDTO update(EdsMetadataUpdateReqDTO req) {
+		EdsResponseDTO output = null;
 
 		try {
 			log.debug("EDS Client - Calling EDS to execute update operation");
@@ -77,7 +77,7 @@ public class EdsClient implements IEdsClient {
 
 			// Build endpoint e call.
 			String endpoint = msUrlCFG.getEdsClientHost() + Constants.Client.Eds.UPDATE_PATH.replace(Constants.Client.Eds.ID_DOC_PLACEHOLDER, req.getIdDoc());
-			ResponseEntity<EdsTraceResponseDTO> restExchange = restTemplate.exchange(endpoint, HttpMethod.PUT, entity, EdsTraceResponseDTO.class);
+			ResponseEntity<EdsResponseDTO> restExchange = restTemplate.exchange(endpoint, HttpMethod.PUT, entity, EdsResponseDTO.class);
 
 			// Gestione response
 			if (HttpStatus.OK.equals(restExchange.getStatusCode()) && restExchange.getBody() != null) {
