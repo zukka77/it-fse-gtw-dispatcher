@@ -215,17 +215,18 @@ public class ValidationCTL extends AbstractCTL implements IValidationCTL {
 
 		
 		Long startDateChiusura = System.currentTimeMillis();
+		final String role = jwtToken != null && jwtToken.getPayload() != null ? jwtToken.getPayload().getSubject_role() : null;
 		if (!ValidationResultEnum.OK.equals(result)) {
 //			final String issuer = jwtToken != null && jwtToken.getPayload() != null ? jwtToken.getPayload().getIss() : "NO_ISSUER";
 
-			elasticLogger.error(msgResult + " " + workflowInstanceId, OperationLogEnum.VAL_CDA2, ResultLogEnum.KO, startDateOperation, result != null ? result.getErrorCategory() : null, issuer, documentType);
+			elasticLogger.error(msgResult + " " + workflowInstanceId, OperationLogEnum.VAL_CDA2, ResultLogEnum.KO, startDateOperation, result != null ? result.getErrorCategory() : null, issuer, documentType,role);
 			throw new ValidationErrorException(result, msgResult, workflowInstanceId);
 		}
 
 //		final String issuer = jwtToken != null && jwtToken.getPayload() != null ? jwtToken.getPayload().getIss() : "NO_ISSUER";
 
 		elasticLogger.info("Validation CDA completed for workflow instance id " + workflowInstanceId, OperationLogEnum.VAL_CDA2, ResultLogEnum.OK, startDateOperation,
-			issuer, documentType);
+			issuer, documentType,role);
 		
 		if(jsonObj.getMode() ==null) {
 			String schematronWarn = StringUtility.isNullOrEmpty(warning) ? "" : warning;

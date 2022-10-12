@@ -177,11 +177,12 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 
 		if (out!=null) {
 			final String issuer = jwtToken != null && jwtToken.getPayload() != null ? jwtToken.getPayload().getIss() : null;
-			elasticLogger.error(out.getMsg() + " " + validationInfo.getWorkflowInstanceId(), OperationLogEnum.PUB_CDA2, ResultLogEnum.KO, startDateOperation, out.getResult().getErrorCategory(), issuer, documentType);
+			final String role = jwtToken != null && jwtToken.getPayload() != null ? jwtToken.getPayload().getSubject_role() : null;
+			elasticLogger.error(out.getMsg() + " " + validationInfo.getWorkflowInstanceId(), OperationLogEnum.PUB_CDA2, ResultLogEnum.KO, startDateOperation, out.getResult().getErrorCategory(), issuer, documentType,role);
 			throw new ValidationPublicationErrorException(out.getResult(), out.getMsg());
 		}
-
-		elasticLogger.info(String.format("Publication CDA completed for workflow instance id %s", validationInfo.getWorkflowInstanceId()), OperationLogEnum.PUB_CDA2, ResultLogEnum.OK, startDateOperation, jwtToken.getPayload().getIss(), documentType);
+		final String role = jwtToken != null && jwtToken.getPayload() != null ? jwtToken.getPayload().getSubject_role() : null;
+		elasticLogger.info(String.format("Publication CDA completed for workflow instance id %s", validationInfo.getWorkflowInstanceId()), OperationLogEnum.PUB_CDA2, ResultLogEnum.OK, startDateOperation, jwtToken.getPayload().getIss(), documentType,role);
 		return new ResponseEntity<>(new PublicationCreationResDTO(getLogTraceInfo(), null, validationInfo.getWorkflowInstanceId()), HttpStatus.CREATED);
 	}
 	
