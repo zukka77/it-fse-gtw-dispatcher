@@ -249,14 +249,17 @@ public class ValidationCTL extends AbstractCTL implements IValidationCTL {
 		String out = "";
 		try {
 			org.jsoup.nodes.Document docT = Jsoup.parse(cda);
-			
-			String id = docT.select("id").get(0).attr("root");
-			String extension = docT.select("id").get(0).attr("extension");
-			out = id + "." + StringUtility.encodeSHA256Hex(extension);
+
+			if(!docT.select("id").isEmpty()) {
+				String id = docT.select("id").get(0).attr("root");
+				String extension = docT.select("id").get(0).attr("extension");
+				out = id + "." + StringUtility.encodeSHA256Hex(extension);
+			}
 		} catch(Exception ex) {
 			log.error("Error while extracting info from cda", ex);
 			throw new BusinessException("Error while extracting info from cda", ex);
 		}
 		return out;
 	}
+	 
 }

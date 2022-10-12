@@ -425,17 +425,24 @@ public abstract class AbstractCTL implements Serializable {
 		String out = null;
 		Map<String, AttachmentDTO> attachments = PDFUtility.extractAttachments(cda);
 		if (attachments!= null && attachments.size()>0) {
-			if (attachments!= null && attachments.size() == 1) {
-				out = new String(attachments.values().iterator().next().getContent());
+			if (attachments.size() == 1) {
+				if(attachments.values().iterator().next().getContent().length!=0) {
+					out = PDFUtility.checkXML(attachments.values().iterator().next().getContent());
+				}
+				
 			} else {
 				AttachmentDTO attDTO = attachments.get(cdaCfg.getCdaAttachmentName());
 				if (attDTO != null) {
-					out = new String(attDTO.getContent());
+					if(attDTO.getContent().length!=0) {
+						out = PDFUtility.checkXML(attDTO.getContent());
+					}
 				}
 			}
 		}
 		return out;
 	}
+	
+	
 
     protected PublicationOutputDTO validateDocumentHash(final String encodedPDF, final JWTTokenDTO jwtToken) {
 

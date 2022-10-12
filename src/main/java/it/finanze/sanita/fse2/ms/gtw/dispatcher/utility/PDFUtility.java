@@ -1,6 +1,8 @@
 package it.finanze.sanita.fse2.ms.gtw.dispatcher.utility;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -21,6 +23,7 @@ import com.lowagie.text.pdf.PdfReader;
 import com.lowagie.text.pdf.PdfString;
 
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.AttachmentDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.BusinessException;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -157,6 +160,42 @@ public class PDFUtility {
 			byte[] magicNumber = Arrays.copyOf(pdf, 4);
 			String strMagicNumber = new String(magicNumber);
 			out = strMagicNumber.equals("%PDF");
+		}
+		return out;
+	}
+	
+	public static String checkXML(byte[] b) {
+		String out = checkXML(b, StandardCharsets.UTF_8);
+		if(StringUtility.isNullOrEmpty(out)) {
+			out = checkXML(b, StandardCharsets.ISO_8859_1);
+			if(StringUtility.isNullOrEmpty(out)) {
+				out = checkXML(b, StandardCharsets.US_ASCII);
+				if(StringUtility.isNullOrEmpty(out)) {
+					out = checkXML(b, StandardCharsets.UTF_16);
+					if(StringUtility.isNullOrEmpty(out)) {
+						out = checkXML(b, StandardCharsets.UTF_16LE);
+						if(StringUtility.isNullOrEmpty(out)) {
+							out = checkXML(b, StandardCharsets.UTF_16BE);
+						}
+					}
+				}
+			}
+		}
+
+		return out;
+	}
+	
+	private static String checkXML(byte[] b, Charset cs) {
+		String out = null;
+		try {
+			out = new String(b, cs);
+			if(!out.startsWith("<?xml")) {
+				out = null;
+			}
+		} catch (Exception ex) {
+			out = null;
+			log.error("Error while check xml : " + ex);
+			throw new BusinessException(ex);
 		}
 		return out;
 	}

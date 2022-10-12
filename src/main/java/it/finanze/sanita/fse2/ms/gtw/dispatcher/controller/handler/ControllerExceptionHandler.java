@@ -104,7 +104,8 @@ public class ControllerExceptionHandler extends ResponseEntityExceptionHandler {
     	log.error("" , ex);
     	Integer status = 500;
 
-		ErrorResponseDTO out = new ErrorResponseDTO(getLogTraceInfo(), "/msg/generic-error", "Errore generico", "Errore generico", status, "/msg/generic-error");
+    	String message = !StringUtility.isNullOrEmpty(ex.getMessage()) ? ex.getMessage() : "Errore generico";  
+		ErrorResponseDTO out = new ErrorResponseDTO(getLogTraceInfo(), "/msg/generic-error", "Errore generico", message, status, "/msg/generic-error");
 
     	HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_PROBLEM_JSON);
