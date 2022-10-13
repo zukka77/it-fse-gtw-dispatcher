@@ -121,6 +121,7 @@ public class ValidatedDocumentsRepo implements IValidatedDocumentsRepo {
             dto.setWorkflowInstanceId(ety.getWorkflowInstanceId());
             dto.setTransformId(ety.getPrimaryKeyTransf()); 
             dto.setStructureId(ety.getPrimaryKeyStructure());
+            dto.setInsertionDate(ety.getInsertionDate());
         }
         return dto;
     }

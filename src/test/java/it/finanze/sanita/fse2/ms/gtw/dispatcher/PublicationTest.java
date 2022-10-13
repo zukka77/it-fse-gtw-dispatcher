@@ -6,6 +6,7 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.MicroservicesURLCFG;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.JWTPayloadDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.JWTTokenDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.ResourceDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.ValidationDataDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.ValidationInfoDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.PublicationCreationReqDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.ValidationCDAReqDTO;
@@ -48,6 +49,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assumptions.assumeFalse;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.when;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 
@@ -57,7 +59,7 @@ import static org.mockito.Mockito.doThrow;
 @ActiveProfiles(Constants.Profile.TEST)
 class PublicationTest extends AbstractTest {
 
-	@Autowired
+	@SpyBean
 	private ICdaFacadeSRV cdaFacadeSRV;
 
 	@Autowired
@@ -175,7 +177,7 @@ class PublicationTest extends AbstractTest {
 
 	@Test
 	void jwtValidation () {
-		byte[] pdfAttachment = FileUtility.getFileFromInternalResources("Files/attachment/CDA_OK_SIGNED.pdf");
+		byte[] pdfAttachment = FileUtility.getFileFromInternalResources("Files/attachment/CDA_MAP.pdf");
 		String encoded = StringUtility.encodeSHA256(pdfAttachment);
 		String token = generateJwt(pdfAttachment, true);
 		
@@ -362,6 +364,63 @@ class PublicationTest extends AbstractTest {
 		thrownException = assertThrows(HttpClientErrorException.BadRequest.class, () -> callPlainPublication(jwtWrongHashToken, file, publicationRB));
 		assertTrue(thrownException.getMessage().contains(RestExecutionResultEnum.DOCUMENT_HASH_VALIDATION_ERROR.getType()));
 	}
+	
+	
+	@Test
+	@DisplayName("Validation + Publication after 5 days - Error Test")
+	void testPublicationDateError() {
+		long DAY_IN_MS = 1000 * 60 * 60 * 24; 
+		ValidationDataDTO validatedDocumentDateOverFiveDays = new ValidationDataDTO(); 
+		validatedDocumentDateOverFiveDays.setHash("");
+		validatedDocumentDateOverFiveDays.setCdaValidated(true); 
+		validatedDocumentDateOverFiveDays.setInsertionDate(new Date(System.currentTimeMillis() - (7 * DAY_IN_MS))); 
+		
+		ValidationDataDTO validatedDocumentCorrectDate = new ValidationDataDTO(); 
+		validatedDocumentCorrectDate.setHash("");
+		validatedDocumentCorrectDate.setCdaValidated(true); 
+		validatedDocumentCorrectDate.setInsertionDate(new Date(System.currentTimeMillis() - (3 * DAY_IN_MS))); 
+		
+		TransformResDTO ref = new TransformResDTO();
+		ref.setErrorMessage("");
+		ref.setJson(Document.parse("{\"json\" : \"json\"}"));
+		doReturn(new ResponseEntity<>(ref, org.springframework.http.HttpStatus.OK))
+				.when(restTemplate).exchange(anyString(), eq(HttpMethod.POST), any(HttpEntity.class), eq(TransformResDTO.class));
+
+		byte[] pdfAttachment = FileUtility.getFileFromInternalResources("Files/attachment/CDA_OK_SIGNED.pdf");
+
+		ValidationInfoDTO info = new ValidationInfoDTO(RawValidationEnum.OK, new ArrayList<>(), "", "");
+		given(validatorClient.validate(anyString())).willReturn(info);
+
+		Map<String,RestExecutionResultEnum> res = callValidation(ActivityEnum.VALIDATION, HealthDataFormatEnum.CDA, InjectionModeEnum.ATTACHMENT, pdfAttachment, true, false, true);
+		Optional<String> firstKey = res.keySet().stream().findFirst();
+
+		String transactionId = "";
+		if (firstKey.isPresent()) {
+			transactionId = firstKey.get();
+		}
+		
+		// Case 1: Date is over 5 days 
+		when(cdaFacadeSRV.getByWorkflowInstanceId(anyString())).thenReturn(validatedDocumentDateOverFiveDays); 
+
+		cdaRepo.create(ValidatedDocumentsETY.setContent("6XpKL8W/lQjXvnZ24wFNts5itL07id7suEe+YluhfcY=", "wfid", "", ""));
+		PublicationCreationReqDTO reqDTO = buildReqDTO();
+
+		RestExecutionResultEnum resPublication = callPublication(pdfAttachment, reqDTO, transactionId, false, true);
+		assertNotNull(resPublication);
+		assertEquals(RestExecutionResultEnum.GENERIC_ERROR.getType(), resPublication.getType()); 
+		
+		// Case 2: Date is 3 days ago, should be OK
+		when(cdaFacadeSRV.getByWorkflowInstanceId(anyString())).thenReturn(validatedDocumentCorrectDate); 
+
+		cdaRepo.create(ValidatedDocumentsETY.setContent("6XpKL8W/lQjXvnZ24wFNts5itL07id7suEe+YluhfcY=", "wfid", "", ""));
+		PublicationCreationReqDTO reqDTOOk = buildReqDTO();
+
+		RestExecutionResultEnum resPublicationOk = callPublication(pdfAttachment, reqDTOOk, transactionId, false, true);
+		assertNotNull(resPublicationOk);
+		assertEquals(RestExecutionResultEnum.OK.getType(), resPublicationOk.getType()); 
+		
+	}
+
 	
 	@Test
 	void publicationWarningTest() {

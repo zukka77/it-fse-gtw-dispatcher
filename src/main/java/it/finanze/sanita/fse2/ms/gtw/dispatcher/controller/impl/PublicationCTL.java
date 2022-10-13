@@ -22,8 +22,11 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.IKafkaSRV;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.facade.ICdaFacadeSRV;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.impl.IniEdsInvocationSRV;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.CdaUtility;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.DateUtility;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility;
 import lombok.extern.slf4j.Slf4j;
+
+import org.apache.commons.lang3.time.DateUtils;
 import org.jsoup.Jsoup;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -77,7 +80,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 		final LogTraceInfoDTO traceInfoDTO = getLogTraceInfo();
 
 		ValidationCreationInputDTO validationInfo = new ValidationCreationInputDTO();
-		validationInfo.setValidationData(new ValidationDataDTO(null, false, Constants.App.MISSING_WORKFLOW_PLACEHOLDER, null, null));
+		validationInfo.setValidationData(new ValidationDataDTO(null, false, Constants.App.MISSING_WORKFLOW_PLACEHOLDER, null, null, new Date()));
 
 		try {
 			validationInfo = validateInput(file, request, false);
@@ -128,7 +131,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 			final LogTraceInfoDTO traceInfoDTO = getLogTraceInfo();
 
 			ValidationCreationInputDTO validationInfo = new ValidationCreationInputDTO();
-			validationInfo.setValidationData(new ValidationDataDTO(null, false, Constants.App.MISSING_WORKFLOW_PLACEHOLDER, null, null));
+			validationInfo.setValidationData(new ValidationDataDTO(null, false, Constants.App.MISSING_WORKFLOW_PLACEHOLDER, null, null, new Date()));
 
 			try {
 				validationInfo = validateInput(file, request, true);
@@ -251,11 +254,19 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 	
 			validation.setValidationData(validationInfo); // Updating validation info
 
-			if (!Boolean.TRUE.equals(jsonObj.isForcePublish()) || isReplace) {
-				ValidationDataDTO validatedDocument = cdaSRV.getByWorkflowInstanceId(validationInfo.getWorkflowInstanceId()); 
+			ValidationDataDTO validatedDocument = cdaSRV.getByWorkflowInstanceId(validationInfo.getWorkflowInstanceId()); 
+			
+			if (!Boolean.TRUE.equals(jsonObj.isForcePublish()) || isReplace) {				
 				transformId = validatedDocument.getTransformId(); 
 				structureId = validatedDocument.getStructureId(); 
-				cdaSRV.consumeHash(validationInfo.getHash());
+				cdaSRV.consumeHash(validationInfo.getHash()); 
+				
+								
+				// Checks on date - If greater than 5 days transaction is aborted 
+				if(DateUtility.getDifferenceDays(validatedDocument.getInsertionDate(), new Date()) > 5) {
+					throw new ValidationException("Error: cannot publish documents older than 5 days"); 
+				} 
+				
 			}
 			
 			final String documentSha256 = StringUtility.encodeSHA256(bytePDF);
