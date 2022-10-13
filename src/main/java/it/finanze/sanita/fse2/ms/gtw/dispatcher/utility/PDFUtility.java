@@ -195,7 +195,6 @@ public class PDFUtility {
 		} catch (Exception ex) {
 			out = null;
 			log.error("Error while check xml : " + ex);
-			throw new BusinessException(ex);
 		}
 		return out;
 	}
