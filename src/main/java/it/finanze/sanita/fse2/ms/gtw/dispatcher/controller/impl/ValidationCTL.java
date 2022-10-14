@@ -63,6 +63,7 @@ public class ValidationCTL extends AbstractCTL implements IValidationCTL {
 		String warning = null;
 		Document docT = null;
 
+		String role = null;
 		try {
 			if (Boolean.TRUE.equals(msCfg.getFromGovway())) {
 				jwtToken = extractAndValidateJWT(request.getHeader(Constants.Headers.JWT_GOVWAY_HEADER),
@@ -72,6 +73,8 @@ public class ValidationCTL extends AbstractCTL implements IValidationCTL {
 						msCfg.getFromGovway());
 			}
 
+			role = jwtToken.getPayload().getSubject_role();
+			
 			jsonObj = getAndValidateValidationReq(request.getParameter("requestBody"));
 			final byte[] bytes = getAndValidateFile(file);
 			final String cda = extractCDA(bytes, jsonObj.getMode());
@@ -94,7 +97,7 @@ public class ValidationCTL extends AbstractCTL implements IValidationCTL {
 
 			logger.info("Validation CDA completed for workflow instance Id " + workflowInstanceId,
 					OperationLogEnum.VAL_CDA2, ResultLogEnum.OK, startDateOperation, issuer,
-					CdaUtility.getDocumentType(docT));
+					CdaUtility.getDocumentType(docT),role);
 			request.setAttribute("JWT_ISSUER", issuer);
 		} catch (final ValidationException e) {
 			errorHandlerSRV.validationExceptionHandler(startDateOperation, traceInfoDTO, workflowInstanceId, jwtToken,

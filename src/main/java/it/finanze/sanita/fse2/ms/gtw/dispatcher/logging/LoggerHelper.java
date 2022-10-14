@@ -37,7 +37,8 @@ public class LoggerHelper {
 	 * Implements structured logs, at all logging levels
 	 */
 	public void trace(String message, ILogEnum operation, 
-			   ResultLogEnum result, Date startDateOperation, String issuer) {
+			   ResultLogEnum result, Date startDateOperation, String issuer, 
+			   String role) {
 		
 		LogDTO logDTO = LogDTO.builder().
 				op_issuer(issuer).
@@ -57,7 +58,8 @@ public class LoggerHelper {
 	} 
 	
 	public void debug(String message,  ILogEnum operation,  
-			   ResultLogEnum result, Date startDateOperation, String issuer) {
+			   ResultLogEnum result, Date startDateOperation, String issuer,
+			   String role) {
 		
 		LogDTO logDTO = LogDTO.builder().
 				op_issuer(issuer).
@@ -76,7 +78,8 @@ public class LoggerHelper {
 	} 
 	 
 	public void info(String message, ILogEnum operation, ResultLogEnum result, 
-		Date startDateOperation, String issuer, String documentType) {
+		Date startDateOperation, String issuer, String documentType,
+		String role) {
 		
 		LogDTO logDTO = LogDTO.builder().
 				op_issuer(issuer).
@@ -97,7 +100,8 @@ public class LoggerHelper {
 	} 
 	
 	public void warn(String message, ILogEnum operation,  
-			   ResultLogEnum result, Date startDateOperation, String issuer) {
+			   ResultLogEnum result, Date startDateOperation, String issuer,
+			   String role) {
 		
 		LogDTO logDTO = LogDTO.builder().
 				op_issuer(issuer).
@@ -118,7 +122,8 @@ public class LoggerHelper {
 	
 	public void error(String message, ILogEnum operation,  
 			   ResultLogEnum result, Date startDateOperation,
-			   ILogEnum error, String issuer, String documentType) {
+			   ILogEnum error, String issuer, String documentType,
+			   String role) {
 		
 		LogDTO logDTO = LogDTO.builder().
 				op_issuer(issuer).

@@ -156,10 +156,10 @@ class UtilityTest extends AbstractTest{
     @Test
     @DisplayName("Logger test")
     void loggerTest() {
-        assertDoesNotThrow(() -> logger.trace("Trace", OperationLogEnum.PUB_CDA2, ResultLogEnum.KO, new Date(), "issuer"));
-        assertDoesNotThrow(() -> logger.debug("Debug", OperationLogEnum.REDIS, ResultLogEnum.KO, new Date(), "issuer"));
-        assertDoesNotThrow(() -> logger.error("Error", OperationLogEnum.TRAS_CDA2, ResultLogEnum.KO, new Date(), ErrorLogEnum.KO_FHIR, "issuer", Constants.App.MISSING_DOC_TYPE_PLACEHOLDER));
-        assertDoesNotThrow(() -> logger.info("Info", OperationLogEnum.REDIS, ResultLogEnum.KO, new Date(), "issuer", Constants.App.MISSING_DOC_TYPE_PLACEHOLDER));
+        assertDoesNotThrow(() -> logger.trace("Trace", OperationLogEnum.PUB_CDA2, ResultLogEnum.KO, new Date(), "issuer","ROLE_TEST"));
+        assertDoesNotThrow(() -> logger.debug("Debug", OperationLogEnum.REDIS, ResultLogEnum.KO, new Date(), "issuer","ROLE_TEST"));
+        assertDoesNotThrow(() -> logger.error("Error", OperationLogEnum.TRAS_CDA2, ResultLogEnum.KO, new Date(), ErrorLogEnum.KO_FHIR, "issuer", Constants.App.MISSING_DOC_TYPE_PLACEHOLDER,"ROLE_TEST"));
+        assertDoesNotThrow(() -> logger.info("Info", OperationLogEnum.REDIS, ResultLogEnum.KO, new Date(), "issuer", Constants.App.MISSING_DOC_TYPE_PLACEHOLDER,"ROLE_TEST"));
     }
 
     @Test
