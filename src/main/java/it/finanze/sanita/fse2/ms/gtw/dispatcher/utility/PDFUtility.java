@@ -189,7 +189,7 @@ public class PDFUtility {
 		String out = null;
 		try {
 			out = new String(b, cs);
-			if(!out.startsWith("<?xml")) {
+			if(!out.contains("<ClinicalDocument")) {
 				out = null;
 			}
 		} catch (Exception ex) {
