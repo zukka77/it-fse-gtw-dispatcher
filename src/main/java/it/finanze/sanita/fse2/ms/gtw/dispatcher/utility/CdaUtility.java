@@ -72,11 +72,14 @@ public final class CdaUtility {
 				extractedDocType = DocumentTypeEnum.getByTemplateId(templateIdRoot).getDocumentType();
 			}
 
-			if (!StringUtility.isNullOrEmpty(extractedDocType)) {
+			if (StringUtility.isNullOrEmpty(extractedDocType)) {
+				docType = cdaDocument.select("code").get(0).attr("displayName");
+			} else {
 				docType = extractedDocType;
 			}
 		}
-		return docType;
+		
+		return StringUtility.isNullOrEmpty(docType) ? Constants.App.MISSING_DOC_TYPE_PLACEHOLDER : docType;
 	}
 
 	public static String extractFieldCda(final org.jsoup.nodes.Document docT) {
