@@ -59,7 +59,7 @@ public class ErrorHandlerSRV implements IErrorHandlerSRV {
         final RestExecutionResultEnum errorType = RestExecutionResultEnum.get(capturedErrorType);
 
         String issuer = (jwtToken != null && jwtToken.getPayload() != null && !StringUtility.isNullOrEmpty(jwtToken.getPayload().getIss())) ? jwtToken.getPayload().getIss() : "ISSUER_UNDEFINED";
-        String role = (jwtToken!=null && jwtToken.getPayload().getSubject_role()!=null && !StringUtility.isNullOrEmpty(jwtToken.getPayload().getIss())) ? jwtToken.getPayload().getIss() : Constants.App.JWT_MISSING_SUBJECT_ROLE;
+        String role = (jwtToken!=null && jwtToken.getPayload().getSubject_role()!=null && !StringUtility.isNullOrEmpty(jwtToken.getPayload().getSubject_role())) ? jwtToken.getPayload().getSubject_role() : Constants.App.JWT_MISSING_SUBJECT_ROLE;
         
         if(isPublication) {
         	logger.error(errorMessage + " " + validationInfo.getWorkflowInstanceId(), OperationLogEnum.PUB_CDA2, ResultLogEnum.KO, startDateOperation, errorType.getErrorCategory(), issuer, documentType,
@@ -102,7 +102,7 @@ public class ErrorHandlerSRV implements IErrorHandlerSRV {
         final RestExecutionResultEnum errorType = RestExecutionResultEnum.get(capturedErrorType);
 
         String issuer = (jwtToken != null && jwtToken.getPayload() != null && !StringUtility.isNullOrEmpty(jwtToken.getPayload().getIss())) ? jwtToken.getPayload().getIss() : "ISSUER_UNDEFINED";
-        String role = (jwtToken!=null && jwtToken.getPayload().getSubject_role()!=null && !StringUtility.isNullOrEmpty(jwtToken.getPayload().getIss())) ? jwtToken.getPayload().getIss() : Constants.App.JWT_MISSING_SUBJECT_ROLE;
+        String role = (jwtToken!=null && jwtToken.getPayload().getSubject_role()!=null && !StringUtility.isNullOrEmpty(jwtToken.getPayload().getSubject_role())) ? jwtToken.getPayload().getSubject_role() : Constants.App.JWT_MISSING_SUBJECT_ROLE;
         
         
         if(isPublication) {
@@ -135,7 +135,7 @@ public class ErrorHandlerSRV implements IErrorHandlerSRV {
         kafkaSRV.sendFeedingStatus(traceInfoDTO.getTraceID(), workflowInstanceId, errorEventStatus, errorMessage, jsonObj, jwtToken != null ? jwtToken.getPayload() : null);
 
         String issuer = (jwtToken != null && jwtToken.getPayload()!= null && !StringUtility.isNullOrEmpty(jwtToken.getPayload().getIss())) ? jwtToken.getPayload().getIss() : Constants.App.JWT_MISSING_ISSUER_PLACEHOLDER;
-        String role = (jwtToken!=null && jwtToken.getPayload().getSubject_role()!=null && !StringUtility.isNullOrEmpty(jwtToken.getPayload().getIss())) ? jwtToken.getPayload().getIss() : Constants.App.JWT_MISSING_SUBJECT_ROLE;
+        String role = (jwtToken!=null && jwtToken.getPayload().getSubject_role()!=null && !StringUtility.isNullOrEmpty(jwtToken.getPayload().getSubject_role())) ? jwtToken.getPayload().getSubject_role() : Constants.App.JWT_MISSING_SUBJECT_ROLE;
         
         logger.error(errorMessage + " " + workflowInstanceId, OperationLogEnum.PUB_CDA2, ResultLogEnum.KO, startDateOperation, result.getErrorCategory(), issuer, documentType,
         		role);
@@ -153,7 +153,7 @@ public class ErrorHandlerSRV implements IErrorHandlerSRV {
         EventStatusEnum errorEventStatus = result.getEventStatusEnum();
 
         String issuer = (jwtToken != null && jwtToken.getPayload() != null && !StringUtility.isNullOrEmpty(jwtToken.getPayload().getIss())) ? jwtToken.getPayload().getIss() : Constants.App.JWT_MISSING_ISSUER_PLACEHOLDER;
-        String role = (jwtToken!=null && jwtToken.getPayload().getSubject_role()!=null && !StringUtility.isNullOrEmpty(jwtToken.getPayload().getIss())) ? jwtToken.getPayload().getIss() : Constants.App.JWT_MISSING_SUBJECT_ROLE;
+        String role = (jwtToken!=null && jwtToken.getPayload().getSubject_role()!=null && !StringUtility.isNullOrEmpty(jwtToken.getPayload().getSubject_role())) ? jwtToken.getPayload().getSubject_role() : Constants.App.JWT_MISSING_SUBJECT_ROLE;
         
         kafkaSRV.sendFeedingStatus(traceInfoDTO.getTraceID(), workflowInstanceId, errorEventStatus, errorMessage, jsonObj, jwtToken != null ? jwtToken.getPayload() : null);
         logger.error(errorMessage + " " + workflowInstanceId, OperationLogEnum.PUB_CDA2, ResultLogEnum.KO, startDateOperation, result.getErrorCategory(), issuer, documentType,
@@ -180,7 +180,7 @@ public class ErrorHandlerSRV implements IErrorHandlerSRV {
         kafkaSRV.sendValidationStatus(traceInfoDTO.getTraceID(), workflowInstanceId, errorEventStatus, errorMessage, jwtToken != null ? jwtToken.getPayload() : null);
 
         String issuer = (jwtToken !=null && jwtToken.getPayload()!=null && !StringUtility.isNullOrEmpty(jwtToken.getPayload().getIss())) ? jwtToken.getPayload().getIss() : Constants.App.JWT_MISSING_ISSUER_PLACEHOLDER;
-        String role = (jwtToken!=null && jwtToken.getPayload().getSubject_role()!=null && !StringUtility.isNullOrEmpty(jwtToken.getPayload().getIss())) ? jwtToken.getPayload().getIss() : Constants.App.JWT_MISSING_SUBJECT_ROLE;
+        String role = (jwtToken!=null && jwtToken.getPayload().getSubject_role()!=null && !StringUtility.isNullOrEmpty(jwtToken.getPayload().getSubject_role())) ? jwtToken.getPayload().getSubject_role() : Constants.App.JWT_MISSING_SUBJECT_ROLE;
         logger.error(e.getError().getDetail() + " " + workflowInstanceId, OperationLogEnum.VAL_CDA2, ResultLogEnum.KO, startDateOperation, validationResult.getErrorCategory(), issuer, documentType,
         		role);
         throw new ValidationErrorException(validationResult, StringUtility.sanitizeMessage(e.getError().getDetail()), workflowInstanceId, errorInstance);
