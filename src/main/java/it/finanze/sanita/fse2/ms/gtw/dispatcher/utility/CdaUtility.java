@@ -68,13 +68,11 @@ public final class CdaUtility {
 		if (cdaDocument != null) {
 			final String templateIdRoot = cdaDocument.select("templateid").get(0).attr("root");
 			String extractedDocType = null;
-			if (DocumentTypeEnum.getByTemplateId(templateIdRoot).getDocumentType() != null) {
+			if (DocumentTypeEnum.getByTemplateId(templateIdRoot) != null) {
 				extractedDocType = DocumentTypeEnum.getByTemplateId(templateIdRoot).getDocumentType();
 			}
 
-			if (StringUtility.isNullOrEmpty(extractedDocType)) {
-				docType = cdaDocument.select("code").get(0).attr("displayName");
-			} else {
+			if (!StringUtility.isNullOrEmpty(extractedDocType)) {
 				docType = extractedDocType;
 			}
 		}

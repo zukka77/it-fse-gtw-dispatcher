@@ -96,8 +96,7 @@ public class ValidationCTL extends AbstractCTL implements IValidationCTL {
 							: Constants.App.JWT_MISSING_ISSUER_PLACEHOLDER;
 
 			logger.info("Validation CDA completed for workflow instance Id " + workflowInstanceId,
-					OperationLogEnum.VAL_CDA2, ResultLogEnum.OK, startDateOperation, issuer,
-					CdaUtility.getDocumentType(docT),role);
+					OperationLogEnum.VAL_CDA2, ResultLogEnum.OK, startDateOperation, issuer, CdaUtility.getDocumentType(docT), role);
 			request.setAttribute("JWT_ISSUER", issuer);
 		} catch (final ValidationException e) {
 			errorHandlerSRV.validationExceptionHandler(startDateOperation, traceInfoDTO, workflowInstanceId, jwtToken,

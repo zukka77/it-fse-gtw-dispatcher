@@ -1,17 +1,32 @@
 package it.finanze.sanita.fse2.ms.gtw.dispatcher.utility;
 
-import com.lowagie.text.pdf.*;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.AttachmentDTO;
-import lombok.extern.slf4j.Slf4j;
+import java.io.ByteArrayInputStream;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLStreamReader;
+
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDDocumentCatalog;
 import org.apache.pdfbox.pdmodel.PDDocumentNameDictionary;
 import org.apache.pdfbox.pdmodel.PDEmbeddedFilesNameTreeNode;
 import org.apache.pdfbox.pdmodel.common.filespecification.PDComplexFileSpecification;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
+import com.lowagie.text.pdf.PRStream;
+import com.lowagie.text.pdf.PdfArray;
+import com.lowagie.text.pdf.PdfDictionary;
+import com.lowagie.text.pdf.PdfIndirectReference;
+import com.lowagie.text.pdf.PdfName;
+import com.lowagie.text.pdf.PdfReader;
+import com.lowagie.text.pdf.PdfString;
+
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.AttachmentDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.BusinessException;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class PDFUtility {
@@ -102,7 +117,7 @@ public class PDFUtility {
 
 	public static boolean isPdf(byte[] pdf) {
 		boolean out = false;
-		if (pdf!=null && pdf.length >4) {
+		if (pdf!=null && pdf.length > 4) {
 			byte[] magicNumber = Arrays.copyOf(pdf, 4);
 			String strMagicNumber = new String(magicNumber);
 			out = strMagicNumber.equals("%PDF");
@@ -110,4 +125,18 @@ public class PDFUtility {
 		return out;
 	}
 
+	public static String detectCharsetAndExtract(byte[] bytes) {
+		Charset detectedCharset = StandardCharsets.UTF_8;
+		try {
+			
+			final XMLStreamReader xmlStreamReader = XMLInputFactory.newInstance().createXMLStreamReader(new ByteArrayInputStream(bytes)); 
+			final String fileEncoding = xmlStreamReader.getEncoding(); 
+			detectedCharset = Charset.forName(fileEncoding);
+
+			return new String(bytes, detectedCharset);
+		} catch (Exception ex) {
+			log.error(String.format("Error while reading extracted CDA using detected encode: %s", detectedCharset), ex);
+			throw new BusinessException(String.format("Error while reading extracted CDA using detected encode: %s", detectedCharset), ex);
+		}
+	}
 }

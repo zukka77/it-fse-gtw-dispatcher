@@ -171,11 +171,10 @@ public abstract class AbstractTest {
 			personId = getPersonIdFromCda(cda);
 		}
 
-		final JWTHeaderDTO jwtHeader = new JWTHeaderDTO("RS256", Constants.App.JWT_TOKEN_TYPE, null, "X5C cert base 64");
-
 		StringBuilder encodedJwtToken = new StringBuilder(Constants.App.BEARER_PREFIX) // Bearer prefix
-			.append(Base64.getEncoder().encodeToString(new Gson().toJson(jwtHeader).getBytes())) // Header
-			.append(".").append(generateJwtPayload(documentHash, personId, "RSSMRA22A01A399Z^^^&amp;2.16.840.1.113883.2.9.4.3.2&amp;ISO", docType)); // Payload
+			.append("RkFLRV9IRUFERVI=") // Fake Header
+			.append(".").append(generateJwtPayload(documentHash, personId, "SSSMNN75B01F257L^^^&amp;2.16.840.1.113883.2.9.4.3.2&amp;ISO", docType)) // Payload
+			.append(".").append("RkFLRV9TSUdOQVRVUkU="); // Fake Signature
 		return encodedJwtToken.toString();
 	}
 
@@ -193,9 +192,9 @@ public abstract class AbstractTest {
 
 	protected String generateJwtPayload(final String documentHash, final String personId, final String subject, final String docType) {
 		
-		final JWTPayloadDTO jwtPayload = new JWTPayloadDTO("201123456", 1540890704, 1540918800, "1540918800", 
-		"fse-gateway", subject, "110", "Regione Marche", "Regione Marche",
-		"AAS", personId, true, "TREATMENT", docType, "CREATE", documentHash);
+		final JWTPayloadDTO jwtPayload = new JWTPayloadDTO("080", 1540890704, 1540918800, "1540918800", 
+		"fse-gateway", subject, "080", "Regione Emilia-Romagna", "080",
+		"APR", personId, true, "TREATMENT", docType, "CREATE", documentHash);
 		return Base64.getEncoder().encodeToString(new Gson().toJson(jwtPayload).getBytes());
 	}
 
