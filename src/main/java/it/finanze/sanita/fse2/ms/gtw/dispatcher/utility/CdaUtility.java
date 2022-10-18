@@ -4,6 +4,7 @@ import org.jsoup.nodes.Document;
 
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.ErrorResponseDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.DocumentTypeEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.RestExecutionResultEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.BusinessException;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.ValidationException;
@@ -65,7 +66,12 @@ public final class CdaUtility {
 	public static String getDocumentType(final Document cdaDocument) {
 		String docType = Constants.App.MISSING_DOC_TYPE_PLACEHOLDER;
 		if (cdaDocument != null) {
-			final String extractedDocType = extractDocumentType(cdaDocument);
+			final String templateIdRoot = cdaDocument.select("templateid").get(0).attr("root");
+			String extractedDocType = null;
+			if (DocumentTypeEnum.getByTemplateId(templateIdRoot).getDocumentType() != null) {
+				extractedDocType = DocumentTypeEnum.getByTemplateId(templateIdRoot).getDocumentType();
+			}
+
 			if (!StringUtility.isNullOrEmpty(extractedDocType)) {
 				docType = extractedDocType;
 			}
@@ -73,17 +79,6 @@ public final class CdaUtility {
 		return docType;
 	}
 
-	private static String extractDocumentType(final Document docT) {
-		String out = "";
-		try {
-			out = docT.select("code").get(0).attr("displayName");
-		} catch(Exception ex) {
-			log.error("Error while extracting document type from CDA2", ex);
-			throw new BusinessException("Error while extracting document type from CDA2", ex);
-		}
-		return out;
-	}
-	
 	public static String extractFieldCda(final org.jsoup.nodes.Document docT) {
 		String out = "";
 		try {
