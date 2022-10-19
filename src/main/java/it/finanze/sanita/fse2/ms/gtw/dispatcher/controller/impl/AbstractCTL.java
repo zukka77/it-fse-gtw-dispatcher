@@ -472,11 +472,11 @@ public abstract class AbstractCTL implements Serializable {
 		final Map<String, AttachmentDTO> attachments = PDFUtility.extractAttachments(cda);
 		if (!attachments.isEmpty()) {
 			if (attachments.size() == 1) {
-				out = new String(attachments.values().iterator().next().getContent());
+				out = PDFUtility.detectCharsetAndExtract(attachments.values().iterator().next().getContent());
 			} else {
 				final AttachmentDTO attDTO = attachments.get(cdaCfg.getCdaAttachmentName());
 				if (attDTO != null) {
-					out = new String(attDTO.getContent());
+					out = PDFUtility.detectCharsetAndExtract(attDTO.getContent());
 				}
 			}
 		}

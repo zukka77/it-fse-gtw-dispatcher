@@ -50,6 +50,7 @@ public class LoggerHelper {
 				op_result(result.getCode()).
 				op_timestamp_start(dateFormat.format(startDateOperation)).
 				op_timestamp_end(dateFormat.format(new Date())).
+				op_role(role).
 				build();
 
 		final String logMessage = StringUtility.toJSON(logDTO);
@@ -71,6 +72,7 @@ public class LoggerHelper {
 				op_result(result.getCode()).
 				op_timestamp_start(dateFormat.format(startDateOperation)).
 				op_timestamp_end(dateFormat.format(new Date())).
+				op_role(role).
 				build();
 		
 		final String logMessage = StringUtility.toJSON(logDTO);
@@ -92,6 +94,7 @@ public class LoggerHelper {
 				op_timestamp_start(dateFormat.format(startDateOperation)).
 				op_timestamp_end(dateFormat.format(new Date())).
 				op_document_type(documentType).
+				op_role(role).
 				build();
 		
 		final String logMessage = StringUtility.toJSON(logDTO);
@@ -113,6 +116,7 @@ public class LoggerHelper {
 				op_result(result.getCode()).
 				op_timestamp_start(dateFormat.format(startDateOperation)).
 				op_timestamp_end(dateFormat.format(new Date())).
+				op_role(role).
 				build();
 		
 		final String logMessage = StringUtility.toJSON(logDTO);
@@ -138,6 +142,7 @@ public class LoggerHelper {
 				op_error(error.getCode()).
 				op_error_description(error.getDescription()).
 				op_document_type(documentType).
+				op_role(role).
 				build();
 		
 		final String logMessage = StringUtility.toJSON(logDTO);

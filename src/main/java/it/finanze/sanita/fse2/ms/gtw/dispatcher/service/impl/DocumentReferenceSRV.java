@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.impl.FhirMappingClient;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.DocumentEntryDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.DocumentReferenceDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.FhirResourceDTO;
@@ -136,8 +137,8 @@ public class DocumentReferenceSRV implements IDocumentReferenceSRV {
 			final String contentTypeCode, final String identificativoSottomissione) {
 		SubmissionSetEntryDTO sse = null;
 		
-		sse = extractedInfoForSubmissionSetEntry(docCDA,identificativoSottomissione);
-		sse.setSubmissionTime(new Date().toString());
+		sse = extractedInfoForSubmissionSetEntry(docCDA, identificativoSottomissione);
+		sse.setSubmissionTime(new SimpleDateFormat(Constants.Misc.INI_DATE_PATTERN).format(new Date()));
 		sse.setContentTypeCode(contentTypeCode);
 		final AttivitaClinicaEnum contentTypeCodeName = Arrays.stream(AttivitaClinicaEnum.values()).filter(attivitaClinicaEnum -> attivitaClinicaEnum.getCode().equals(contentTypeCode)).findFirst().orElse(null);
 		if (contentTypeCodeName != null) {
@@ -259,7 +260,7 @@ public class DocumentReferenceSRV implements IDocumentReferenceSRV {
 
 			de.setMimeType("application/pdf+text/x-cda-r2+xml");
 			de.setEntryUUID("Document01");
-			de.setCreationTime(new Date().toString());
+			de.setCreationTime(new SimpleDateFormat(Constants.Misc.INI_DATE_PATTERN).format(new Date()));
 			de.setSize(size);
 			de.setHash(hash);
 			de.setStatus("approved");

@@ -133,6 +133,12 @@ public final class Constants {
 		public static final String MEDIUM_PRIORITY = "_MEDIUM";
 		public static final String HIGH_PRIORITY = "_HIGH";
         public static final String WARN_EXTRACTION_SELECTION = "Attenzione, non è stata selezionata la modalità di estrazione del CDA";
+
+		/**
+		 * Pattern of the date in the format required from INI.
+		 */
+		public static final String INI_DATE_PATTERN = "yyyyMMddHHmmss";
+		
 		/**
 		 * Constructor.
 		 */

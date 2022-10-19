@@ -152,13 +152,11 @@ class PublicationTest extends AbstractTest {
 		resPublication = callPublication(pdfResource,buildCreationDTO(transactionID, InjectionModeEnum.ATTACHMENT), transactionID, false, true);
 		assertNotNull(resPublication); 
         assertEquals(RestExecutionResultEnum.MINING_CDA_ERROR.getType(), resPublication.getType());
-        
-
     }
 
 	@Test
 	void jwtValidation () {
-		byte[] pdfAttachment = FileUtility.getFileFromInternalResources("Files/attachment/CDA_OK_SIGNED.pdf");
+		byte[] pdfAttachment = FileUtility.getFileFromInternalResources("Files/attachment/LAB_OK.pdf");
 		String encoded = StringUtility.encodeSHA256(pdfAttachment);
 		String token = generateJwt(pdfAttachment, true);
 		

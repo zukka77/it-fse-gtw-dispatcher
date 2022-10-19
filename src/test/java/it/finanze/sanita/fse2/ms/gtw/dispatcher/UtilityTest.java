@@ -9,14 +9,22 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.BDDMockito.given;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.nio.charset.Charset;
 import java.util.Base64;
 import java.util.Date;
 import java.util.regex.Pattern;
 
+import javax.xml.stream.FactoryConfigurationError;
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -35,6 +43,7 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.logging.LoggerHelper;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.impl.UtilitySRV;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.CfUtility;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.FileUtility;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.PDFUtility;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility;
 import lombok.extern.slf4j.Slf4j;
 
@@ -181,4 +190,23 @@ class UtilityTest extends AbstractTest{
 		assertTrue(pattern.matcher(prodUrl).matches());
 		assertFalse(pattern.matcher(devUrl).matches());
 	}
+
+    @ParameterizedTest
+    @CsvSource({"CDA-utf-16-LE.xml,UTF-16LE", "CDA-utf-16-BE.xml,UTF-16BE", "CDA-UTF-8.xml,UTF-8"})
+    @DisplayName("Testing extraction of CDA with different encodings")
+    void charsetTest(final String filename, final String charset) throws XMLStreamException, FactoryConfigurationError {
+
+        byte[] filebytes = FileUtility.getFileFromInternalResources("Files" + File.separator + "attachment" + File.separator + "encoded-cda" + File.separator + filename);
+        
+        final XMLStreamReader xmlStreamReader = XMLInputFactory.newInstance().createXMLStreamReader(new ByteArrayInputStream(filebytes)); 
+        final String fileEncoding = xmlStreamReader.getEncoding();
+        final Charset detectedCharset = Charset.forName(fileEncoding);
+
+        assertEquals(detectedCharset, Charset.forName(charset), "The encoding type should be the same set in the file");
+
+        final String decodedCda = PDFUtility.detectCharsetAndExtract(filebytes);
+        assertTrue(decodedCda.contains("<?xml"), "The bytes should have been decoded correctly");
+    }
+
+    
 }
