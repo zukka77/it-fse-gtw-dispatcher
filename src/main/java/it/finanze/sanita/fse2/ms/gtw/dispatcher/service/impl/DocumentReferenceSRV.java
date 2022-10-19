@@ -155,12 +155,7 @@ public class DocumentReferenceSRV implements IDocumentReferenceSRV {
 				sourceIdRoot = custodianPath.attr("root");
 			}
 			
-			final Element custodianId = docCDA.select(PATH_CUSTODIAN_ID).first();
-			String sourceIdExtension = "";
-			if (custodianId != null) {
-				sourceIdExtension = custodianId.attr(EXTENSION_ATTRIBUTE);
-			}
-			sse.setSourceId(sourceIdRoot + "." + sourceIdExtension);
+			sse.setSourceId(sourceIdRoot);
 			sse.setUniqueID(identificativoSottomissione);
 		}
 		return sse;
@@ -232,13 +227,7 @@ public class DocumentReferenceSRV implements IDocumentReferenceSRV {
 			}
 		}
 
-		final Element rootElement = docCDA.select("ClinicalDocument > id").first();
-		String root = "";
-		if (rootElement != null) {
-			root = rootElement.attr("root");
-		}
-		final String extension = requestBody.getIdentificativoDoc();
-		documentEntryDTO.setUniqueId(root + "^" + extension);
+		documentEntryDTO.setUniqueId(requestBody.getIdentificativoDoc());
 		final Element idFullfillment = docCDA.select("ClinicalDocument > inFulfillmentOf > order > id").first();
 		if (idFullfillment != null) {
 			final String ref = idFullfillment.attr(EXTENSION_ATTRIBUTE);
