@@ -361,7 +361,9 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 				throw new EdsException("Error encountered while sending delete information to EDS client");
 			}
 
-			if (isTestEnvironment) {
+			boolean iniMockMessage = !StringUtility.isNullOrEmpty(iniResponse.getErrorMessage()) && iniResponse.getErrorMessage().contains("Invalid region ip");
+			
+			if (isTestEnvironment && iniMockMessage) {
 				throw new MockEnabledException(iniResponse.getErrorMessage(), edsResponse != null ? edsResponse.getErrorMessage() : null);
 			}
 
