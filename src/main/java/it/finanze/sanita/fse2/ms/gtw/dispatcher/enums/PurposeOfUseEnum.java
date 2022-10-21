@@ -2,7 +2,9 @@ package it.finanze.sanita.fse2.ms.gtw.dispatcher.enums;
 
 public enum PurposeOfUseEnum {
 
-	TREATMENT("TREATMENT");
+	TREATMENT("TREATMENT"),
+	SYSADMIN("SYSADMIN"),
+	UPDATE("UPDATE");
 
 	private String display;
 
