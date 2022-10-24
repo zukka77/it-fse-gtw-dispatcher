@@ -26,7 +26,8 @@ public enum RestExecutionResultEnum {
 	RECORD_NOT_FOUND("msg/record-not-found", "Record non trovato.", ErrorLogEnum.KO_INVALID_DATA,EventStatusEnum.BLOCKING_ERROR),
 	SERVER_ERROR("msg/server-error", "Errore nella comunicazione con il client", ErrorLogEnum.KO_GENERIC,EventStatusEnum.BLOCKING_ERROR),
 	GENERIC_ERROR("/msg/generic-error", "Errore generico.", ErrorLogEnum.KO_GENERIC, EventStatusEnum.BLOCKING_ERROR),
-	MISSING_TOKEN("msg/missing-token", "Token non fornito", ErrorLogEnum.KO_GENERIC,EventStatusEnum.BLOCKING_ERROR);
+	MISSING_TOKEN("msg/missing-token", "Token non fornito", ErrorLogEnum.KO_GENERIC,EventStatusEnum.BLOCKING_ERROR),
+	INI_EXCEPTION("msg/ini-error", "Ini error", ErrorLogEnum.KO_GENERIC,EventStatusEnum.BLOCKING_ERROR);
 
 
 	private String type;

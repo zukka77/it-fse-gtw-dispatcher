@@ -8,7 +8,7 @@ public class IniException extends RuntimeException {
     private String errorMessage;
 
     public IniException(final String inErrorMessage) {
-        super();
+        super(inErrorMessage);
         errorMessage = inErrorMessage;
     }
 
