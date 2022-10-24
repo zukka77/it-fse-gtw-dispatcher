@@ -11,9 +11,9 @@ public enum RestExecutionResultEnum {
 	OK("00", "Pubblicazione effettuata correttamente.", null,EventStatusEnum.SUCCESS),
 	OK_FORCED("01","Pubblicazione effettuata con forzatura.", null,EventStatusEnum.SUCCESS),
 	MINING_CDA_ERROR("/msg/cda-element", "Errore in fase di estrazione del CDA.", ErrorLogEnum.KO_PUB,EventStatusEnum.BLOCKING_ERROR), 
-	SYNTAX_ERROR("/msg/syntax", "Errore di sintassi.", ErrorLogEnum.KO_PUB,EventStatusEnum.BLOCKING_ERROR),
-	SEMANTIC_ERROR("/msg/semantic", "Errore semantico.", ErrorLogEnum.KO_PUB,EventStatusEnum.BLOCKING_ERROR),
-	VOCABULARY_ERROR("/msg/vocabulary", "Errore vocabolario.", ErrorLogEnum.KO_PUB,EventStatusEnum.BLOCKING_ERROR),
+	SYNTAX_ERROR("/msg/syntax", "Errore di sintassi.", ErrorLogEnum.KO_VAL,EventStatusEnum.BLOCKING_ERROR),
+	SEMANTIC_ERROR("/msg/semantic", "Errore semantico.", ErrorLogEnum.KO_VAL,EventStatusEnum.BLOCKING_ERROR),
+	VOCABULARY_ERROR("/msg/vocabulary", "Errore vocabolario.", ErrorLogEnum.KO_VAL,EventStatusEnum.BLOCKING_ERROR),
 	CDA_MATCH_ERROR("/msg/cda-match", "Errore in fase di recupero dell'esito della verifica.", ErrorLogEnum.KO_PUB,EventStatusEnum.BLOCKING_ERROR), 
 	EMPTY_FILE_ERROR("/msg/empty-file", "File vuoto.", ErrorLogEnum.KO_INVALID_DATA,EventStatusEnum.BLOCKING_ERROR),
 	DOCUMENT_TYPE_ERROR("/msg/document-type", "Il documento non è pdf.", ErrorLogEnum.KO_INVALID_DATA,EventStatusEnum.BLOCKING_ERROR),
@@ -29,7 +29,8 @@ public enum RestExecutionResultEnum {
 	RECORD_NOT_FOUND("msg/record-not-found", "Record non trovato.", ErrorLogEnum.KO_INVALID_DATA,EventStatusEnum.BLOCKING_ERROR),
 	SERVER_ERROR("msg/server-error", "Errore nella comunicazione con il client", ErrorLogEnum.KO_GENERIC,EventStatusEnum.BLOCKING_ERROR),
 	GENERIC_ERROR("/msg/generic-error", "Errore generico.", ErrorLogEnum.KO_GENERIC, EventStatusEnum.BLOCKING_ERROR),
-	MISSING_TOKEN("msg/missing-token", "Token non fornito", ErrorLogEnum.KO_GENERIC,EventStatusEnum.BLOCKING_ERROR);
+	MISSING_TOKEN("msg/missing-token", "Token non fornito", ErrorLogEnum.KO_GENERIC,EventStatusEnum.BLOCKING_ERROR),
+	INI_EXCEPTION("msg/ini-error", "Ini error", ErrorLogEnum.KO_GENERIC,EventStatusEnum.BLOCKING_ERROR);
 
 
 	private String type;
