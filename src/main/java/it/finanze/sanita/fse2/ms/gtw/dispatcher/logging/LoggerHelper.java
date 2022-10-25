@@ -21,7 +21,6 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility;
 import lombok.extern.slf4j.Slf4j;
 
 /** 
- * 
  * @author vincenzoingenito 
  */ 
 @Service
@@ -52,7 +51,7 @@ public class LoggerHelper {
 	public void trace(String message, ILogEnum operation, ResultLogEnum result, Date startDateOperation, 
 			String issuer, String role) {
 
-		final String gatewayName = getGatewayName();
+		final String gtwName = getGatewayName();
 		
 		LogDTO logDTO = LogDTO.builder().
 				op_issuer(issuer).
@@ -62,7 +61,7 @@ public class LoggerHelper {
 				op_timestamp_start(dateFormat.format(startDateOperation)).
 				op_timestamp_end(dateFormat.format(new Date())).
 				op_role(role).
-				gateway_name(gatewayName).
+				gateway_name(gtwName).
 				microservice_name(msName).
 				build();
 
@@ -77,7 +76,7 @@ public class LoggerHelper {
 	public void debug(String message,  ILogEnum operation, ResultLogEnum result, Date startDateOperation, 
 				String issuer, String role) {
 		
-		final String gatewayName = getGatewayName();
+		final String gtwName = getGatewayName();
 
 		LogDTO logDTO = LogDTO.builder().
 				op_issuer(issuer).
@@ -87,7 +86,7 @@ public class LoggerHelper {
 				op_timestamp_start(dateFormat.format(startDateOperation)).
 				op_timestamp_end(dateFormat.format(new Date())).
 				op_role(role).
-				gateway_name(gatewayName).
+				gateway_name(gtwName).
 				microservice_name(msName).
 				build();
 		
@@ -101,7 +100,7 @@ public class LoggerHelper {
 	public void info(String message, ILogEnum operation, ResultLogEnum result, Date startDateOperation, String issuer, 
 			String documentType, String role) {
 
-		final String gatewayName = getGatewayName();
+		final String gtwName = getGatewayName();
 		
 		LogDTO logDTO = LogDTO.builder().
 				op_issuer(issuer).
@@ -112,7 +111,7 @@ public class LoggerHelper {
 				op_timestamp_end(dateFormat.format(new Date())).
 				op_document_type(documentType).
 				op_role(role).
-				gateway_name(gatewayName).
+				gateway_name(gtwName).
 				microservice_name(msName).
 				build();
 		
@@ -127,7 +126,7 @@ public class LoggerHelper {
 	public void warn(String message, ILogEnum operation, ResultLogEnum result, Date startDateOperation, 
 			String issuer, String role) {
 		
-		final String gatewayName = getGatewayName();
+		final String gtwName = getGatewayName();
 
 		LogDTO logDTO = LogDTO.builder().
 				op_issuer(issuer).
@@ -137,7 +136,7 @@ public class LoggerHelper {
 				op_timestamp_start(dateFormat.format(startDateOperation)).
 				op_timestamp_end(dateFormat.format(new Date())).
 				op_role(role).
-				gateway_name(gatewayName).
+				gateway_name(gtwName).
 				microservice_name(msName).
 				build();
 		
@@ -152,7 +151,7 @@ public class LoggerHelper {
 	public void error(String message, ILogEnum operation, ResultLogEnum result, Date startDateOperation,
 			   ILogEnum error, String issuer, String documentType, String role) {
 		
-		final String gatewayName = getGatewayName();
+		final String gtwName = getGatewayName();
 
 		LogDTO logDTO = LogDTO.builder().
 				op_issuer(issuer).
@@ -165,7 +164,7 @@ public class LoggerHelper {
 				op_error_description(error.getDescription()).
 				op_document_type(documentType).
 				op_role(role).
-				gateway_name(gatewayName).
+				gateway_name(gtwName).
 				microservice_name(msName).
 				build();
 		
