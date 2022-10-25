@@ -20,8 +20,8 @@ public class CollectionNaming {
     @Bean("iniEdsInvocationBean")
     public String getIniEdsInvocationCollection() {
         if (profileUtility.isTestProfile()) {
-            return Constants.Profile.TEST_PREFIX + Constants.ComponentScan.Collections.INI_EDS_INVOCATION;
+            return Constants.Profile.TEST_PREFIX + Constants.Collections.INI_EDS_INVOCATION;
         }
-        return Constants.ComponentScan.Collections.INI_EDS_INVOCATION;
+        return Constants.Collections.INI_EDS_INVOCATION;
     }
 }
