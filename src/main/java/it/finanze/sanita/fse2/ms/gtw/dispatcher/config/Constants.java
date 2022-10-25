@@ -80,6 +80,7 @@ public final class Constants {
 	}
  
 	public static final class Profile {
+
 		public static final String TEST = "test";
 		
 		public static final String DEV = "dev";
@@ -118,6 +119,7 @@ public final class Constants {
 	}
 	
 	public static final class OIDS {
+
         public static final String OID_MEF = "2.16.840.1.113883.2.9.4.3.2";
         
         private OIDS() {
@@ -149,8 +151,11 @@ public final class Constants {
 	}
 
 	public static final class Client {
+
 		private Client() {}
+		
 		public static final class Ini {
+		
 			private Ini() {}
 
 			public static final String DELETE_PATH = "/v1/ini-delete";
@@ -158,10 +163,22 @@ public final class Constants {
 		}
 
 		public static final class Eds {
+		
 			private Eds() {}
 			public static final String DELETE_PATH = "/v1/documents/{idDoc}";
 			public static final String UPDATE_PATH = "/v1/documents/{idDoc}/metadata";
 			public static final String ID_DOC_PLACEHOLDER = "{idDoc}";
+		}
+
+		public static final class Config {
+		
+			private Config() {}
+
+			public static final String WHOIS_PATH = "/v1/whois";
+			
+			public static final String STATUS_PATH = "/status";
+		
+			public static final String MOCKED_GATEWAY_NAME = "mocked-gateway";
 		}
 	}
   

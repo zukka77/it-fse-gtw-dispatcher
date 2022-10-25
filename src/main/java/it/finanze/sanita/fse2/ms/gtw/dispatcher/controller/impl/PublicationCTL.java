@@ -131,7 +131,6 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 			kafkaValue.setIdDoc(validationInfo.getJsonObj().getIdentificativoDoc());
 			kafkaValue.setEdsDPOperation(ProcessorOperationEnum.PUBLISH);
 
-
 			kafkaSRV.notifyChannel(validationInfo.getKafkaKey(), new Gson().toJson(kafkaValue), priorityType, validationInfo.getJsonObj().getTipoDocumentoLivAlto(), DestinationTypeEnum.INDEXER);
 			kafkaSRV.sendPublicationStatus(traceInfoDTO.getTraceID(), validationInfo.getValidationData().getWorkflowInstanceId(), EventStatusEnum.SUCCESS, null, validationInfo.getJsonObj(), validationInfo.getJwtToken() != null ? validationInfo.getJwtToken().getPayload() : null);
 			

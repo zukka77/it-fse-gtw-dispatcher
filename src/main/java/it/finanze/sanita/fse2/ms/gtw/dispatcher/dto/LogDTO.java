@@ -31,5 +31,8 @@ public class LogDTO {
 	private String op_document_type;
 	
 	private String op_role;
+
+	private String gateway_name;
 	
+	private String microservice_name;
 }
