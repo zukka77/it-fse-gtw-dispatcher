@@ -33,7 +33,7 @@ import lombok.extern.slf4j.Slf4j;
 @AutoConfigureMockMvc
 @ActiveProfiles(Constants.Profile.TEST)
 @Slf4j
-class DataUpdateTest extends AbstractTest {
+class DateUpdateTest extends AbstractTest {
 
 	@Autowired
 	ServletWebServerApplicationContext webServerAppCtxt;

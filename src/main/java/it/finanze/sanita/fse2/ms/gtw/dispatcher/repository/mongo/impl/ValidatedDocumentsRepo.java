@@ -155,6 +155,6 @@ public class ValidatedDocumentsRepo implements IValidatedDocumentsRepo {
 
 		UpdateResult result = mongoTemplate.updateFirst(query, update, ValidatedDocumentsETY.class);
 
-		return result.wasAcknowledged();
+		return result.getModifiedCount() > 0;
 	}
 }
