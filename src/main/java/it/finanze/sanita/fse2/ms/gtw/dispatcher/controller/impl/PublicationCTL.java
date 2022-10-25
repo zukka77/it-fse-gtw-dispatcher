@@ -225,18 +225,21 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 			final IniTraceResponseDTO iniResponse = iniClient.updateMetadati(new IniMetadataUpdateReqDTO(idDoc, jwtToken.getPayload(), jsonObj));
 			
 			EdsResponseDTO edsResponse = null;
-			if (iniResponse.getEsito() || isTestEnvironment) {
+			boolean iniMockMessage = !StringUtility.isNullOrEmpty(iniResponse.getErrorMessage()) && iniResponse.getErrorMessage().contains("Invalid region ip");
+			if (Boolean.TRUE.equals(iniResponse.getEsito()) || (isTestEnvironment && iniMockMessage)) {
 				log.debug("Ini response is OK, proceeding with EDS");
 			    edsResponse = edsClient.update(new EdsMetadataUpdateReqDTO(idDoc, null, jsonObj));
 			} else {
-				throw new IniException("Error encountered while sending update information to INI client");
+				throw new BusinessException("Error encountered while sending update information to INI client");
 			}
 
 			if (!isTestEnvironment && (edsResponse == null || !edsResponse.getEsito())) {
 				throw new EdsException("Error encountered while sending update information to EDS client");
 			}
 
-			if (isTestEnvironment) {
+			
+			
+			if (isTestEnvironment && iniMockMessage) {
 				throw new MockEnabledException(iniResponse.getErrorMessage(), edsResponse != null ? edsResponse.getErrorMessage() : null);
 			}
 
@@ -352,18 +355,21 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 			final IniTraceResponseDTO iniResponse = iniClient.delete(iniReq);
 			
 			EdsResponseDTO edsResponse = null;
-			if (iniResponse.getEsito() || isTestEnvironment) {
+			boolean iniMockMessage = !StringUtility.isNullOrEmpty(iniResponse.getErrorMessage()) && iniResponse.getErrorMessage().contains("Invalid region ip");
+			if (Boolean.TRUE.equals(iniResponse.getEsito()) || (isTestEnvironment && iniMockMessage)) {
 				log.debug("Ini response is OK, proceeding with EDS");
 				edsResponse = edsClient.delete(idDoc);
 			} else {
-				throw new IniException("Error encountered while sending delete information to INI client");
+//				throw new IniException("Error encountered while sending delete information to INI client");
+				throw new IniException(iniResponse.getErrorMessage());
 			}
 
 			if (!isTestEnvironment && (edsResponse == null || !edsResponse.getEsito())) {
 				throw new EdsException("Error encountered while sending delete information to EDS client");
 			}
 
-			if (isTestEnvironment) {
+			
+			if (isTestEnvironment && iniMockMessage) {
 				throw new MockEnabledException(iniResponse.getErrorMessage(), edsResponse != null ? edsResponse.getErrorMessage() : null);
 			}
 
@@ -371,6 +377,14 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 					role);
 		} catch(MockEnabledException me) {
 			throw me;
+		} catch(IniException inEx) {
+			final String issuer = jwtToken != null ? jwtToken.getPayload().getIss() : Constants.App.JWT_MISSING_ISSUER_PLACEHOLDER;
+			RestExecutionResultEnum errorInstance = RestExecutionResultEnum.INI_EXCEPTION;
+
+			log.error(String.format("Error while delete record from ini %s", idDoc), inEx);
+			logger.error(String.format("Error while delete record from ini %s", idDoc), OperationLogEnum.DELETE_CDA2, ResultLogEnum.KO, startDateOperation, errorInstance.getErrorCategory(), issuer, Constants.App.MISSING_DOC_TYPE_PLACEHOLDER,role);
+			throw inEx;
+			
 		} catch (Exception e) {
 			final String issuer = jwtToken != null ? jwtToken.getPayload().getIss() : Constants.App.JWT_MISSING_ISSUER_PLACEHOLDER;
 			RestExecutionResultEnum errorInstance = RestExecutionResultEnum.GENERIC_ERROR;
@@ -379,8 +393,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 			}
 
 			log.error(String.format("Error encountered while deleting CDA with identifier %s", idDoc), e);
-			logger.error(String.format("Error while deleting CDA of document with identifier %s", idDoc), OperationLogEnum.DELETE_CDA2, ResultLogEnum.KO, startDateOperation, errorInstance.getErrorCategory(), issuer, Constants.App.MISSING_DOC_TYPE_PLACEHOLDER,
-					role);
+			logger.error(String.format("Error while deleting CDA of document with identifier %s", idDoc), OperationLogEnum.DELETE_CDA2, ResultLogEnum.KO, startDateOperation, errorInstance.getErrorCategory(), issuer, Constants.App.MISSING_DOC_TYPE_PLACEHOLDER,role);
 			throw e;
 		}
 		

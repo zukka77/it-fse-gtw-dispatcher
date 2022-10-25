@@ -19,32 +19,32 @@ public final class Constants {
 		/**
 		 * Base path.
 		 */
-		public static final String BASE = "it.sanita.dispatcher";
+		public static final String BASE = "it.finanze.sanita.fse2.ms.gtw.dispatcher";
 
 		/**
 		 * Controller path.
 		 */
-		public static final String CONTROLLER = "it.sanita.dispatcher.controller";
+		public static final String CONTROLLER = "it.finanze.sanita.fse2.ms.gtw.dispatcher.controller";
 
 		/**
 		 * Service path.
 		 */
-		public static final String SERVICE = "it.sanita.dispatcher.service";
+		public static final String SERVICE = "it.finanze.sanita.fse2.ms.gtw.dispatcher.service";
 
 		/**
 		 * Configuration path.
 		 */
-		public static final String CONFIG = "it.sanita.dispatcher.config";
+		public static final String CONFIG = "it.finanze.sanita.fse2.ms.gtw.dispatcher.config";
 		
 		/**
 		 * Configuration mongo path.
 		 */
-		public static final String CONFIG_MONGO = "it.sanita.dispatcher.config.mongo";
+		public static final String CONFIG_MONGO = "it.finanze.sanita.fse2.ms.gtw.dispatcher.config.mongo";
 		
 		/**
 		 * Configuration mongo repository path.
 		 */
-		public static final String REPOSITORY_MONGO = "it.sanita.dispatcher.repository";
+		public static final String REPOSITORY_MONGO = "it.finanze.sanita.fse2.ms.gtw.dispatcher.repository";
 		 
 		public static final class Collections {
 
@@ -103,7 +103,6 @@ public final class Constants {
 		public static final String JWT_TOKEN_TYPE = "JWT";
 
 		public static final String BEARER_PREFIX = "Bearer ";
-		public static final String SIGNATURE_INFORMATION_ERROR = "Couldn't get signature information - returning false";
         public static final String SHA_ERROR = "Errore in fase di calcolo SHA-256";
         public static final String HOST_ERROR = "Error while retrieving host informations";
 		public static final String SHA_ALGORITHM = "SHA-256";
