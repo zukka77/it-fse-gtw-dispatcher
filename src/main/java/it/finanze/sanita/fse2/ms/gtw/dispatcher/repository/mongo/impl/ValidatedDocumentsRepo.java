@@ -136,6 +136,7 @@ public class ValidatedDocumentsRepo implements IValidatedDocumentsRepo {
 			ety = mongoTemplate.findOne(query, ValidatedDocumentsETY.class);
 			output = parseEtyToDTo(ety);
 		} catch (MongoException e) {
+			log.error("Unable to retrieve validated doc by hash", e);
 			throw new BusinessException("Unable to retrieve validated doc by hash", e);
 		}
 
