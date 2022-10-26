@@ -17,6 +17,7 @@ import com.mongodb.client.result.UpdateResult;
 
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.ValidationDataDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.BusinessException;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.WorkflowIdException;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.repository.entity.ValidatedDocumentsETY;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.repository.mongo.IValidatedDocumentsRepo;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.ProfileUtility;
@@ -139,22 +140,31 @@ public class ValidatedDocumentsRepo implements IValidatedDocumentsRepo {
 	}
 
 	@Override
-	public boolean updateInsertionDate(String workflowInstanceId, int days) {
+	public String updateInsertionDate(String workflowInstanceId, int days) {
 
 		Query query = new Query();
 		query.addCriteria(Criteria.where("w_id").is(workflowInstanceId));
 
-		ValidatedDocumentsETY ety = mongoTemplate.findOne(query, ValidatedDocumentsETY.class);
+		try {
+			ValidatedDocumentsETY ety = mongoTemplate.findOne(query, ValidatedDocumentsETY.class);
 
-		Calendar c = Calendar.getInstance();
-		c.setTime(ety.getInsertionDate());
-		c.add(Calendar.DATE, -days);
+			Calendar c = Calendar.getInstance();
+			c.setTime(ety.getInsertionDate());
+			c.add(Calendar.DATE, -days);
 
-		Update update = new Update();
-		update.set("insertion_date", c.getTime());
+			Update update = new Update();
+			update.set("insertion_date", c.getTime());
 
-		UpdateResult result = mongoTemplate.updateFirst(query, update, ValidatedDocumentsETY.class);
+			UpdateResult result = mongoTemplate.updateFirst(query, update, ValidatedDocumentsETY.class);
 
-		return result.getModifiedCount() > 0;
+			if (result.getModifiedCount() > 0)
+				return ety.getId();
+			else
+				throw new WorkflowIdException(workflowInstanceId);
+			
+		} catch (Exception ex) {
+			log.error("Error while update validated document : ", ex);
+			throw new BusinessException("Error while update validated document : ", ex);
+		}
 	}
 }

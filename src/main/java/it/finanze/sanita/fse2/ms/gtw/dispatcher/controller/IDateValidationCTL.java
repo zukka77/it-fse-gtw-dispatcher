@@ -17,17 +17,17 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.ValidatedDocumentsDTO;
 
 
 @RequestMapping(path = "/v1")
-@Tag(name = "Servizio modifica data documenti validati")
+@Tag(name = "Test CTL")
 public interface IDateValidationCTL {
 	
 	@RequestMapping(value = "/documents/updateValidationDate", method = RequestMethod.PUT, produces = { MediaType.APPLICATION_JSON_VALUE }, consumes = { MediaType.APPLICATION_JSON_VALUE })
 	@ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ValidatedDocumentsDTO.class)))
-	@Operation(summary = "Modifica data di validazione", description = "Modifica la data di validazione di un validatedDocument.")
+	@Operation(summary = "End point di test", description = "Ep di test per modifica la data di validazione al fine di pubblicare dopo 5 giorni.")
 	@ApiResponses(value = {
 			@ApiResponse(responseCode = "200", description = "Modifica eseguita", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)),
 			@ApiResponse(responseCode = "400", description = "Bad Request", content = @Content(mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE)),
 			@ApiResponse(responseCode = "404", description = "Not found", content = @Content(mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE)),
 			@ApiResponse(responseCode = "500", description = "Internal Server Error", content = @Content(mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE)) })
-	boolean updateValidationDate(@RequestParam(required = true) String worflowInstanceId, @RequestParam(required = true) int days, HttpServletRequest request);
+	String updateValidationDate(@RequestParam(required = true) String worflowInstanceId, @RequestParam(required = true) int days, HttpServletRequest request);
 
 }

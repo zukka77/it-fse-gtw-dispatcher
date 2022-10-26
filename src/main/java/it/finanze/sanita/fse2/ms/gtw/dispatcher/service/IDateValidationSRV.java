@@ -4,5 +4,5 @@ import java.io.Serializable;
 
 public interface IDateValidationSRV extends Serializable{
 
-	boolean updateValidationDate(String workflowInstanceId, int days);
+	String updateValidationDate(final String workflowInstanceId, final int days);
 }

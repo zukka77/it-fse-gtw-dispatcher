@@ -1,6 +1,6 @@
 package it.finanze.sanita.fse2.ms.gtw.dispatcher;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -36,19 +36,19 @@ import lombok.extern.slf4j.Slf4j;
 class DateUpdateTest extends AbstractTest {
 
 	@Autowired
-	ServletWebServerApplicationContext webServerAppCtxt;
+	private ServletWebServerApplicationContext webServerAppCtxt;
 
 	@Autowired
-	MockMvc mvc;
+	private MockMvc mvc;
 
 	@Autowired
-	IValidatedDocumentsRepo repo;
+	private IValidatedDocumentsRepo repo;
 
 	@Autowired
-	MongoTemplate mongoTemplate;
+	private MongoTemplate mongoTemplate;
 
 	@SpyBean
-	RestTemplate restTemplate;
+	private RestTemplate restTemplate;
 
 	@BeforeEach
 	void init() {
@@ -77,7 +77,7 @@ class DateUpdateTest extends AbstractTest {
 
 		mongoTemplate.insert(ety);
 
-		assertTrue(repo.updateInsertionDate("test", 7));
+		assertEquals(repo.updateInsertionDate("test", 7), ety.getId());
 
 		Query query = new Query();
 		query.addCriteria(Criteria.where("w_id").is("test"));
