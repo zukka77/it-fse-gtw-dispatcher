@@ -373,8 +373,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 				throw new MockEnabledException(iniResponse.getErrorMessage(), edsResponse != null ? edsResponse.getErrorMessage() : null);
 			}
 
-			logger.info(String.format("Deletion of CDA completed for document with identifier %s", idDoc), OperationLogEnum.DELETE_CDA2, ResultLogEnum.OK, startDateOperation, jwtToken.getPayload().getIss(), Constants.App.MISSING_DOC_TYPE_PLACEHOLDER,
-					role);
+			logger.info(String.format("Deletion of CDA completed for document with identifier %s", idDoc), OperationLogEnum.DELETE_CDA2, ResultLogEnum.OK, startDateOperation, jwtToken.getPayload().getIss(), Constants.App.MISSING_DOC_TYPE_PLACEHOLDER, role);
 		} catch(MockEnabledException me) {
 			throw me;
 		} catch(IniException inEx) {
