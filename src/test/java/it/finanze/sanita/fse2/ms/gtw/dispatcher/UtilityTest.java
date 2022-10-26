@@ -13,7 +13,6 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.nio.charset.Charset;
 import java.util.Base64;
-import java.util.Date;
 import java.util.regex.Pattern;
 
 import javax.xml.stream.FactoryConfigurationError;
@@ -35,9 +34,6 @@ import org.springframework.test.context.ActiveProfiles;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.ValidationCFG;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.JWTHeaderDTO;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ErrorLogEnum;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.OperationLogEnum;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ResultLogEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.UIDModeEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.logging.LoggerHelper;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.impl.UtilitySRV;
@@ -161,15 +157,7 @@ class UtilityTest extends AbstractTest{
         JWTHeaderDTO head = new JWTHeaderDTO("alg", "typ", "kid", "x5c");
         assertDoesNotThrow(() -> StringUtility.fromJSON(StringUtility.toJSON(head), JWTHeaderDTO.class));
     }
-
-    @Test
-    @DisplayName("Logger test")
-    void loggerTest() {
-        assertDoesNotThrow(() -> logger.trace("Trace", OperationLogEnum.PUB_CDA2, ResultLogEnum.KO, new Date(), "issuer"));
-        assertDoesNotThrow(() -> logger.debug("Debug", OperationLogEnum.MONGO, ResultLogEnum.KO, new Date(), "issuer"));
-        assertDoesNotThrow(() -> logger.error("Error", OperationLogEnum.TRAS_CDA2, ResultLogEnum.KO, new Date(), ErrorLogEnum.KO_FHIR, "issuer", Constants.App.MISSING_DOC_TYPE_PLACEHOLDER));
-        assertDoesNotThrow(() -> logger.info("Info", OperationLogEnum.MONGO, ResultLogEnum.KO, new Date(), "issuer", Constants.App.MISSING_DOC_TYPE_PLACEHOLDER));
-    }
+ 
 
     @Test
 	void generateJwtFromFiles() {

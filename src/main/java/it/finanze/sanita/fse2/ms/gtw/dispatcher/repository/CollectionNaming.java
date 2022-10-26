@@ -28,8 +28,8 @@ public class CollectionNaming {
     @Bean("validatedDocumentsBean")
     public String getValidatedDocuments() {
     	if(profileUtility.isTestProfile()) {
-    		return Constants.Profile.TEST_PREFIX + Constants.ComponentScan.Collections.VALIDATED_DOCUMENTS; 
+    		return Constants.Profile.TEST_PREFIX + Constants.Collections.VALIDATED_DOCUMENTS; 
     	} 
-    	return Constants.ComponentScan.Collections.VALIDATED_DOCUMENTS; 
+    	return Constants.Collections.VALIDATED_DOCUMENTS; 
     }
 }
