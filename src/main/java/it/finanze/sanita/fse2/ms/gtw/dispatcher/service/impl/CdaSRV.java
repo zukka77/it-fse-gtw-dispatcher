@@ -33,9 +33,6 @@ public class CdaSRV implements ICdaSRV {
 	
 	@Override
 	public void create(final String hashedCDA, final String wii, String objID, String transfID) {
-		if (cdaRepo.isItemInserted(hashedCDA)){
-			throw new BusinessException("Cannot insert the given document, it already exists");
-		}  
 		try {
 			cdaRepo.create(ValidatedDocumentsETY.setContent(hashedCDA, wii, objID, transfID));
 		} catch(Exception ex) {
@@ -44,7 +41,7 @@ public class CdaSRV implements ICdaSRV {
 		}
 	}
 	
-	@Override // la get deve tornare una stringa 
+	@Override  
 	public String get(final String hash) {
 		try {
 			return cdaRepo.findItemByHash(hash).getWorkflowInstanceId(); // tornava un validation DTO 

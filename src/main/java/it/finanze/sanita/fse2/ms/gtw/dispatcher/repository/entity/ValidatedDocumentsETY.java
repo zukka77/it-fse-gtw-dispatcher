@@ -37,10 +37,8 @@ public class ValidatedDocumentsETY {
 
 	public static ValidatedDocumentsETY setContent(String hash, String wii, String objectID, String transformID) {
         ValidatedDocumentsETY entity = new ValidatedDocumentsETY();
-        Date now = new Date();
         entity.setHashCda(hash);
 		entity.setWorkflowInstanceId(wii);
-        entity.setInsertionDate(now);
 		entity.setPrimaryKeyTransf(objectID);
 		entity.setPrimaryKeyStructure(transformID); 
         return entity;

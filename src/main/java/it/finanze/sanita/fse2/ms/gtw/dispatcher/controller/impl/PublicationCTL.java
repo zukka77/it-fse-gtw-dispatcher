@@ -59,23 +59,10 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.IKafkaSRV;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.facade.ICdaFacadeSRV;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.impl.IniEdsInvocationSRV;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.CdaUtility;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.DateUtility;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.ProfileUtility;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility;
 import lombok.extern.slf4j.Slf4j;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.DateUtility;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility;
-import lombok.extern.slf4j.Slf4j;
-
-import org.apache.commons.lang3.time.DateUtils;
-import org.jsoup.Jsoup;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.multipart.MultipartFile;
-
-import javax.servlet.http.HttpServletRequest;
-import java.util.Date;
 /**
  *
  * @author CPIERASC
@@ -151,11 +138,9 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 			role = validationInfo.getJwtToken().getPayload().getSubject_role();
 			logger.info(String.format("Publication CDA completed for workflow instance id %s", validationInfo.getValidationData().getWorkflowInstanceId()), OperationLogEnum.PUB_CDA2, ResultLogEnum.OK, startDateOperation, validationInfo.getJwtToken().getPayload().getIss(), CdaUtility.getDocumentType(validationInfo.getDocument()), role);
 		} catch (ConnectionRefusedException ce) {
-			errorHandlerSRV.connectionRefusedExceptionHandler(startDateOperation, validationInfo.getValidationData(), validationInfo.getJwtToken(), validationInfo.getJsonObj(), traceInfoDTO, ce,
-					true, CdaUtility.getDocumentType(validationInfo.getDocument()));
+			errorHandlerSRV.connectionRefusedExceptionHandler(startDateOperation, validationInfo.getValidationData(), validationInfo.getJwtToken(), validationInfo.getJsonObj(), traceInfoDTO, ce, true, CdaUtility.getDocumentType(validationInfo.getDocument()));
 		} catch (final ValidationException e) {
-			errorHandlerSRV.publicationValidationExceptionHandler(startDateOperation, validationInfo.getValidationData(), validationInfo.getJwtToken(), validationInfo.getJsonObj(), traceInfoDTO, e,
-					true, CdaUtility.getDocumentType(validationInfo.getDocument()));
+			errorHandlerSRV.publicationValidationExceptionHandler(startDateOperation, validationInfo.getValidationData(), validationInfo.getJwtToken(), validationInfo.getJsonObj(), traceInfoDTO, e, true, CdaUtility.getDocumentType(validationInfo.getDocument()));
 		}
 
 		String warning = null;
@@ -168,8 +153,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 	}
 
 	@Override
-	public ResponseEntity<PublicationResDTO> replace(final String idDoc, final PublicationUpdateReqDTO requestBody,
-													 final MultipartFile file, final HttpServletRequest request) {
+	public ResponseEntity<PublicationResDTO> replace(final String idDoc, final PublicationUpdateReqDTO requestBody, final MultipartFile file, final HttpServletRequest request) {
 		
 			final Date startDateOperation = new Date();
 			final LogTraceInfoDTO traceInfoDTO = getLogTraceInfo();
@@ -200,11 +184,9 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 				logger.info(String.format("Replace CDA completed for workflow instance id %s", validationInfo.getValidationData().getWorkflowInstanceId()), OperationLogEnum.REPLACE_CDA2, ResultLogEnum.OK, startDateOperation, validationInfo.getJwtToken().getPayload().getIss(), CdaUtility.getDocumentType(validationInfo.getDocument()),
 						role);
 			} catch (ConnectionRefusedException ce) {
-				errorHandlerSRV.connectionRefusedExceptionHandler(startDateOperation, validationInfo.getValidationData(), validationInfo.getJwtToken(), validationInfo.getJsonObj(), traceInfoDTO, ce,
-						false, CdaUtility.getDocumentType(validationInfo.getDocument()));
+				errorHandlerSRV.connectionRefusedExceptionHandler(startDateOperation, validationInfo.getValidationData(), validationInfo.getJwtToken(), validationInfo.getJsonObj(), traceInfoDTO, ce, false, CdaUtility.getDocumentType(validationInfo.getDocument()));
 			} catch (final ValidationException e) {
-				errorHandlerSRV.publicationValidationExceptionHandler(startDateOperation, validationInfo.getValidationData(), validationInfo.getJwtToken(), validationInfo.getJsonObj(), traceInfoDTO, e,
-						false, CdaUtility.getDocumentType(validationInfo.getDocument()));
+				errorHandlerSRV.publicationValidationExceptionHandler(startDateOperation, validationInfo.getValidationData(), validationInfo.getJwtToken(), validationInfo.getJsonObj(), traceInfoDTO, e, false, CdaUtility.getDocumentType(validationInfo.getDocument()));
 			}
 	
 			String warning = null;

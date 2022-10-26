@@ -3,6 +3,7 @@ package it.finanze.sanita.fse2.ms.gtw.dispatcher.repository.mongo.impl;
 import static org.springframework.data.mongodb.core.query.Criteria.where;
 
 import java.util.Calendar;
+import java.util.Date;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -20,48 +21,47 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.BusinessException;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.WorkflowIdException;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.repository.entity.ValidatedDocumentsETY;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.repository.mongo.IValidatedDocumentsRepo;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.ProfileUtility;
 import lombok.extern.slf4j.Slf4j;
 
 @Repository
 @Slf4j
 public class ValidatedDocumentsRepo implements IValidatedDocumentsRepo {
 
+	/**
+	 * Serial version uid.
+	 */
+	private static final long serialVersionUID = -3844637790482539072L;
+
 	@Autowired
 	private transient MongoTemplate mongoTemplate;
 
-	@Autowired
-	private transient ProfileUtility profileUtility;
-
 	@Override
-	public ValidatedDocumentsETY create(final ValidatedDocumentsETY ety) {
-		ValidatedDocumentsETY output = null;
+	public void create(final ValidatedDocumentsETY ety) {
 		try {
-			if (profileUtility.isTestProfile()) {
-				ety.setWorkflowInstanceId("wfid");
-			}
-			output = mongoTemplate.insert(ety);
+			Query query = new Query();
+			query.addCriteria(Criteria.where("hash_cda").is(ety.getHashCda()));
+			
+			Update update = new Update();
+			update.set("w_id", ety.getWorkflowInstanceId());
+			update.set("insertion_date", new Date());
+			mongoTemplate.upsert(query, update, ValidatedDocumentsETY.class);
 		} catch (Exception ex) {
 			log.error("Error while insert validated document : ", ex);
 			throw new BusinessException("Error while insert validated document : ", ex);
 		}
-		return output;
 	}
 
 	@Override
 	public boolean isItemInserted(String hash) {
 		boolean response;
-		// Create query
 		Query query = new Query();
 		query.addCriteria(where("hash_cda").is(hash));
 		try {
-			// Execute
 			response = mongoTemplate.exists(query, ValidatedDocumentsETY.class);
 		} catch (MongoException e) {
-			// Catch data-layer runtime exceptions and turn into a checked exception
+			log.error("Unable to verify if validate document is inserted", e);
 			throw new BusinessException("Unable to verify if validate document is inserted", e);
 		}
-		// Return data
 		return response;
 	}
 
@@ -73,6 +73,7 @@ public class ValidatedDocumentsRepo implements IValidatedDocumentsRepo {
 		try {
 			output = mongoTemplate.remove(query, ValidatedDocumentsETY.class);
 		} catch (MongoException e) {
+			log.error("Unable to delete the item", e);
 			throw new BusinessException("Unable to delete the item", e);
 		}
 		return output.wasAcknowledged();
@@ -86,6 +87,7 @@ public class ValidatedDocumentsRepo implements IValidatedDocumentsRepo {
 		try {
 			output = mongoTemplate.findOne(query, ValidatedDocumentsETY.class);
 		} catch (MongoException e) {
+			log.error("Unable to retrieve validated doc by id", e);
 			throw new BusinessException("Unable to retrieve validated doc by id", e);
 		}
 		return output;
@@ -101,6 +103,7 @@ public class ValidatedDocumentsRepo implements IValidatedDocumentsRepo {
 			ety = mongoTemplate.findOne(query, ValidatedDocumentsETY.class);
 			output = parseEtyToDTo(ety);
 		} catch (MongoException e) {
+			log.error("Unable to retrieve validated doc by hash", e);
 			throw new BusinessException("Unable to retrieve validated doc by hash", e);
 		}
 

@@ -91,8 +91,7 @@ public class ValidationCTL extends AbstractCTL implements IValidationCTL {
 				message = "Attenzione - è stato chiamato l'endpoint di validazione con VERIFICA";
 			}
 
-			kafkaSRV.sendValidationStatus(traceInfoDTO.getTraceID(), workflowInstanceId, EventStatusEnum.SUCCESS,
-					message, jwtToken != null ? jwtToken.getPayload() : null);
+			kafkaSRV.sendValidationStatus(traceInfoDTO.getTraceID(), workflowInstanceId, EventStatusEnum.SUCCESS,message, jwtToken != null ? jwtToken.getPayload() : null);
 
 			String issuer = (jwtToken != null && jwtToken.getPayload() != null
 					&& !StringUtility.isNullOrEmpty(jwtToken.getPayload().getIss())) ? jwtToken.getPayload().getIss()

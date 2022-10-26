@@ -6,7 +6,8 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.ValidationDataDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.repository.entity.ValidatedDocumentsETY;
 
 public interface IValidatedDocumentsRepo extends Serializable {
-	ValidatedDocumentsETY create(ValidatedDocumentsETY ety); // tornava un void
+	
+	void create(final ValidatedDocumentsETY ety);
 
 	boolean deleteItem(String hash);
 
