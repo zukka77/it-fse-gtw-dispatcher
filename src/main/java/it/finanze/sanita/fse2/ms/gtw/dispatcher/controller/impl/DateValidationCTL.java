@@ -6,24 +6,24 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.controller.IDateValidationCTL;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.WorkflowIdException;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.BusinessException;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.IDateValidationSRV;
 
 @RestController
 public class DateValidationCTL extends AbstractCTL implements IDateValidationCTL {
 
 	@Autowired
-	IDateValidationSRV dateValidationSRV;
+	private IDateValidationSRV dateValidationSRV;
 
 	@Override
-	public boolean updateValidationDate(String workflowInstanceId, int days, HttpServletRequest request) {
-
-		boolean result = dateValidationSRV.updateValidationDate(workflowInstanceId, days);
+	public String updateValidationDate(String workflowInstanceId, int days, HttpServletRequest request) {
 		
-		if(!result)
-			throw new WorkflowIdException("w_id: " + workflowInstanceId);
-		else
-			return result;
+		try {
+			return dateValidationSRV.updateValidationDate(workflowInstanceId, days);
+		} catch (Exception ex) {
+			throw new BusinessException("Error update validated document while srv invocation event : ", ex);
+		}
+		
 	}
 
 }

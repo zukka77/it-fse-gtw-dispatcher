@@ -18,5 +18,5 @@ public interface IValidatedDocumentsRepo extends Serializable {
 
 	boolean isItemInserted(String hash);
 
-	boolean updateInsertionDate(String workflowInstanceId, int days);
+	String updateInsertionDate(String workflowInstanceId, int days);
 }
