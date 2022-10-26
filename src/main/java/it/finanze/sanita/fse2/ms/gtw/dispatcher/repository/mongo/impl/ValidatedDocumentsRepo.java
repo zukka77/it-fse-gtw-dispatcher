@@ -52,7 +52,7 @@ public class ValidatedDocumentsRepo implements IValidatedDocumentsRepo {
 	}
 
 	@Override
-	public boolean isItemInserted(String hash) {
+	public boolean isItemInserted(final String hash) {
 		boolean response;
 		Query query = new Query();
 		query.addCriteria(where("hash_cda").is(hash));
@@ -66,7 +66,7 @@ public class ValidatedDocumentsRepo implements IValidatedDocumentsRepo {
 	}
 
 	@Override
-	public boolean deleteItem(String hash) {
+	public boolean deleteItem(final String hash) {
 		DeleteResult output;
 		Query query = new Query();
 		query.addCriteria(where("hash_cda").is(hash));
@@ -80,7 +80,7 @@ public class ValidatedDocumentsRepo implements IValidatedDocumentsRepo {
 	}
 
 	@Override
-	public ValidatedDocumentsETY findItemById(String id) {
+	public ValidatedDocumentsETY findItemById(final String id) {
 		ValidatedDocumentsETY output;
 		Query query = new Query();
 		query.addCriteria(Criteria.where("_id").is(id));
@@ -94,7 +94,7 @@ public class ValidatedDocumentsRepo implements IValidatedDocumentsRepo {
 	}
 
 	@Override
-	public ValidationDataDTO findItemByWorkflowInstanceId(String wid) {
+	public ValidationDataDTO findItemByWorkflowInstanceId(final String wid) {
 		ValidationDataDTO output;
 		ValidatedDocumentsETY ety;
 		Query query = new Query();
@@ -127,7 +127,7 @@ public class ValidatedDocumentsRepo implements IValidatedDocumentsRepo {
 	}
 
 	@Override
-	public ValidationDataDTO findItemByHash(String hash) {
+	public ValidationDataDTO findItemByHash(final String hash) {
 		ValidationDataDTO output;
 		ValidatedDocumentsETY ety;
 		Query query = new Query();
@@ -144,7 +144,7 @@ public class ValidatedDocumentsRepo implements IValidatedDocumentsRepo {
 	}
 
 	@Override
-	public String updateInsertionDate(String workflowInstanceId, int days) {
+	public String updateInsertionDate(final String workflowInstanceId, final int days) {
 
 		Query query = new Query();
 		query.addCriteria(Criteria.where("w_id").is(workflowInstanceId));
