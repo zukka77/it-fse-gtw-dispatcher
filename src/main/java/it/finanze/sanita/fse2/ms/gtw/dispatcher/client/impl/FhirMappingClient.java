@@ -58,6 +58,7 @@ public class FhirMappingClient implements IFhirMappingClient {
 				};
 				LinkedMultiValueMap<String, Object> map = new LinkedMultiValueMap<>();
 				map.add("file",fileAsResource);
+				map.add("objectId", resourceToConvert.getObjectId()); 
 
 				headers.setContentType(MediaType.MULTIPART_FORM_DATA);
 

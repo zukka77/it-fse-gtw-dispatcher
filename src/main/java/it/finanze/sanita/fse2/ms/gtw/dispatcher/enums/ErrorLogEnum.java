@@ -17,8 +17,8 @@ public enum ErrorLogEnum implements ILogEnum {
 	KO_KAFKA("KO-IND", "Errore nella chiamata a Kafka"),
 	KO_MONGO_DB("KO-MONGO-DB", "Errore nella chiamata a MongoDB"),
 	KO_MONGO_DB_NOT_FOUND("KO-MONGO-DB-NOT-FOUND", "Elemento non trovato sul MongoDB"),
-	KO_REDIS("KO-REDIS", "Errore nella chiamata a Redis"),
-	KO_REDIS_NOT_FOUND("KO-REDIS-NOT-FOUND", "Elemento non trovato in cache"); 
+	KO_MONGO("KO-MONGO", "Errore nella chiamata a Mongo"),
+	KO_MONGO_NOT_FOUND("KO-MONGO-NOT-FOUND", "Elemento non trovato su Mongo"); 
 
 	@Getter
 	private String code;

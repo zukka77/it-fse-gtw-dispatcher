@@ -35,3 +35,12 @@ ms.url.ini-client-service.mock
 A:
 log.elastic.level=trace
 log.kafka-log.enable=true
+
+6/10/2022
+R: 
+redis.hostname
+redis.port
+redis.password
+redis.jedis.pool.max-total
+redis.jedis.pool.min-idle
+redis.jedis.pool.max-idle

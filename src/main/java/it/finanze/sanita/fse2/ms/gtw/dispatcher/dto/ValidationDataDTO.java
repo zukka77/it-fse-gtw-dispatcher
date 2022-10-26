@@ -3,6 +3,8 @@
  */
 package it.finanze.sanita.fse2.ms.gtw.dispatcher.dto;
 
+import java.util.Date;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -16,5 +18,12 @@ public class ValidationDataDTO {
 
     private boolean cdaValidated;
 
-    private String workflowInstanceId;
+    private String workflowInstanceId; 
+    
+    private String transformId; 
+    
+    private String structureId; 
+    
+    private Date insertionDate; 
+    
 }

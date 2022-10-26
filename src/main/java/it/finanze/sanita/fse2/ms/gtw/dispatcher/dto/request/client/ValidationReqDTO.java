@@ -23,6 +23,6 @@ import lombok.Setter;
 public class ValidationReqDTO extends AbstractDTO {
 
     @Schema(description = "CDA")
-    private String cda;
+    private String cda; 
 
 }

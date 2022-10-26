@@ -62,6 +62,20 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.CdaUtility;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.ProfileUtility;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility;
 import lombok.extern.slf4j.Slf4j;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.DateUtility;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility;
+import lombok.extern.slf4j.Slf4j;
+
+import org.apache.commons.lang3.time.DateUtils;
+import org.jsoup.Jsoup;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
+
+import javax.servlet.http.HttpServletRequest;
+import java.util.Date;
 /**
  *
  * @author CPIERASC
@@ -93,7 +107,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 
 	@Autowired
 	private transient IErrorHandlerSRV errorHandlerSRV;
-	
+		
 	@Autowired
 	private IIniClient iniClient;
 	
@@ -109,7 +123,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 		final LogTraceInfoDTO traceInfoDTO = getLogTraceInfo();
 
 		ValidationCreationInputDTO validationInfo = new ValidationCreationInputDTO();
-		validationInfo.setValidationData(new ValidationDataDTO(null, false, Constants.App.MISSING_WORKFLOW_PLACEHOLDER));
+		validationInfo.setValidationData(new ValidationDataDTO(null, false, Constants.App.MISSING_WORKFLOW_PLACEHOLDER, null, null, new Date()));
 
 		String role = null;
 		try {
@@ -161,7 +175,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 			final LogTraceInfoDTO traceInfoDTO = getLogTraceInfo();
 
 			ValidationCreationInputDTO validationInfo = new ValidationCreationInputDTO();
-			validationInfo.setValidationData(new ValidationDataDTO(null, false, Constants.App.MISSING_WORKFLOW_PLACEHOLDER));
+			validationInfo.setValidationData(new ValidationDataDTO(null, false, Constants.App.MISSING_WORKFLOW_PLACEHOLDER, null, null, new Date()));
 
 			String role = null;
 			try {
@@ -272,6 +286,9 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 		
 		validation.setValidationData(validationInfo);
 
+		String transformId = ""; 
+		String structureId = ""; 
+		
 		try {
 			final JWTTokenDTO jwtToken;
 			if (Boolean.TRUE.equals(msCfg.getFromGovway())) {
@@ -305,8 +322,19 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 	
 			validation.setValidationData(validationInfo); // Updating validation info
 
-			if (!Boolean.TRUE.equals(jsonObj.isForcePublish()) || isReplace) {
-				cdaSRV.consumeHash(validationInfo.getHash());
+			ValidationDataDTO validatedDocument = cdaSRV.getByWorkflowInstanceId(validationInfo.getWorkflowInstanceId()); 
+			
+			if (!Boolean.TRUE.equals(jsonObj.isForcePublish()) || isReplace) {				
+				transformId = validatedDocument.getTransformId(); 
+				structureId = validatedDocument.getStructureId(); 
+				cdaSRV.consumeHash(validationInfo.getHash()); 
+				
+								
+				// Checks on date - If greater than 5 days transaction is aborted 
+				if(DateUtility.getDifferenceDays(validatedDocument.getInsertionDate(), new Date()) > 5) {
+					throw new ValidationException("Error: cannot publish documents older than 5 days"); 
+				} 
+				
 			}
 			
 			final String documentSha256 = StringUtility.encodeSHA256(bytePDF);
@@ -315,7 +343,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 			validateDocumentHash(documentSha256, validation.getJwtToken());
 	
 			final ResourceDTO fhirResourcesDTO = documentReferenceSRV.createFhirResources(cda, jsonObj, bytePDF.length, documentSha256,
-				validation.getJwtToken().getPayload().getPerson_id());
+				validation.getJwtToken().getPayload().getPerson_id(), structureId, transformId);
 	
 			validation.setFhirResource(fhirResourcesDTO);
 			if(!StringUtility.isNullOrEmpty(fhirResourcesDTO.getErrorMessage())) {

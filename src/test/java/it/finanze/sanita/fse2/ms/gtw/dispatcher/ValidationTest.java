@@ -21,10 +21,13 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.ComponentScan;
+import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.web.client.HttpClientErrorException;
@@ -42,6 +45,7 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.InjectionModeEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.RawValidationEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.RestExecutionResultEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.TipoDocAltoLivEnum;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.repository.entity.ValidatedDocumentsETY;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.ICdaSRV;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.FileUtility;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility;
@@ -51,6 +55,8 @@ import lombok.extern.slf4j.Slf4j;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ComponentScan(basePackages = {Constants.ComponentScan.BASE})
 @ActiveProfiles(Constants.Profile.TEST)
+@TestInstance(Lifecycle.PER_CLASS)
+
 class ValidationTest extends AbstractTest {
 
 
@@ -85,6 +91,24 @@ class ValidationTest extends AbstractTest {
 
 	@MockBean
 	IValidatorClient validatorClient;
+
+	@Autowired
+    public MongoTemplate mongo;
+
+	@BeforeEach
+	void createCollection(){
+		mongo.dropCollection(ValidatedDocumentsETY.class);
+		ValidatedDocumentsETY ety = new ValidatedDocumentsETY();
+		ety.setHashCda("hdkdkd");
+		ety.setInsertionDate(new Date());
+
+        mongo.save(ety);
+	}
+
+	/*@AfterAll
+	void dropCollection(){
+		mongo.dropCollection("validated_documents");
+	} */ 
 
 	@BeforeEach
 	void mockValidatorClient() {
@@ -155,12 +179,16 @@ class ValidationTest extends AbstractTest {
     @DisplayName("Pre Publish Test")
     void prePublishTest() {
 
-    	byte[] pdfAttachment = FileUtility.getFileFromInternalResources("Files/attachment/pdf_msg_SATLED_LED_Lettera_di_Dimissione.pdf");
+    	byte[] pdfAttachment = FileUtility.getFileFromInternalResources("Files" + File.separator + 
+    			"attachment" + File.separator + "pdf_msg_SATLED_LED_Lettera_di_Dimissione.pdf");
     	byte[] pdfResource = FileUtility.getFileFromInternalResources("Files/resource/cert1.pdf");
 
     	Map<String, RestExecutionResultEnum> result = callValidation(ActivityEnum.VALIDATION, HealthDataFormatEnum.CDA, InjectionModeEnum.ATTACHMENT, pdfResource, true, false, true);
     	assertEquals(RestExecutionResultEnum.MINING_CDA_ERROR, result.values().iterator().next());
 
+    	result = callValidation(ActivityEnum.VALIDATION, HealthDataFormatEnum.CDA, InjectionModeEnum.RESOURCE, pdfAttachment, true, false, true);
+    	assertEquals(RestExecutionResultEnum.MINING_CDA_ERROR, result.values().iterator().next());
+    	
 		String cda = extractCDA(pdfAttachment);
 		String hashedCda = StringUtility.encodeSHA256B64(cda);
 
@@ -171,24 +199,52 @@ class ValidationTest extends AbstractTest {
     	assertEquals(RestExecutionResultEnum.OK, result.values().iterator().next());
     	assertNotNull(cdaSRV.get(hashedCda), "La transazione non deve essere presente.");
 
-		cda = extractCDA(pdfResource);
-		hashedCda = StringUtility.encodeSHA256B64(cda);
+    	
+    }
+    
+    @Test
+    @DisplayName("Pre Publish Test Second") 
+    void prePublishTestSecond() {
+    	
+    	byte[] pdfAttachment = FileUtility.getFileFromInternalResources("Files" + File.separator + 
+    			"attachment" + File.separator + "pdf_msg_SATLED_LED_Lettera_di_Dimissione.pdf");
+    	byte[] pdfResource = FileUtility.getFileFromInternalResources("Files/resource/cert1.pdf");
 
-    	result = callValidation(ActivityEnum.VALIDATION, HealthDataFormatEnum.CDA, InjectionModeEnum.RESOURCE, pdfResource, true, false, true);
+		String cda = extractCDA(pdfResource);
+		String hashedCda = StringUtility.encodeSHA256B64(cda);
+
+		Map<String, RestExecutionResultEnum> result = callValidation(ActivityEnum.VALIDATION, HealthDataFormatEnum.CDA, InjectionModeEnum.RESOURCE, pdfResource, true, false, true);
     	assertEquals(RestExecutionResultEnum.OK, result.values().iterator().next());
     	assertNotNull(cdaSRV.get(hashedCda), "La transazione non deve essere presente.");
 
+    	result = callValidation(ActivityEnum.VALIDATION, HealthDataFormatEnum.CDA, InjectionModeEnum.ATTACHMENT, pdfResource, true, false, true);
+    	assertEquals(RestExecutionResultEnum.MINING_CDA_ERROR, result.values().iterator().next());
+
 		cda = extractCDA(pdfAttachment);
 		hashedCda = StringUtility.encodeSHA256B64(cda);
-
+		
     	result = callValidation(ActivityEnum.VALIDATION, HealthDataFormatEnum.CDA, null, pdfAttachment, true, false, true);
     	assertEquals(RestExecutionResultEnum.OK, result.values().iterator().next());
     	assertNotNull(cdaSRV.get(hashedCda), "La transazione non deve essere presente.");
 
-		cda = extractCDA(pdfResource);
-		hashedCda = StringUtility.encodeSHA256B64(cda);
+    }
+    
+    @Test
+    @DisplayName("Pre Publish Test - Null Cases")
+    void prePublishTestNullCases() {
+    	
+    	byte[] pdfAttachment = FileUtility.getFileFromInternalResources("Files" + File.separator + 
+    			"attachment" + File.separator + "pdf_msg_SATLED_LED_Lettera_di_Dimissione.pdf");
+    	byte[] pdfResource = FileUtility.getFileFromInternalResources("Files/resource/cert1.pdf");
+    	
+		String cda = extractCDA(pdfResource);
+		String hashedCda = StringUtility.encodeSHA256B64(cda);
 
-    	result = callValidation(ActivityEnum.VALIDATION, HealthDataFormatEnum.CDA, null, pdfResource, true, false, true);
+		Map<String, RestExecutionResultEnum> result = callValidation(ActivityEnum.VALIDATION, HealthDataFormatEnum.CDA, null, pdfResource, true, false, true);
+    	assertEquals(RestExecutionResultEnum.OK, result.values().iterator().next());
+    	assertNotNull(cdaSRV.get(hashedCda), "La transazione non deve essere presente.");
+    	
+		result = callValidation(ActivityEnum.VALIDATION, HealthDataFormatEnum.CDA, null, pdfAttachment, true, false, true);
     	assertEquals(RestExecutionResultEnum.OK, result.values().iterator().next());
     	assertNotNull(cdaSRV.get(hashedCda), "La transazione non deve essere presente.");
 
@@ -412,6 +468,5 @@ class ValidationTest extends AbstractTest {
 				true, false, true);
 		assertEquals(RestExecutionResultEnum.SYNTAX_ERROR, result.values().iterator().next());
 	}
-
 
 }

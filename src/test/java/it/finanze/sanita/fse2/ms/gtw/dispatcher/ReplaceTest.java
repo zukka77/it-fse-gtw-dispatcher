@@ -54,7 +54,8 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.PracticeSettingCodeEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.RawValidationEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.TipoDocAltoLivEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.repository.entity.IniEdsInvocationETY;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.repository.redis.impl.CdaRepo;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.repository.entity.ValidatedDocumentsETY;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.repository.mongo.impl.ValidatedDocumentsRepo;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.FileUtility;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility;
 import lombok.extern.slf4j.Slf4j;
@@ -108,17 +109,18 @@ class ReplaceTest extends AbstractTest {
 	}
 
 	@Autowired
-	CdaRepo cdaRepo;
+	ValidatedDocumentsRepo cdaRepo;
 
 	void mockValidation(byte[] pdfAttachment) {
-		ValidationInfoDTO info = new ValidationInfoDTO(RawValidationEnum.OK, new ArrayList<>());
+		ValidationInfoDTO info = new ValidationInfoDTO(RawValidationEnum.OK, new ArrayList<>(), "", "");
 		Mockito.doReturn(new ResponseEntity<>(info, HttpStatus.OK)).when(restTemplate).exchange(anyString(), eq(HttpMethod.POST), any(HttpEntity.class), eq(ValidationResDTO.class));
 		
 		callValidation(ActivityEnum.VALIDATION, HealthDataFormatEnum.CDA, InjectionModeEnum.ATTACHMENT, pdfAttachment, true, false, true);
 	
-		// Inserting validated document on Redis
+		// Inserting validated document on Mongo
 		final String hash = StringUtility.encodeSHA256B64(extractCDA(pdfAttachment));
-		cdaRepo.create(hash, "wfid");
+
+		cdaRepo.create(ValidatedDocumentsETY.setContent(hash, "wii", "", ""));
 	}
 
 	@ParameterizedTest
@@ -195,7 +197,7 @@ class ReplaceTest extends AbstractTest {
 
 	private void mockFhirMapping() {
 		log.info("Mocking fhir-mapping client");
-		final ValidationInfoDTO info = new ValidationInfoDTO(RawValidationEnum.OK, new ArrayList<>());
+		final ValidationInfoDTO info = new ValidationInfoDTO(RawValidationEnum.OK, new ArrayList<>(), "", "");
 		Mockito.doReturn(new ResponseEntity<>(info, HttpStatus.OK)).when(restTemplate).exchange(anyString(), eq(HttpMethod.POST), any(HttpEntity.class), eq(ValidationResDTO.class));
 	}
 

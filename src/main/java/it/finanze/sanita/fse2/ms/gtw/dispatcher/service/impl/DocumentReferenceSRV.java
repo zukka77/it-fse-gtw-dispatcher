@@ -11,6 +11,7 @@ import java.util.Date;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Element;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
@@ -21,12 +22,15 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.DocumentReferenceDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.FhirResourceDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.ResourceDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.SubmissionSetEntryDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.ValidationDataDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.PublicationCreationReqDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.client.TransformResDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.AttivitaClinicaEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.LowLevelDocEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.BusinessException;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.ConnectionRefusedException;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.repository.entity.ValidatedDocumentsETY;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.repository.mongo.IValidatedDocumentsRepo;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.IDocumentReferenceSRV;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility;
 import lombok.extern.slf4j.Slf4j;
@@ -45,18 +49,26 @@ public class DocumentReferenceSRV implements IDocumentReferenceSRV {
 
 	@Autowired
 	private FhirMappingClient client;
+	
+	@Autowired
+	private IValidatedDocumentsRepo validatedDocumentsRepo; 
  
+	@Value("${ms.calls.transform-engine}")
+	private Boolean callsTransformEngine; 
+	
+	
 	@Override
 	public ResourceDTO createFhirResources(final String cda, final PublicationCreationReqDTO requestBody, 
-			final Integer size, final String hash, final String sourcePatientId) {
+			final Integer size, final String hash, final String sourcePatientId, String transformId, String structureId) {
 		final ResourceDTO output = new ResourceDTO();
 		try {
 			final org.jsoup.nodes.Document docCDA = Jsoup.parse(cda);
 			final String encodedCDA = Base64.getEncoder().encodeToString(cda.getBytes());
 			
 			final DocumentReferenceDTO documentReferenceDTO = buildDocumentReferenceDTO(encodedCDA, requestBody, size, hash);
-			
-			final TransformResDTO resDTO = callFhirMapping(documentReferenceDTO, cda);
+						
+			final TransformResDTO resDTO = callFhirMapping(documentReferenceDTO, cda, 
+						transformId, structureId); 
 			
 			if (!StringUtility.isNullOrEmpty(resDTO.getErrorMessage())) {
 				output.setErrorMessage(resDTO.getErrorMessage());
@@ -115,13 +127,19 @@ public class DocumentReferenceSRV implements IDocumentReferenceSRV {
 		return documentReferenceDTO;
 	}
 	
-	private TransformResDTO callFhirMapping(final DocumentReferenceDTO documentReferenceDTO, final String cda) {
+	private TransformResDTO callFhirMapping(final DocumentReferenceDTO documentReferenceDTO, final String cda, String structureId, String transformId) {
 		TransformResDTO out = null;
 		try {
 			
 			final FhirResourceDTO req = new FhirResourceDTO();
 			req.setCda(cda);
-			req.setDocumentReferenceDTO(documentReferenceDTO);
+			req.setDocumentReferenceDTO(documentReferenceDTO); 
+			
+			if(callsTransformEngine) {
+				req.setObjectId(structureId);
+			} else {
+				req.setObjectId(transformId);
+			}
 			out = client.callConvertCdaInBundle(req);
 		} catch(final ConnectionRefusedException crex) {
 			throw crex;

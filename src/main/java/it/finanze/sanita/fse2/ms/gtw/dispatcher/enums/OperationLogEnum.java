@@ -14,7 +14,7 @@ public enum OperationLogEnum implements ILogEnum {
 	UPDATE_METADATA_CDA2("UPDATE-CDA2","Update metadata CDA2"),
 	TRAS_CDA2("TRAS-CDA2", "Trasmissione CDA2"),
 	KAFKA_SENDING_MESSAGE("KAFKA-SENDING-MESSAGE", "Invio Messaggio su Kafka"),
-	REDIS("REDIS", "Salvataggio/Query su Redis");
+	MONGO("MONGO", "Salvataggio/Query su Mongo");
 
 	@Getter
 	private String code;

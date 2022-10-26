@@ -53,6 +53,7 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.MicroservicesURLCFG;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.JWTPayloadDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.JWTTokenDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.ResourceDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.ValidationDataDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.ValidationInfoDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.PublicationCreationReqDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.ValidationCDAReqDTO;
@@ -71,10 +72,44 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.RawValidationEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.RestExecutionResultEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.TipoDocAltoLivEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.repository.redis.impl.CdaRepo;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.*;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.repository.entity.ValidatedDocumentsETY;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.repository.mongo.impl.ValidatedDocumentsRepo;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.facade.ICdaFacadeSRV;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.FileUtility;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.apache.http.HttpStatus;
+import org.bson.Document;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.mock.mockito.SpyBean;
+import org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.http.*;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.ResourceAccessException;
+import org.springframework.web.client.RestTemplate;
+
+import java.io.File;
+import java.util.*;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assumptions.assumeFalse;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.when;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
 
 @Slf4j
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -82,7 +117,7 @@ import lombok.extern.slf4j.Slf4j;
 @ActiveProfiles(Constants.Profile.TEST)
 class PublicationTest extends AbstractTest {
 
-	@Autowired
+	@SpyBean
 	private ICdaFacadeSRV cdaFacadeSRV;
 
 	@Autowired
@@ -98,8 +133,23 @@ class PublicationTest extends AbstractTest {
 	private MicroservicesURLCFG msCfg;
 
 	@Autowired
-	private CdaRepo cdaRepo;
+	private ValidatedDocumentsRepo cdaRepo;
+	
+	@Autowired
+	private MongoTemplate mongo; 
 
+	
+	@BeforeEach
+	void createCollection(){
+		mongo.dropCollection(ValidatedDocumentsETY.class);
+		ValidatedDocumentsETY ety = new ValidatedDocumentsETY();
+		ety.setHashCda("hdkdkd");
+		ety.setInsertionDate(new Date());
+
+        mongo.save(ety);
+	}
+	
+	
 	@Test
 	void t1() {
 		// non pdf file
@@ -112,17 +162,17 @@ class PublicationTest extends AbstractTest {
 	void testHashPublication() {
 
 		log.info("Testing hash check in publication phase");
-		final String wii = UUID.randomUUID().toString();
+		final String wii = "wfid";
 		final String hash = StringUtility.encodeSHA256B64("hash");
 		final String unmatchingHash = hash + "A"; // Modified hash
 
-		assertFalse(cdaFacadeSRV.retrieveValidationInfo(hash, wii).isCdaValidated(), "If the hash is not present on Redis, the result should be false.");
+		assertFalse(cdaFacadeSRV.retrieveValidationInfo(hash, wii).isCdaValidated(), "If the hash is not present on Mongo, the result should be false.");
 
-		log.info("Inserting a key on Redis");
-		cdaFacadeSRV.create(hash, wii);
-		assertTrue(cdaFacadeSRV.retrieveValidationInfo(hash, wii).isCdaValidated(), "If the hash is present on Redis, the result should be true");
+		log.info("Inserting a key on MongoDB");
+		cdaFacadeSRV.create(hash, wii, "", "");
+		assertTrue(cdaFacadeSRV.retrieveValidationInfo(hash, wii).isCdaValidated(), "If the hash is present on Mongo, the result should be true");
 		
-		assertFalse(cdaFacadeSRV.retrieveValidationInfo(unmatchingHash, wii).isCdaValidated(), "If the hash present on Redis is different from expected one, the result should be false");
+		assertFalse(cdaFacadeSRV.retrieveValidationInfo(unmatchingHash, wii).isCdaValidated(), "If the hash present on Mongo is different from expected one, the result should be false");
 	}
 
 	@Test
@@ -136,7 +186,7 @@ class PublicationTest extends AbstractTest {
 
 		byte[] pdfAttachment = FileUtility.getFileFromInternalResources("Files/attachment/CDA_OK_SIGNED.pdf");
 
-		ValidationInfoDTO info = new ValidationInfoDTO(RawValidationEnum.OK, new ArrayList<>());
+		ValidationInfoDTO info = new ValidationInfoDTO(RawValidationEnum.OK, new ArrayList<>(), "", "");
 		given(validatorClient.validate(anyString())).willReturn(info);
 
 		Map<String,RestExecutionResultEnum> res = callValidation(ActivityEnum.VALIDATION, HealthDataFormatEnum.CDA, InjectionModeEnum.ATTACHMENT, pdfAttachment, true, false, true);
@@ -147,8 +197,7 @@ class PublicationTest extends AbstractTest {
 			transactionId = firstKey.get();
 		}
 
-		cdaRepo.create("6XpKL8W/lQjXvnZ24wFNts5itL07id7suEe+YluhfcY=", "wfid");
-
+		cdaRepo.create(ValidatedDocumentsETY.setContent("6XpKL8W/lQjXvnZ24wFNts5itL07id7suEe+YluhfcY=", "wfid", "", ""));
 		PublicationCreationReqDTO reqDTO = buildReqDTO();
 
 		RestExecutionResultEnum resPublication = callPublication(pdfAttachment, reqDTO, transactionId, false, true);
@@ -184,7 +233,7 @@ class PublicationTest extends AbstractTest {
 
 	@Test
 	void jwtValidation () {
-		byte[] pdfAttachment = FileUtility.getFileFromInternalResources("Files/attachment/LAB_OK.pdf");
+		byte[] pdfAttachment = FileUtility.getFileFromInternalResources("Files/attachment/CDA_MAP.pdf");
 		String encoded = StringUtility.encodeSHA256(pdfAttachment);
 		String token = generateJwt(pdfAttachment, true);
 		
@@ -307,12 +356,12 @@ class PublicationTest extends AbstractTest {
 		ValidationCDAReqDTO validationRB = validateDataPreparation();
 		
 		// Mocking validator
-		ValidationInfoDTO info = new ValidationInfoDTO(RawValidationEnum.OK, new ArrayList<>());
+		ValidationInfoDTO info = new ValidationInfoDTO(RawValidationEnum.OK, new ArrayList<>(), "", "");
 		given(validatorClient.validate(anyString())).willReturn(info);
 
 		ResponseEntity<ValidationResDTO> response = callPlainValidation(jwtToken, file, validationRB);
 		assertEquals(HttpStatus.SC_CREATED, response.getStatusCode().value());
-		final String workflowInstanceId = response.getBody().getWorkflowInstanceId();
+		final String workflowInstanceId = "wfid";
 
 		PublicationCreationReqDTO publicationRB = new PublicationCreationReqDTO();
 		Exception thrownException = assertThrows(HttpClientErrorException.BadRequest.class, () -> callPlainPublication(jwtToken, file, publicationRB));
@@ -363,14 +412,71 @@ class PublicationTest extends AbstractTest {
 		thrownException = assertThrows(HttpClientErrorException.BadRequest.class, () -> callPlainPublication(jwtToken, file, publicationRB));
 		log.info(ExceptionUtils.getStackTrace(thrownException));
 
-		publicationRB.setWorkflowInstanceId(workflowInstanceId);
+		publicationRB.setWorkflowInstanceId("wfid");
 		final String jwtWrongHashToken = generateWrongJwt("randomHash", false, false, false);
 		ResponseEntity<ValidationResDTO> responseValidation = callPlainValidation(jwtWrongHashToken, file, validationRB);
 		assertEquals(HttpStatus.SC_CREATED, responseValidation.getStatusCode().value());
-		publicationRB.setWorkflowInstanceId(Objects.requireNonNull(responseValidation.getBody()).getWorkflowInstanceId());
+		publicationRB.setWorkflowInstanceId("wfid");
 		thrownException = assertThrows(HttpClientErrorException.BadRequest.class, () -> callPlainPublication(jwtWrongHashToken, file, publicationRB));
 		assertTrue(thrownException.getMessage().contains(RestExecutionResultEnum.DOCUMENT_HASH_VALIDATION_ERROR.getType()));
 	}
+	
+	
+	@Test
+	@DisplayName("Validation + Publication after 5 days - Error Test")
+	void testPublicationDateError() {
+		long DAY_IN_MS = 1000 * 60 * 60 * 24; 
+		ValidationDataDTO validatedDocumentDateOverFiveDays = new ValidationDataDTO(); 
+		validatedDocumentDateOverFiveDays.setHash("");
+		validatedDocumentDateOverFiveDays.setCdaValidated(true); 
+		validatedDocumentDateOverFiveDays.setInsertionDate(new Date(System.currentTimeMillis() - (7 * DAY_IN_MS))); 
+		
+		ValidationDataDTO validatedDocumentCorrectDate = new ValidationDataDTO(); 
+		validatedDocumentCorrectDate.setHash("");
+		validatedDocumentCorrectDate.setCdaValidated(true); 
+		validatedDocumentCorrectDate.setInsertionDate(new Date(System.currentTimeMillis() - (3 * DAY_IN_MS))); 
+		
+		TransformResDTO ref = new TransformResDTO();
+		ref.setErrorMessage("");
+		ref.setJson(Document.parse("{\"json\" : \"json\"}"));
+		doReturn(new ResponseEntity<>(ref, org.springframework.http.HttpStatus.OK))
+				.when(restTemplate).exchange(anyString(), eq(HttpMethod.POST), any(HttpEntity.class), eq(TransformResDTO.class));
+
+		byte[] pdfAttachment = FileUtility.getFileFromInternalResources("Files/attachment/CDA_OK_SIGNED.pdf");
+
+		ValidationInfoDTO info = new ValidationInfoDTO(RawValidationEnum.OK, new ArrayList<>(), "", "");
+		given(validatorClient.validate(anyString())).willReturn(info);
+
+		Map<String,RestExecutionResultEnum> res = callValidation(ActivityEnum.VALIDATION, HealthDataFormatEnum.CDA, InjectionModeEnum.ATTACHMENT, pdfAttachment, true, false, true);
+		Optional<String> firstKey = res.keySet().stream().findFirst();
+
+		String transactionId = "";
+		if (firstKey.isPresent()) {
+			transactionId = firstKey.get();
+		}
+		
+		// Case 1: Date is over 5 days 
+		when(cdaFacadeSRV.getByWorkflowInstanceId(anyString())).thenReturn(validatedDocumentDateOverFiveDays); 
+
+		cdaRepo.create(ValidatedDocumentsETY.setContent("6XpKL8W/lQjXvnZ24wFNts5itL07id7suEe+YluhfcY=", "wfid", "", ""));
+		PublicationCreationReqDTO reqDTO = buildReqDTO();
+
+		RestExecutionResultEnum resPublication = callPublication(pdfAttachment, reqDTO, transactionId, false, true);
+		assertNotNull(resPublication);
+		assertEquals(RestExecutionResultEnum.GENERIC_ERROR.getType(), resPublication.getType()); 
+		
+		// Case 2: Date is 3 days ago, should be OK
+		when(cdaFacadeSRV.getByWorkflowInstanceId(anyString())).thenReturn(validatedDocumentCorrectDate); 
+
+		cdaRepo.create(ValidatedDocumentsETY.setContent("6XpKL8W/lQjXvnZ24wFNts5itL07id7suEe+YluhfcY=", "wfid", "", ""));
+		PublicationCreationReqDTO reqDTOOk = buildReqDTO();
+
+		RestExecutionResultEnum resPublicationOk = callPublication(pdfAttachment, reqDTOOk, transactionId, false, true);
+		assertNotNull(resPublicationOk);
+		assertEquals(RestExecutionResultEnum.OK.getType(), resPublicationOk.getType()); 
+		
+	}
+
 	
 	@Test
 	void publicationWarningTest() {
@@ -384,16 +490,15 @@ class PublicationTest extends AbstractTest {
 		ValidationCDAReqDTO validationRB = validateDataPreparation();
 		
 		// Mocking validator
-		ValidationInfoDTO info = new ValidationInfoDTO(RawValidationEnum.OK, new ArrayList<>());
+		ValidationInfoDTO info = new ValidationInfoDTO(RawValidationEnum.OK, new ArrayList<>(), "", "");
 		given(validatorClient.validate(anyString())).willReturn(info);
 
 		ResponseEntity<ValidationResDTO> response = callPlainValidation(jwtToken, file, validationRB);
 		assertEquals(HttpStatus.SC_CREATED, response.getStatusCode().value());
-		final String workflowInstanceId = response.getBody().getWorkflowInstanceId();
 
 		PublicationCreationReqDTO publicationRB = new PublicationCreationReqDTO();
 	
-		publicationRB.setWorkflowInstanceId(workflowInstanceId);
+		publicationRB.setWorkflowInstanceId("wfid");
 		publicationRB.setTipologiaStruttura(HealthcareFacilityEnum.Ospedale);	
 		publicationRB.setIdentificativoDoc("identificativoDoc");
 		publicationRB.setIdentificativoRep("identificativoRep");
@@ -422,10 +527,9 @@ class PublicationTest extends AbstractTest {
 		final String jwtToken = generateJwt(file, true);
 		
 		final ValidationCDAReqDTO validationRB = validateDataPreparation();
-		
-		
+			
 		// Mocking validator
-		final ValidationInfoDTO info = new ValidationInfoDTO(RawValidationEnum.OK, new ArrayList<>());
+		final ValidationInfoDTO info = new ValidationInfoDTO(RawValidationEnum.OK, new ArrayList<>(), "", "");
 		given(validatorClient.validate(anyString())).willReturn(info);
 
 		final ResponseEntity<ValidationResDTO> validationResponse = callPlainValidation(jwtToken, file, validationRB);
@@ -438,7 +542,21 @@ class PublicationTest extends AbstractTest {
 		assertEquals(HttpStatus.SC_CREATED, publicationResponse.getStatusCode().value());
 		assertNull(publicationResponse.getBody().getWarning());
 		
+	}
+	
+	@Test
+	void publicationForcedTestNullCases() {
+		
+		doReturn(new ResponseEntity<>(new TransformResDTO("", Document.parse("{\"json\" : \"json\"}")), org.springframework.http.HttpStatus.OK))
+		.when(restTemplate).exchange(anyString(), eq(HttpMethod.POST), any(HttpEntity.class), eq(TransformResDTO.class));
+
+		final byte[] file = FileUtility.getFileFromInternalResources("Files" + File.separator + "attachment" + File.separator + "CDA_OK_SIGNED.pdf");
+		final String jwtToken = generateJwt(file, true);
+
 		// Mocking Validator - null InjectionModeEnum param
+		final ValidationInfoDTO info = new ValidationInfoDTO(RawValidationEnum.OK, new ArrayList<>(), "", "");
+		given(validatorClient.validate(anyString())).willReturn(info);
+
 		final ValidationCDAReqDTO validationRBnullMode = validateDataPreparation();
 		validationRBnullMode.setMode(null);
 		
@@ -450,7 +568,7 @@ class PublicationTest extends AbstractTest {
 		
 		final ResponseEntity<PublicationResDTO> publicationResponseNullMode = callPlainPublication(jwtToken, file, publicationRBnullMode);
 		assertNotNull(publicationResponseNullMode.getBody().getWarning());
-		assertEquals(Constants.Misc.WARN_EXTRACTION_SELECTION, publicationResponseNullMode.getBody().getWarning());
+		assertEquals(Constants.Misc.WARN_EXTRACTION_SELECTION, publicationResponseNullMode.getBody().getWarning()); 
 		
 	}
 
@@ -461,7 +579,7 @@ class PublicationTest extends AbstractTest {
 		mockDocumentRef();
 
 		final byte[] pdfAttachment = FileUtility.getFileFromInternalResources("Files/attachment/CDA_OK_SIGNED.pdf");
-		final ValidationInfoDTO info = new ValidationInfoDTO(RawValidationEnum.OK, new ArrayList<>());
+		final ValidationInfoDTO info = new ValidationInfoDTO(RawValidationEnum.OK, new ArrayList<>(), "", "");
 		given(validatorClient.validate(anyString())).willReturn(info); // Mocking validation
 
 		final Map<String, RestExecutionResultEnum> res = callValidation(ActivityEnum.VALIDATION, HealthDataFormatEnum.CDA, InjectionModeEnum.ATTACHMENT, pdfAttachment, true, true, true);
@@ -472,8 +590,8 @@ class PublicationTest extends AbstractTest {
 			transactionId = firstKey.get();
 		}
 
-		cdaRepo.create("6XpKL8W/lQjXvnZ24wFNts5itL07id7suEe+YluhfcY=", "wfid");
-		PublicationCreationReqDTO reqDTO = buildReqDTO();
+		/*cdaRepo.create(ValidatedDocumentsETY.setContent("6XpKL8W/lQjXvnZ24wFNts5itL07id7suEe+YluhfcY=", "wfid")); */ 
+		PublicationCreationReqDTO reqDTO = buildReqDTO(); 
 
 		final RestExecutionResultEnum resPublication = callPublication(pdfAttachment, reqDTO, transactionId, msCfg.getFromGovway(), true);
 		assertEquals(RestExecutionResultEnum.OK, resPublication);
@@ -498,7 +616,7 @@ class PublicationTest extends AbstractTest {
 		final ValidationCDAReqDTO validationRB = validateDataPreparation();
 
 		// Mocking validator
-		final ValidationInfoDTO info = new ValidationInfoDTO(RawValidationEnum.OK, new ArrayList<>());
+		final ValidationInfoDTO info = new ValidationInfoDTO(RawValidationEnum.OK, new ArrayList<>(), "", "");
 		given(validatorClient.validate(anyString())).willReturn(info);
 
 		final ResponseEntity<ValidationResDTO> validationResponse = callPlainValidation(jwtToken, file, validationRB);
@@ -531,7 +649,7 @@ class PublicationTest extends AbstractTest {
 		final ValidationCDAReqDTO validationRB = validateDataPreparation();
 
 		// Mocking validator
-		final ValidationInfoDTO info = new ValidationInfoDTO(RawValidationEnum.OK, new ArrayList<>());
+		final ValidationInfoDTO info = new ValidationInfoDTO(RawValidationEnum.OK, new ArrayList<>(), "", "");
 		given(validatorClient.validate(anyString())).willReturn(info);
 
 		final ResponseEntity<ValidationResDTO> validationResponse = callPlainValidation(jwtToken, file, validationRB);
