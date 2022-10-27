@@ -59,7 +59,7 @@ public class DocumentReferenceSRV implements IDocumentReferenceSRV {
 	
 	@Override
 	public ResourceDTO createFhirResources(final String cda, final PublicationCreationReqDTO requestBody, 
-			final Integer size, final String hash, final String sourcePatientId, String transformId, String structureId) {
+			final Integer size, final String hash, final String sourcePatientId, String transformId, String xsltID) {
 		final ResourceDTO output = new ResourceDTO();
 		try {
 			final org.jsoup.nodes.Document docCDA = Jsoup.parse(cda);
@@ -67,8 +67,7 @@ public class DocumentReferenceSRV implements IDocumentReferenceSRV {
 			
 			final DocumentReferenceDTO documentReferenceDTO = buildDocumentReferenceDTO(encodedCDA, requestBody, size, hash);
 						
-			final TransformResDTO resDTO = callFhirMapping(documentReferenceDTO, cda, 
-						transformId, structureId); 
+			final TransformResDTO resDTO = callFhirMapping(documentReferenceDTO, cda, transformId, xsltID); 
 			
 			if (!StringUtility.isNullOrEmpty(resDTO.getErrorMessage())) {
 				output.setErrorMessage(resDTO.getErrorMessage());
@@ -127,7 +126,8 @@ public class DocumentReferenceSRV implements IDocumentReferenceSRV {
 		return documentReferenceDTO;
 	}
 	
-	private TransformResDTO callFhirMapping(final DocumentReferenceDTO documentReferenceDTO, final String cda, String structureId, String transformId) {
+	private TransformResDTO callFhirMapping(final DocumentReferenceDTO documentReferenceDTO, final String cda, 
+			String transformId,String xsltID) {
 		TransformResDTO out = null;
 		try {
 			
@@ -136,9 +136,9 @@ public class DocumentReferenceSRV implements IDocumentReferenceSRV {
 			req.setDocumentReferenceDTO(documentReferenceDTO); 
 			
 			if(callsTransformEngine) {
-				req.setObjectId(structureId);
-			} else {
 				req.setObjectId(transformId);
+			} else {
+				req.setObjectId(xsltID);
 			}
 			out = client.callConvertCdaInBundle(req);
 		} catch(final ConnectionRefusedException crex) {

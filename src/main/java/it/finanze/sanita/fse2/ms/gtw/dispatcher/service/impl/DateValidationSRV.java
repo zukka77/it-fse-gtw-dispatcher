@@ -12,19 +12,24 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class DateValidationSRV implements IDateValidationSRV {
 
+	/**
+	 * Serial version uid.
+	 */
+	private static final long serialVersionUID = 6274924321852002956L;
+	
 	@Autowired
 	private IValidatedDocumentsRepo validatedDocumentsRepo; 
 
 	@Override
 	public String updateValidationDate(final String workflowInstanceId, final int days) {
-		
+		String objectId = "";
 		try {
-			return validatedDocumentsRepo.updateInsertionDate(workflowInstanceId, days);
-		
+			objectId = validatedDocumentsRepo.updateInsertionDate(workflowInstanceId, days);
 		} catch(Exception ex) {
-			log.error("Error update validated document while repo invocation event : " , ex);
-			throw new BusinessException("Error update validated document while repo invocation event : " , ex);
+			log.error("Error update validated document  : " , ex);
+			throw new BusinessException("Error update validated document : " , ex);
 		}
+		return objectId;
 		
 	} 
 

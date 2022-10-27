@@ -20,9 +20,9 @@ public class ValidationDataDTO {
 
     private String workflowInstanceId; 
     
-    private String transformId; 
+    private String xsltID; 
     
-    private String structureId; 
+    private String transformID; 
     
     private Date insertionDate; 
     

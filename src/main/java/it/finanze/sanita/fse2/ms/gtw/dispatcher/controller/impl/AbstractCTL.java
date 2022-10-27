@@ -439,7 +439,7 @@ public abstract class AbstractCTL implements Serializable {
 			if (ActivityEnum.VALIDATION.equals(activity)
 					&& Arrays.asList(RawValidationEnum.OK, RawValidationEnum.SEMANTIC_WARNING).contains(rawValidationRes.getResult())) {
 				final String hashedCDA = StringUtility.encodeSHA256B64(cda);
-				cdaFacadeSRV.create(hashedCDA, workflowInstanceId, rawValidationRes.getStructureID(), rawValidationRes.getTransformID());
+				cdaFacadeSRV.create(hashedCDA, workflowInstanceId, rawValidationRes.getXsltID(), rawValidationRes.getTransformID());
 			}
 
 			if (!RawValidationEnum.OK.equals(rawValidationRes.getResult())) {

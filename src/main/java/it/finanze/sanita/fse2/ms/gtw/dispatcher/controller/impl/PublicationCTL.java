@@ -19,6 +19,7 @@ import com.google.gson.Gson;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.IEdsClient;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.IIniClient;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.ValidationCFG;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.controller.IPublicationCTL;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.IndexerValueDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.JWTPayloadDTO;
@@ -103,6 +104,9 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 
 	@Autowired
 	private ProfileUtility profileUtils;
+	
+	@Autowired
+	private ValidationCFG validationCFG;
 
 	@Override
 	public ResponseEntity<PublicationResDTO> create(final PublicationCreationReqDTO requestBody, final MultipartFile file, final HttpServletRequest request) {
@@ -269,7 +273,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 		validation.setValidationData(validationInfo);
 
 		String transformId = ""; 
-		String structureId = ""; 
+		String xsltID = ""; 
 		
 		try {
 			final JWTTokenDTO jwtToken;
@@ -307,14 +311,12 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 			ValidationDataDTO validatedDocument = cdaSRV.getByWorkflowInstanceId(validationInfo.getWorkflowInstanceId()); 
 			
 			if (!Boolean.TRUE.equals(jsonObj.isForcePublish()) || isReplace) {				
-				transformId = validatedDocument.getTransformId(); 
-				structureId = validatedDocument.getStructureId(); 
+				transformId = validatedDocument.getTransformID(); 
+				xsltID = validatedDocument.getXsltID(); 
 				cdaSRV.consumeHash(validationInfo.getHash()); 
-				
 								
-				// Checks on date - If greater than 5 days transaction is aborted 
-				if(DateUtility.getDifferenceDays(validatedDocument.getInsertionDate(), new Date()) > 5) {
-					throw new ValidationException("Error: cannot publish documents older than 5 days"); 
+				if(DateUtility.getDifferenceDays(validatedDocument.getInsertionDate(), new Date()) > validationCFG.getDaysAllowToPublishAfterValidation()) {
+					throw new ValidationException("Error: cannot publish documents older than" + validationCFG.getDaysAllowToPublishAfterValidation() + " days"); 
 				} 
 				
 			}
@@ -325,7 +327,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 			validateDocumentHash(documentSha256, validation.getJwtToken());
 	
 			final ResourceDTO fhirResourcesDTO = documentReferenceSRV.createFhirResources(cda, jsonObj, bytePDF.length, documentSha256,
-				validation.getJwtToken().getPayload().getPerson_id(), structureId, transformId);
+				validation.getJwtToken().getPayload().getPerson_id(), transformId,xsltID);
 	
 			validation.setFhirResource(fhirResourcesDTO);
 			if(!StringUtility.isNullOrEmpty(fhirResourcesDTO.getErrorMessage())) {

@@ -17,5 +17,8 @@ public class ValidationCFG {
     
 	@Value("${validation.allow-special-fiscal-code}")
 	private Boolean allowSpecialFiscalCodes;
+	
+	@Value("${days.allow-publish-after-validation}")
+	private Integer daysAllowToPublishAfterValidation;
     
 }

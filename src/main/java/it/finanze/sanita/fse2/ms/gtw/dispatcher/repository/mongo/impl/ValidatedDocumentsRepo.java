@@ -2,25 +2,22 @@ package it.finanze.sanita.fse2.ms.gtw.dispatcher.repository.mongo.impl;
 
 import static org.springframework.data.mongodb.core.query.Criteria.where;
 
-import java.util.Calendar;
 import java.util.Date;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
-import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Repository;
 
 import com.mongodb.MongoException;
 import com.mongodb.client.result.DeleteResult;
-import com.mongodb.client.result.UpdateResult;
 
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.ValidationDataDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.BusinessException;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.WorkflowIdException;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.repository.entity.ValidatedDocumentsETY;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.repository.mongo.IValidatedDocumentsRepo;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.DateUtility;
 import lombok.extern.slf4j.Slf4j;
 
 @Repository
@@ -41,10 +38,17 @@ public class ValidatedDocumentsRepo implements IValidatedDocumentsRepo {
 			Query query = new Query();
 			query.addCriteria(Criteria.where("hash_cda").is(ety.getHashCda()));
 			
-			Update update = new Update();
-			update.set("w_id", ety.getWorkflowInstanceId());
-			update.set("insertion_date", new Date());
-			mongoTemplate.upsert(query, update, ValidatedDocumentsETY.class);
+			ValidatedDocumentsETY etyFinded = mongoTemplate.findOne(query, ValidatedDocumentsETY.class);
+			if(etyFinded!=null) {
+				etyFinded.setPrimaryKeyTransform(ety.getPrimaryKeyTransform());
+				etyFinded.setPrimaryKeyXSLT(ety.getPrimaryKeyXSLT());
+				etyFinded.setWorkflowInstanceId(ety.getWorkflowInstanceId());
+				etyFinded.setInsertionDate(new Date());
+				mongoTemplate.save(etyFinded);
+			} else {
+				ety.setInsertionDate(new Date());
+				mongoTemplate.save(ety);
+			} 
 		} catch (Exception ex) {
 			log.error("Error while insert validated document : ", ex);
 			throw new BusinessException("Error while insert validated document : ", ex);
@@ -119,8 +123,8 @@ public class ValidatedDocumentsRepo implements IValidatedDocumentsRepo {
 			dto.setHash(ety.getHashCda());
 			dto.setCdaValidated(true);
 			dto.setWorkflowInstanceId(ety.getWorkflowInstanceId());
-			dto.setTransformId(ety.getPrimaryKeyTransf());
-			dto.setStructureId(ety.getPrimaryKeyStructure());
+			dto.setXsltID(ety.getPrimaryKeyXSLT());
+			dto.setTransformID(ety.getPrimaryKeyTransform());
 			dto.setInsertionDate(ety.getInsertionDate());
 		}
 		return dto;
@@ -145,37 +149,23 @@ public class ValidatedDocumentsRepo implements IValidatedDocumentsRepo {
 
 	@Override
 	public String updateInsertionDate(final String workflowInstanceId, final int days) {
-
-		Query query = new Query();
-		query.addCriteria(Criteria.where("w_id").is(workflowInstanceId));
-
+		String objectId = "";
 		try {
+			Query query = new Query();
+			query.addCriteria(Criteria.where("w_id").is(workflowInstanceId));
+
 			ValidatedDocumentsETY ety = mongoTemplate.findOne(query, ValidatedDocumentsETY.class);
-
-			Calendar c = Calendar.getInstance();
 			
-			if (ety != null) {
-				c.setTime(ety.getInsertionDate());
-				c.add(Calendar.DATE, -days);
-			} else
-				throw new RuntimeException("Ety is null.");
-
-			Update update = new Update();
-			update.set("insertion_date", c.getTime());
-
-			UpdateResult result = mongoTemplate.updateFirst(query, update, ValidatedDocumentsETY.class);
-
-			if (result.getModifiedCount() > 0)
-				return ety.getId();
-			else
-				throw new WorkflowIdException(workflowInstanceId);
-
-		} catch (NullPointerException e) {
-			log.error("NullPointerException while update validated document : ", e);
-			throw new NullPointerException();
+			if(ety!=null) {
+				Date newDate = DateUtility.addDay(ety.getInsertionDate(), -days);
+				ety.setInsertionDate(newDate);
+				ety = mongoTemplate.save(ety);
+				objectId = ety.getId();
+			}  
 		} catch (Exception ex) {
 			log.error("Error while update validated document : ", ex);
 			throw new BusinessException("Error while update validated document : ", ex);
 		}
+		return objectId;
 	}
 }
