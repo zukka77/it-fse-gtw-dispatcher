@@ -6,8 +6,10 @@ import org.springframework.stereotype.Service;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.BusinessException;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.repository.mongo.IValidatedDocumentsRepo;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.IDateValidationSRV;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
+@Slf4j
 public class DateValidationSRV implements IDateValidationSRV {
 
 	@Autowired
@@ -20,6 +22,7 @@ public class DateValidationSRV implements IDateValidationSRV {
 			return validatedDocumentsRepo.updateInsertionDate(workflowInstanceId, days);
 		
 		} catch(Exception ex) {
+			log.error("Error update validated document while repo invocation event : " , ex);
 			throw new BusinessException("Error update validated document while repo invocation event : " , ex);
 		}
 		

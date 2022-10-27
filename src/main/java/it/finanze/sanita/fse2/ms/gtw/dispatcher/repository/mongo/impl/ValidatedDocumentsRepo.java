@@ -153,8 +153,12 @@ public class ValidatedDocumentsRepo implements IValidatedDocumentsRepo {
 			ValidatedDocumentsETY ety = mongoTemplate.findOne(query, ValidatedDocumentsETY.class);
 
 			Calendar c = Calendar.getInstance();
-			c.setTime(ety.getInsertionDate());
-			c.add(Calendar.DATE, -days);
+			
+			if (ety != null) {
+				c.setTime(ety.getInsertionDate());
+				c.add(Calendar.DATE, -days);
+			} else
+				throw new RuntimeException("Ety is null.");
 
 			Update update = new Update();
 			update.set("insertion_date", c.getTime());
@@ -165,7 +169,10 @@ public class ValidatedDocumentsRepo implements IValidatedDocumentsRepo {
 				return ety.getId();
 			else
 				throw new WorkflowIdException(workflowInstanceId);
-			
+
+		} catch (NullPointerException e) {
+			log.error("NullPointerException while update validated document : ", e);
+			throw new NullPointerException();
 		} catch (Exception ex) {
 			log.error("Error while update validated document : ", ex);
 			throw new BusinessException("Error while update validated document : ", ex);
