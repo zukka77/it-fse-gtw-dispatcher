@@ -316,7 +316,12 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 				cdaSRV.consumeHash(validationInfo.getHash()); 
 								
 				if(DateUtility.getDifferenceDays(validatedDocument.getInsertionDate(), new Date()) > validationCFG.getDaysAllowToPublishAfterValidation()) {
-					throw new ValidationException("Error: cannot publish documents older than" + validationCFG.getDaysAllowToPublishAfterValidation() + " days"); 
+					final ErrorResponseDTO error = ErrorResponseDTO.builder()
+							.type(RestExecutionResultEnum.OLDER_DAY.getType())
+							.title(RestExecutionResultEnum.OLDER_DAY.getTitle())
+							.instance(ErrorInstanceEnum.OLDER_DAY.getInstance())
+							.detail("Error: cannot publish documents older than" + validationCFG.getDaysAllowToPublishAfterValidation() + " days").build();
+					throw new ValidationException(error); 
 				} 
 				
 			}
