@@ -218,8 +218,6 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 			role = jwtToken.getPayload().getSubject_role();
 			PublicationMetadataReqDTO jsonObj = StringUtility.fromJSONJackson(request.getParameter("requestBody"), PublicationMetadataReqDTO.class);
 
-			final IniReferenceResponseDTO iniReference = iniClient.getReference(new IniReferenceRequestDTO(idDoc, jwtToken.getPayload()));
-
 			final IniTraceResponseDTO iniResponse = iniClient.updateMetadati(new IniMetadataUpdateReqDTO(idDoc, jwtToken.getPayload(), jsonObj));
 			
 			EdsResponseDTO edsResponse = null;
@@ -370,11 +368,14 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 			}
 			
 			role = jwtToken.getPayload().getSubject_role();
-			
-			final DeleteRequestDTO iniReq = buildRequestForIni(idDoc, jwtToken);
+
+			final IniReferenceResponseDTO iniReference = iniClient.getReference(new IniReferenceRequestDTO(idDoc, jwtToken.getPayload()));
+
+			final DeleteRequestDTO iniReq = buildRequestForIni(idDoc, iniReference.getUuid(), jwtToken);
+
 			final IniTraceResponseDTO iniResponse = iniClient.delete(iniReq);
 			
-			EdsResponseDTO edsResponse = null;
+			EdsResponseDTO edsResponse;
 			boolean iniMockMessage = !StringUtility.isNullOrEmpty(iniResponse.getErrorMessage()) && iniResponse.getErrorMessage().contains("Invalid region ip");
 			if (Boolean.TRUE.equals(iniResponse.getEsito()) || (isTestEnvironment && iniMockMessage)) {
 				log.debug("Ini response is OK, proceeding with EDS");
@@ -419,13 +420,14 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 		return new ResponseDTO(getLogTraceInfo());
 	}
 	
-	private DeleteRequestDTO buildRequestForIni(final String identificativoDocumento, final JWTTokenDTO jwtTokenDTO) {
+	private DeleteRequestDTO buildRequestForIni(final String identificativoDocumento, final String uuid, final JWTTokenDTO jwtTokenDTO) {
 		DeleteRequestDTO out = null;
 		try {
 			JWTPayloadDTO jwtPayloadDTO = jwtTokenDTO.getPayload();
 			out = DeleteRequestDTO.builder().
 					action_id(jwtPayloadDTO.getAction_id()).
 					idDoc(identificativoDocumento).
+					uuid(uuid).
 					iss(jwtPayloadDTO.getIss()).
 					locality(jwtPayloadDTO.getLocality()).
 					patient_consent(jwtPayloadDTO.getPatient_consent()).
