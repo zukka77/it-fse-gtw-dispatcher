@@ -7,6 +7,8 @@ import java.io.Serializable;
 
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.DeleteRequestDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.IniMetadataUpdateReqDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.IniReferenceRequestDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.IniReferenceResponseDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.IniTraceResponseDTO;
 
 /**
@@ -18,5 +20,7 @@ public interface IIniClient extends Serializable {
 	IniTraceResponseDTO delete(DeleteRequestDTO iniReq);
 	
 	IniTraceResponseDTO updateMetadati(IniMetadataUpdateReqDTO iniReq);
+
+	IniReferenceResponseDTO getReference(IniReferenceRequestDTO iniReq);
 
 }

@@ -7,6 +7,8 @@ import java.util.Date;
 
 import javax.servlet.http.HttpServletRequest;
 
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.*;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.*;
 import org.jsoup.Jsoup;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -27,18 +29,6 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.JWTTokenDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.ResourceDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.ValidationCreationInputDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.ValidationDataDTO;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.DeleteRequestDTO;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.EdsMetadataUpdateReqDTO;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.IniMetadataUpdateReqDTO;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.PublicationCreationReqDTO;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.PublicationMetadataReqDTO;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.PublicationUpdateReqDTO;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.EdsResponseDTO;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.ErrorResponseDTO;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.IniTraceResponseDTO;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.LogTraceInfoDTO;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.PublicationResDTO;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.ResponseDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.DestinationTypeEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ErrorInstanceEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventStatusEnum;
@@ -227,6 +217,8 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 
 			role = jwtToken.getPayload().getSubject_role();
 			PublicationMetadataReqDTO jsonObj = StringUtility.fromJSONJackson(request.getParameter("requestBody"), PublicationMetadataReqDTO.class);
+
+			final IniReferenceResponseDTO iniReference = iniClient.getReference(new IniReferenceRequestDTO(idDoc, jwtToken.getPayload()));
 
 			final IniTraceResponseDTO iniResponse = iniClient.updateMetadati(new IniMetadataUpdateReqDTO(idDoc, jwtToken.getPayload(), jsonObj));
 			
