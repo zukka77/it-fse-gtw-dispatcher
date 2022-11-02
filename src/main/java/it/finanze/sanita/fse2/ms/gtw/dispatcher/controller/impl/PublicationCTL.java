@@ -172,6 +172,13 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 				if (validationInfo.getValidationError() != null) {
 					throw validationInfo.getValidationError();
 				}
+				
+				//TODO - START VI
+				//Get riferimenti
+				//Aggiornamento transazione
+				//If esito ko esci altrimenti continua
+				//TODO - END VI
+				
 
 				log.debug("Executing replace of document: {}", idDoc);
 				iniInvocationSRV.replace(validationInfo.getValidationData().getWorkflowInstanceId(), validationInfo.getFhirResource(), validationInfo.getJwtToken(), idDoc);
@@ -185,8 +192,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 				kafkaSRV.sendReplaceStatus(traceInfoDTO.getTraceID(), validationInfo.getValidationData().getWorkflowInstanceId(), EventStatusEnum.SUCCESS, null, validationInfo.getJsonObj(), validationInfo.getJwtToken() != null ? validationInfo.getJwtToken().getPayload() : null);
 
 				role = validationInfo.getJwtToken().getPayload().getSubject_role();
-				logger.info(String.format("Replace CDA completed for workflow instance id %s", validationInfo.getValidationData().getWorkflowInstanceId()), OperationLogEnum.REPLACE_CDA2, ResultLogEnum.OK, startDateOperation, validationInfo.getJwtToken().getPayload().getIss(), CdaUtility.getDocumentType(validationInfo.getDocument()),
-						role);
+				logger.info(String.format("Replace CDA completed for workflow instance id %s", validationInfo.getValidationData().getWorkflowInstanceId()), OperationLogEnum.REPLACE_CDA2, ResultLogEnum.OK, startDateOperation, validationInfo.getJwtToken().getPayload().getIss(), CdaUtility.getDocumentType(validationInfo.getDocument()), role);
 			} catch (ConnectionRefusedException ce) {
 				errorHandlerSRV.connectionRefusedExceptionHandler(startDateOperation, validationInfo.getValidationData(), validationInfo.getJwtToken(), validationInfo.getJsonObj(), traceInfoDTO, ce, false, CdaUtility.getDocumentType(validationInfo.getDocument()));
 			} catch (final ValidationException e) {
@@ -335,6 +341,11 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 				validation.getJwtToken().getPayload().getPerson_id(), transformId,xsltID);
 	
 			validation.setFhirResource(fhirResourcesDTO);
+			
+			//TODO - START VI
+			//Send message aggiornamento transazione - Questo vale sia per create che per replace
+			//TODO - END VI
+			
 			if(!StringUtility.isNullOrEmpty(fhirResourcesDTO.getErrorMessage())) {
 				final ErrorResponseDTO error = ErrorResponseDTO.builder()
 					.type(RestExecutionResultEnum.FHIR_MAPPING_ERROR.getType())
