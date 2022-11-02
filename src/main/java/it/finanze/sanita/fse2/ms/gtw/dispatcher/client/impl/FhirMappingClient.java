@@ -4,14 +4,11 @@
 package it.finanze.sanita.fse2.ms.gtw.dispatcher.client.impl;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
-import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 
@@ -33,8 +30,8 @@ public class FhirMappingClient implements IFhirMappingClient {
 	private static final long serialVersionUID = 6009573115047546392L;
 
 	@Autowired
-    private transient RestTemplate restTemplate;
-	
+	private transient RestTemplate restTemplate;
+
 	@Autowired
 	private MicroservicesURLCFG msUrlCFG;
 
@@ -44,33 +41,19 @@ public class FhirMappingClient implements IFhirMappingClient {
 		log.debug("Fhir Mapping Client - Calling Fhir Mapping to execute conversion");
 		HttpHeaders headers = new HttpHeaders();
 		ResponseEntity<TransformResDTO> response = null;
-		
+
 		try {
+			String host = "";
 			if(Boolean.TRUE.equals(msUrlCFG.getCallTransformEngine())) {
-				headers.setContentType(MediaType.MULTIPART_FORM_DATA);
-				// HttpEntity<?> entityMap = new HttpEntity<>(resourceToConvert, headers); // ????
-				
-				ByteArrayResource fileAsResource = new ByteArrayResource(resourceToConvert.getCda().getBytes()){
-					@Override
-					public String getFilename(){
-						return "file";
-					}
-				};
-				LinkedMultiValueMap<String, Object> map = new LinkedMultiValueMap<>();
-				map.add("file",fileAsResource);
-				map.add("objectId", resourceToConvert.getObjectId()); 
-
-				headers.setContentType(MediaType.MULTIPART_FORM_DATA);
-
-				HttpEntity<LinkedMultiValueMap<String, Object>> requestEntity = new HttpEntity<>(map, headers);			
-				response = restTemplate.exchange(msUrlCFG.getFhirMappingEngineHost() + "/v1/documents/transform", HttpMethod.POST, requestEntity, TransformResDTO.class);	
-				log.debug("{} status returned from Fhir mapping engine Client", response.getStatusCode());
+				host = msUrlCFG.getFhirMappingEngineHost();
 			} else {
-				headers.set("Content-Type", "application/json");
-				HttpEntity<?> entityXslm = new HttpEntity<>(resourceToConvert, headers);
-				response = restTemplate.exchange(msUrlCFG.getFhirMappingHost() + "/v1/documents/transform", HttpMethod.POST, entityXslm, TransformResDTO.class);
-				log.debug("{} status returned from Fhir mapping Client", response.getStatusCode());
-			}
+				host = msUrlCFG.getFhirMappingHost();
+			} 
+
+			headers.set("Content-Type", "application/json");
+			HttpEntity<?> entityXslm = new HttpEntity<>(resourceToConvert, headers);
+			response = restTemplate.exchange(host + "/v1/documents/transform", HttpMethod.POST, entityXslm, TransformResDTO.class);
+			log.debug("{} status returned from Fhir mapping Client", response.getStatusCode());
 			out = response.getBody();
 			log.debug("{} status returned from Fhir Mapping Client", response.getStatusCode());
 		} catch(ResourceAccessException cex) {

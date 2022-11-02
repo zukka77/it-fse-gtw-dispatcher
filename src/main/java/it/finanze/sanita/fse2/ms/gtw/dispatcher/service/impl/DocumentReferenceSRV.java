@@ -22,15 +22,12 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.DocumentReferenceDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.FhirResourceDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.ResourceDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.SubmissionSetEntryDTO;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.ValidationDataDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.PublicationCreationReqDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.client.TransformResDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.AttivitaClinicaEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.LowLevelDocEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.BusinessException;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.ConnectionRefusedException;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.repository.entity.ValidatedDocumentsETY;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.repository.mongo.IValidatedDocumentsRepo;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.IDocumentReferenceSRV;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility;
 import lombok.extern.slf4j.Slf4j;
@@ -49,9 +46,7 @@ public class DocumentReferenceSRV implements IDocumentReferenceSRV {
 
 	@Autowired
 	private FhirMappingClient client;
-	
-	@Autowired
-	private IValidatedDocumentsRepo validatedDocumentsRepo; 
+	 
  
 	@Value("${ms.calls.transform-engine}")
 	private Boolean callsTransformEngine; 
@@ -135,7 +130,7 @@ public class DocumentReferenceSRV implements IDocumentReferenceSRV {
 			req.setCda(cda);
 			req.setDocumentReferenceDTO(documentReferenceDTO); 
 			
-			if(callsTransformEngine) {
+			if(Boolean.TRUE.equals(callsTransformEngine)) {
 				req.setObjectId(transformId);
 			} else {
 				req.setObjectId(xsltID);
