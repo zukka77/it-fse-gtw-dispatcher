@@ -108,7 +108,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 
 		String role = null;
 		try {
-			validationInfo = validateInput(file, request, false);
+			validationInfo = validateInput(file, request, false,traceInfoDTO);
 
 			if (validationInfo.getValidationError() != null) {
 				throw validationInfo.getValidationError();
@@ -157,7 +157,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 
 			String role = null;
 			try {
-				validationInfo = validateInput(file, request, true);
+				validationInfo = validateInput(file, request, true,traceInfoDTO);
 
 				if (validationInfo.getValidationError() != null) {
 					throw validationInfo.getValidationError();
@@ -259,7 +259,8 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 		return new ResponseEntity<>(new ResponseDTO(getLogTraceInfo()), HttpStatus.OK);
 	}
 
-	private ValidationCreationInputDTO validateInput(final MultipartFile file, final HttpServletRequest request, final boolean isReplace) {
+	private ValidationCreationInputDTO validateInput(final MultipartFile file, final HttpServletRequest request, final boolean isReplace,
+			final LogTraceInfoDTO traceInfoDTO) {
 
 		final ValidationCreationInputDTO validation = new ValidationCreationInputDTO();
 		ValidationDataDTO validationInfo = new ValidationDataDTO();
@@ -332,19 +333,6 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 	
 			validation.setFhirResource(fhirResourcesDTO);
 			
-			//TODO - START VI
-			//Send message aggiornamento transazione - Questo vale sia per create che per replace
-			final LogTraceInfoDTO traceInfoDTO = getLogTraceInfo();
-			
-			kafkaSRV.sendReplaceStatus(traceInfoDTO.getTraceID(),
-					validation.getValidationData().getWorkflowInstanceId(),
-					EventStatusEnum.SUCCESS,
-					"Fhir mapping language done",
-					validation.getJsonObj(),
-					validation.getJwtToken() != null ? validation.getJwtToken().getPayload() : null);
-			
-			//TODO - END VI
-			
 			if(!StringUtility.isNullOrEmpty(fhirResourcesDTO.getErrorMessage())) {
 				final ErrorResponseDTO error = ErrorResponseDTO.builder()
 					.type(RestExecutionResultEnum.FHIR_MAPPING_ERROR.getType())
@@ -354,6 +342,8 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 	
 				throw new ValidationException(error);
 			}
+			
+			kafkaSRV.sendFhirMappingStatus(traceInfoDTO.getTraceID(),validation.getValidationData().getWorkflowInstanceId(), EventStatusEnum.SUCCESS, "Fhir mapping language done", validation.getJsonObj(), validation.getJwtToken() != null ? validation.getJwtToken().getPayload() : null);
 		} catch (final ValidationException ve) {
 			cdaSRV.consumeHash(validationInfo.getHash());
 			validation.setValidationError(ve);
