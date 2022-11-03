@@ -123,8 +123,6 @@ public class IniClient extends AbstractClient implements IIniClient {
 
 			// Gestione response
 			out = restExchange.getBody();
-		} catch(RecordNotFoundException | BusinessException e0) {
-			throw e0;
 		} catch (HttpStatusCodeException e2) {
 			errorHandler(e2, "/ini-reference");
 		} catch (Exception e) {
