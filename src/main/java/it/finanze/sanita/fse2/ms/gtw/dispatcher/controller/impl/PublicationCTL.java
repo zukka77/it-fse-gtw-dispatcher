@@ -334,6 +334,15 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 			
 			//TODO - START VI
 			//Send message aggiornamento transazione - Questo vale sia per create che per replace
+			final LogTraceInfoDTO traceInfoDTO = getLogTraceInfo();
+			
+			kafkaSRV.sendReplaceStatus(traceInfoDTO.getTraceID(),
+					validation.getValidationData().getWorkflowInstanceId(),
+					EventStatusEnum.SUCCESS,
+					"Fhir mapping language done",
+					validation.getJsonObj(),
+					validation.getJwtToken() != null ? validation.getJwtToken().getPayload() : null);
+			
 			//TODO - END VI
 			
 			if(!StringUtility.isNullOrEmpty(fhirResourcesDTO.getErrorMessage())) {
