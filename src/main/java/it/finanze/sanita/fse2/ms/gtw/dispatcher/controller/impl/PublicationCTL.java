@@ -163,11 +163,15 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 					throw validationInfo.getValidationError();
 				}
 				
-				//TODO - START VI
-				//Get riferimenti
-				//Aggiornamento transazione
-				//If esito ko esci altrimenti continua
-				//TODO - END VI
+				IniReferenceRequestDTO iniReq = new IniReferenceRequestDTO(idDoc, validationInfo.getJwtToken().getPayload());
+				IniReferenceResponseDTO response = iniClient.getReference(iniReq);
+				
+				kafkaSRV.sendReplaceStatus(traceInfoDTO.getTraceID(), validationInfo.getValidationData().getWorkflowInstanceId(), EventStatusEnum.SUCCESS, null, validationInfo.getJsonObj(), validationInfo.getJwtToken() != null ? validationInfo.getJwtToken().getPayload() : null);
+				
+				if(!StringUtility.isNullOrEmpty(response.getErrorMessage())) {
+					log.error("Errore. Nessun riferimento trovato.");
+					throw new IniException("Errore. Nessun riferimento trovato.");
+				}
 				
 
 				log.debug("Executing replace of document: {}", idDoc);
