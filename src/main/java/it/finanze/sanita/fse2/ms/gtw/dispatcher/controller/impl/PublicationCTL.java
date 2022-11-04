@@ -54,6 +54,9 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.DateUtility;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.ProfileUtility;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility;
 import lombok.extern.slf4j.Slf4j;
+
+import static it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility.*;
+
 /**
  *
  * @author CPIERASC
@@ -168,7 +171,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 				
 				kafkaSRV.sendReplaceStatus(traceInfoDTO.getTraceID(), validationInfo.getValidationData().getWorkflowInstanceId(), EventStatusEnum.SUCCESS, null, validationInfo.getJsonObj(), validationInfo.getJwtToken() != null ? validationInfo.getJwtToken().getPayload() : null);
 				
-				if(!StringUtility.isNullOrEmpty(response.getErrorMessage())) {
+				if(!isNullOrEmpty(response.getErrorMessage())) {
 					log.error("Errore. Nessun riferimento trovato.");
 					throw new IniException("Errore. Nessun riferimento trovato.");
 				}
@@ -327,7 +330,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 				
 			}
 			
-			final String documentSha256 = StringUtility.encodeSHA256(bytePDF);
+			final String documentSha256 = encodeSHA256(bytePDF);
 			validation.setDocumentSha(documentSha256);
 	
 			validateDocumentHash(documentSha256, validation.getJwtToken());
@@ -337,7 +340,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 	
 			validation.setFhirResource(fhirResourcesDTO);
 			
-			if(!StringUtility.isNullOrEmpty(fhirResourcesDTO.getErrorMessage())) {
+			if(!isNullOrEmpty(fhirResourcesDTO.getErrorMessage())) {
 				final ErrorResponseDTO error = ErrorResponseDTO.builder()
 					.type(RestExecutionResultEnum.FHIR_MAPPING_ERROR.getType())
 					.title(RestExecutionResultEnum.FHIR_MAPPING_ERROR.getTitle())
@@ -358,65 +361,67 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 	
 	@Override
 	public ResponseDTO delete(String idDoc, HttpServletRequest request) {
-		
-		final Date startDateOperation = new Date();
-		final boolean isTestEnvironment = profileUtils.isDevOrDockerProfile();
-		JWTTokenDTO jwtToken = null;
+
+		boolean isTestEnv = profileUtils.isDevOrDockerProfile();
+
+		JWTTokenDTO token = null;
+		Date startOperation = new Date();
 		String role = null;
 		try {
-			if (Boolean.TRUE.equals(msCfg.getFromGovway())) {
-				jwtToken = extractAndValidateJWT(request.getHeader(Constants.Headers.JWT_GOVWAY_HEADER), msCfg.getFromGovway());
-			} else {
-				jwtToken = extractAndValidateJWT(request.getHeader(Constants.Headers.JWT_HEADER), msCfg.getFromGovway());
+			// Extract token
+			token = extractFromReqJWT(request);
+			// Extract subject role
+			role = token.getPayload().getSubject_role();
+			// [1] Retrieve reference from INI
+			IniReferenceResponseDTO iniReference = iniClient.getReference(
+				new IniReferenceRequestDTO(idDoc, token.getPayload())
+			);
+			// Check for errors
+			if(!isNullOrEmpty(iniReference.getErrorMessage())) {
+				throw new IniException(iniReference.getErrorMessage());
 			}
-			
-			role = jwtToken.getPayload().getSubject_role();
+			// TODO [2] Update transaction status
 
-			final IniReferenceResponseDTO iniReference = iniClient.getReference(new IniReferenceRequestDTO(idDoc, jwtToken.getPayload()));
-
-			final DeleteRequestDTO iniReq = buildRequestForIni(idDoc, iniReference.getUuid(), jwtToken);
-
-			final IniTraceResponseDTO iniResponse = iniClient.delete(iniReq);
-			
-			EdsResponseDTO edsResponse;
-			boolean iniMockMessage = !StringUtility.isNullOrEmpty(iniResponse.getErrorMessage()) && iniResponse.getErrorMessage().contains("Invalid region ip");
-			if (Boolean.TRUE.equals(iniResponse.getEsito()) || (isTestEnvironment && iniMockMessage)) {
-				log.debug("Ini response is OK, proceeding with EDS");
-				edsResponse = edsClient.delete(idDoc);
-			} else {
-//				throw new IniException("Error encountered while sending delete information to INI client");
+			// [3] Send delete request to EDS
+			EdsResponseDTO edsResponse = edsClient.delete(idDoc);
+			// Check for errors
+			if (!isTestEnv && (edsResponse == null || !edsResponse.getEsito())) {
+				throw new EdsException("Error encountered while sending delete information to EDS client");
+			}
+			// [4] Send delete request to INI
+			IniTraceResponseDTO iniResponse = iniClient.delete(
+				buildRequestForIni(idDoc, iniReference.getUuid(), token)
+			);
+			// Check mock errors
+			boolean iniMockMessage = !isNullOrEmpty(iniResponse.getErrorMessage()) && iniResponse.getErrorMessage().contains("Invalid region ip");
+			if (isTestEnv && iniMockMessage) {
+				throw new MockEnabledException(iniResponse.getErrorMessage(), edsResponse != null ? edsResponse.getErrorMessage() : null);
+			}
+			// Check response errors
+			if(!isNullOrEmpty(iniResponse.getErrorMessage())) {
 				throw new IniException(iniResponse.getErrorMessage());
 			}
 
-			if (!isTestEnvironment && (edsResponse == null || !edsResponse.getEsito())) {
-				throw new EdsException("Error encountered while sending delete information to EDS client");
-			}
-
-			
-			if (isTestEnvironment && iniMockMessage) {
-				throw new MockEnabledException(iniResponse.getErrorMessage(), edsResponse != null ? edsResponse.getErrorMessage() : null);
-			}
-
-			logger.info(String.format("Deletion of CDA completed for document with identifier %s", idDoc), OperationLogEnum.DELETE_CDA2, ResultLogEnum.OK, startDateOperation, jwtToken.getPayload().getIss(), Constants.App.MISSING_DOC_TYPE_PLACEHOLDER, role);
+			logger.info(String.format("Deletion of CDA completed for document with identifier %s", idDoc), OperationLogEnum.DELETE_CDA2, ResultLogEnum.OK, startOperation, token.getPayload().getIss(), Constants.App.MISSING_DOC_TYPE_PLACEHOLDER, role);
 		} catch(MockEnabledException me) {
 			throw me;
 		} catch(IniException inEx) {
-			final String issuer = jwtToken != null ? jwtToken.getPayload().getIss() : Constants.App.JWT_MISSING_ISSUER_PLACEHOLDER;
+			final String issuer = token != null ? token.getPayload().getIss() : Constants.App.JWT_MISSING_ISSUER_PLACEHOLDER;
 			RestExecutionResultEnum errorInstance = RestExecutionResultEnum.INI_EXCEPTION;
 
 			log.error(String.format("Error while delete record from ini %s", idDoc), inEx);
-			logger.error(String.format("Error while delete record from ini %s", idDoc), OperationLogEnum.DELETE_CDA2, ResultLogEnum.KO, startDateOperation, errorInstance.getErrorCategory(), issuer, Constants.App.MISSING_DOC_TYPE_PLACEHOLDER,role);
+			logger.error(String.format("Error while delete record from ini %s", idDoc), OperationLogEnum.DELETE_CDA2, ResultLogEnum.KO, startOperation, errorInstance.getErrorCategory(), issuer, Constants.App.MISSING_DOC_TYPE_PLACEHOLDER,role);
 			throw inEx;
 			
 		} catch (Exception e) {
-			final String issuer = jwtToken != null ? jwtToken.getPayload().getIss() : Constants.App.JWT_MISSING_ISSUER_PLACEHOLDER;
+			final String issuer = token != null ? token.getPayload().getIss() : Constants.App.JWT_MISSING_ISSUER_PLACEHOLDER;
 			RestExecutionResultEnum errorInstance = RestExecutionResultEnum.GENERIC_ERROR;
 			if (e instanceof ValidationException) {
 				errorInstance = RestExecutionResultEnum.get(((ValidationException) e).getError().getType());
 			}
 
 			log.error(String.format("Error encountered while deleting CDA with identifier %s", idDoc), e);
-			logger.error(String.format("Error while deleting CDA of document with identifier %s", idDoc), OperationLogEnum.DELETE_CDA2, ResultLogEnum.KO, startDateOperation, errorInstance.getErrorCategory(), issuer, Constants.App.MISSING_DOC_TYPE_PLACEHOLDER,role);
+			logger.error(String.format("Error while deleting CDA of document with identifier %s", idDoc), OperationLogEnum.DELETE_CDA2, ResultLogEnum.KO, startOperation, errorInstance.getErrorCategory(), issuer, Constants.App.MISSING_DOC_TYPE_PLACEHOLDER,role);
 			throw e;
 		}
 		
