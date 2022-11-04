@@ -60,6 +60,7 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.IKafkaSRV;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.facade.ICdaFacadeSRV;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.impl.IniEdsInvocationSRV;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.CdaUtility;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.CfUtility;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.DateUtility;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.ProfileUtility;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility;
@@ -116,7 +117,8 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 		ValidationCreationInputDTO validationInfo = new ValidationCreationInputDTO();
 		validationInfo.setValidationData(new ValidationDataDTO(null, false, Constants.App.MISSING_WORKFLOW_PLACEHOLDER, null, null, new Date()));
 
-		String role = null;
+		String role = Constants.App.JWT_MISSING_SUBJECT_ROLE;
+		String subjectFiscalCode = Constants.App.JWT_MISSING_SUBJECT;
 		try {
 			validationInfo = validateInput(file, request, false);
 
@@ -140,7 +142,8 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 			kafkaSRV.sendPublicationStatus(traceInfoDTO.getTraceID(), validationInfo.getValidationData().getWorkflowInstanceId(), EventStatusEnum.SUCCESS, null, validationInfo.getJsonObj(), validationInfo.getJwtToken() != null ? validationInfo.getJwtToken().getPayload() : null);
 			
 			role = validationInfo.getJwtToken().getPayload().getSubject_role();
-			logger.info(String.format("Publication CDA completed for workflow instance id %s", validationInfo.getValidationData().getWorkflowInstanceId()), OperationLogEnum.PUB_CDA2, ResultLogEnum.OK, startDateOperation, validationInfo.getJwtToken().getPayload().getIss(), CdaUtility.getDocumentType(validationInfo.getDocument()), role);
+			subjectFiscalCode = CfUtility.extractFiscalCodeFromJwtSub(validationInfo.getJwtToken().getPayload().getSub());
+			logger.info(String.format("Publication CDA completed for workflow instance id %s", validationInfo.getValidationData().getWorkflowInstanceId()), OperationLogEnum.PUB_CDA2, ResultLogEnum.OK, startDateOperation, validationInfo.getJwtToken().getPayload().getIss(), CdaUtility.getDocumentType(validationInfo.getDocument()), role, subjectFiscalCode);
 		} catch (ConnectionRefusedException ce) {
 			errorHandlerSRV.connectionRefusedExceptionHandler(startDateOperation, validationInfo.getValidationData(), validationInfo.getJwtToken(), validationInfo.getJsonObj(), traceInfoDTO, ce, true, CdaUtility.getDocumentType(validationInfo.getDocument()));
 		} catch (final ValidationException e) {
@@ -165,7 +168,8 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 			ValidationCreationInputDTO validationInfo = new ValidationCreationInputDTO();
 			validationInfo.setValidationData(new ValidationDataDTO(null, false, Constants.App.MISSING_WORKFLOW_PLACEHOLDER, null, null, new Date()));
 
-			String role = null;
+			String role = Constants.App.JWT_MISSING_SUBJECT_ROLE;
+			String subjectFiscalCode = Constants.App.JWT_MISSING_SUBJECT;
 			try {
 				validationInfo = validateInput(file, request, true);
 
@@ -192,7 +196,9 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 				kafkaSRV.sendReplaceStatus(traceInfoDTO.getTraceID(), validationInfo.getValidationData().getWorkflowInstanceId(), EventStatusEnum.SUCCESS, null, validationInfo.getJsonObj(), validationInfo.getJwtToken() != null ? validationInfo.getJwtToken().getPayload() : null);
 
 				role = validationInfo.getJwtToken().getPayload().getSubject_role();
-				logger.info(String.format("Replace CDA completed for workflow instance id %s", validationInfo.getValidationData().getWorkflowInstanceId()), OperationLogEnum.REPLACE_CDA2, ResultLogEnum.OK, startDateOperation, validationInfo.getJwtToken().getPayload().getIss(), CdaUtility.getDocumentType(validationInfo.getDocument()), role);
+				subjectFiscalCode = CfUtility.extractFiscalCodeFromJwtSub(validationInfo.getJwtToken().getPayload().getSub());
+
+				logger.info(String.format("Replace CDA completed for workflow instance id %s", validationInfo.getValidationData().getWorkflowInstanceId()), OperationLogEnum.REPLACE_CDA2, ResultLogEnum.OK, startDateOperation, validationInfo.getJwtToken().getPayload().getIss(), CdaUtility.getDocumentType(validationInfo.getDocument()), role, subjectFiscalCode);
 			} catch (ConnectionRefusedException ce) {
 				errorHandlerSRV.connectionRefusedExceptionHandler(startDateOperation, validationInfo.getValidationData(), validationInfo.getJwtToken(), validationInfo.getJsonObj(), traceInfoDTO, ce, false, CdaUtility.getDocumentType(validationInfo.getDocument()));
 			} catch (final ValidationException e) {
@@ -217,7 +223,9 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 		// Estrazione token
 		JWTTokenDTO jwtToken = null;
 		final Date startDateOperation = new Date();
-		String role = null;
+
+		String role = Constants.App.JWT_MISSING_SUBJECT_ROLE;
+		String subjectFiscalCode = Constants.App.JWT_MISSING_SUBJECT;	
 		try {
 			if (Boolean.TRUE.equals(msCfg.getFromGovway())) {
 				jwtToken = extractAndValidateJWT(request.getHeader(Constants.Headers.JWT_GOVWAY_HEADER), msCfg.getFromGovway());
@@ -226,6 +234,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 			}
 
 			role = jwtToken.getPayload().getSubject_role();
+			subjectFiscalCode = CfUtility.extractFiscalCodeFromJwtSub(jwtToken.getPayload().getSub());
 			PublicationMetadataReqDTO jsonObj = StringUtility.fromJSONJackson(request.getParameter("requestBody"), PublicationMetadataReqDTO.class);
 
 			final IniTraceResponseDTO iniResponse = iniClient.updateMetadati(new IniMetadataUpdateReqDTO(idDoc, jwtToken.getPayload(), jsonObj));
@@ -243,15 +252,11 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 				throw new EdsException("Error encountered while sending update information to EDS client");
 			}
 
-			
-			
 			if (isTestEnvironment && iniMockMessage) {
 				throw new MockEnabledException(iniResponse.getErrorMessage(), edsResponse != null ? edsResponse.getErrorMessage() : null);
 			}
 
-			 
-			logger.info(String.format("Update of CDA metadata completed for document with identifier %s", idDoc), OperationLogEnum.UPDATE_METADATA_CDA2, ResultLogEnum.OK, startDateOperation, jwtToken.getPayload().getIss(), Constants.App.MISSING_DOC_TYPE_PLACEHOLDER,
-					role);
+			logger.info(String.format("Update of CDA metadata completed for document with identifier %s", idDoc), OperationLogEnum.UPDATE_METADATA_CDA2, ResultLogEnum.OK, startDateOperation, jwtToken.getPayload().getIss(), Constants.App.MISSING_DOC_TYPE_PLACEHOLDER, role, subjectFiscalCode);
 		} catch (MockEnabledException me) {
 			throw me;
 		} catch (Exception e) {
@@ -262,7 +267,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 			}
 			
 			log.error(String.format("Error encountered while updating CDA metadata with identifier %s", idDoc), e);
-			logger.error(String.format("Error while updating CDA metadata of document with identifier %s", idDoc), OperationLogEnum.UPDATE_METADATA_CDA2, ResultLogEnum.KO, startDateOperation, errorInstance.getErrorCategory(), issuer, Constants.App.MISSING_DOC_TYPE_PLACEHOLDER, role);
+			logger.error(String.format("Error while updating CDA metadata of document with identifier %s", idDoc), OperationLogEnum.UPDATE_METADATA_CDA2, ResultLogEnum.KO, startDateOperation, errorInstance.getErrorCategory(), issuer, Constants.App.MISSING_DOC_TYPE_PLACEHOLDER, role, subjectFiscalCode);
 			throw e;
 		}
 		
@@ -369,7 +374,9 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 		final Date startDateOperation = new Date();
 		final boolean isTestEnvironment = profileUtils.isDevOrDockerProfile();
 		JWTTokenDTO jwtToken = null;
-		String role = null;
+
+		String role = Constants.App.JWT_MISSING_SUBJECT_ROLE;
+		String subjectFiscalCode = Constants.App.JWT_MISSING_SUBJECT;
 		try {
 			if (Boolean.TRUE.equals(msCfg.getFromGovway())) {
 				jwtToken = extractAndValidateJWT(request.getHeader(Constants.Headers.JWT_GOVWAY_HEADER), msCfg.getFromGovway());
@@ -378,7 +385,8 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 			}
 			
 			role = jwtToken.getPayload().getSubject_role();
-			
+			subjectFiscalCode = CfUtility.extractFiscalCodeFromJwtSub(jwtToken.getPayload().getSub());
+
 			final DeleteRequestDTO iniReq = buildRequestForIni(idDoc, jwtToken);
 			final IniTraceResponseDTO iniResponse = iniClient.delete(iniReq);
 			
@@ -396,12 +404,11 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 				throw new EdsException("Error encountered while sending delete information to EDS client");
 			}
 
-			
 			if (isTestEnvironment && iniMockMessage) {
 				throw new MockEnabledException(iniResponse.getErrorMessage(), edsResponse != null ? edsResponse.getErrorMessage() : null);
 			}
 
-			logger.info(String.format("Deletion of CDA completed for document with identifier %s", idDoc), OperationLogEnum.DELETE_CDA2, ResultLogEnum.OK, startDateOperation, jwtToken.getPayload().getIss(), Constants.App.MISSING_DOC_TYPE_PLACEHOLDER, role);
+			logger.info(String.format("Deletion of CDA completed for document with identifier %s", idDoc), OperationLogEnum.DELETE_CDA2, ResultLogEnum.OK, startDateOperation, jwtToken.getPayload().getIss(), Constants.App.MISSING_DOC_TYPE_PLACEHOLDER, role, subjectFiscalCode);
 		} catch(MockEnabledException me) {
 			throw me;
 		} catch(IniException inEx) {
@@ -409,7 +416,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 			RestExecutionResultEnum errorInstance = RestExecutionResultEnum.INI_EXCEPTION;
 
 			log.error(String.format("Error while delete record from ini %s", idDoc), inEx);
-			logger.error(String.format("Error while delete record from ini %s", idDoc), OperationLogEnum.DELETE_CDA2, ResultLogEnum.KO, startDateOperation, errorInstance.getErrorCategory(), issuer, Constants.App.MISSING_DOC_TYPE_PLACEHOLDER,role);
+			logger.error(String.format("Error while delete record from ini %s", idDoc), OperationLogEnum.DELETE_CDA2, ResultLogEnum.KO, startDateOperation, errorInstance.getErrorCategory(), issuer, Constants.App.MISSING_DOC_TYPE_PLACEHOLDER, role, subjectFiscalCode);
 			throw inEx;
 			
 		} catch (Exception e) {
@@ -420,7 +427,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 			}
 
 			log.error(String.format("Error encountered while deleting CDA with identifier %s", idDoc), e);
-			logger.error(String.format("Error while deleting CDA of document with identifier %s", idDoc), OperationLogEnum.DELETE_CDA2, ResultLogEnum.KO, startDateOperation, errorInstance.getErrorCategory(), issuer, Constants.App.MISSING_DOC_TYPE_PLACEHOLDER,role);
+			logger.error(String.format("Error while deleting CDA of document with identifier %s", idDoc), OperationLogEnum.DELETE_CDA2, ResultLogEnum.KO, startDateOperation, errorInstance.getErrorCategory(), issuer, Constants.App.MISSING_DOC_TYPE_PLACEHOLDER, role, subjectFiscalCode);
 			throw e;
 		}
 		

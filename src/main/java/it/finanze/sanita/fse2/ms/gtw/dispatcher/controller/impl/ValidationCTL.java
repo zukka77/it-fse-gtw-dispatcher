@@ -30,6 +30,7 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.logging.LoggerHelper;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.IErrorHandlerSRV;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.IKafkaSRV;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.CdaUtility;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.CfUtility;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility;
 
 /**
@@ -66,7 +67,9 @@ public class ValidationCTL extends AbstractCTL implements IValidationCTL {
 		String warning = null;
 		Document docT = null;
 
-		String role = null;
+		String role = Constants.App.JWT_MISSING_SUBJECT_ROLE;
+		String subjectFiscalCode = Constants.App.JWT_MISSING_SUBJECT;
+
 		try {
 			if (Boolean.TRUE.equals(msCfg.getFromGovway())) {
 				jwtToken = extractAndValidateJWT(request.getHeader(Constants.Headers.JWT_GOVWAY_HEADER),
@@ -77,7 +80,7 @@ public class ValidationCTL extends AbstractCTL implements IValidationCTL {
 			}
 
 			role = jwtToken.getPayload().getSubject_role();
-			
+			subjectFiscalCode = CfUtility.extractFiscalCodeFromJwtSub(jwtToken.getPayload().getSub());
 			jsonObj = getAndValidateValidationReq(request.getParameter("requestBody"));
 			final byte[] bytes = getAndValidateFile(file);
 			final String cda = extractCDA(bytes, jsonObj.getMode());
@@ -98,7 +101,7 @@ public class ValidationCTL extends AbstractCTL implements IValidationCTL {
 							: Constants.App.JWT_MISSING_ISSUER_PLACEHOLDER;
 
 			logger.info("Validation CDA completed for workflow instance Id " + workflowInstanceId,
-					OperationLogEnum.VAL_CDA2, ResultLogEnum.OK, startDateOperation, issuer, CdaUtility.getDocumentType(docT), role);
+					OperationLogEnum.VAL_CDA2, ResultLogEnum.OK, startDateOperation, issuer, CdaUtility.getDocumentType(docT), role, subjectFiscalCode);
 			request.setAttribute("JWT_ISSUER", issuer);
 		} catch (final ValidationException e) {
 			errorHandlerSRV.validationExceptionHandler(startDateOperation, traceInfoDTO, workflowInstanceId, jwtToken,
