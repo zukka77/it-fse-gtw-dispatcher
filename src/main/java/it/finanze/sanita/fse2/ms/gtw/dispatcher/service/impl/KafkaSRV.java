@@ -5,6 +5,9 @@ package it.finanze.sanita.fse2.ms.gtw.dispatcher.service.impl;
 
 import java.util.Date;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.DeleteRequestDTO;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -168,7 +171,19 @@ public class KafkaSRV implements IKafkaSRV {
 		}
 		sendStatusMessage(traceId,workflowInstanceId, EventTypeEnum.REPLACE, eventStatus, message, identificativoDocumento, jwtClaimDTO,tipoAttivita);
 	}
-	
+
+	@Override
+	public void sendDeleteStatus(String traceId, String workflowInstanceId, String idDoc, Object message, EventStatusEnum eventStatus, JWTPayloadDTO jwt) {
+		String json;
+		// Try to deserialize message
+		try {
+			json = new ObjectMapper().writeValueAsString(message);
+		} catch (JsonProcessingException e) {
+			json = "Unable to deserialize content request";
+		}
+		sendStatusMessage(traceId, workflowInstanceId, EventTypeEnum.DELETE, eventStatus, json, idDoc, jwt, AttivitaClinicaEnum.PHR);
+	}
+
 	@Override
 	public void sendFeedingStatus(final String traceId,final String workflowInstanceId, final EventStatusEnum eventStatus, final String message,
 								  final TSPublicationCreationReqDTO feedingReq, final JWTPayloadDTO jwtClaimDTO) {

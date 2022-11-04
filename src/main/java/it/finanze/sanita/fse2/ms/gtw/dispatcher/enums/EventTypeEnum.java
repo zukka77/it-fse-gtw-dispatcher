@@ -12,6 +12,7 @@ public enum EventTypeEnum {
 	FHIR_MAPPING("FHIR_MAPPING"),
 	REPLACE("REPLACE"),
 	FEEDING("FEEDING"),
+	DELETE("DELETE"),
 	GENERIC_ERROR("Generic error from dispatcher");
 
 	@Getter
