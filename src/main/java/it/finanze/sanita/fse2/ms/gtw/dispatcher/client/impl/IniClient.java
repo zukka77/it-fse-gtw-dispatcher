@@ -3,6 +3,10 @@
  */
 package it.finanze.sanita.fse2.ms.gtw.dispatcher.client.impl;
 
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants.Client.Ini;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.JWTPayloadDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.IniReferenceRequestDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.IniReferenceResponseDTO;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
@@ -58,7 +62,7 @@ public class IniClient extends AbstractClient implements IIniClient {
 			HttpEntity<Object> entity = new HttpEntity<>(iniReq, null);
 			
 			// Build endpoint e call.
-			String endpoint = msUrlCFG.getIniClientHost() + Constants.Client.Ini.DELETE_PATH;
+			String endpoint = msUrlCFG.getIniClientHost() + Ini.DELETE_PATH;
 			ResponseEntity<IniTraceResponseDTO> restExchange = restTemplate.exchange(endpoint, HttpMethod.DELETE, entity, IniTraceResponseDTO.class);
 
 			// Gestione response
@@ -86,7 +90,7 @@ public class IniClient extends AbstractClient implements IIniClient {
 			HttpEntity<Object> entity = new HttpEntity<>(iniReq, null);
 
 			// Build endpoint e call.
-			String endpoint = msUrlCFG.getIniClientHost() + Constants.Client.Ini.UPDATE_PATH;
+			String endpoint = msUrlCFG.getIniClientHost() + Ini.UPDATE_PATH;
 			ResponseEntity<IniTraceResponseDTO> restExchange = restTemplate.exchange(endpoint, HttpMethod.PUT, entity, IniTraceResponseDTO.class);
 
 			// Gestione response
@@ -98,6 +102,31 @@ public class IniClient extends AbstractClient implements IIniClient {
 			errorHandler(e2, "/ini-update");
 		} catch (Exception e) {
 			log.error("Errore durante l'invocazione dell' API update(). ", e);
+			throw e;
+		}
+
+		return out;
+	}
+
+	@Override
+	public IniReferenceResponseDTO getReference(IniReferenceRequestDTO iniReq) {
+		IniReferenceResponseDTO out = null;
+		try {
+			log.debug("INI Client - Calling INI to retrieve reference :{}", iniReq.getIdDoc());
+
+			// Build headers.
+			HttpEntity<Object> entity = new HttpEntity<>(iniReq.getToken(), null);
+
+			// Build endpoint e call.
+			String endpoint = msUrlCFG.getIniClientHost() + Ini.REFERENCE_PATH.replace("{idDoc}", iniReq.getIdDoc());
+			ResponseEntity<IniReferenceResponseDTO> restExchange = restTemplate.exchange(endpoint, HttpMethod.POST, entity, IniReferenceResponseDTO.class);
+
+			// Gestione response
+			out = restExchange.getBody();
+		} catch (HttpStatusCodeException e2) {
+			errorHandler(e2, "/ini-reference");
+		} catch (Exception e) {
+			log.error("Errore durante l'invocazione dell' API reference(). ", e);
 			throw e;
 		}
 

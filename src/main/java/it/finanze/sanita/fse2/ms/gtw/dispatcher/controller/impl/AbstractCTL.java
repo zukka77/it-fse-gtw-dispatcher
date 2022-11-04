@@ -10,6 +10,7 @@ import java.util.Base64;
 import java.util.Map;
 
 import javax.annotation.Nullable;
+import javax.servlet.http.HttpServletRequest;
 
 import org.jsoup.Jsoup;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,7 +20,6 @@ import org.springframework.web.multipart.MultipartFile;
 import brave.Tracer;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.IValidatorClient;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.CDACFG;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.MicroservicesURLCFG;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.AttachmentDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.JWTPayloadDTO;
@@ -46,6 +46,9 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.impl.UtilitySRV;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.PDFUtility;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility;
 import lombok.extern.slf4j.Slf4j;
+
+import static it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants.*;
+import static it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants.Headers.*;
 
 /**
  * 
@@ -203,7 +206,7 @@ public abstract class AbstractCTL implements Serializable {
 
     	if (Boolean.TRUE.equals(jsonObj.isForcePublish())
 				&& !(StringUtility.isNullOrEmpty(jsonObj.getWorkflowInstanceId())
-						|| Constants.App.MISSING_WORKFLOW_PLACEHOLDER.equals(jsonObj.getWorkflowInstanceId()))) {
+						|| App.MISSING_WORKFLOW_PLACEHOLDER.equals(jsonObj.getWorkflowInstanceId()))) {
 
 			out = "Il campo workflow instance id non deve essere valorizzato in modalità force publish.";
 		} else if (StringUtility.isNullOrEmpty(jsonObj.getIdentificativoDoc()) && !isReplace) {
@@ -229,6 +232,20 @@ public abstract class AbstractCTL implements Serializable {
     	}
     	return out;
     }
+
+	protected JWTTokenDTO extractFromReqJWT(HttpServletRequest req) {
+		// Define header to extract
+		String jwt;
+		boolean govway = Boolean.TRUE.equals(msCfg.getFromGovway());
+		// Check if from govway (it changes what header to consider)
+		if(govway) {
+			jwt = req.getHeader(JWT_GOVWAY_HEADER);
+		}else {
+			jwt = req.getHeader(JWT_HEADER);
+		}
+		// Delegate extract and validate function
+		return extractAndValidateJWT(jwt, govway);
+	}
 
 	protected JWTTokenDTO extractAndValidateJWT(final String jwt, final boolean isFromGovway) {
 
@@ -268,7 +285,7 @@ public abstract class AbstractCTL implements Serializable {
 				String[] chunks = null;
 				String payload = null;
 
-				if (!jwt.startsWith(Constants.App.BEARER_PREFIX)) {
+				if (!jwt.startsWith(App.BEARER_PREFIX)) {
 					chunks = jwt.split("\\.");
 
 					if (isFromGovway) {
@@ -282,7 +299,7 @@ public abstract class AbstractCTL implements Serializable {
 					}
 				} else {
 					// Getting header and payload removing the "Bearer " prefix
-					chunks = jwt.substring(Constants.App.BEARER_PREFIX.length()).split("\\.");
+					chunks = jwt.substring(App.BEARER_PREFIX.length()).split("\\.");
 					payload = new String(Base64.getDecoder().decode(chunks[1]));
 
 					// Building the object asserts that all required values are present

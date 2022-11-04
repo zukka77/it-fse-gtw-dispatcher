@@ -14,6 +14,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class DeleteRequestDTO {
     private String idDoc;
+    private String uuid;
     private String sub;
     private String iss;
     private String subject_organization;

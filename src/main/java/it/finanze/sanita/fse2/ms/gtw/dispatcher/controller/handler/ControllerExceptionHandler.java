@@ -160,7 +160,7 @@ public class ControllerExceptionHandler extends ResponseEntityExceptionHandler {
 	@ExceptionHandler(value = {ServerResponseException.class})
 	protected ResponseEntity<ErrorResponseDTO> handleServerException(final ServerResponseException ex, final WebRequest request) {
 		log.error("" , ex);  
-		Integer status = 500;
+		int status = ex.getStatusCode();
 
 		ErrorResponseDTO out = new ErrorResponseDTO(getLogTraceInfo(), RestExecutionResultEnum.SERVER_ERROR.getType(), RestExecutionResultEnum.SERVER_ERROR.getTitle(), ExceptionUtils.getMessage(ex), status, ErrorInstanceEnum.NO_INFO.getInstance());
 

@@ -168,6 +168,8 @@ public final class Constants {
 
 			public static final String DELETE_PATH = "/v1/ini-delete";
 			public static final String UPDATE_PATH = "/v1/ini-update";
+			public static final String REFERENCE_PATH = "/v1/get-reference/{idDoc}";
+
 		}
 
 		public static final class Eds {

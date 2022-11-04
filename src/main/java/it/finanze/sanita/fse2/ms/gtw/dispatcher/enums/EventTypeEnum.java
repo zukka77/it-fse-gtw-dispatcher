@@ -9,6 +9,7 @@ public enum EventTypeEnum {
 
 	VALIDATION("VALIDATION"),
 	PUBLICATION("PUBLICATION"),
+	FHIR_MAPPING("FHIR_MAPPING"),
 	REPLACE("REPLACE"),
 	FEEDING("FEEDING"),
 	GENERIC_ERROR("Generic error from dispatcher");
