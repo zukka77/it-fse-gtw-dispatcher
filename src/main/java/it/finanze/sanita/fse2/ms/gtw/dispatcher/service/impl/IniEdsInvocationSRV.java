@@ -47,13 +47,13 @@ public class IniEdsInvocationSRV implements IIniEdsInvocationSRV {
 	}
 	
 	private IniEdsInvocationETY buildETY(final String workflowInstanceId, final String bundleJson, final String submissionSetEntryJson,
-			final String documentEntryJson, final String tokenEntryJson, final String identificativoDocumento) {
+			final String documentEntryJson, final String tokenEntryJson, final String rifIni) {
 		IniEdsInvocationETY out = new IniEdsInvocationETY();
 		out.setWorkflowInstanceId(workflowInstanceId);
 		out.setData(Document.parse(bundleJson));
 
-		if (!StringUtility.isNullOrEmpty(identificativoDocumento)) {
-			out.setIdDoc(identificativoDocumento);
+		if (!StringUtility.isNullOrEmpty(rifIni)) {
+			out.setRiferimentoIni(rifIni);
 		}
 		
 		List<Document> metadata = new ArrayList<>();

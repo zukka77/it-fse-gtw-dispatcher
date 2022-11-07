@@ -27,8 +27,8 @@ public class IniEdsInvocationETY {
 	@Field(name = "workflow_instance_id")
 	private String workflowInstanceId;
 
-	@Field(name = "identificativo_doc")
-	private String idDoc;
+	@Field(name = "riferimento_ini")
+	private String riferimentoIni;
 	
 	@Field(name = "data")
 	private org.bson.Document data;
