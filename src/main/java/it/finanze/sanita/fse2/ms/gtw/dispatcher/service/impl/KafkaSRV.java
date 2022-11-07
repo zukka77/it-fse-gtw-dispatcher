@@ -173,15 +173,13 @@ public class KafkaSRV implements IKafkaSRV {
 	}
 
 	@Override
-	public void sendDeleteStatus(String traceId, String workflowInstanceId, String idDoc, Object message, EventStatusEnum eventStatus, JWTPayloadDTO jwt) {
-		String json;
-		// Try to deserialize message
-		try {
-			json = new ObjectMapper().writeValueAsString(message);
-		} catch (JsonProcessingException e) {
-			json = "Unable to deserialize content request";
-		}
-		sendStatusMessage(traceId, workflowInstanceId, EventTypeEnum.DELETE, eventStatus, json, idDoc, jwt, AttivitaClinicaEnum.PHR);
+	public void sendDeleteStatus(String traceId, String workflowInstanceId, String idDoc, Object o, EventStatusEnum eventStatus, JWTPayloadDTO jwt) {
+		sendStatusMessage(traceId, workflowInstanceId, EventTypeEnum.DELETE, eventStatus, sendObjectAsJson(o), idDoc, jwt, AttivitaClinicaEnum.PHR);
+	}
+
+	@Override
+	public void sendDeleteRequest(String workflowInstanceId, Object request) {
+		sendIndexerRetryMessage(workflowInstanceId, sendObjectAsJson(request));
 	}
 
 	@Override
@@ -190,6 +188,21 @@ public class KafkaSRV implements IKafkaSRV {
 
 		sendStatusMessage(traceId,workflowInstanceId, EventTypeEnum.FEEDING, eventStatus, message, feedingReq.getIdentificativoDoc(),
 				jwtClaimDTO, feedingReq.getTipoAttivitaClinica());
+	}
+
+	private String sendObjectAsJson(Object o) {
+		String json;
+		// Try to deserialize message
+		try {
+			json = new ObjectMapper().writeValueAsString(o);
+		} catch (JsonProcessingException e) {
+			json = "Unable to deserialize content request";
+		}
+		return json;
+	}
+
+	private void sendIndexerRetryMessage(final String workflowInstanceId, final String json) {
+		sendMessage(kafkaTopicCFG.getDispatcherIndexerRetryTopic(), workflowInstanceId, json, true);
 	}
 
 	private void sendStatusMessage(final String traceId,final String workflowInstanceId, final EventTypeEnum eventType,

@@ -425,9 +425,8 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 			// ==============================
 			// [3] Send delete request to INI
 			// ==============================
-			IniTraceResponseDTO iniResponse = iniClient.delete(
-				buildRequestForIni(idDoc, iniReference.getUuid(), token)
-			);
+			DeleteRequestDTO deleteRequestDTO = buildRequestForIni(idDoc, iniReference.getUuid(), token);
+			IniTraceResponseDTO iniResponse = iniClient.delete(deleteRequestDTO);
 
 			// Check mock errors
 			boolean iniMockMessage = !isNullOrEmpty(iniResponse.getErrorMessage()) && iniResponse.getErrorMessage().contains("Invalid region ip");
@@ -435,11 +434,16 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 			if (isTestEnv && iniMockMessage) {
 				throw new MockEnabledException(iniResponse.getErrorMessage(), edsResponse != null ? edsResponse.getErrorMessage() : null);
 			}
+
 			// Check response errors
 			if(!isNullOrEmpty(iniResponse.getErrorMessage())) {
+				// Send to indexer
+				kafkaSRV.sendDeleteRequest(MISSING_WORKFLOW_PLACEHOLDER, deleteRequestDTO);
+				// Update transaction status
+				kafkaSRV.sendDeleteStatus(log.getTraceID(), MISSING_WORKFLOW_PLACEHOLDER, idDoc, "Transazione presa in carico", SUCCESS, token.getPayload());
+			} else {
 				// Update transaction status
 				kafkaSRV.sendDeleteStatus(log.getTraceID(), MISSING_WORKFLOW_PLACEHOLDER, idDoc, iniResponse, SUCCESS, token.getPayload());
-				throw new IniException(iniResponse.getErrorMessage());
 			}
 
 			logger.info(String.format("Deletion of CDA completed for document with identifier %s", idDoc), OperationLogEnum.DELETE_CDA2, ResultLogEnum.OK, startOperation, token.getPayload().getIss(), MISSING_DOC_TYPE_PLACEHOLDER, role, subjectFiscalCode);
