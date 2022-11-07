@@ -394,7 +394,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 		Date startOperation = new Date();
 		String role = Constants.App.JWT_MISSING_SUBJECT_ROLE;
 		String subjectFiscalCode = Constants.App.JWT_MISSING_SUBJECT;
-		boolean error;
+
 		try {
 			// Extract token
 			token = extractFromReqJWT(request);
@@ -408,23 +408,19 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 			IniReferenceResponseDTO iniReference = iniClient.getReference(
 				new IniReferenceRequestDTO(idDoc, token.getPayload())
 			);
-			// Check for errors
-			error = !isNullOrEmpty(iniReference.getErrorMessage());
-			// Update transaction status
-			kafkaSRV.sendDeleteStatus(log.getTraceID(), MISSING_WORKFLOW_PLACEHOLDER, idDoc, iniReference, error ? BLOCKING_ERROR : SUCCESS, token.getPayload());
 			// Exit if necessary
-			if(error) throw new IniException(iniReference.getErrorMessage());
+			if(!isNullOrEmpty(iniReference.getErrorMessage())) throw new IniException(iniReference.getErrorMessage());
+			// Update transaction status
+			kafkaSRV.sendDeleteStatus(log.getTraceID(), MISSING_WORKFLOW_PLACEHOLDER, idDoc, iniReference, SUCCESS, token.getPayload());
 
 			// ==============================
 			// [2] Send delete request to EDS
 			// ==============================
 			EdsResponseDTO edsResponse = edsClient.delete(idDoc);
-			// Check for errors
-			error = !isTestEnv && (edsResponse == null || !edsResponse.getEsito());
-			// Update transaction status
-			kafkaSRV.sendDeleteStatus(log.getTraceID(), MISSING_WORKFLOW_PLACEHOLDER, idDoc, edsResponse, error ? BLOCKING_ERROR : SUCCESS, token.getPayload());
 			// Exit if necessary
-			if (error) throw new EdsException("Error encountered while sending delete information to EDS client");
+			if (!isTestEnv && (edsResponse == null || !edsResponse.getEsito())) throw new EdsException("Error encountered while sending delete information to EDS client");
+			// Update transaction status
+			kafkaSRV.sendDeleteStatus(log.getTraceID(), MISSING_WORKFLOW_PLACEHOLDER, idDoc, edsResponse, SUCCESS, token.getPayload());
 
 			// ==============================
 			// [3] Send delete request to INI
@@ -432,21 +428,19 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 			IniTraceResponseDTO iniResponse = iniClient.delete(
 				buildRequestForIni(idDoc, iniReference.getUuid(), token)
 			);
-			// Check any errors
-			error = !isNullOrEmpty(iniResponse.getErrorMessage());
-			// Update transaction status
-			kafkaSRV.sendDeleteStatus(log.getTraceID(), MISSING_WORKFLOW_PLACEHOLDER, idDoc, iniResponse, error ? BLOCKING_ERROR : SUCCESS, token.getPayload());
+
 			// Check mock errors
 			boolean iniMockMessage = !isNullOrEmpty(iniResponse.getErrorMessage()) && iniResponse.getErrorMessage().contains("Invalid region ip");
-			error = isTestEnv && iniMockMessage;
 			// Exit if necessary
-			if (error) {
+			if (isTestEnv && iniMockMessage) {
 				throw new MockEnabledException(iniResponse.getErrorMessage(), edsResponse != null ? edsResponse.getErrorMessage() : null);
 			}
-			// Check res errors
-			error = !isNullOrEmpty(iniResponse.getErrorMessage());
 			// Check response errors
-			if(error) throw new IniException(iniResponse.getErrorMessage());
+			if(!isNullOrEmpty(iniResponse.getErrorMessage())) {
+				// Update transaction status
+				kafkaSRV.sendDeleteStatus(log.getTraceID(), MISSING_WORKFLOW_PLACEHOLDER, idDoc, iniResponse, SUCCESS, token.getPayload());
+				throw new IniException(iniResponse.getErrorMessage());
+			}
 
 			logger.info(String.format("Deletion of CDA completed for document with identifier %s", idDoc), OperationLogEnum.DELETE_CDA2, ResultLogEnum.OK, startOperation, token.getPayload().getIss(), MISSING_DOC_TYPE_PLACEHOLDER, role, subjectFiscalCode);
 		} catch(MockEnabledException me) {
