@@ -45,7 +45,8 @@ class IniClientTest {
 
     @BeforeEach
     void init() {
-        requestBody = new IniMetadataUpdateReqDTO("idDoc", new JWTPayloadDTO(), new PublicationMetadataReqDTO());
+    	//TODO
+//        requestBody = new IniMetadataUpdateReqDTO("idDoc", new JWTPayloadDTO(), new PublicationMetadataReqDTO());
     }
 
     @Test

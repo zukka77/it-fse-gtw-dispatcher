@@ -5,9 +5,6 @@ package it.finanze.sanita.fse2.ms.gtw.dispatcher.service.impl;
 
 import java.util.Date;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.DeleteRequestDTO;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +12,9 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.SendResult;
 import org.springframework.stereotype.Service;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.kafka.KafkaTopicCFG;
@@ -179,7 +179,12 @@ public class KafkaSRV implements IKafkaSRV {
 
 	@Override
 	public void sendDeleteRequest(String workflowInstanceId, Object request) {
-		sendIndexerRetryMessage(workflowInstanceId, sendObjectAsJson(request));
+		sendIndexerRetryMessage(workflowInstanceId, sendObjectAsJson(request),kafkaTopicCFG.getDispatcherIndexerRetryTopic());
+	}
+	
+	@Override
+	public void sendUpdateRequest(String workflowInstanceId, Object request) {
+		sendIndexerRetryMessage(workflowInstanceId, sendObjectAsJson(request),kafkaTopicCFG.getDispatcherIndexerRetryUpdateTopic());
 	}
 
 	@Override
@@ -188,6 +193,12 @@ public class KafkaSRV implements IKafkaSRV {
 
 		sendStatusMessage(traceId,workflowInstanceId, EventTypeEnum.FEEDING, eventStatus, message, feedingReq.getIdentificativoDoc(),
 				jwtClaimDTO, feedingReq.getTipoAttivitaClinica());
+	}
+	
+	@Override
+	public void sendUpdateStatus(String traceId, String workflowInstanceId, String idDoc, EventStatusEnum eventStatus, JWTPayloadDTO jwt,
+			String message) {
+		sendStatusMessage(traceId, workflowInstanceId, EventTypeEnum.UPDATE, eventStatus, null, idDoc, jwt,null);
 	}
 
 	private String sendObjectAsJson(Object o) {
@@ -201,8 +212,9 @@ public class KafkaSRV implements IKafkaSRV {
 		return json;
 	}
 
-	private void sendIndexerRetryMessage(final String workflowInstanceId, final String json) {
-		sendMessage(kafkaTopicCFG.getDispatcherIndexerRetryTopic(), workflowInstanceId, json, true);
+	private void sendIndexerRetryMessage(final String workflowInstanceId, final String json,
+			final String topic) {
+		sendMessage(topic, workflowInstanceId, json, true);
 	}
 
 	private void sendStatusMessage(final String traceId,final String workflowInstanceId, final EventTypeEnum eventType,

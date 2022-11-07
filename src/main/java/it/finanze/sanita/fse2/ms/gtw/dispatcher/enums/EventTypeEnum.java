@@ -13,6 +13,7 @@ public enum EventTypeEnum {
 	REPLACE("REPLACE"),
 	FEEDING("FEEDING"),
 	DELETE("DELETE"),
+	UPDATE("UPDATE"),
 	GENERIC_ERROR("Generic error from dispatcher");
 
 	@Getter

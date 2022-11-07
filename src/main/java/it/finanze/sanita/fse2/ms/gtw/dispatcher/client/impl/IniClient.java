@@ -3,10 +3,6 @@
  */
 package it.finanze.sanita.fse2.ms.gtw.dispatcher.client.impl;
 
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants.Client.Ini;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.JWTPayloadDTO;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.IniReferenceRequestDTO;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.IniReferenceResponseDTO;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
@@ -19,11 +15,16 @@ import org.springframework.web.client.RestTemplate;
 
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.IIniClient;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.exceptions.RecordNotFoundException;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants.Client.Ini;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.MicroservicesURLCFG;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.DeleteRequestDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.IniMetadataUpdateReqDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.IniReferenceRequestDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.MergedMetadatiRequestDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.GetMergedMetadatiDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.IniReferenceResponseDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.IniTraceResponseDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.client.GetMergedMetadatiResponseDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.INIErrorEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.BusinessException;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.ProfileUtility;
@@ -84,7 +85,7 @@ public class IniClient extends AbstractClient implements IIniClient {
 	public IniTraceResponseDTO updateMetadati(IniMetadataUpdateReqDTO iniReq) {
 		IniTraceResponseDTO out = null;
 		try {
-			log.debug("INI Client - Calling INI to execute update metadati :{}", iniReq.getIdDoc());
+			log.debug("INI Client - Calling INI to execute update metadati");
 
 			// Build headers.
 			HttpEntity<Object> entity = new HttpEntity<>(iniReq, null);
@@ -150,5 +151,27 @@ public class IniClient extends AbstractClient implements IIniClient {
 				throw new BusinessException("INI operation(): Generic error");
 			}
 		}
+	}
+	
+	@Override
+	public GetMergedMetadatiDTO getMergedMetadati(final MergedMetadatiRequestDTO iniReq) {
+		GetMergedMetadatiDTO out = null;
+		try {
+			log.debug("INI Client - Calling INI to execute update metadati :{}", iniReq.getIdDoc());
+
+			// Build headers.
+			HttpEntity<Object> entity = new HttpEntity<>(iniReq, null);
+
+			// Build endpoint e call.
+			String endpoint = msUrlCFG.getIniClientHost() + "/v1/getMergedMetadati";
+			ResponseEntity<GetMergedMetadatiResponseDTO> restExchange = restTemplate.exchange(endpoint, HttpMethod.PUT, entity, GetMergedMetadatiResponseDTO.class);
+			if(restExchange.getBody()!=null) {
+				out = restExchange.getBody().getResponse();
+			}
+		} catch (Exception e) {
+			log.error("Errore durante l'invocazione dell' API update(). ", e);
+			throw e;
+		}
+		return out;
 	}
 }

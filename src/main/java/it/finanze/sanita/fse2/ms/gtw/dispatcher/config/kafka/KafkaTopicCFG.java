@@ -54,6 +54,13 @@ public class KafkaTopicCFG {
 	 */
 	@Value("${kafka.log.base-topic}")
 	private String logTopic;
+	
+	/**
+	 * Retry indexer topic update
+	 */
+	@Value("${kafka.dispatcher-indexer.update-retry-topic}")
+	private String dispatcherIndexerRetryUpdateTopic;
+	
 
 	@PostConstruct
 	public void afterInit() {

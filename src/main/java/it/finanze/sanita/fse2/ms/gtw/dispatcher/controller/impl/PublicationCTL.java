@@ -6,7 +6,6 @@ package it.finanze.sanita.fse2.ms.gtw.dispatcher.controller.impl;
 import static it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants.App.JWT_MISSING_ISSUER_PLACEHOLDER;
 import static it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants.App.MISSING_DOC_TYPE_PLACEHOLDER;
 import static it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants.App.MISSING_WORKFLOW_PLACEHOLDER;
-import static it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventStatusEnum.BLOCKING_ERROR;
 import static it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventStatusEnum.SUCCESS;
 import static it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility.encodeSHA256;
 import static it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility.isNullOrEmpty;
@@ -41,11 +40,13 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.DeleteRequestDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.EdsMetadataUpdateReqDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.IniMetadataUpdateReqDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.IniReferenceRequestDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.MergedMetadatiRequestDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.PublicationCreationReqDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.PublicationMetadataReqDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.PublicationUpdateReqDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.EdsResponseDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.ErrorResponseDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.GetMergedMetadatiDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.IniReferenceResponseDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.IniTraceResponseDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.LogTraceInfoDTO;
@@ -53,6 +54,7 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.PublicationResDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.ResponseDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.DestinationTypeEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ErrorInstanceEnum;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventStatusEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.OperationLogEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.PriorityTypeEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ProcessorOperationEnum;
@@ -233,16 +235,16 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 
 	@Override
 	public ResponseEntity<ResponseDTO> updateMetadata(final String idDoc, final PublicationMetadataReqDTO requestBody, final HttpServletRequest request) {
-		
-		final boolean isTestEnvironment = profileUtils.isDevOrDockerProfile();
-		
+
 		// Estrazione token
 		JWTTokenDTO jwtToken = null;
 		final Date startDateOperation = new Date();
 
 		String role = Constants.App.JWT_MISSING_SUBJECT_ROLE;
-		String subjectFiscalCode = Constants.App.JWT_MISSING_SUBJECT;	
+		String subjectFiscalCode = Constants.App.JWT_MISSING_SUBJECT;
+		LogTraceInfoDTO logTraceDTO = null;
 		try {
+			logTraceDTO = getLogTraceInfo(); 
 			if (Boolean.TRUE.equals(msCfg.getFromGovway())) {
 				jwtToken = extractAndValidateJWT(request.getHeader(Headers.JWT_GOVWAY_HEADER), msCfg.getFromGovway());
 			} else {
@@ -253,23 +255,29 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 			subjectFiscalCode = CfUtility.extractFiscalCodeFromJwtSub(jwtToken.getPayload().getSub());
 			PublicationMetadataReqDTO jsonObj = StringUtility.fromJSONJackson(request.getParameter("requestBody"), PublicationMetadataReqDTO.class);
 
-			final IniTraceResponseDTO iniResponse = iniClient.updateMetadati(new IniMetadataUpdateReqDTO(idDoc, jwtToken.getPayload(), jsonObj));
-			
-			EdsResponseDTO edsResponse = null;
-			boolean iniMockMessage = !StringUtility.isNullOrEmpty(iniResponse.getErrorMessage()) && iniResponse.getErrorMessage().contains("Invalid region ip");
-			if (Boolean.TRUE.equals(iniResponse.getEsito()) || (isTestEnvironment && iniMockMessage)) {
-				log.debug("Ini response is OK, proceeding with EDS");
-			    edsResponse = edsClient.update(new EdsMetadataUpdateReqDTO(idDoc, null, jsonObj));
+			final GetMergedMetadatiDTO metadatiToUpdate = iniClient.getMergedMetadati(new MergedMetadatiRequestDTO(idDoc,jwtToken.getPayload(), jsonObj));
+			if(!StringUtility.isNullOrEmpty(metadatiToUpdate.getErrorMessage()) && !metadatiToUpdate.getErrorMessage().contains("Invalid region ip")) {
+				kafkaSRV.sendUpdateStatus(logTraceDTO.getTraceID(), MISSING_WORKFLOW_PLACEHOLDER, idDoc, EventStatusEnum.BLOCKING_ERROR, jwtToken.getPayload(), metadatiToUpdate.getErrorMessage());
+				throw new IniException(metadatiToUpdate.getErrorMessage());
 			} else {
-				throw new BusinessException("Error encountered while sending update information to INI client");
-			}
+				kafkaSRV.sendUpdateStatus(logTraceDTO.getTraceID(), MISSING_WORKFLOW_PLACEHOLDER, idDoc, EventStatusEnum.SUCCESS, jwtToken.getPayload(), "Merge metadati effettuato correttamente");
+				EdsResponseDTO edsResponse = edsClient.update(new EdsMetadataUpdateReqDTO(idDoc, null, jsonObj));
+				if(Boolean.TRUE.equals(edsResponse.getEsito())) {
+					kafkaSRV.sendUpdateStatus(logTraceDTO.getTraceID(), MISSING_WORKFLOW_PLACEHOLDER, idDoc, EventStatusEnum.SUCCESS, jwtToken.getPayload(), "Update EDS effettuato correttamente");
+					IniTraceResponseDTO res = iniClient.updateMetadati(new IniMetadataUpdateReqDTO(metadatiToUpdate.getMarshallResponse(), jwtToken.getPayload()));
+					// Check response errors
+					if(!StringUtility.isNullOrEmpty(res.getErrorMessage())) {
+						// Send to indexer
+						kafkaSRV.sendUpdateRequest(MISSING_WORKFLOW_PLACEHOLDER, new IniMetadataUpdateReqDTO(metadatiToUpdate.getMarshallResponse(), jwtToken.getPayload()));
+						kafkaSRV.sendUpdateStatus(logTraceDTO.getTraceID(), MISSING_WORKFLOW_PLACEHOLDER, idDoc, EventStatusEnum.BLOCKING_ERROR, jwtToken.getPayload(), res.getErrorMessage());
+					} else {
+						kafkaSRV.sendUpdateStatus(logTraceDTO.getTraceID(), MISSING_WORKFLOW_PLACEHOLDER, idDoc, EventStatusEnum.SUCCESS, jwtToken.getPayload(), "Update ini effettuato correttamente");
+					}
+				} else {
+					kafkaSRV.sendUpdateStatus(logTraceDTO.getTraceID(), MISSING_WORKFLOW_PLACEHOLDER, idDoc, EventStatusEnum.BLOCKING_ERROR, jwtToken.getPayload(), "Update EDS fallito");
+					throw new EdsException(edsResponse.getErrorMessage());
+				}
 
-			if (!isTestEnvironment && (edsResponse == null || !edsResponse.getEsito())) {
-				throw new EdsException("Error encountered while sending update information to EDS client");
-			}
-
-			if (isTestEnvironment && iniMockMessage) {
-				throw new MockEnabledException(iniResponse.getErrorMessage(), edsResponse != null ? edsResponse.getErrorMessage() : null);
 			}
 
 			logger.info(String.format("Update of CDA metadata completed for document with identifier %s", idDoc), OperationLogEnum.UPDATE_METADATA_CDA2, ResultLogEnum.OK, startDateOperation, jwtToken.getPayload().getIss(), MISSING_DOC_TYPE_PLACEHOLDER, role, subjectFiscalCode);
@@ -281,13 +289,13 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 			if (e instanceof ValidationException) {
 				errorInstance = RestExecutionResultEnum.get(((ValidationException) e).getError().getType());
 			}
-			
+
 			log.error(String.format("Error encountered while updating CDA metadata with identifier %s", idDoc), e);
 			logger.error(String.format("Error while updating CDA metadata of document with identifier %s", idDoc), OperationLogEnum.UPDATE_METADATA_CDA2, ResultLogEnum.KO, startDateOperation, errorInstance.getErrorCategory(), issuer, MISSING_DOC_TYPE_PLACEHOLDER, role, subjectFiscalCode);
 			throw e;
 		}
-		
-		return new ResponseEntity<>(new ResponseDTO(getLogTraceInfo()), HttpStatus.OK);
+
+		return new ResponseEntity<>(new ResponseDTO(logTraceDTO), HttpStatus.OK);
 	}
 
 	private ValidationCreationInputDTO validateInput(final MultipartFile file, final HttpServletRequest request, final boolean isReplace,

@@ -6,13 +6,17 @@ package it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.JWTPayloadDTO;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
 @AllArgsConstructor
-public class IniMetadataUpdateReqDTO {
+@NoArgsConstructor
+public class MergedMetadatiRequestDTO {
 	
-    private String marshallData;
+    private String idDoc;
     
     private JWTPayloadDTO token;
     
+    private PublicationMetadataReqDTO body;
 }
+	
