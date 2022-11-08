@@ -40,8 +40,8 @@ public class KafkaTopicCFG {
 	/**
 	 * Retry indexer topic
 	 */
-	@Value("${kafka.dispatcher-indexer.retry-topic}")
-	private String dispatcherIndexerRetryTopic;
+	@Value("${kafka.dispatcher-indexer.delete-retry-topic}")
+	private String dispatcherIndexerRetryDeleteTopic;
 
 	/**
 	 * Topic publisher.
@@ -68,7 +68,8 @@ public class KafkaTopicCFG {
 			this.statusManagerTopic = Constants.Profile.TEST_PREFIX + this.statusManagerTopic;
 			this.dispatcherIndexerTopic = Constants.Profile.TEST_PREFIX + this.dispatcherIndexerTopic;
 			this.dispatcherPublisherTopic = Constants.Profile.TEST_PREFIX + this.dispatcherPublisherTopic;
-			this.dispatcherIndexerRetryTopic = Constants.Profile.TEST_PREFIX + this.dispatcherIndexerRetryTopic;
+			this.dispatcherIndexerRetryUpdateTopic = Constants.Profile.TEST_PREFIX + this.dispatcherIndexerRetryUpdateTopic;
+			this.dispatcherIndexerRetryDeleteTopic = Constants.Profile.TEST_PREFIX + this.dispatcherIndexerRetryDeleteTopic;
 		}
 	}
 }

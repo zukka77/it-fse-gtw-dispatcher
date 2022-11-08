@@ -179,7 +179,7 @@ public class KafkaSRV implements IKafkaSRV {
 
 	@Override
 	public void sendDeleteRequest(String workflowInstanceId, Object request) {
-		sendIndexerRetryMessage(workflowInstanceId, sendObjectAsJson(request),kafkaTopicCFG.getDispatcherIndexerRetryTopic());
+		sendIndexerRetryMessage(workflowInstanceId, sendObjectAsJson(request),kafkaTopicCFG.getDispatcherIndexerRetryDeleteTopic());
 	}
 	
 	@Override
