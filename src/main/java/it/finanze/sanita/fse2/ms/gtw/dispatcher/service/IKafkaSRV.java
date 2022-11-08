@@ -52,7 +52,7 @@ public interface IKafkaSRV extends Serializable {
 	void sendDeleteRequest(String workflowInstanceId, Object request);
 	void sendLoggerStatus(String log);
 	
-	void sendUpdateStatus(String traceId, String workflowInstanceId, String idDoc, EventStatusEnum eventStatus, JWTPayloadDTO jwt, String message);
+	void sendUpdateStatus(String traceId, String workflowInstanceId, String idDoc, EventStatusEnum eventStatus, JWTPayloadDTO jwt, String message,EventTypeEnum event);
 
 	void sendUpdateRequest(String workflowInstanceId, Object request);
 

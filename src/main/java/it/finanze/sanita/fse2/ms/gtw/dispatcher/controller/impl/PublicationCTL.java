@@ -255,24 +255,27 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 
 			final GetMergedMetadatiDTO metadatiToUpdate = iniClient.getMergedMetadati(new MergedMetadatiRequestDTO(idDoc,jwtToken.getPayload(), jsonObj));
 			if(!StringUtility.isNullOrEmpty(metadatiToUpdate.getErrorMessage()) && !metadatiToUpdate.getErrorMessage().contains("Invalid region ip")) {
-				kafkaSRV.sendUpdateStatus(logTraceDTO.getTraceID(), MISSING_WORKFLOW_PLACEHOLDER, idDoc, EventStatusEnum.BLOCKING_ERROR, jwtToken.getPayload(), metadatiToUpdate.getErrorMessage());
+				kafkaSRV.sendUpdateStatus(logTraceDTO.getTraceID(), MISSING_WORKFLOW_PLACEHOLDER, idDoc, EventStatusEnum.BLOCKING_ERROR, jwtToken.getPayload(), metadatiToUpdate.getErrorMessage(), EventTypeEnum.RIFERIMENTI_INI);
 				throw new IniException(metadatiToUpdate.getErrorMessage());
 			} else {
-				kafkaSRV.sendUpdateStatus(logTraceDTO.getTraceID(), MISSING_WORKFLOW_PLACEHOLDER, idDoc, EventStatusEnum.SUCCESS, jwtToken.getPayload(), "Merge metadati effettuato correttamente");
+				kafkaSRV.sendUpdateStatus(logTraceDTO.getTraceID(), MISSING_WORKFLOW_PLACEHOLDER, idDoc, EventStatusEnum.SUCCESS, jwtToken.getPayload(), "Merge metadati effettuato correttamente", EventTypeEnum.RIFERIMENTI_INI);
 				EdsResponseDTO edsResponse = edsClient.update(new EdsMetadataUpdateReqDTO(idDoc, null, jsonObj));
 				if(Boolean.TRUE.equals(edsResponse.getEsito())) {
-					kafkaSRV.sendUpdateStatus(logTraceDTO.getTraceID(), MISSING_WORKFLOW_PLACEHOLDER, idDoc, EventStatusEnum.SUCCESS, jwtToken.getPayload(), "Update EDS effettuato correttamente");
+					kafkaSRV.sendUpdateStatus(logTraceDTO.getTraceID(), MISSING_WORKFLOW_PLACEHOLDER, idDoc, EventStatusEnum.SUCCESS, jwtToken.getPayload(), "Update EDS effettuato correttamente", EventTypeEnum.EDS_UPDATE);
 					IniTraceResponseDTO res = iniClient.updateMetadati(new IniMetadataUpdateReqDTO(metadatiToUpdate.getMarshallResponse(), jwtToken.getPayload()));
 					// Check response errors
 					if(!StringUtility.isNullOrEmpty(res.getErrorMessage())) {
 						// Send to indexer
 						kafkaSRV.sendUpdateRequest(MISSING_WORKFLOW_PLACEHOLDER, new IniMetadataUpdateReqDTO(metadatiToUpdate.getMarshallResponse(), jwtToken.getPayload()));
-						kafkaSRV.sendUpdateStatus(logTraceDTO.getTraceID(), MISSING_WORKFLOW_PLACEHOLDER, idDoc, EventStatusEnum.BLOCKING_ERROR, jwtToken.getPayload(), res.getErrorMessage());
+						kafkaSRV.sendUpdateStatus(logTraceDTO.getTraceID(), MISSING_WORKFLOW_PLACEHOLDER, idDoc, EventStatusEnum.BLOCKING_ERROR, jwtToken.getPayload(), res.getErrorMessage(),
+								EventTypeEnum.INI_UPDATE);
 					} else {
-						kafkaSRV.sendUpdateStatus(logTraceDTO.getTraceID(), MISSING_WORKFLOW_PLACEHOLDER, idDoc, EventStatusEnum.SUCCESS, jwtToken.getPayload(), "Update ini effettuato correttamente");
+						kafkaSRV.sendUpdateStatus(logTraceDTO.getTraceID(), MISSING_WORKFLOW_PLACEHOLDER, idDoc, EventStatusEnum.SUCCESS, jwtToken.getPayload(), "Update ini effettuato correttamente",
+								EventTypeEnum.INI_UPDATE);
 					}
 				} else {
-					kafkaSRV.sendUpdateStatus(logTraceDTO.getTraceID(), MISSING_WORKFLOW_PLACEHOLDER, idDoc, EventStatusEnum.BLOCKING_ERROR, jwtToken.getPayload(), "Update EDS fallito");
+					kafkaSRV.sendUpdateStatus(logTraceDTO.getTraceID(), MISSING_WORKFLOW_PLACEHOLDER, idDoc, EventStatusEnum.BLOCKING_ERROR, jwtToken.getPayload(), "Update EDS fallito",
+							EventTypeEnum.EDS_UPDATE);
 					throw new EdsException(edsResponse.getErrorMessage());
 				}
 
