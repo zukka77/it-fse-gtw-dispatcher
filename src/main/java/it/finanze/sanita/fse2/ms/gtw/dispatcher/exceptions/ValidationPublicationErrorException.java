@@ -9,7 +9,7 @@ import lombok.Getter;
 public class ValidationPublicationErrorException  extends RuntimeException {
 
 	/**
-	 * Serial.
+	 * Serial version uid.
 	 */
 	private static final long serialVersionUID = 1L;
 	

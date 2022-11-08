@@ -6,11 +6,7 @@ package it.finanze.sanita.fse2.ms.gtw.dispatcher.utility;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.extern.slf4j.Slf4j;
-
-/**
- * @author AndreaPerquoti
- *
- */
+ 
 @Slf4j
 public class JsonUtility {
 

@@ -20,15 +20,12 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.EdsResponseDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.BusinessException;
 import lombok.extern.slf4j.Slf4j;
 
-/**
- * @author AndreaPerquoti
- */
 @Slf4j
 @Component
 public class EdsClient extends AbstractClient implements IEdsClient {
 
 	/**
-	 * 
+	 * Serial version uid.
 	 */
 	private static final long serialVersionUID = 1497611210936387510L;
 	

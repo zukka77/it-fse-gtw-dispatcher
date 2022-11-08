@@ -10,8 +10,6 @@ import lombok.Getter;
 import lombok.Setter;
 
 /**
- * @author AndreaPerquoti
- * 
  * Generic exception to handle server-side errors.
  */
 @Getter
@@ -20,7 +18,7 @@ import lombok.Setter;
 public class ServerResponseException extends RuntimeException {
 	
 	/**
-	 * 
+	 * Serial version uid.
 	 */
 	private static final long serialVersionUID = 1062386344600523308L;
 

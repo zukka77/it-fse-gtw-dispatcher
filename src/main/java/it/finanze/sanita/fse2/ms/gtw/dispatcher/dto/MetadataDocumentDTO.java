@@ -17,13 +17,16 @@ import lombok.EqualsAndHashCode;
 
 
 /**
- * @author CPIERASC
- * 
  * 	Metadata Document.
  */
 @Data
 @EqualsAndHashCode(callSuper=true)
 public class MetadataDocumentDTO extends AbstractDTO {
+
+	/**
+	 * Serial version uid.
+	 */
+	private static final long serialVersionUID = 6130637113806503422L;
 
 	@Schema(description = "Tipo livello alto")
 	private TipoDocAltoLivEnum tipoLivAlto;

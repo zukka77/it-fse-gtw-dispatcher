@@ -24,8 +24,6 @@ import lombok.extern.slf4j.Slf4j;
 
 /**
  * Production implemention of Validator Client.
- * 
- * @author CPIERASC
  */
 @Slf4j
 @Component

@@ -6,6 +6,11 @@ package it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions;
 public class ValidatorClientException extends RuntimeException {
     
     /**
+	 * Serial version uid.
+	 */
+	private static final long serialVersionUID = 7708115624278703149L;
+
+	/**
 	 * Message constructor.
 	 * 
 	 * @param msg	Message to be shown.

@@ -13,11 +13,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;
 
-/**
- * 
- *	@author vincenzoingenito
- *
- */
 @Component
 @ConditionalOnProperty("ms.dispatcher.audit.enabled")
 public class LogInterceptor implements HandlerInterceptor {

@@ -7,7 +7,12 @@ import lombok.Getter;
 
 public class EdsException extends RuntimeException {
 
-    @Getter
+    /**
+	 * Serial version uid.
+	 */
+	private static final long serialVersionUID = 6592463845560227769L;
+	
+	@Getter
     private String errorMessage;
 
     public EdsException(final String inErrorMessage) {

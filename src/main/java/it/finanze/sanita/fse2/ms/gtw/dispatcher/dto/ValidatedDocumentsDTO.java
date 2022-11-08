@@ -9,9 +9,6 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 /**
- * 
- * @author Guido Rocco
- *
  *	DTO used for validated documents. 
  */
 @Data

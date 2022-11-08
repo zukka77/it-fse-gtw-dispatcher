@@ -11,11 +11,6 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.interceptor.LogInterceptor;
 
-/**
- * 
- * @author vincenzoingenito
- *
- */
 @Configuration
 @ConditionalOnProperty("ms.dispatcher.audit.enabled")
 public class WebCFG implements WebMvcConfigurer {

@@ -51,9 +51,6 @@ import static it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants.*;
 import static it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants.Headers.*;
 
 /**
- * 
- * @author CPIERASC
- *
  *	Abstract controller.
  */
 @Slf4j

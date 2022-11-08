@@ -7,10 +7,7 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.RestExecutionResultEnum;
 import lombok.Getter;
 
 /**
- * @author CPIERASC
- * 
  * Validation error exception.
- *
  */
 public class ValidationErrorException extends RuntimeException {
 

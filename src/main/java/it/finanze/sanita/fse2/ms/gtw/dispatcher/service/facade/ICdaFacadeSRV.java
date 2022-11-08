@@ -8,9 +8,7 @@ import java.io.Serializable;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.ValidationDataDTO;
 
 /**
- * @author vincenzoingenito
- *
- *         Cda facade interface service.
+ *   Cda facade interface service.
  */
 public interface ICdaFacadeSRV extends Serializable {
 

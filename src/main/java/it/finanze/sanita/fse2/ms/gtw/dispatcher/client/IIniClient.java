@@ -13,10 +13,6 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.GetMergedMetadatiDT
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.IniReferenceResponseDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.IniTraceResponseDTO;
 
-/**
- * @author AndreaPerquoti
- *
- */
 public interface IIniClient extends Serializable {
 	
 	IniTraceResponseDTO delete(DeleteRequestDTO iniReq);

@@ -17,6 +17,11 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper=true)
 public class INIDTO extends AbstractDTO {
 
+	/**
+	 * Serial version uid.
+	 */
+	private static final long serialVersionUID = -4974470887829412913L;
+
 	@Schema(description = "Metadati utente")
 	private final MetadataUserDTO utente;
 

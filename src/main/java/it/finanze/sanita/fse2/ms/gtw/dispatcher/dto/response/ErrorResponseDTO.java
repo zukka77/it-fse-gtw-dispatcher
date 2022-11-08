@@ -17,10 +17,6 @@ import lombok.EqualsAndHashCode;
 
 /**
  * The Class ErrorResponseDTO.
- *
- * @author CPIERASC
- * 
- * 	Error response.
  */
 @Data
 @Builder

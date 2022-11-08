@@ -10,9 +10,6 @@ import org.springframework.context.annotation.Configuration;
 
 import lombok.Getter;
 
-/**
- * @author CPIERASC Microservices URL.
- */
 @Configuration
 @Getter
 public class MicroservicesURLCFG implements Serializable {

@@ -7,12 +7,15 @@ import lombok.Getter;
 
 /**
  * Exception that handles active mocks to return a useful endpoint result.
- * 
- * @author Simone Lungarella
  */
 public class MockEnabledException extends RuntimeException {
 
-    @Getter
+    /**
+	 * Serial version uid.
+	 */
+	private static final long serialVersionUID = -6705543139433416907L;
+
+	@Getter
     private String iniErrorMessage;
 
     @Getter

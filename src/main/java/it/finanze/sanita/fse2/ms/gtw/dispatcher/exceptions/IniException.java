@@ -7,7 +7,12 @@ import lombok.Getter;
 
 public class IniException extends RuntimeException {
 
-    @Getter
+    /**
+	 * Serial version uid.
+	 */
+	private static final long serialVersionUID = -7571614465871671680L;
+	
+	@Getter
     private String errorMessage;
 
     public IniException(final String inErrorMessage) {

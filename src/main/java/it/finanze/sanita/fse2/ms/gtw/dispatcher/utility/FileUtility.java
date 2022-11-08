@@ -12,8 +12,6 @@ import lombok.extern.slf4j.Slf4j;
 /**
  * The Class FileUtils.
  *
- * @author vincenzoingenito
- *
  * Utility to manager file.
  */
 @Slf4j

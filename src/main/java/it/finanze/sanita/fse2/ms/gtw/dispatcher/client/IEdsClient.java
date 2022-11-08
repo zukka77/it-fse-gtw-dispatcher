@@ -8,10 +8,6 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.EdsResponseDTO;
 
 import java.io.Serializable;
 
-/**
- * @author AndreaPerquoti
- *
- */
 public interface IEdsClient extends Serializable {
 
 	EdsResponseDTO delete(final String oid);

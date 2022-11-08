@@ -22,7 +22,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
- *
  *	Request body TS Document publication creation.
  */
 @Getter

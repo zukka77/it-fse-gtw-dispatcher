@@ -4,10 +4,7 @@
 package it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions;
 
 /**
- * @author vincenzoingenito
- * 
  * Connection refused error exception.
- *
  */
 public class ConnectionRefusedException extends RuntimeException {
 

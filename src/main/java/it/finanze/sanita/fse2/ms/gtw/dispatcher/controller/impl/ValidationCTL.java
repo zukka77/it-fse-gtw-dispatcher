@@ -35,8 +35,6 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility;
 
 /**
  * Validation controller.
- *
- * @author CPIERASC
  */
 @RestController
 public class ValidationCTL extends AbstractCTL implements IValidationCTL {

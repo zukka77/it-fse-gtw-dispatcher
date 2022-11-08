@@ -8,9 +8,6 @@ import javax.validation.ValidationException;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility;
 
 /**
- * 
- * @author CPIERASC
- *
  *	Validation class.
  */
 public final class Validation {

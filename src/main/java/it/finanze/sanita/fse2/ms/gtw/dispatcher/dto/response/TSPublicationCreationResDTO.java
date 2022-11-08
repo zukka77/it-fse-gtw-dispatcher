@@ -7,7 +7,6 @@ import lombok.Getter;
 import lombok.Setter;
 
 /**
- *
  *	DTO used to return TS Document validation result.
  */
 @Getter

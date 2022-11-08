@@ -26,10 +26,7 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.ValidationErrorResp
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.ValidationResDTO;
 
 /**
- * 
- * @author CPIERASC
- *
- *         Controller validation.
+ * Controller validation.
  */
 
 @RequestMapping(path = "/v1")

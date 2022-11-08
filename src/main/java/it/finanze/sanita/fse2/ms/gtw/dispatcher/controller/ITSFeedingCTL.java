@@ -26,7 +26,6 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.ErrorResponseDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.TSPublicationCreationResDTO;
 
 /**
- *
  * Controller TS documents.
  */
 @Hidden

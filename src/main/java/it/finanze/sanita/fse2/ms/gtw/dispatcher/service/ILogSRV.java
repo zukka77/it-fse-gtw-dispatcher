@@ -8,10 +8,7 @@ import java.util.Date;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ILogEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ResultLogEnum;
 
-/** 
- * @author: vincenzoingenito 
- */ 
-
+ 
 public interface ILogSRV {
  
 	public void trace(String message, ILogEnum operation, ResultLogEnum result, Date startDateOperation,String issuer);

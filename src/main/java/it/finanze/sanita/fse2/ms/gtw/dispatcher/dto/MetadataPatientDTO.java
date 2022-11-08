@@ -9,13 +9,16 @@ import lombok.EqualsAndHashCode;
 
 
 /**
- * @author CPIERASC
- * 
  * 	Metadata Patient.
  */
 @Data
 @EqualsAndHashCode(callSuper=true)
 public class MetadataPatientDTO extends AbstractDTO {
+
+	/**
+	 * Serial version uid.
+	 */
+	private static final long serialVersionUID = 7071919094866301049L;
 
 	@Schema(description = "Identificativo")
 	private final String identificativo;

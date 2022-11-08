@@ -7,13 +7,15 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.ErrorResponseDTO;
 import lombok.Getter;
 
 /**
- * @author CPIERASC
- * 
  * Validation exeception.
- *
  */
 public class ValidationException extends RuntimeException {
 
+	/**
+	 * Serial version uid.
+	 */
+	private static final long serialVersionUID = 1253566999469948023L;
+	
 	@Getter
 	private ErrorResponseDTO error;
 	/**

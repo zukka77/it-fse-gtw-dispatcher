@@ -20,14 +20,17 @@ import lombok.extern.slf4j.Slf4j;
 
 /**
  * Implementation of gtw-config Client.
- * 
- * @author Simone Lungarella
  */
 @Slf4j
 @Component
 public class ConfigClient extends AbstractClient implements IConfigClient {
 
     /**
+	 * Serial version uid.
+	 */
+	private static final long serialVersionUID = -923144320301638618L;
+
+	/**
      * Config host.
      */
     @Value("${ms.url.gtw-config}")

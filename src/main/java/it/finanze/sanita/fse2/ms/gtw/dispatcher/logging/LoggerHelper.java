@@ -19,10 +19,7 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ILogEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ResultLogEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility;
 import lombok.extern.slf4j.Slf4j;
-
-/**
- * @author vincenzoingenito 
- */
+ 
 @Service
 @Slf4j
 public class LoggerHelper {

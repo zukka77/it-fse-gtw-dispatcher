@@ -19,11 +19,6 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.BusinessException;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.IAuditSRV;
 import lombok.extern.slf4j.Slf4j;
 
-/**
- * 
- *	@author vincenzoingenito
- *
- */
 @ControllerAdvice
 @Slf4j
 @ConditionalOnProperty("ms.dispatcher.audit.enabled")

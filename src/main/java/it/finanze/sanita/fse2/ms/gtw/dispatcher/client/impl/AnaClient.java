@@ -3,14 +3,10 @@
  */
 package it.finanze.sanita.fse2.ms.gtw.dispatcher.client.impl;
 
-// import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
-// import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
-// import org.springframework.web.client.RestTemplate;
 
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.IAnaClient;
-// import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.MicroservicesURLCFG;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.client.AnaReqDTO;
 import lombok.extern.slf4j.Slf4j;
 
@@ -19,7 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 public class AnaClient implements IAnaClient {
 
 	/**
-	 * 
+	 * Serial version uid.
 	 */
 	private static final long serialVersionUID = -7874491943915675375L;
 

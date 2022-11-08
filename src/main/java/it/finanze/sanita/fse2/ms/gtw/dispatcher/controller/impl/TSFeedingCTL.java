@@ -15,7 +15,6 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.TSPublicationCreatio
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.TSPublicationCreationResDTO;
 
 /**
- * 
  * TS document feeding controller.
  */
 @RestController

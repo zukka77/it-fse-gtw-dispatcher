@@ -18,9 +18,6 @@ import lombok.Setter;
 import lombok.extern.jackson.Jacksonized;
 
 /**
- * 
- * @author CPIERASC
- *
  *	Request body validazione CDA.
  */
 @Getter

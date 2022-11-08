@@ -11,9 +11,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
- * 
- * @author CPIERASC
- *
  *	Request body validazione.
  */
 @Getter
@@ -22,7 +19,12 @@ import lombok.Setter;
 @AllArgsConstructor
 public class ValidationReqDTO extends AbstractDTO {
 
-    @Schema(description = "CDA")
+    /**
+	 * Serial version uid.
+	 */
+	private static final long serialVersionUID = 5185149500828632803L;
+	
+	@Schema(description = "CDA")
     private String cda; 
 
 }

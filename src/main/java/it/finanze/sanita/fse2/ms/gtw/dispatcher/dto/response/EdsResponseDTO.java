@@ -15,6 +15,11 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class EdsResponseDTO extends AbstractDTO {
 
+	/**
+	 * Serial version uid.
+	 */
+	private static final long serialVersionUID = 2016950510687587991L;
+
 	private Boolean esito;
 
 	private String errorMessage;

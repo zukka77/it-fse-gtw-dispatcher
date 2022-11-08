@@ -11,8 +11,6 @@ import org.springframework.stereotype.Component;
 import lombok.Data;
 
 /**
- *	@author vincenzoingenito
- *
  *	Kafka properties configuration.
  */
 @Data

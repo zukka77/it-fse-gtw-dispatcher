@@ -10,10 +10,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 /**
- * 
- * @author CPIERASC
- *
- *         Base response.
+ *  Base response.
  */
 @Getter
 @Setter

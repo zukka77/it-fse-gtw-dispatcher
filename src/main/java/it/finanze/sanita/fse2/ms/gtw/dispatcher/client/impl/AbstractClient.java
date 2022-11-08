@@ -11,8 +11,6 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.exceptions.ServerResponse
 
 /**
  * Abstract class for client implementations.
- * 
- * @author CPIERASC
  */
 public abstract class AbstractClient implements Serializable {
 

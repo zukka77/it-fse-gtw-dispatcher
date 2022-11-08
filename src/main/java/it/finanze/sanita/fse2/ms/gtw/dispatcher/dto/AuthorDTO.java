@@ -10,8 +10,6 @@ import lombok.EqualsAndHashCode;
 
 
 /**
- * @author CPIERASC
- * 
  * Author metadata.
  */
 @Data

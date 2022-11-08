@@ -12,13 +12,16 @@ import lombok.EqualsAndHashCode;
 
 
 /**
- * @author CPIERASC
- * 
  * 	Metadata user INI.
  */
 @Data
 @EqualsAndHashCode(callSuper=true)
 public class MetadataUserDTO extends AbstractDTO {
+
+	/**
+	 * Serial version uid.
+	 */
+	private static final long serialVersionUID = -3879191629857977974L;
 
 	@Schema(description = "Identificativo")
 	private final String identificativo;

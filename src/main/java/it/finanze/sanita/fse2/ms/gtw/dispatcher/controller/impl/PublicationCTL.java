@@ -80,9 +80,6 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- *
- * @author CPIERASC
- *
  *  Publication controller.
  */
 @Slf4j

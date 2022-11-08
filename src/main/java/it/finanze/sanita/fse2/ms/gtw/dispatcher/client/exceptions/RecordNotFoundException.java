@@ -10,8 +10,6 @@ import lombok.Getter;
 import lombok.Setter;
 
 /**
- * @author Riccardo Bonesi
- * 
  * Exception to handle record not found exception error received from clients.
  */
 @Getter
@@ -20,7 +18,7 @@ import lombok.Setter;
 public class RecordNotFoundException extends RuntimeException {
 	
 	/**
-	 * 
+	 * Serial version uid.
 	 */
 	private static final long serialVersionUID = 1062382244600523308L;
 

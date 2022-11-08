@@ -22,9 +22,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
- * 
- * @author CPIERASC
- *
  *	Request body publication creation.
  */
 @Getter
