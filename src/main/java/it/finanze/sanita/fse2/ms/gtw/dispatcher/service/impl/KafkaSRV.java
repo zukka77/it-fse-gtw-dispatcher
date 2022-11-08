@@ -170,8 +170,9 @@ public class KafkaSRV implements IKafkaSRV {
 	}
 
 	@Override
-	public void sendDeleteStatus(String traceId, String workflowInstanceId, String idDoc, Object o, EventStatusEnum eventStatus, JWTPayloadDTO jwt) {
-		sendStatusMessage(traceId, workflowInstanceId, EventTypeEnum.DELETE, eventStatus, sendObjectAsJson(o), idDoc, jwt, AttivitaClinicaEnum.PHR);
+	public void sendDeleteStatus(String traceId, String workflowInstanceId, String idDoc, Object o, EventStatusEnum eventStatus, JWTPayloadDTO jwt,
+			EventTypeEnum eventType) {
+		sendStatusMessage(traceId, workflowInstanceId, eventType, eventStatus, sendObjectAsJson(o), idDoc, jwt, AttivitaClinicaEnum.PHR);
 	}
 
 	@Override
@@ -239,23 +240,6 @@ public class KafkaSRV implements IKafkaSRV {
 		}
 	}
 
-	@Override
-	public void sendFhirMappingStatus(final String traceId,final String workflowInstanceId, final EventStatusEnum eventStatus, final String message,
-									  final PublicationCreationReqDTO publicationReq, final JWTPayloadDTO jwtClaimDTO) {
-
-		String identificativoDocumento = null;
-		AttivitaClinicaEnum tipoAttivita = null;
-		if (publicationReq != null)  {
-			if (publicationReq.getIdentificativoDoc()!=null) {
-				identificativoDocumento = publicationReq.getIdentificativoDoc();
-			}
-			if(publicationReq.getTipoAttivitaClinica()!=null) {
-				tipoAttivita = publicationReq.getTipoAttivitaClinica();
-			}
-		}
-		sendStatusMessage(traceId,workflowInstanceId, EventTypeEnum.FHIR_MAPPING, eventStatus, message, identificativoDocumento, jwtClaimDTO,tipoAttivita);
-	}
-	
 	@Override
 	public void sendLoggerStatus(final String log) {
 		sendMessage(kafkaTopicCFG.getLogTopic(), "KEY", log, true);

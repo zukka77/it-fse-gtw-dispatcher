@@ -55,6 +55,7 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.ResponseDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.DestinationTypeEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ErrorInstanceEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventStatusEnum;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventTypeEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.OperationLogEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.PriorityTypeEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ProcessorOperationEnum;
@@ -379,7 +380,6 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 				throw new ValidationException(error);
 			}
 			
-			kafkaSRV.sendFhirMappingStatus(traceInfoDTO.getTraceID(),validation.getValidationData().getWorkflowInstanceId(), SUCCESS, "Fhir mapping language done", validation.getJsonObj(), validation.getJwtToken() != null ? validation.getJwtToken().getPayload() : null);
 		} catch (final ValidationException ve) {
 			cdaSRV.consumeHash(validationInfo.getHash());
 			validation.setValidationError(ve);
@@ -410,22 +410,31 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 			// ==============================
 			// [1] Retrieve reference from INI
 			// ==============================
-			IniReferenceResponseDTO iniReference = iniClient.getReference(
-				new IniReferenceRequestDTO(idDoc, token.getPayload())
-			);
+			IniReferenceResponseDTO iniReference = iniClient.getReference(new IniReferenceRequestDTO(idDoc, token.getPayload()));
 			// Exit if necessary
-			if(!isNullOrEmpty(iniReference.getErrorMessage())) throw new IniException(iniReference.getErrorMessage());
-			// Update transaction status
-			kafkaSRV.sendDeleteStatus(log.getTraceID(), MISSING_WORKFLOW_PLACEHOLDER, idDoc, iniReference, SUCCESS, token.getPayload());
+			if(!isNullOrEmpty(iniReference.getErrorMessage())) {
+				kafkaSRV.sendDeleteStatus(log.getTraceID(), MISSING_WORKFLOW_PLACEHOLDER, idDoc, iniReference, EventStatusEnum.BLOCKING_ERROR, token.getPayload(),
+						EventTypeEnum.RIFERIMENTI_INI);
+				throw new IniException(iniReference.getErrorMessage());	
+			} else {
+				kafkaSRV.sendDeleteStatus(log.getTraceID(), MISSING_WORKFLOW_PLACEHOLDER, idDoc, iniReference, EventStatusEnum.SUCCESS, token.getPayload(),
+						EventTypeEnum.RIFERIMENTI_INI);
+			}
 
 			// ==============================
 			// [2] Send delete request to EDS
 			// ==============================
 			EdsResponseDTO edsResponse = edsClient.delete(idDoc);
 			// Exit if necessary
-			if (!isTestEnv && (edsResponse == null || !edsResponse.getEsito())) throw new EdsException("Error encountered while sending delete information to EDS client");
-			// Update transaction status
-			kafkaSRV.sendDeleteStatus(log.getTraceID(), MISSING_WORKFLOW_PLACEHOLDER, idDoc, edsResponse, SUCCESS, token.getPayload());
+			if (!isTestEnv && (edsResponse == null || !edsResponse.getEsito())) {
+				// Update transaction status
+				kafkaSRV.sendDeleteStatus(log.getTraceID(), MISSING_WORKFLOW_PLACEHOLDER, idDoc, edsResponse, EventStatusEnum.BLOCKING_ERROR, token.getPayload(), EventTypeEnum.EDS_DELETE);	
+				throw new EdsException("Error encountered while sending delete information to EDS client");
+			} else {
+				// Update transaction status
+				kafkaSRV.sendDeleteStatus(log.getTraceID(), MISSING_WORKFLOW_PLACEHOLDER, idDoc, edsResponse, EventStatusEnum.SUCCESS, token.getPayload(), EventTypeEnum.EDS_DELETE);	
+			} 
+			
 
 			// ==============================
 			// [3] Send delete request to INI
@@ -445,10 +454,11 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 				// Send to indexer
 				kafkaSRV.sendDeleteRequest(MISSING_WORKFLOW_PLACEHOLDER, deleteRequestDTO);
 				// Update transaction status
-				kafkaSRV.sendDeleteStatus(log.getTraceID(), MISSING_WORKFLOW_PLACEHOLDER, idDoc, "Transazione presa in carico", SUCCESS, token.getPayload());
+				kafkaSRV.sendDeleteStatus(log.getTraceID(), MISSING_WORKFLOW_PLACEHOLDER, idDoc, "Transazione presa in carico", SUCCESS, token.getPayload(),
+						EventTypeEnum.INI_DELETE);
 			} else {
 				// Update transaction status
-				kafkaSRV.sendDeleteStatus(log.getTraceID(), MISSING_WORKFLOW_PLACEHOLDER, idDoc, iniResponse, SUCCESS, token.getPayload());
+				kafkaSRV.sendDeleteStatus(log.getTraceID(), MISSING_WORKFLOW_PLACEHOLDER, idDoc, iniResponse, SUCCESS, token.getPayload(), EventTypeEnum.INI_DELETE);
 			}
 
 			logger.info(String.format("Deletion of CDA completed for document with identifier %s", idDoc), OperationLogEnum.DELETE_CDA2, ResultLogEnum.OK, startOperation, token.getPayload().getIss(), MISSING_DOC_TYPE_PLACEHOLDER, role, subjectFiscalCode);

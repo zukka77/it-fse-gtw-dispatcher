@@ -12,6 +12,7 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.PublicationCreationR
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.TSPublicationCreationReqDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.DestinationTypeEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventStatusEnum;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventTypeEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.PriorityTypeEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.TipoDocAltoLivEnum;
 
@@ -47,11 +48,10 @@ public interface IKafkaSRV extends Serializable {
 	void sendFeedingStatus(String traceId, String workflowInstanceId, EventStatusEnum eventStatus, String message, TSPublicationCreationReqDTO feedingReq, JWTPayloadDTO jwtClaimDTO);
 	
 	void sendReplaceStatus(String traceId,String workflowInstanceId, EventStatusEnum eventStatus, String message, PublicationCreationReqDTO publicationReq, JWTPayloadDTO jwtClaimDTO);
-	void sendDeleteStatus(String traceId, String workflowInstanceId, String idDoc, Object message, EventStatusEnum eventStatus, JWTPayloadDTO jwt);
+	void sendDeleteStatus(String traceId, String workflowInstanceId, String idDoc, Object o, EventStatusEnum eventStatus, JWTPayloadDTO jwt, EventTypeEnum eventType);
 	void sendDeleteRequest(String workflowInstanceId, Object request);
 	void sendLoggerStatus(String log);
 	
-	void sendFhirMappingStatus(String traceId,String workflowInstanceId, EventStatusEnum eventStatus,String message, PublicationCreationReqDTO publicationReq, JWTPayloadDTO jwtClaimDTO);
 	void sendUpdateStatus(String traceId, String workflowInstanceId, String idDoc, EventStatusEnum eventStatus, JWTPayloadDTO jwt, String message);
 
 	void sendUpdateRequest(String workflowInstanceId, Object request);
