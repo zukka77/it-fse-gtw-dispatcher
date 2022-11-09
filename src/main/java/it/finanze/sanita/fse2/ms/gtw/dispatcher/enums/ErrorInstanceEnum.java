@@ -26,7 +26,7 @@ public enum ErrorInstanceEnum {
 	FHIR_RESOURCE_ERROR("/fhir-resource", "Error creating fhir resource"),
 	NON_PDF_FILE("/multipart-file", "File type must be a PDF document"),
 	EMPTY_FILE("/empty-multipart-file", "File type must not be empty"),
-	OLDER_DAY("/msg/older-day", "Cannot publish documents older");
+	OLDER_DAY("/msg/max-day-limit-exceed", "Cannot publish documents older");
 	
 	private String instance;
 	private String description;

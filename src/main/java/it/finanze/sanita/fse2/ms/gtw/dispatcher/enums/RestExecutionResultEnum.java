@@ -31,7 +31,7 @@ public enum RestExecutionResultEnum {
 	GENERIC_ERROR("/msg/generic-error", "Errore generico.", ErrorLogEnum.KO_GENERIC, EventStatusEnum.BLOCKING_ERROR),
 	MISSING_TOKEN("msg/missing-token", "Token non fornito", ErrorLogEnum.KO_GENERIC,EventStatusEnum.BLOCKING_ERROR),
 	INI_EXCEPTION("msg/ini-error", "Ini error", ErrorLogEnum.KO_GENERIC,EventStatusEnum.BLOCKING_ERROR),
-	OLDER_DAY("/msg/older-day", "Error: cannot publish documents older.", ErrorLogEnum.KO_PUB,EventStatusEnum.BLOCKING_ERROR);
+	OLDER_DAY("/msg/max-day-limit-exceed", "Error: document exceeded the maximum period to be published", ErrorLogEnum.KO_PUB,EventStatusEnum.BLOCKING_ERROR);
 
 
 	private String type;
