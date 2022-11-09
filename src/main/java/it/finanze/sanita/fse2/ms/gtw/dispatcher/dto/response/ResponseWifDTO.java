@@ -5,11 +5,11 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class DeleteResDTO extends ResponseDTO {
+public class ResponseWifDTO extends ResponseDTO {
 
     private final String workflowInstanceId;
 
-    public DeleteResDTO(String workflowInstanceId, LogTraceInfoDTO info) {
+    public ResponseWifDTO(String workflowInstanceId, LogTraceInfoDTO info) {
         super(info);
         this.workflowInstanceId = workflowInstanceId;
     }

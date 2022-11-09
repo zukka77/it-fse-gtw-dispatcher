@@ -6,7 +6,7 @@ package it.finanze.sanita.fse2.ms.gtw.dispatcher.controller;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.constraints.Size;
 
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.DeleteResDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.ResponseWifDTO;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -84,7 +84,7 @@ public interface IPublicationCTL {
 			@ApiResponse(responseCode = "502", description = "Invalid response received from the API Implementation", content = @Content(mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE, schema = @Schema(implementation = ErrorResponseDTO.class))),
 			@ApiResponse(responseCode = "503", description = "Service unavailable", content = @Content(mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE, schema = @Schema(implementation = ErrorResponseDTO.class))),
 			@ApiResponse(responseCode = "504", description = "Endpoint request timed-out", content = @Content(mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE, schema = @Schema(implementation = ErrorResponseDTO.class)))})
-	ResponseEntity<ResponseDTO> updateMetadata(@Size(min = 1, max = 256)@PathVariable(value = "idDoc" , required = true) String idDoc, @RequestBody(required = true) PublicationMetadataReqDTO requestBody, HttpServletRequest request);
+	ResponseWifDTO updateMetadata(@Size(min = 1, max = 256)@PathVariable(value = "idDoc" , required = true) String idDoc, @RequestBody(required = true) PublicationMetadataReqDTO requestBody, HttpServletRequest request);
 
 	@PutMapping(value = "/documents/{idDoc}", produces = { MediaType.APPLICATION_JSON_VALUE }, consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
 	@ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = PublicationResDTO.class)))
@@ -128,6 +128,6 @@ public interface IPublicationCTL {
 			@ApiResponse(responseCode = "502", description = "Invalid response received from the API Implementation", content = @Content(mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE, schema = @Schema(implementation = ErrorResponseDTO.class))),
 			@ApiResponse(responseCode = "503", description = "Service unavailable", content = @Content(mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE, schema = @Schema(implementation = ErrorResponseDTO.class))),
 			@ApiResponse(responseCode = "504", description = "Endpoint request timed-out", content = @Content(mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE, schema = @Schema(implementation = ErrorResponseDTO.class)))})
-	DeleteResDTO delete(@Size(min = 1, max = 256)@PathVariable(value = "idDoc", required = true) String idDoc, HttpServletRequest request);
+	ResponseWifDTO delete(@Size(min = 1, max = 256)@PathVariable(value = "idDoc", required = true) String idDoc, HttpServletRequest request);
 	
 }

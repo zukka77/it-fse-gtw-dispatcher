@@ -198,11 +198,12 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 
 
 	@Override
-	public ResponseEntity<ResponseDTO> updateMetadata(final String idDoc, final PublicationMetadataReqDTO requestBody, final HttpServletRequest request) {
+	public ResponseWifDTO updateMetadata(final String idDoc, final PublicationMetadataReqDTO requestBody, final HttpServletRequest request) {
 
 		// Estrazione token
 		JWTTokenDTO jwtToken = null;
 		final Date startDateOperation = new Date();
+		String workflowInstanceId = createWorkflowInstanceId(idDoc);
 
 		String role = Constants.App.JWT_MISSING_SUBJECT_ROLE;
 		String subjectFiscalCode = Constants.App.JWT_MISSING_SUBJECT;
@@ -221,26 +222,26 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 
 			final GetMergedMetadatiDTO metadatiToUpdate = iniClient.getMergedMetadati(new MergedMetadatiRequestDTO(idDoc,jwtToken.getPayload(), jsonObj));
 			if(!StringUtility.isNullOrEmpty(metadatiToUpdate.getErrorMessage()) && !metadatiToUpdate.getErrorMessage().contains("Invalid region ip")) {
-				kafkaSRV.sendUpdateStatus(logTraceDTO.getTraceID(), MISSING_WORKFLOW_PLACEHOLDER, idDoc, BLOCKING_ERROR, jwtToken.getPayload(), metadatiToUpdate.getErrorMessage(), RIFERIMENTI_INI);
+				kafkaSRV.sendUpdateStatus(logTraceDTO.getTraceID(), workflowInstanceId, idDoc, BLOCKING_ERROR, jwtToken.getPayload(), metadatiToUpdate.getErrorMessage(), RIFERIMENTI_INI);
 				throw new IniException(metadatiToUpdate.getErrorMessage());
 			} else {
-				kafkaSRV.sendUpdateStatus(logTraceDTO.getTraceID(), MISSING_WORKFLOW_PLACEHOLDER, idDoc, SUCCESS, jwtToken.getPayload(), "Merge metadati effettuato correttamente", RIFERIMENTI_INI);
-				EdsResponseDTO edsResponse = edsClient.update(new EdsMetadataUpdateReqDTO(idDoc, null, jsonObj));
+				kafkaSRV.sendUpdateStatus(logTraceDTO.getTraceID(), workflowInstanceId, idDoc, SUCCESS, jwtToken.getPayload(), "Merge metadati effettuato correttamente", RIFERIMENTI_INI);
+				EdsResponseDTO edsResponse = edsClient.update(new EdsMetadataUpdateReqDTO(idDoc, workflowInstanceId, jsonObj));
 				if(Boolean.TRUE.equals(edsResponse.getEsito())) {
-					kafkaSRV.sendUpdateStatus(logTraceDTO.getTraceID(), MISSING_WORKFLOW_PLACEHOLDER, idDoc, SUCCESS, jwtToken.getPayload(), "Update EDS effettuato correttamente", EDS_UPDATE);
+					kafkaSRV.sendUpdateStatus(logTraceDTO.getTraceID(), workflowInstanceId, idDoc, SUCCESS, jwtToken.getPayload(), "Update EDS effettuato correttamente", EDS_UPDATE);
 					IniTraceResponseDTO res = iniClient.updateMetadati(new IniMetadataUpdateReqDTO(metadatiToUpdate.getMarshallResponse(), jwtToken.getPayload()));
 					// Check response errors
 					if(!StringUtility.isNullOrEmpty(res.getErrorMessage())) {
 						// Send to indexer
-						kafkaSRV.sendUpdateRequest(MISSING_WORKFLOW_PLACEHOLDER, new IniMetadataUpdateReqDTO(metadatiToUpdate.getMarshallResponse(), jwtToken.getPayload()));
-						kafkaSRV.sendUpdateStatus(logTraceDTO.getTraceID(), MISSING_WORKFLOW_PLACEHOLDER, idDoc, BLOCKING_ERROR, jwtToken.getPayload(), res.getErrorMessage(),
+						kafkaSRV.sendUpdateRequest(workflowInstanceId, new IniMetadataUpdateReqDTO(metadatiToUpdate.getMarshallResponse(), jwtToken.getPayload()));
+						kafkaSRV.sendUpdateStatus(logTraceDTO.getTraceID(), workflowInstanceId, idDoc, BLOCKING_ERROR, jwtToken.getPayload(), res.getErrorMessage(),
 								INI_UPDATE);
 					} else {
-						kafkaSRV.sendUpdateStatus(logTraceDTO.getTraceID(), MISSING_WORKFLOW_PLACEHOLDER, idDoc, SUCCESS, jwtToken.getPayload(), "Update ini effettuato correttamente",
+						kafkaSRV.sendUpdateStatus(logTraceDTO.getTraceID(), workflowInstanceId, idDoc, SUCCESS, jwtToken.getPayload(), "Update ini effettuato correttamente",
 								INI_UPDATE);
 					}
 				} else {
-					kafkaSRV.sendUpdateStatus(logTraceDTO.getTraceID(), MISSING_WORKFLOW_PLACEHOLDER, idDoc, BLOCKING_ERROR, jwtToken.getPayload(), "Update EDS fallito",
+					kafkaSRV.sendUpdateStatus(logTraceDTO.getTraceID(), workflowInstanceId, idDoc, BLOCKING_ERROR, jwtToken.getPayload(), "Update EDS fallito",
 							EDS_UPDATE);
 					throw new EdsException(edsResponse.getErrorMessage());
 				}
@@ -262,7 +263,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 			throw e;
 		}
 
-		return new ResponseEntity<>(new ResponseDTO(logTraceDTO), HttpStatus.OK);
+		return new ResponseWifDTO(workflowInstanceId, logTraceDTO);
 	}
 
 	private ValidationCreationInputDTO validateInput(final MultipartFile file, final HttpServletRequest request, final boolean isReplace,
@@ -358,7 +359,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 	}
 	
 	@Override
-	public DeleteResDTO delete(String idDoc, HttpServletRequest request) {
+	public ResponseWifDTO delete(String idDoc, HttpServletRequest request) {
 		// Create request tracking
 		LogTraceInfoDTO log = getLogTraceInfo();
 		String workflowInstanceId = createWorkflowInstanceId(idDoc);
@@ -450,7 +451,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 			throw e;
 		}
 		
-		return new DeleteResDTO(workflowInstanceId, log);
+		return new ResponseWifDTO(workflowInstanceId, log);
 	}
 	
 	private DeleteRequestDTO buildRequestForIni(final String identificativoDocumento, final String uuid, final JWTTokenDTO jwtTokenDTO) {
