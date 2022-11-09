@@ -357,7 +357,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 							.type(RestExecutionResultEnum.OLDER_DAY.getType())
 							.title(RestExecutionResultEnum.OLDER_DAY.getTitle())
 							.instance(ErrorInstanceEnum.OLDER_DAY.getInstance())
-							.detail("Error: cannot publish documents older than" + validationCFG.getDaysAllowToPublishAfterValidation() + " days").build();
+							.detail("Error: cannot publish documents older than " + validationCFG.getDaysAllowToPublishAfterValidation() + " days").build();
 					throw new ValidationException(error); 
 				} 
 				
