@@ -6,6 +6,7 @@ package it.finanze.sanita.fse2.ms.gtw.dispatcher.controller;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.constraints.Size;
 
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.DeleteResDTO;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -127,6 +128,6 @@ public interface IPublicationCTL {
 			@ApiResponse(responseCode = "502", description = "Invalid response received from the API Implementation", content = @Content(mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE, schema = @Schema(implementation = ErrorResponseDTO.class))),
 			@ApiResponse(responseCode = "503", description = "Service unavailable", content = @Content(mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE, schema = @Schema(implementation = ErrorResponseDTO.class))),
 			@ApiResponse(responseCode = "504", description = "Endpoint request timed-out", content = @Content(mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE, schema = @Schema(implementation = ErrorResponseDTO.class)))})
-	ResponseDTO delete(@Size(min = 1, max = 256)@PathVariable(value = "idDoc", required = true) String idDoc, HttpServletRequest request);
+	DeleteResDTO delete(@Size(min = 1, max = 256)@PathVariable(value = "idDoc", required = true) String idDoc, HttpServletRequest request);
 	
 }

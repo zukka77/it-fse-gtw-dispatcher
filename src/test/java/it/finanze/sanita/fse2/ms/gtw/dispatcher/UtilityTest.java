@@ -1,3 +1,6 @@
+/*
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
 package it.finanze.sanita.fse2.ms.gtw.dispatcher;
 
 
@@ -46,7 +49,6 @@ import lombok.extern.slf4j.Slf4j;
 /**
  * Junit class for utility methods.
  * 
- * @author Simone Lungarella
  */
 @Slf4j
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, properties = {"validation.allow-special-fiscal-code=true"})
