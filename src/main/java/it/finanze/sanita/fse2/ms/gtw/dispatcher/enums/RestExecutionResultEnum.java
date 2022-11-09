@@ -27,7 +27,7 @@ public enum RestExecutionResultEnum {
 	GENERIC_TIMEOUT("/msg/generic-timeout", "Generic timeout.", ErrorLogEnum.KO_TIMEOUT,EventStatusEnum.NON_BLOCKING_ERROR),
 	WORKFLOW_ID_ERROR("/msg/workflow-id-error-extraction", "Errore in fase di estrazione del workflow id.", ErrorLogEnum.KO_INVALID_DATA,EventStatusEnum.BLOCKING_ERROR),
 	RECORD_NOT_FOUND("msg/record-not-found", "Record non trovato.", ErrorLogEnum.KO_INVALID_DATA,EventStatusEnum.BLOCKING_ERROR),
-	SERVER_ERROR("msg/server-error", "Errore nella comunicazione con il client", ErrorLogEnum.KO_GENERIC,EventStatusEnum.BLOCKING_ERROR),
+	SERVER_ERROR("msg/server-error", "Errore nella comunicazione con INI", ErrorLogEnum.KO_GENERIC,EventStatusEnum.BLOCKING_ERROR),
 	GENERIC_ERROR("/msg/generic-error", "Errore generico.", ErrorLogEnum.KO_GENERIC, EventStatusEnum.BLOCKING_ERROR),
 	MISSING_TOKEN("msg/missing-token", "Token non fornito", ErrorLogEnum.KO_GENERIC,EventStatusEnum.BLOCKING_ERROR),
 	INI_EXCEPTION("msg/ini-error", "Ini error", ErrorLogEnum.KO_GENERIC,EventStatusEnum.BLOCKING_ERROR),
