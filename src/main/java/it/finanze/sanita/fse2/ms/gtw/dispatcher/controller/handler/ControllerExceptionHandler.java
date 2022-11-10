@@ -24,6 +24,7 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ErrorInstanceEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.RestExecutionResultEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.BusinessException;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.ConnectionRefusedException;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.EdsException;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.IniException;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.MockEnabledException;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.ValidationErrorException;
@@ -269,6 +270,26 @@ public class ControllerExceptionHandler extends ResponseEntityExceptionHandler {
 		Integer status = 404;
 
 		ErrorResponseDTO out = new ErrorResponseDTO(getLogTraceInfo(), RestExecutionResultEnum.RECORD_NOT_FOUND.getType(), RestExecutionResultEnum.RECORD_NOT_FOUND.getTitle(), ExceptionUtils.getMessage(ex), status, ErrorInstanceEnum.NO_INFO.getInstance());
+
+		HttpHeaders headers = new HttpHeaders();
+		headers.setContentType(MediaType.APPLICATION_PROBLEM_JSON);
+
+		return new ResponseEntity<>(out, headers, status);
+	}
+	
+	/**
+	 * Management record not found exception received by clients.
+	 * 
+	 * @param ex		exception
+	 * @param request	request
+	 * @return			
+	 */
+	@ExceptionHandler(value = {EdsException.class})
+	protected ResponseEntity<ErrorResponseDTO> handleEdsException(final EdsException ex, final WebRequest request) {
+		log.error("" , ex);  
+		Integer status = 404;
+
+		ErrorResponseDTO out = new ErrorResponseDTO(getLogTraceInfo(), RestExecutionResultEnum.EDS_EXCEPTION.getType(), RestExecutionResultEnum.EDS_EXCEPTION.getTitle(), ExceptionUtils.getMessage(ex), status, ErrorInstanceEnum.NO_INFO.getInstance());
 
 		HttpHeaders headers = new HttpHeaders();
 		headers.setContentType(MediaType.APPLICATION_PROBLEM_JSON);

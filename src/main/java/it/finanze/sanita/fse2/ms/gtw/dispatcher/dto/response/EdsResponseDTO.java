@@ -20,8 +20,10 @@ public class EdsResponseDTO extends AbstractDTO {
 	 */
 	private static final long serialVersionUID = 2016950510687587991L;
 
-	private Boolean esito;
-
-	private String errorMessage;
+	private boolean esito;
+	
+	private String exClassCanonicalName;
+	
+	private String messageError;
 
 }

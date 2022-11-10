@@ -146,7 +146,7 @@ class DeleteTest extends AbstractTest {
 		if (status.is2xxSuccessful()) {
 			EdsResponseDTO response = new EdsResponseDTO();
 			response.setEsito(status.is2xxSuccessful());
-			response.setErrorMessage(status.is2xxSuccessful() ? null : "Test error");
+			response.setMessageError(status.is2xxSuccessful() ? null : "Test error");
 			Mockito.doReturn(new ResponseEntity<>(response, status)).when(restTemplate)
 					.exchange(anyString(), eq(HttpMethod.DELETE), eq(null), ArgumentMatchers.eq(EdsResponseDTO.class));
 		} else if (status.is4xxClientError()) {

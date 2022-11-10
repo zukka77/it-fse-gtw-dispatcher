@@ -170,9 +170,9 @@ public class KafkaSRV implements IKafkaSRV {
 	}
 
 	@Override
-	public void sendDeleteStatus(String traceId, String workflowInstanceId, String idDoc, Object o, EventStatusEnum eventStatus, JWTPayloadDTO jwt,
+	public void sendDeleteStatus(String traceId, String workflowInstanceId, String idDoc, String message, EventStatusEnum eventStatus, JWTPayloadDTO jwt,
 			EventTypeEnum eventType) {
-		sendStatusMessage(traceId, workflowInstanceId, eventType, eventStatus, sendObjectAsJson(o), idDoc, jwt, AttivitaClinicaEnum.PHR);
+		sendStatusMessage(traceId, workflowInstanceId, eventType, eventStatus, message, idDoc, jwt, AttivitaClinicaEnum.PHR);
 	}
 
 	@Override
