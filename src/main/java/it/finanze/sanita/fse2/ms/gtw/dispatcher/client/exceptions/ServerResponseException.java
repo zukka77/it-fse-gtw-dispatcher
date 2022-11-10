@@ -16,11 +16,6 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 public class ServerResponseException extends RuntimeException {
-	
-	/**
-	 * Serial version uid.
-	 */
-	private static final long serialVersionUID = 1062386344600523308L;
 
 	private String target;
 	
@@ -31,21 +26,4 @@ public class ServerResponseException extends RuntimeException {
 	private int statusCode;
 	
 	private String detail;
-	
-	public ServerResponseException(ServerResponseException e) {
-		this.target = e.getTarget();
-		this.message = e.getMessage();
-		this.status = e.getStatus();
-		this.statusCode = e.getStatusCode();
-		this.detail = e.getDetail();
-	}
-	
-	/**
-	 * Message constructor.
-	 * 
-	 * @param msg	Message to be shown.
-	 */
-	public ServerResponseException(final String msg) {
-		message = msg;
-	}
 }

@@ -1,23 +1,29 @@
 /*
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
-package it.finanze.sanita.fse2.ms.gtw.dispatcher.client.impl;
+package it.finanze.sanita.fse2.ms.gtw.dispatcher.client.impl.base;
 
-import java.io.Serializable;
-
+import org.springframework.http.HttpStatus;
 import org.springframework.web.client.HttpStatusCodeException;
 
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.exceptions.ServerResponseException;
+import org.springframework.web.client.RestClientResponseException;
 
 /**
  * Abstract class for client implementations.
  */
-public abstract class AbstractClient implements Serializable {
+public abstract class AbstractClient {
 
-    /**
-     * Serial version UID.
-     */
-    private static final long serialVersionUID = 1L;
+	protected void toServerResponseEx(String identifier, RestClientResponseException ex, String endpoint) {
+		throw new ServerResponseException(
+			endpoint,
+			String.format("%s - Errore durante invocazione API %s", identifier, endpoint),
+			HttpStatus.valueOf(ex.getRawStatusCode()),
+			ex.getRawStatusCode(),
+			ex.getLocalizedMessage()
+		);
+
+	}
 
     /**
 	 * Error handler.

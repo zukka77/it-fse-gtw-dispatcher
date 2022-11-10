@@ -3,6 +3,7 @@
  */
 package it.finanze.sanita.fse2.ms.gtw.dispatcher.client.impl;
 
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.impl.base.AbstractClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
