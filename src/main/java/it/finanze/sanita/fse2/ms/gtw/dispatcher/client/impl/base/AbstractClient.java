@@ -14,9 +14,9 @@ import org.springframework.web.client.RestClientResponseException;
  */
 public abstract class AbstractClient {
 
-	protected void toServerResponseEx(String identifier, RestClientResponseException ex, String endpoint) {
+	protected void toServerResponseEx(String identifier, String microservice, RestClientResponseException ex, String endpoint) {
 		throw new ServerResponseException(
-			identifier,
+			microservice,
 			endpoint,
 			String.format("%s - Errore durante invocazione /%s", identifier, endpoint),
 			HttpStatus.valueOf(ex.getRawStatusCode()),
