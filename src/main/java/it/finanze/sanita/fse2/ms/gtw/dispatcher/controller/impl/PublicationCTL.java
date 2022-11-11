@@ -156,7 +156,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 				}
 				
 				IniReferenceRequestDTO iniReq = new IniReferenceRequestDTO(idDoc, validationInfo.getJwtToken().getPayload());
-				IniReferenceResponseDTO response = iniClient.getReference(iniReq);
+				IniReferenceResponseDTO response = iniClient.reference(iniReq);
 				
 				kafkaSRV.sendReplaceStatus(traceInfoDTO.getTraceID(), validationInfo.getValidationData().getWorkflowInstanceId(), SUCCESS, null, validationInfo.getJsonObj(), validationInfo.getJwtToken() != null ? validationInfo.getJwtToken().getPayload() : null);
 				
@@ -380,7 +380,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 			// ==============================
 			// [1] Retrieve reference from INI
 			// ==============================
-			IniReferenceResponseDTO iniReference = iniClient.getReference(new IniReferenceRequestDTO(idDoc, token.getPayload()));
+			IniReferenceResponseDTO iniReference = iniClient.reference(new IniReferenceRequestDTO(idDoc, token.getPayload()));
 			// Exit if necessary
 			if(!isNullOrEmpty(iniReference.getErrorMessage())) {
 				kafkaSRV.sendDeleteStatus(log.getTraceID(), workflowInstanceId, idDoc, iniReference.getErrorMessage(), BLOCKING_ERROR, token.getPayload(), RIFERIMENTI_INI);

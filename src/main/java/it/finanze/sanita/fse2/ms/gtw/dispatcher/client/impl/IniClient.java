@@ -53,14 +53,15 @@ public class IniClient extends AbstractClient implements IIniClient {
 	@Override
 	public IniTraceResponseDTO delete(final DeleteRequestDTO request) {
 
-		log.debug("{} - Executing request: {}", routes.identifier(), routes.delete());
-
+		String endpoint = routes.delete();
 		IniTraceResponseDTO output = null;
+
+		log.debug("{} - Executing request: {}", routes.identifier(), endpoint);
 
 		try {
 			// Execute request
 			ResponseEntity<IniTraceResponseDTO> response = client.exchange(
-				routes.delete(),
+				endpoint,
 				DELETE,
 				new HttpEntity<>(request),
 				IniTraceResponseDTO.class
@@ -68,14 +69,37 @@ public class IniClient extends AbstractClient implements IIniClient {
 			// Retrieve body
 			output = response.getBody();
 		} catch (RestClientResponseException ex) {
-			toServerResponseEx(routes.identifier(), ex, routes.delete());
+			toServerResponseEx(routes.identifier(), ex, endpoint);
 		}
-
-		if(output == null) log.debug("{} - Request failure: {}", routes.identifier(), routes.delete());
 
 		return output;
 	}
-	
+
+	@Override
+	public IniReferenceResponseDTO reference(IniReferenceRequestDTO request) {
+
+		String endpoint = routes.references(request.getIdDoc());
+		IniReferenceResponseDTO output = null;
+
+		log.debug("{} - Executing request: {}", routes.identifier(), endpoint);
+
+		try {
+			// Execute request
+			ResponseEntity<IniReferenceResponseDTO> response = client.exchange(
+				endpoint,
+				POST,
+				new HttpEntity<>(request.getToken()),
+				IniReferenceResponseDTO.class
+			);
+			// Retrieve body
+			output = response.getBody();
+		} catch (RestClientResponseException ex) {
+			toServerResponseEx(routes.identifier(), ex, endpoint);
+		}
+
+		return output;
+	}
+
 	@Override
 	public IniTraceResponseDTO updateMetadati(IniMetadataUpdateReqDTO iniReq) {
 		IniTraceResponseDTO out = null;
@@ -98,31 +122,6 @@ public class IniClient extends AbstractClient implements IIniClient {
 			errorHandler(e2, "/ini-update");
 		} catch (Exception e) {
 			log.error("Errore durante l'invocazione dell' API update(). ", e);
-			throw e;
-		}
-
-		return out;
-	}
-
-	@Override
-	public IniReferenceResponseDTO getReference(IniReferenceRequestDTO iniReq) {
-		IniReferenceResponseDTO out = null;
-		try {
-			log.debug("INI Client - Calling INI to retrieve reference :{}", iniReq.getIdDoc());
-
-			// Build headers.
-			HttpEntity<Object> entity = new HttpEntity<>(iniReq.getToken(), null);
-
-			// Build endpoint e call.
-			String endpoint = msUrlCFG.getIniClientHost() + Ini.REFERENCE_PATH.replace("{idDoc}", iniReq.getIdDoc());
-			ResponseEntity<IniReferenceResponseDTO> restExchange = client.exchange(endpoint, HttpMethod.POST, entity, IniReferenceResponseDTO.class);
-
-			// Gestione response
-			out = restExchange.getBody();
-		} catch (HttpStatusCodeException e2) {
-			errorHandler(e2, "/ini-reference");
-		} catch (Exception e) {
-			log.error("Errore durante l'invocazione dell' API reference(). ", e);
 			throw e;
 		}
 
