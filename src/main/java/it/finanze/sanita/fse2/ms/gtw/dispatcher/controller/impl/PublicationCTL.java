@@ -229,7 +229,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 				EdsResponseDTO edsResponse = edsClient.update(new EdsMetadataUpdateReqDTO(idDoc, workflowInstanceId, jsonObj));
 				if(edsResponse.isEsito()) {
 					kafkaSRV.sendUpdateStatus(logTraceDTO.getTraceID(), workflowInstanceId, idDoc, SUCCESS, jwtToken.getPayload(), "Update EDS effettuato correttamente", EDS_UPDATE);
-					IniTraceResponseDTO res = iniClient.updateMetadati(new IniMetadataUpdateReqDTO(metadatiToUpdate.getMarshallResponse(), jwtToken.getPayload()));
+					IniTraceResponseDTO res = iniClient.update(new IniMetadataUpdateReqDTO(metadatiToUpdate.getMarshallResponse(), jwtToken.getPayload()));
 					// Check response errors
 					if(!StringUtility.isNullOrEmpty(res.getErrorMessage())) {
 						// Send to indexer

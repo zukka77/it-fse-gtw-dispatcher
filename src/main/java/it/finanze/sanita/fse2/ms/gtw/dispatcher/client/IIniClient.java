@@ -17,7 +17,7 @@ public interface IIniClient extends Serializable {
 	
 	IniTraceResponseDTO delete(DeleteRequestDTO iniReq);
 	
-	IniTraceResponseDTO updateMetadati(IniMetadataUpdateReqDTO iniReq);
+	IniTraceResponseDTO update(IniMetadataUpdateReqDTO iniReq);
 
 	IniReferenceResponseDTO reference(IniReferenceRequestDTO iniReq);
 	

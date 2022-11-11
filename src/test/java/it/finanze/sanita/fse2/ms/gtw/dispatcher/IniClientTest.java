@@ -7,9 +7,7 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.exceptions.RecordNotFound
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.exceptions.ServerResponseException;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.impl.IniClient;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.JWTPayloadDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.IniMetadataUpdateReqDTO;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.PublicationMetadataReqDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.IniTraceResponseDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.INIErrorEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.BusinessException;
@@ -57,7 +55,7 @@ class IniClientTest {
     void updateConnectionRefusedErrorTest() {
         Mockito.doThrow(new ConnectionRefusedException("url", "Error: connection refused")).when(restTemplate)
                 .exchange(anyString(), eq(HttpMethod.PUT), any(HttpEntity.class), eq(IniTraceResponseDTO.class));
-        assertThrows(ConnectionRefusedException.class, () -> iniClient.updateMetadati(requestBody));
+        assertThrows(ConnectionRefusedException.class, () -> iniClient.update(requestBody));
     }
 
     @Test
@@ -68,7 +66,7 @@ class IniClientTest {
         responseMock.setErrorMessage(INIErrorEnum.RECORD_NOT_FOUND.name());
         Mockito.doReturn(new ResponseEntity<>(responseMock, HttpStatus.OK)).when(restTemplate)
                 .exchange(anyString(), eq(HttpMethod.PUT), any(HttpEntity.class), eq(IniTraceResponseDTO.class));
-        assertThrows(RecordNotFoundException.class, () -> iniClient.updateMetadati(requestBody));
+        assertThrows(RecordNotFoundException.class, () -> iniClient.update(requestBody));
     }
 
     @Test
@@ -78,7 +76,7 @@ class IniClientTest {
         responseMock.setEsito(false);
         Mockito.doReturn(new ResponseEntity<>(responseMock, HttpStatus.OK)).when(restTemplate)
                 .exchange(anyString(), eq(HttpMethod.PUT), any(HttpEntity.class), eq(IniTraceResponseDTO.class));
-        assertThrows(BusinessException.class, () -> iniClient.updateMetadati(requestBody));
+        assertThrows(BusinessException.class, () -> iniClient.update(requestBody));
     }
 
     @Test
@@ -88,7 +86,7 @@ class IniClientTest {
         responseMock.setEsito(false);
         Mockito.doThrow(new BusinessException("Error")).when(restTemplate)
                 .exchange(anyString(), eq(HttpMethod.PUT), any(HttpEntity.class), eq(IniTraceResponseDTO.class));
-        assertThrows(BusinessException.class, () -> iniClient.updateMetadati(requestBody));
+        assertThrows(BusinessException.class, () -> iniClient.update(requestBody));
     }
 
     @Test
@@ -103,7 +101,7 @@ class IniClientTest {
                     }
                 }).when(restTemplate)
                 .exchange(anyString(), eq(HttpMethod.PUT), any(HttpEntity.class), eq(IniTraceResponseDTO.class));
-        assertThrows(ServerResponseException.class, () -> iniClient.updateMetadati(requestBody));
+        assertThrows(ServerResponseException.class, () -> iniClient.update(requestBody));
     }
 
     @Test
@@ -113,7 +111,7 @@ class IniClientTest {
         responseMock.setEsito(true);
         Mockito.doReturn(new ResponseEntity<>(responseMock, HttpStatus.OK)).when(restTemplate)
                 .exchange(anyString(), eq(HttpMethod.PUT), any(HttpEntity.class), eq(IniTraceResponseDTO.class));
-        IniTraceResponseDTO responseDTO = iniClient.updateMetadati(requestBody);
+        IniTraceResponseDTO responseDTO = iniClient.update(requestBody);
         assertEquals(responseDTO, responseMock);
     }
 
@@ -124,7 +122,7 @@ class IniClientTest {
         responseMock.setEsito(true);
         Mockito.doReturn(new ResponseEntity<>(responseMock, HttpStatus.BAD_GATEWAY)).when(restTemplate)
                 .exchange(anyString(), eq(HttpMethod.PUT), any(HttpEntity.class), eq(IniTraceResponseDTO.class));
-        assertNull(iniClient.updateMetadati(requestBody).getErrorMessage());
+        assertNull(iniClient.update(requestBody).getErrorMessage());
     }
 
     @Test
@@ -132,6 +130,6 @@ class IniClientTest {
     void updateRecordHttpBodyNullTest() {
         Mockito.doReturn(new ResponseEntity<>(null, HttpStatus.BAD_GATEWAY)).when(restTemplate)
                 .exchange(anyString(), eq(HttpMethod.PUT), any(HttpEntity.class), eq(IniTraceResponseDTO.class));
-        assertNull(iniClient.updateMetadati(requestBody));
+        assertNull(iniClient.update(requestBody));
     }
 }
