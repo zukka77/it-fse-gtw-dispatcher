@@ -164,8 +164,8 @@ public class ControllerExceptionHandler extends ResponseEntityExceptionHandler {
 
 		ErrorResponseDTO out = new ErrorResponseDTO(
 			getLogTraceInfo(),
-			RestExecutionResultEnum.SERVER_ERROR.getType(),
-			RestExecutionResultEnum.SERVER_ERROR.getTitle(),
+			RestExecutionResultEnum.SERVICE_ERROR.getType(),
+			RestExecutionResultEnum.SERVICE_ERROR.getTitle(),
 			ex.getDetail(),
 			ex.getStatusCode(),
 			ErrorInstanceEnum.NO_INFO.getInstance()
