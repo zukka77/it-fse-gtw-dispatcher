@@ -155,15 +155,21 @@ public class ControllerExceptionHandler extends ResponseEntityExceptionHandler {
 	 * Management generic server response exception.
 	 * 
 	 * @param ex		exception
-	 * @param request	request
-	 * @return			
+	 * @return
 	 */
 	@ExceptionHandler(value = {ServerResponseException.class})
-	protected ResponseEntity<ErrorResponseDTO> handleServerException(final ServerResponseException ex, final WebRequest request) {
-		log.error("" , ex);  
+	protected ResponseEntity<ErrorResponseDTO> handleServerResponseException(ServerResponseException ex) {
+		log.error("handleServerResponseException()" , ex);
 		int status = ex.getStatusCode();
 
-		ErrorResponseDTO out = new ErrorResponseDTO(getLogTraceInfo(), RestExecutionResultEnum.SERVER_ERROR.getType(), RestExecutionResultEnum.SERVER_ERROR.getTitle(), ExceptionUtils.getMessage(ex), status, ErrorInstanceEnum.NO_INFO.getInstance());
+		ErrorResponseDTO out = new ErrorResponseDTO(
+			getLogTraceInfo(),
+			RestExecutionResultEnum.SERVER_ERROR.getType(),
+			RestExecutionResultEnum.SERVER_ERROR.getTitle(),
+			ex.getDetail(),
+			ex.getStatusCode(),
+			ErrorInstanceEnum.NO_INFO.getInstance()
+		);
 
 		HttpHeaders headers = new HttpHeaders();
 		headers.setContentType(MediaType.APPLICATION_PROBLEM_JSON);

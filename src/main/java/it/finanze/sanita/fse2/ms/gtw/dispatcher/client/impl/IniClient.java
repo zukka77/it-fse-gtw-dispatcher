@@ -6,6 +6,7 @@ package it.finanze.sanita.fse2.ms.gtw.dispatcher.client.impl;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.IIniClient;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.impl.base.AbstractClient;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.routes.IniClientRoutes;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.routes.base.ClientRoutes;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.DeleteRequestDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.IniMetadataUpdateReqDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.IniReferenceRequestDTO;
@@ -21,6 +22,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.client.RestTemplate;
 
+import static it.finanze.sanita.fse2.ms.gtw.dispatcher.client.routes.base.ClientRoutes.*;
+import static it.finanze.sanita.fse2.ms.gtw.dispatcher.client.routes.base.ClientRoutes.Ini.*;
 import static org.springframework.http.HttpMethod.*;
 
 @Slf4j
@@ -52,7 +55,7 @@ public class IniClient extends AbstractClient implements IIniClient {
 			// Retrieve body
 			output = response.getBody();
 		} catch (RestClientResponseException ex) {
-			toServerResponseEx(routes.identifier(), ex, endpoint);
+			toServerResponseEx(routes.identifier(), ex, DELETE_PATH);
 		}
 
 		return output;
@@ -77,7 +80,7 @@ public class IniClient extends AbstractClient implements IIniClient {
 			// Retrieve body
 			output = response.getBody();
 		} catch (RestClientResponseException ex) {
-			toServerResponseEx(routes.identifier(), ex, endpoint);
+			toServerResponseEx(routes.identifier(), ex, REFERENCE_PATH);
 		}
 
 		return output;
@@ -102,7 +105,7 @@ public class IniClient extends AbstractClient implements IIniClient {
 			// Retrieve body
 			output = response.getBody();
 		} catch (RestClientResponseException ex) {
-			toServerResponseEx(routes.identifier(), ex, endpoint);
+			toServerResponseEx(routes.identifier(), ex, UPDATE_PATH);
 		}
 
 		return output;
@@ -127,7 +130,7 @@ public class IniClient extends AbstractClient implements IIniClient {
 			// Retrieve body
 			output = response.getBody();
 		} catch (RestClientResponseException ex) {
-			toServerResponseEx(routes.identifier(), ex, endpoint);
+			toServerResponseEx(routes.identifier(), ex, METADATA_PATH);
 		}
 
 		return output;

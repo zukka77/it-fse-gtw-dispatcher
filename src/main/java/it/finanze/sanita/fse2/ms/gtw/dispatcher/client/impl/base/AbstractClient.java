@@ -17,10 +17,10 @@ public abstract class AbstractClient {
 	protected void toServerResponseEx(String identifier, RestClientResponseException ex, String endpoint) {
 		throw new ServerResponseException(
 			endpoint,
-			String.format("%s - Errore durante invocazione API %s", identifier, endpoint),
+			String.format("%s - Errore durante invocazione /%s", identifier, endpoint),
 			HttpStatus.valueOf(ex.getRawStatusCode()),
 			ex.getRawStatusCode(),
-			ex.getLocalizedMessage()
+			ex.getResponseBodyAsString()
 		);
 
 	}
