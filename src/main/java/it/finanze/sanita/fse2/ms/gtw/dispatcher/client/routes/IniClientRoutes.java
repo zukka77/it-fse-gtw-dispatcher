@@ -33,4 +33,8 @@ public final class IniClientRoutes {
         return base().pathSegment(API_VERSION, REFERENCE_PATH, ID_DOC_PATH_PARAM).build(id).toString();
     }
 
+    public String metadata() {
+        return base().pathSegment(API_VERSION, METADATA_PATH).build().toUriString();
+    }
+
 }

@@ -21,6 +21,6 @@ public interface IIniClient extends Serializable {
 
 	IniReferenceResponseDTO reference(IniReferenceRequestDTO iniReq);
 	
-	GetMergedMetadatiDTO getMergedMetadati(MergedMetadatiRequestDTO iniReq);
+	GetMergedMetadatiDTO metadata(MergedMetadatiRequestDTO iniReq);
 
 }
