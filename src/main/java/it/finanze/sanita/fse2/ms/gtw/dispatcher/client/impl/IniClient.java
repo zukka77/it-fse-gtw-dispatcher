@@ -67,8 +67,7 @@ public class IniClient extends AbstractClient implements IIniClient {
 			);
 			// Retrieve body
 			output = response.getBody();
-		}
-		catch (RestClientResponseException ex) {
+		} catch (RestClientResponseException ex) {
 			toServerResponseEx(routes.identifier(), ex, routes.delete());
 		}
 
