@@ -6,6 +6,7 @@ public final class ClientRoutes {
 
         private Ini() {}
         // COMMON
+        public static final String IDENTIFIER_MS = "ini";
         public static final String IDENTIFIER = "[INI]";
         // PATH PARAMS
         public static final String ID_DOC_PATH_PARAM = "{id}";

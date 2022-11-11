@@ -68,7 +68,7 @@ public class ConfigClient extends AbstractClient implements IConfigClient {
                 throw new BusinessException("The Config Client has returned an error");
             }
         } catch (HttpStatusCodeException clientException) {
-            errorHandler(clientException, "/config/whois");
+            errorHandler("config", clientException, "/config/whois");
         } catch (Exception e) {
             log.error("Error encountered while retrieving Gateway name", e);
             throw e;

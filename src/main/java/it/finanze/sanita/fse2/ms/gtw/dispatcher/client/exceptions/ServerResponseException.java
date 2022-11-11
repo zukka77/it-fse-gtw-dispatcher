@@ -17,6 +17,7 @@ import lombok.Setter;
 @AllArgsConstructor
 public class ServerResponseException extends RuntimeException {
 
+	private String microservice;
 	private String target;
 	
 	private String message;

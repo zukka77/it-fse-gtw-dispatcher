@@ -53,7 +53,7 @@ public class EdsClient extends AbstractClient implements IEdsClient {
 			}
 			log.debug("EDS Client - Deletion operation executed successfully");
 		} catch (HttpStatusCodeException e1) {
-			errorHandler(e1, "/delete");
+			errorHandler("eds", e1, "/delete");
 		} catch (Exception e) {
 			log.error("Errore durante l'invocazione di EDS dell' API delete(). ", e);
 			throw new BusinessException("Errore durante l'invocazione di EDS dell' API delete(). ", e);
@@ -82,7 +82,7 @@ public class EdsClient extends AbstractClient implements IEdsClient {
 			}
 			log.debug("EDS Client - Update operation executed successfully");
 		} catch (HttpStatusCodeException e1) {
-			errorHandler(e1, "/update");
+			errorHandler("eds", e1, "/update");
 		} catch (Exception e) {
 			log.error("Errore durante l'invocazione di EDS dell' API update(). ", e);
 			throw new BusinessException("Errore durante l'invocazione di EDS dell' API update(). ", e);

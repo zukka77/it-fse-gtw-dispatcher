@@ -55,7 +55,7 @@ public class IniClient extends AbstractClient implements IIniClient {
 			// Retrieve body
 			output = response.getBody();
 		} catch (RestClientResponseException ex) {
-			toServerResponseEx(routes.identifier(), ex, DELETE_PATH);
+			toServerResponseEx(routes.microservice(), ex, DELETE_PATH);
 		}
 
 		return output;
@@ -80,7 +80,7 @@ public class IniClient extends AbstractClient implements IIniClient {
 			// Retrieve body
 			output = response.getBody();
 		} catch (RestClientResponseException ex) {
-			toServerResponseEx(routes.identifier(), ex, REFERENCE_PATH);
+			toServerResponseEx(routes.microservice(), ex, REFERENCE_PATH);
 		}
 
 		return output;
@@ -105,7 +105,7 @@ public class IniClient extends AbstractClient implements IIniClient {
 			// Retrieve body
 			output = response.getBody();
 		} catch (RestClientResponseException ex) {
-			toServerResponseEx(routes.identifier(), ex, UPDATE_PATH);
+			toServerResponseEx(routes.microservice(), ex, UPDATE_PATH);
 		}
 
 		return output;
@@ -130,7 +130,7 @@ public class IniClient extends AbstractClient implements IIniClient {
 			// Retrieve body
 			output = response.getBody();
 		} catch (RestClientResponseException ex) {
-			toServerResponseEx(routes.identifier(), ex, METADATA_PATH);
+			toServerResponseEx(routes.microservice(), ex, METADATA_PATH);
 		}
 
 		return output;

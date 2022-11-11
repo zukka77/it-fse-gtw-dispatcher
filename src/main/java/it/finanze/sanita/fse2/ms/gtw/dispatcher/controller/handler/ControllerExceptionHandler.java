@@ -168,7 +168,7 @@ public class ControllerExceptionHandler extends ResponseEntityExceptionHandler {
 			RestExecutionResultEnum.SERVICE_ERROR.getTitle(),
 			ex.getDetail(),
 			ex.getStatusCode(),
-			ErrorInstanceEnum.NO_INFO.getInstance()
+			String.format("%s/%s", RestExecutionResultEnum.SERVICE_ERROR.getType(), ex.getMicroservice())
 		);
 
 		HttpHeaders headers = new HttpHeaders();

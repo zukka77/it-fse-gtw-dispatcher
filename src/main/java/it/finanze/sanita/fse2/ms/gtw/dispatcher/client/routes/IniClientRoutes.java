@@ -21,6 +21,10 @@ public final class IniClientRoutes {
         return IDENTIFIER;
     }
 
+    public String microservice() {
+        return IDENTIFIER_MS;
+    }
+
     public String delete() {
         return base().pathSegment(API_VERSION, DELETE_PATH).build().toUriString();
     }
