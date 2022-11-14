@@ -21,8 +21,4 @@ public class CDACFG {
 	@Value("${cda.attachment.name}")
 	private String cdaAttachmentName;
 
-	/** 
-     *  CDA validation ttl.
-     */
-	
 }

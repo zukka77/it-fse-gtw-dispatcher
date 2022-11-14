@@ -15,8 +15,6 @@ import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 import brave.Tracer;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.exceptions.RecordNotFoundException;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.exceptions.ServerResponseException;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.ErrorResponseDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.LogTraceInfoDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.ValidationErrorResponseDTO;
@@ -157,46 +155,46 @@ public class ControllerExceptionHandler extends ResponseEntityExceptionHandler {
 	 * @param ex		exception
 	 * @return
 	 */
-	@ExceptionHandler(value = {ServerResponseException.class})
-	protected ResponseEntity<ErrorResponseDTO> handleServerResponseException(ServerResponseException ex) {
-		log.error("handleServerResponseException()" , ex);
-		int status = ex.getStatusCode();
+//	@ExceptionHandler(value = {ServerResponseException.class})
+//	protected ResponseEntity<ErrorResponseDTO> handleServerResponseException(ServerResponseException ex) {
+//		log.error("handleServerResponseException()" , ex);
+//		int status = ex.getStatusCode();
+//
+//		ErrorResponseDTO out = new ErrorResponseDTO(
+//			getLogTraceInfo(),
+//			RestExecutionResultEnum.SERVICE_ERROR.getType(),
+//			RestExecutionResultEnum.SERVICE_ERROR.getTitle(),
+//			ex.getDetail(),
+//			ex.getStatusCode(),
+//			String.format("%s/%s", RestExecutionResultEnum.SERVICE_ERROR.getType(), ex.getMicroservice())
+//		);
+//
+//		HttpHeaders headers = new HttpHeaders();
+//		headers.setContentType(MediaType.APPLICATION_PROBLEM_JSON);
+//
+//		return new ResponseEntity<>(out, headers, status);
+//	}
 
-		ErrorResponseDTO out = new ErrorResponseDTO(
-			getLogTraceInfo(),
-			RestExecutionResultEnum.SERVICE_ERROR.getType(),
-			RestExecutionResultEnum.SERVICE_ERROR.getTitle(),
-			ex.getDetail(),
-			ex.getStatusCode(),
-			String.format("%s/%s", RestExecutionResultEnum.SERVICE_ERROR.getType(), ex.getMicroservice())
-		);
 
-		HttpHeaders headers = new HttpHeaders();
-		headers.setContentType(MediaType.APPLICATION_PROBLEM_JSON);
-
-		return new ResponseEntity<>(out, headers, status);
-	}
-
-
-	/**
-	 * Management record not found exception received by clients.
-	 * 
-	 * @param ex		exception
-	 * @param request	request
-	 * @return			
-	 */
-	@ExceptionHandler(value = {RecordNotFoundException.class})
-	protected ResponseEntity<ErrorResponseDTO> handleRecordNotFoundException(final RecordNotFoundException ex, final WebRequest request) {
-		log.error("" , ex);  
-		Integer status = 404;
-
-		ErrorResponseDTO out = new ErrorResponseDTO(getLogTraceInfo(), RestExecutionResultEnum.RECORD_NOT_FOUND.getType(), RestExecutionResultEnum.RECORD_NOT_FOUND.getTitle(), ExceptionUtils.getMessage(ex), status, ErrorInstanceEnum.NO_INFO.getInstance());
-
-		HttpHeaders headers = new HttpHeaders();
-		headers.setContentType(MediaType.APPLICATION_PROBLEM_JSON);
-
-		return new ResponseEntity<>(out, headers, status);
-	}
+//	/**
+//	 * Management record not found exception received by clients.
+//	 * 
+//	 * @param ex		exception
+//	 * @param request	request
+//	 * @return			
+//	 */
+//	@ExceptionHandler(value = {RecordNotFoundException.class})
+//	protected ResponseEntity<ErrorResponseDTO> handleRecordNotFoundException(final RecordNotFoundException ex, final WebRequest request) {
+//		log.error("" , ex);  
+//		Integer status = 404;
+//
+//		ErrorResponseDTO out = new ErrorResponseDTO(getLogTraceInfo(), RestExecutionResultEnum.RECORD_NOT_FOUND.getType(), RestExecutionResultEnum.RECORD_NOT_FOUND.getTitle(), ExceptionUtils.getMessage(ex), status, ErrorInstanceEnum.NO_INFO.getInstance());
+//
+//		HttpHeaders headers = new HttpHeaders();
+//		headers.setContentType(MediaType.APPLICATION_PROBLEM_JSON);
+//
+//		return new ResponseEntity<>(out, headers, status);
+//	}
 
 
 

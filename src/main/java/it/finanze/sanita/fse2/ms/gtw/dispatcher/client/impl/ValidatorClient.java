@@ -30,13 +30,9 @@ import lombok.extern.slf4j.Slf4j;
 @Component
 public class ValidatorClient extends AbstractClient implements IValidatorClient {
 
-    /**
-	 * Serial version uid.
-	 */
-	private static final long serialVersionUID = -5382557368894888319L;
 
 	@Autowired
-    private transient RestTemplate restTemplate;
+    private RestTemplate restTemplate;
 	
 	@Autowired
 	private MicroservicesURLCFG msUrlCFG;
