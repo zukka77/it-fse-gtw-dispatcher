@@ -5,9 +5,9 @@ package it.finanze.sanita.fse2.ms.gtw.dispatcher.client.impl.base;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.client.HttpStatusCodeException;
-
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.exceptions.ServerResponseException;
 import org.springframework.web.client.RestClientResponseException;
+
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.ServerResponseException;
 
 /**
  * Abstract class for client implementations.

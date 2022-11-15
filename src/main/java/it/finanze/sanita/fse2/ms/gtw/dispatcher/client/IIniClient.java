@@ -3,8 +3,6 @@
  */
 package it.finanze.sanita.fse2.ms.gtw.dispatcher.client;
 
-import java.io.Serializable;
-
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.DeleteRequestDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.IniMetadataUpdateReqDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.IniReferenceRequestDTO;
@@ -13,7 +11,7 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.GetMergedMetadatiDT
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.IniReferenceResponseDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.IniTraceResponseDTO;
 
-public interface IIniClient extends Serializable {
+public interface IIniClient {
 	
 	IniTraceResponseDTO delete(DeleteRequestDTO iniReq);
 	

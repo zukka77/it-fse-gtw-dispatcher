@@ -26,7 +26,6 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestTemplate;
 
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.exceptions.ServerResponseException;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.impl.EdsClient;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.EdsMetadataUpdateReqDTO;
@@ -34,6 +33,7 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.PublicationMetadataR
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.EdsResponseDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.BusinessException;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.ConnectionRefusedException;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.ServerResponseException;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ComponentScan(basePackages = {Constants.ComponentScan.BASE})
