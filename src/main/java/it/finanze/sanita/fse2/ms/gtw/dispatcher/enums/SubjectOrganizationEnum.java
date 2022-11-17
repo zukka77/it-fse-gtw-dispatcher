@@ -3,6 +3,8 @@
  */
 package it.finanze.sanita.fse2.ms.gtw.dispatcher.enums;
 
+import lombok.Getter;
+
 public enum SubjectOrganizationEnum {
 
 	REGIONE_PIEMONTE("010", "Regione Piemonte"),
@@ -30,20 +32,14 @@ public enum SubjectOrganizationEnum {
 	SASN("001", "SASN"),
 	MDS("999", "MDS");
 
-	private String code;
-	private String display;
+	@Getter
+	private final String code;
+	@Getter
+	private final String display;
 
-	private SubjectOrganizationEnum(String inCode, String inDisplay) {
+	SubjectOrganizationEnum(String inCode, String inDisplay) {
 		code = inCode;
 		display = inDisplay;
-	}
-
-	public String getCode() {
-		return code;
-	}
-	
-	public String getDisplay() {
-		return display;
 	}
 
 	public static SubjectOrganizationEnum getCode(String inCode) {

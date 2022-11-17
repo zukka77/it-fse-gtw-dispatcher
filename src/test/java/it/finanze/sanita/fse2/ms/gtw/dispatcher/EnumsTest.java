@@ -24,17 +24,8 @@ class EnumsTest {
     void testAssettoOrgEnums() {
         String code = "AD_PSC001";
         String description = "Allergologia";
-        assertEquals(code, AssettoOrgEnum.ALLERGOLOGIA.getCode());
-        assertEquals(description, AssettoOrgEnum.ALLERGOLOGIA.getDescription());
-    }
-
-    @Test
-    @DisplayName("CurrentApplicationLogEnum test")
-    void testCurrentApplicationLogEnums() {
-        String code = "gtw-dispatcher";
-        String description = "Gateway FSE - Dispatcher";
-        assertEquals(code, CurrentApplicationLogEnum.DISPATCHER.getCode());
-        assertEquals(description, CurrentApplicationLogEnum.DISPATCHER.getDescription());
+        assertEquals(code, PracticeSettingCodeEnum.AD_PSC001.getCode());
+        assertEquals(description, PracticeSettingCodeEnum.AD_PSC001.getDescription());
     }
 
     @Test
@@ -47,37 +38,12 @@ class EnumsTest {
     }
 
     @Test
-    @DisplayName("IniConfidentialityCodeEnum test")
-    void testIniConfidentialityCodeEnums() {
-        String code = "N";
-        String description = "Normal";
-        assertEquals(code, IniConfidentialityCodeEnum.NORMAL.getCode());
-        assertEquals(description, IniConfidentialityCodeEnum.NORMAL.getDescription());
-    }
-
-    @Test
-    @DisplayName("IniMimeTypeEnum test")
-    void testIniMimeTypeEnums() {
-        String code = "text/x-cda-r2+xml";
-        assertEquals(code, IniMimeTypeEnum.CDA.getCode());
-    }
-
-    @Test
-    @DisplayName("OperationalContextEnum test")
-    void testOperationalContextEnum() {
-        String code = "ADMINISTRATIVE";
-        String description = "Operazioni amministrative";
-        assertEquals(code, OperationalContextEnum.ADMINISTRATIVE.getCode());
-        assertEquals(description, OperationalContextEnum.ADMINISTRATIVE.getDescription());
-    }
-
-    @Test
     @DisplayName("RegionCodeEnum test")
     void testRegionCodeEnums() {
         String code = "160";
         String description = "Regione Puglia";
-        assertEquals(code, RegionCodeEnum.PUGLIA.getCode());
-        assertEquals(description, RegionCodeEnum.PUGLIA.getDescription());
+        assertEquals(code, SubjectOrganizationEnum.REGIONE_PUGLIA.getCode());
+        assertEquals(description, SubjectOrganizationEnum.REGIONE_PUGLIA.getDisplay());
     }
 
     @Test
@@ -85,8 +51,8 @@ class EnumsTest {
     void testRoleEnums() {
         String code = "DSA";
         String description = "Direttore sanitario";
-        assertEquals(code, RoleEnum.DIRETTORE_SANITARIO.getCode());
-        assertEquals(description, RoleEnum.DIRETTORE_SANITARIO.getDescription());
+        assertEquals(code, RoleEnum.DSA.getCode());
+        assertEquals(description, RoleEnum.DSA.getDescription());
     }
 
     @Test

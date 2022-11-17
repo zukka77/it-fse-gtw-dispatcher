@@ -3,12 +3,14 @@
  */
 package it.finanze.sanita.fse2.ms.gtw.dispatcher;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.GetMergedMetadatiDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.IniException;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.ValidationException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatchers;
@@ -31,6 +33,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
@@ -42,10 +45,11 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.PublicationMetadataR
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.EdsResponseDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.IniTraceResponseDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.ResponseDTO;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.INIErrorEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.BusinessException;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility;
 import lombok.extern.slf4j.Slf4j;
+
+import java.util.Collections;
 
 @Slf4j
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -63,7 +67,17 @@ class UpdateTest extends AbstractTest {
 	@SpyBean
 	RestTemplate restTemplate;
 
-	private static final String TEST_REQUEST_BODY = "{\"tipologiaStruttura\":\"Ospedale\",\"attiCliniciRegoleAccesso\":[\"string\"],\"tipoDocumentoLivAlto\":\"WOR\",\"assettoOrganizzativo\":\"AD_PSC001\",\"dataInizioPrestazione\":\"string\",\"dataFinePrestazione\":\"string\",\"conservazioneANorma\":\"string\",\"tipoAttivitaClinica\":\"PHR\",\"identificativoSottomissione\":\"string\"}";
+	private static final String TEST_REQUEST_BODY = "{\"tipologiaStruttura\":\"Ospedale\",\"attiCliniciRegoleAccesso\":[\"P99\"],\"tipoDocumentoLivAlto\":\"WOR\",\"assettoOrganizzativo\":\"AD_PSC001\",\"dataInizioPrestazione\":\"string\",\"dataFinePrestazione\":\"string\",\"conservazioneANorma\":\"string\",\"tipoAttivitaClinica\":\"PHR\",\"identificativoSottomissione\":\"string\"}";
+
+	@Test
+	@DisplayName("Update of a document")
+	void givenAnInvalidValueShouldThrowValidationException() throws Exception {
+		final String idDocument = StringUtility.generateUUID();
+		mockEdsClient(HttpStatus.OK);
+		mockIniClient(HttpStatus.OK, true);
+		ResponseEntity<ResponseDTO> responseDTO = callUpdate(idDocument, true);
+		assertEquals(HttpStatus.BAD_REQUEST, responseDTO.getStatusCode());
+	}
 
 	@Test
 	@DisplayName("Update of a document")
@@ -73,7 +87,7 @@ class UpdateTest extends AbstractTest {
 		mockEdsClient(HttpStatus.OK);
 		mockIniClient(HttpStatus.OK, true);
 
-		final ResponseEntity<ResponseDTO> response = callUpdate(idDocument);
+		final ResponseEntity<ResponseDTO> response = callUpdate(idDocument, false);
 		final ResponseDTO body = response.getBody();
 
 		assertNotNull(body, "A response body should have been returned");
@@ -88,7 +102,7 @@ class UpdateTest extends AbstractTest {
 
 		mockIniClient(HttpStatus.NOT_FOUND, false);
 		mockEdsClient(HttpStatus.OK);
-		ResponseEntity<ResponseDTO> response = callUpdate(idDocument);
+		ResponseEntity<ResponseDTO> response = callUpdate(idDocument, false);
 		assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
 	}
 
@@ -99,8 +113,8 @@ class UpdateTest extends AbstractTest {
 
 		mockIniClient(HttpStatus.BAD_REQUEST, false);
 		mockEdsClient(HttpStatus.OK);
-		ResponseEntity<ResponseDTO> response = callUpdate(idDocument);
-		assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+		ResponseEntity<ResponseDTO> response = callUpdate(idDocument, false);
+		assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
 	}
 
 	@Test
@@ -111,36 +125,26 @@ class UpdateTest extends AbstractTest {
 
 		mockIniClient(HttpStatus.OK, true);
 		mockEdsClient(HttpStatus.INTERNAL_SERVER_ERROR);
-		ResponseEntity<ResponseDTO> response = callUpdate(idDocument);
+		ResponseEntity<ResponseDTO> response = callUpdate(idDocument, false);
 		assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
 	}
 
 	void mockIniClient(final HttpStatus status, boolean esito) {
 		log.info("Mocking INI client");
-
+		GetMergedMetadatiDTO response = new GetMergedMetadatiDTO();
 		if (status.is2xxSuccessful() && esito) {
-			IniTraceResponseDTO response = new IniTraceResponseDTO();
-			response.setSpanID(StringUtility.generateUUID());
-			response.setTraceID(StringUtility.generateUUID());
-			response.setEsito(true);
+			response.setMarshallResponse("response");
 			response.setErrorMessage(null);
-			Mockito.doReturn(new ResponseEntity<>(response, status)).when(restTemplate).exchange(anyString(), eq(HttpMethod.PUT), any(HttpEntity.class), ArgumentMatchers.eq(IniTraceResponseDTO.class));
+			Mockito.doReturn(new ResponseEntity<>(response, status)).when(restTemplate).exchange(anyString(), eq(HttpMethod.PUT), any(HttpEntity.class), ArgumentMatchers.eq(GetMergedMetadatiDTO.class));
 		} else if (status.equals(HttpStatus.NOT_FOUND) && !esito) {
-			IniTraceResponseDTO response = new IniTraceResponseDTO();
-			response.setSpanID(StringUtility.generateUUID());
-			response.setTraceID(StringUtility.generateUUID());
-			response.setEsito(false);
-			response.setErrorMessage(INIErrorEnum.RECORD_NOT_FOUND.toString());
-			Mockito.doReturn(new ResponseEntity<>(response, HttpStatus.OK)).when(restTemplate).exchange(anyString(), eq(HttpMethod.PUT), any(HttpEntity.class), ArgumentMatchers.eq(IniTraceResponseDTO.class));
+			response.setMarshallResponse(null);
+			response.setErrorMessage("Record not found");
+			Mockito.doReturn(new ResponseEntity<>(response, HttpStatus.OK)).when(restTemplate).exchange(anyString(), eq(HttpMethod.PUT), any(HttpEntity.class), ArgumentMatchers.eq(GetMergedMetadatiDTO.class));
 		} else if (status.equals(HttpStatus.BAD_REQUEST) && !esito) {
-			IniTraceResponseDTO response = new IniTraceResponseDTO();
-			response.setSpanID(StringUtility.generateUUID());
-			response.setTraceID(StringUtility.generateUUID());
-			response.setEsito(false);
 			response.setErrorMessage("Generic error from INI");
-			Mockito.doReturn(new ResponseEntity<>(response, HttpStatus.OK)).when(restTemplate).exchange(anyString(), eq(HttpMethod.PUT), any(HttpEntity.class), ArgumentMatchers.eq(IniTraceResponseDTO.class));
+			Mockito.doReturn(new ResponseEntity<>(response, HttpStatus.OK)).when(restTemplate).exchange(anyString(), eq(HttpMethod.PUT), any(HttpEntity.class), ArgumentMatchers.eq(GetMergedMetadatiDTO.class));
 		} else if (status.is4xxClientError()) {
-			Mockito.doThrow(new RestClientException("")).when(restTemplate).exchange(anyString(), eq(HttpMethod.PUT), any(HttpEntity.class), ArgumentMatchers.eq(IniTraceResponseDTO.class));
+			Mockito.doThrow(new RestClientException("")).when(restTemplate).exchange(anyString(), eq(HttpMethod.PUT), any(HttpEntity.class), ArgumentMatchers.eq(GetMergedMetadatiDTO.class));
 		} else {
 			Mockito.doThrow(new BusinessException("")).when(restTemplate).exchange(anyString(), eq(HttpMethod.PUT), any(HttpEntity.class), ArgumentMatchers.eq(IniTraceResponseDTO.class));
 		}
@@ -165,13 +169,16 @@ class UpdateTest extends AbstractTest {
 		}
 	}
 
-	ResponseEntity<ResponseDTO> callUpdate(final String documentId) throws Exception {
+	ResponseEntity<ResponseDTO> callUpdate(final String documentId, boolean validationException) throws Exception {
 		HttpHeaders headers = new HttpHeaders();
 		headers.setContentType(MediaType.APPLICATION_JSON);
 		headers.set(Constants.Headers.JWT_HEADER, generateJwt(null, false));
 
 		ObjectMapper objectMapper = new ObjectMapper();
 		PublicationMetadataReqDTO document = new Gson().fromJson(TEST_REQUEST_BODY, PublicationMetadataReqDTO.class);
+		if (validationException) {
+			document.setAttiCliniciRegoleAccesso(Collections.singletonList("invalid value"));
+		}
 		MockHttpServletRequestBuilder builder =
 				MockMvcRequestBuilders.put("http://localhost:" +
 					webServerAppCtxt.getWebServer().getPort() + webServerAppCtxt.getServletContext().getContextPath() +

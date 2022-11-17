@@ -17,7 +17,9 @@ public enum TipoDocAltoLivEnum {
 	PDC("PDC","Piano di cura"),
 	VAC("VAC","Vaccino"),
 	CER("CER","Certificato per DGC"),
-	VRB("VRB","Verbale");
+	VRB("VRB","Verbale"),
+	CON("CON", "Documento di consenso"),
+	CNT("CNT", "Documento di controllo");
 
 	private String code;
 	private String description;

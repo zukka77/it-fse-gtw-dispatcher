@@ -19,7 +19,6 @@ public class DocumentEntryDTO {
 	private Integer size;
 	private String status;
 	private String languageCode;
-
 	private String patientId;
 	private String confidentialityCode;
 	private String confidentialityCodeDisplayName;
@@ -34,7 +33,6 @@ public class DocumentEntryDTO {
 	private String representedOrganizationCode;
 	private String uniqueId;
 	private List<String> referenceIdList;
-
 	private String healthcareFacilityTypeCode;
 	private String healthcareFacilityTypeCodeName;
 	private List<String> eventCodeList;

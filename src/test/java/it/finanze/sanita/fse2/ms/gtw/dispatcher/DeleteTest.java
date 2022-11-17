@@ -9,6 +9,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.IniReferenceResponseDTO;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatchers;
@@ -34,7 +35,6 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.EdsResponseDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.IniTraceResponseDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.ResponseDTO;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.INIErrorEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.BusinessException;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility;
 import lombok.extern.slf4j.Slf4j;
@@ -110,31 +110,41 @@ class DeleteTest extends AbstractTest {
 
 	void mockIniClient(final HttpStatus status, boolean esito) {
 		log.info("Mocking INI client");
-
+		IniTraceResponseDTO response = new IniTraceResponseDTO();
+		IniReferenceResponseDTO referenceResponse = new IniReferenceResponseDTO();
 		if (status.is2xxSuccessful() && esito) {
-			IniTraceResponseDTO response = new IniTraceResponseDTO();
 			response.setSpanID(StringUtility.generateUUID());
 			response.setTraceID(StringUtility.generateUUID());
 			response.setEsito(true);
 			response.setErrorMessage(null);
+			referenceResponse.setSpanID(StringUtility.generateUUID());
+			referenceResponse.setTraceID(StringUtility.generateUUID());
+			referenceResponse.setErrorMessage(null);
+			referenceResponse.setUuid(StringUtility.generateUUID());
+			Mockito.doReturn(new ResponseEntity<>(referenceResponse, status)).when(restTemplate).exchange(anyString(), eq(HttpMethod.POST), any(HttpEntity.class), ArgumentMatchers.eq(IniReferenceResponseDTO.class));
 			Mockito.doReturn(new ResponseEntity<>(response, status)).when(restTemplate).exchange(anyString(), eq(HttpMethod.DELETE), any(HttpEntity.class), ArgumentMatchers.eq(IniTraceResponseDTO.class));
 		} else if (status.equals(HttpStatus.NOT_FOUND) && !esito) {
-			IniTraceResponseDTO response = new IniTraceResponseDTO();
-			response.setSpanID(StringUtility.generateUUID());
-			response.setTraceID(StringUtility.generateUUID());
-			response.setEsito(false);
-			response.setErrorMessage(INIErrorEnum.RECORD_NOT_FOUND.toString());
-			Mockito.doReturn(new ResponseEntity<>(response, HttpStatus.OK)).when(restTemplate).exchange(anyString(), eq(HttpMethod.DELETE), any(HttpEntity.class), ArgumentMatchers.eq(IniTraceResponseDTO.class));
+			referenceResponse.setSpanID(StringUtility.generateUUID());
+			referenceResponse.setTraceID(StringUtility.generateUUID());
+			referenceResponse.setErrorMessage("Not found on INI");
+			referenceResponse.setUuid(null);
+			Mockito.doReturn(new ResponseEntity<>(referenceResponse, HttpStatus.OK)).when(restTemplate).exchange(anyString(), eq(HttpMethod.POST), any(HttpEntity.class), ArgumentMatchers.eq(IniReferenceResponseDTO.class));
 		} else if (status.equals(HttpStatus.BAD_REQUEST) && !esito) {
-			IniTraceResponseDTO response = new IniTraceResponseDTO();
+			referenceResponse.setSpanID(StringUtility.generateUUID());
+			referenceResponse.setTraceID(StringUtility.generateUUID());
+			referenceResponse.setErrorMessage(null);
+			referenceResponse.setUuid(StringUtility.generateUUID());
 			response.setSpanID(StringUtility.generateUUID());
 			response.setTraceID(StringUtility.generateUUID());
 			response.setEsito(false);
 			response.setErrorMessage("Generic error from INI");
+			Mockito.doReturn(new ResponseEntity<>(response, HttpStatus.OK)).when(restTemplate).exchange(anyString(), eq(HttpMethod.POST), any(HttpEntity.class), ArgumentMatchers.eq(IniReferenceResponseDTO.class));
 			Mockito.doReturn(new ResponseEntity<>(response, HttpStatus.OK)).when(restTemplate).exchange(anyString(), eq(HttpMethod.DELETE), any(HttpEntity.class), ArgumentMatchers.eq(IniTraceResponseDTO.class));
 		} else if (status.is4xxClientError()) {
+			Mockito.doThrow(new RestClientException("")).when(restTemplate).exchange(anyString(), eq(HttpMethod.POST), any(HttpEntity.class), ArgumentMatchers.eq(IniReferenceResponseDTO.class));
 			Mockito.doThrow(new RestClientException("")).when(restTemplate).exchange(anyString(), eq(HttpMethod.DELETE), any(HttpEntity.class), ArgumentMatchers.eq(IniTraceResponseDTO.class));
 		} else {
+			Mockito.doThrow(new BusinessException("")).when(restTemplate).exchange(anyString(), eq(HttpMethod.POST), any(HttpEntity.class), ArgumentMatchers.eq(IniReferenceResponseDTO.class));
 			Mockito.doThrow(new BusinessException("")).when(restTemplate).exchange(anyString(), eq(HttpMethod.DELETE), any(HttpEntity.class), ArgumentMatchers.eq(IniTraceResponseDTO.class));
 		}
 	}

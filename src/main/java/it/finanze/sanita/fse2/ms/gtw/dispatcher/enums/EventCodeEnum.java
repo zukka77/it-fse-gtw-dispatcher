@@ -14,7 +14,10 @@ public enum EventCodeEnum {
 	_96118_5("96118-5", "Test Sierologico qualitativo"),
 	_94503_0("94503-0", "Test Sierologico quantitativo"),
 	pay("pay", "Prescrizione farmaceutica non a carico SSN"),
-	PUBLICPOL("PUBLICPOL", "Prescrizione farmaceutica SSN");
+	PUBLICPOL("PUBLICPOL", "Prescrizione farmaceutica SSN"),
+	LP267463_0("LP267463-0", "Reddito"),
+	LP199190_2("LP199190-2", "Patologia"),
+	_90768_3("90768-3", "Analisi sangue donatore");
 
 	@Getter
 	private String code;
