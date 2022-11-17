@@ -64,14 +64,10 @@ public final class CdaUtility {
 	public static String getDocumentType(final Document cdaDocument) {
 		String docType = Constants.App.MISSING_DOC_TYPE_PLACEHOLDER;
 		if (cdaDocument != null) {
-			final String templateIdRoot = cdaDocument.select("templateid").get(0).attr("root");
-			String extractedDocType = null;
-			if (DocumentTypeEnum.getByTemplateId(templateIdRoot) != null) {
-				extractedDocType = DocumentTypeEnum.getByTemplateId(templateIdRoot).getDocumentType();
-			}
-
-			if (!isNullOrEmpty(extractedDocType)) {
-				docType = extractedDocType;
+			final String code = cdaDocument.select("code").get(0).attr("code");
+			DocumentTypeEnum extractedDocType = DocumentTypeEnum.getByCode(code);
+			if (extractedDocType != null) {
+				docType = extractedDocType.getDocumentType();
 			}
 		}
 		

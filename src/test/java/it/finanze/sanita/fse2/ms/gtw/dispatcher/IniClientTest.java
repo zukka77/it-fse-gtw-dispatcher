@@ -10,9 +10,13 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.GetMergedMetadatiDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.IniReferenceResponseDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -63,10 +67,10 @@ class IniClientTest {
     @DisplayName("Update - updateRecordGenericErrorTest")
     void updateRecordGenericErrorTest() {
         IniTraceResponseDTO responseMock = new IniTraceResponseDTO();
-        responseMock.setEsito(false);
-        Mockito.doReturn(new ResponseEntity<>(responseMock, HttpStatus.OK)).when(restTemplate)
-                .exchange(anyString(), eq(HttpMethod.PUT), any(HttpEntity.class), eq(IniTraceResponseDTO.class));
-        assertThrows(BusinessException.class, () -> iniClient.update(requestBody));
+        responseMock.setErrorMessage("Failed to update on INI");
+        Mockito.doReturn(new ResponseEntity<>(responseMock, HttpStatus.OK))
+                .when(restTemplate).exchange(anyString(), eq(HttpMethod.PUT), any(HttpEntity.class), ArgumentMatchers.eq(IniTraceResponseDTO.class));
+        assertEquals("Failed to update on INI", iniClient.update(requestBody).getErrorMessage());
     }
 
     @Test

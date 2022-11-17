@@ -12,6 +12,7 @@ import java.util.Map;
 import javax.annotation.Nullable;
 import javax.servlet.http.HttpServletRequest;
 
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.PublicationMetadataReqDTO;
 import org.jsoup.Jsoup;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.CollectionUtils;
@@ -141,6 +142,23 @@ public abstract class AbstractCTL implements Serializable {
         return out;
     }
 
+	protected PublicationMetadataReqDTO getAndValidateUpdateMetadataReq(final String jsonREQ) {
+
+		final PublicationMetadataReqDTO out = StringUtility.fromJSONJackson(jsonREQ, PublicationMetadataReqDTO.class);
+		final String errorMsg = checkUpdateMandatoryElements(out);
+
+		if (errorMsg != null) {
+			final ErrorResponseDTO error = ErrorResponseDTO.builder()
+					.type(RestExecutionResultEnum.MANDATORY_ELEMENT_ERROR.getType())
+					.title(RestExecutionResultEnum.MANDATORY_ELEMENT_ERROR.getTitle())
+					.instance(ErrorInstanceEnum.MISSING_MANDATORY_ELEMENT.getInstance())
+					.detail(errorMsg).build();
+			throw new ValidationException(error);
+		}
+
+		return out;
+	}
+
 	protected void validateTSPublicationReq(final TSPublicationCreationReqDTO jsonObj) {
         
 		String errorMsg = checkTSPublicationMandatoryElements(jsonObj);
@@ -229,6 +247,18 @@ public abstract class AbstractCTL implements Serializable {
     	}
     	return out;
     }
+
+	protected String checkUpdateMandatoryElements(final PublicationMetadataReqDTO jsonObj) {
+		String out = null;
+		if (jsonObj.getAttiCliniciRegoleAccesso() != null) {
+			for (String attoClinico : jsonObj.getAttiCliniciRegoleAccesso()) {
+				if (EventCodeEnum.fromValue(attoClinico)==null) {
+					out = "Il campo atti clinici " + attoClinico + " non è consentito";
+				}
+			}
+		}
+		return out;
+	}
 
 	protected JWTTokenDTO extractFromReqJWT(HttpServletRequest req) {
 		// Define header to extract

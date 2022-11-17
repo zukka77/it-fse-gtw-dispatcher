@@ -218,7 +218,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 
 			role = jwtToken.getPayload().getSubject_role();
 			subjectFiscalCode = CfUtility.extractFiscalCodeFromJwtSub(jwtToken.getPayload().getSub());
-			PublicationMetadataReqDTO jsonObj = StringUtility.fromJSONJackson(request.getParameter("requestBody"), PublicationMetadataReqDTO.class);
+			PublicationMetadataReqDTO jsonObj = getAndValidateUpdateMetadataReq(request.getParameter("requestBody"));
 
 			final GetMergedMetadatiDTO metadatiToUpdate = iniClient.metadata(new MergedMetadatiRequestDTO(idDoc,jwtToken.getPayload(), jsonObj));
 			if(!StringUtility.isNullOrEmpty(metadatiToUpdate.getErrorMessage()) && !metadatiToUpdate.getErrorMessage().contains("Invalid region ip")) {
