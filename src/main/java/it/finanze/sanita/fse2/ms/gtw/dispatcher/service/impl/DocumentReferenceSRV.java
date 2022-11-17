@@ -112,7 +112,7 @@ public class DocumentReferenceSRV implements IDocumentReferenceSRV {
 			documentReferenceDTO.setTipoDocumentoLivAlto(requestBody.getTipoDocumentoLivAlto().getCode());
 			documentReferenceDTO.setRepositoryUniqueID(requestBody.getIdentificativoRep());
 			documentReferenceDTO.setServiceStartTime(requestBody.getDataInizioPrestazione());
-			documentReferenceDTO.setServiceStopTime(requestBody.getDataInizioPrestazione());
+			documentReferenceDTO.setServiceStopTime(requestBody.getDataFinePrestazione());
 			documentReferenceDTO.setIdentificativoDoc(requestBody.getIdentificativoDoc());
 		} catch(final Exception ex) {
 			log.error(ERROR_MSG , ex);
