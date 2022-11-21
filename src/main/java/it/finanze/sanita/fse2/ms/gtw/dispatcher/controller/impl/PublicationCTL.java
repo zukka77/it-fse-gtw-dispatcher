@@ -393,16 +393,18 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 			// [2] Send delete request to EDS
 			// ==============================
 			EdsResponseDTO edsResponse = edsClient.delete(idDoc);
-			// Exit if necessary
-			if (!isTestEnv && (edsResponse == null || !edsResponse.isEsito())) {
-				// Update transaction status
-				kafkaSRV.sendDeleteStatus(log.getTraceID(), workflowInstanceId, idDoc, edsResponse.getMessageError(), BLOCKING_ERROR, token.getPayload(), EDS_DELETE);
-				throw new EdsException("Error encountered while sending delete information to EDS client");
+			// Exit if necessary						
+			if(edsResponse!=null) {
+				if (!isTestEnv && !edsResponse.isEsito()) {
+					// Update transaction status
+					kafkaSRV.sendDeleteStatus(log.getTraceID(), workflowInstanceId, idDoc, edsResponse.getMessageError(), BLOCKING_ERROR, token.getPayload(), EDS_DELETE);
+					throw new EdsException("Error encountered while sending delete information to EDS client");
 			} else {
 				// Update transaction status
 				kafkaSRV.sendDeleteStatus(log.getTraceID(), workflowInstanceId, idDoc, "Delete effettuata su eds", SUCCESS, token.getPayload(), EDS_DELETE);
 			} 
-			
+				throw new NullPointerException("PublicationCTL returned an error - edsResponse is null!");
+			}			
 
 			// ==============================
 			// [3] Send delete request to INI

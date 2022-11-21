@@ -61,12 +61,18 @@ public class ConfigClient extends AbstractClient implements IConfigClient {
             final ResponseEntity<WhoIsResponseDTO> response = restTemplate.getForEntity(endpoint,
                     WhoIsResponseDTO.class);
 
-            if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
-                gatewayName = response.getBody().getGatewayName();
+            WhoIsResponseDTO body = response.getBody();
+            
+            if(body!=null) {
+            	if (response.getStatusCode().is2xxSuccessful()) {
+                    gatewayName = body.getGatewayName();
+                } else {
+                    log.error("Config Client - Error calling Config Client to get Gateway Name");
+                    throw new BusinessException("The Config Client has returned an error");
+                }
             } else {
-                log.error("Config Client - Error calling Config Client to get Gateway Name");
-                throw new BusinessException("The Config Client has returned an error");
-            }
+            	throw new NullPointerException("The Config Client has returned an error - Body is null!");
+            }            
         } catch (HttpStatusCodeException clientException) {
             errorHandler("config", clientException, "/config/whois");
         } catch (Exception e) {

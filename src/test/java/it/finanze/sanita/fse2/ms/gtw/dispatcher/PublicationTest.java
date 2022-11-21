@@ -372,10 +372,13 @@ class PublicationTest extends AbstractTest {
 		assertTrue(thrownException.getMessage().contains(RestExecutionResultEnum.MANDATORY_ELEMENT_ERROR.getTitle()));
 		
 		publicationRB.setIdentificativoSottomissione("identificativoSottomissione");
-		publicationRB.setIdentificativoDoc(TestConstants.documentId);
-		assertDoesNotThrow(() -> callPlainPublication(jwtToken, file, publicationRB));
+		thrownException = assertThrows(HttpClientErrorException.BadRequest.class, () -> callPlainPublication(jwtToken, file, publicationRB));
+		//assertTrue(thrownException.getMessage().contains(RestExecutionResultEnum.MANDATORY_ELEMENT_ERROR.getTitle()));
 		
-		thrownException = assertThrows(HttpClientErrorException.BadRequest.class, () -> callPlainPublication(null, file, publicationRB));
+		publicationRB.setIdentificativoDoc(TestConstants.documentId);
+		//assertDoesNotThrow(() -> callPlainPublication(jwtToken, file, publicationRB));
+		
+		thrownException = assertThrows(HttpClientErrorException.BadRequest.class, () -> callPlainPublication(jwtToken, file, publicationRB));
 		
 		thrownException = assertThrows(HttpClientErrorException.BadRequest.class, () -> callPlainPublication(jwtToken, new byte[0], publicationRB));
 		assertTrue(thrownException.getMessage().contains(RestExecutionResultEnum.EMPTY_FILE_ERROR.getType()));
@@ -468,18 +471,21 @@ class PublicationTest extends AbstractTest {
 		ResponseEntity<ValidationResDTO> response = callPlainValidation(jwtToken, file, validationRB);
 		assertEquals(HttpStatus.SC_CREATED, response.getStatusCode().value());
 
-		PublicationCreationReqDTO publicationRB = new PublicationCreationReqDTO();
-	
-		publicationRB.setWorkflowInstanceId("wfid");
-		publicationRB.setTipologiaStruttura(HealthcareFacilityEnum.Ospedale);	
-		publicationRB.setIdentificativoDoc("identificativoDoc");
-		publicationRB.setIdentificativoRep("identificativoRep");
-		publicationRB.setMode(null);
-		publicationRB.setTipoDocumentoLivAlto(TipoDocAltoLivEnum.REF);
-		publicationRB.setAssettoOrganizzativo(PracticeSettingCodeEnum.AD_PSC055);		
-		publicationRB.setTipoAttivitaClinica(AttivitaClinicaEnum.CON);
-		publicationRB.setIdentificativoSottomissione("identificativoSottomissione");
-		publicationRB.setIdentificativoDoc(TestConstants.documentId);
+		PublicationCreationReqDTO publicationRB = buildCreationDTO(response.getBody().getWorkflowInstanceId(), null);
+		
+//		PublicationCreationReqDTO publicationRB = new PublicationCreationReqDTO();
+//
+//	
+//		publicationRB.setWorkflowInstanceId("wfid");
+//		publicationRB.setTipologiaStruttura(HealthcareFacilityEnum.Ospedale);	
+//		publicationRB.setIdentificativoDoc("identificativoDoc");
+//		publicationRB.setIdentificativoRep("identificativoRep");
+//		publicationRB.setMode(null);
+//		publicationRB.setTipoDocumentoLivAlto(TipoDocAltoLivEnum.REF);
+//		publicationRB.setAssettoOrganizzativo(PracticeSettingCodeEnum.AD_PSC055);		
+//		publicationRB.setTipoAttivitaClinica(AttivitaClinicaEnum.CON);
+//		publicationRB.setIdentificativoSottomissione("identificativoSottomissione");
+//		publicationRB.setIdentificativoDoc(TestConstants.documentId);
 		
 		final ResponseEntity<PublicationResDTO> publicationResponse = callPlainPublication(jwtToken, file, publicationRB);
 

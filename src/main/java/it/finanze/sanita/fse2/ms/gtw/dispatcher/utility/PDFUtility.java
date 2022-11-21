@@ -132,7 +132,10 @@ public class PDFUtility {
 		Charset detectedCharset = StandardCharsets.UTF_8;
 		try {
 			
-			final XMLStreamReader xmlStreamReader = XMLInputFactory.newInstance().createXMLStreamReader(new ByteArrayInputStream(bytes)); 
+			XMLInputFactory factory = XMLInputFactory.newInstance();
+			factory.setProperty(XMLInputFactory.IS_SUPPORTING_EXTERNAL_ENTITIES, Boolean.FALSE);
+			factory.setProperty(XMLInputFactory.SUPPORT_DTD, Boolean.FALSE);
+			final XMLStreamReader xmlStreamReader = factory.createXMLStreamReader(new ByteArrayInputStream(bytes)); 
 			final String fileEncoding = xmlStreamReader.getEncoding(); 
 			detectedCharset = Charset.forName(fileEncoding);
 
