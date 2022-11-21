@@ -71,7 +71,7 @@ public class ConfigClient extends AbstractClient implements IConfigClient {
                     throw new BusinessException("The Config Client has returned an error");
                 }
             } else {
-            	throw new NullPointerException("The Config Client has returned an error - Body is null!");
+            	throw new BusinessException("The Config Client has returned an error - The body is null");
             }            
         } catch (HttpStatusCodeException clientException) {
             errorHandler("config", clientException, "/config/whois");
