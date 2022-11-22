@@ -9,7 +9,6 @@ import lombok.Getter;
 /**
  * Accepted document types defined by the affinity domain: {@link http://www.hl7italia.it/hl7italia_D7/node/2359}.
  * 
- * @author Simone Lungarella
  */
 @Getter
 @AllArgsConstructor
