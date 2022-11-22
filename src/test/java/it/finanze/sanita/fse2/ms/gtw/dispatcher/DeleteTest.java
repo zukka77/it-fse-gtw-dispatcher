@@ -59,12 +59,10 @@ class DeleteTest extends AbstractTest {
 		mockEdsClient(HttpStatus.OK);
 		mockIniClient(HttpStatus.OK, true);
 
-		final ResponseEntity<ResponseDTO> response = callDelete(idDocument);
-		final ResponseDTO body = response.getBody();
+		final ResponseEntity<EdsResponseDTO> response = callDelete(idDocument);
+		final EdsResponseDTO body = response.getBody();
 
 		assertNotNull(body, "A response body should have been returned");
-		assertNotNull(body.getSpanID(), "A span ID should have been returned");
-		assertNotNull(body.getTraceID(), "A trace ID should have been returned");
 	}
 
 	@Test
@@ -168,7 +166,7 @@ class DeleteTest extends AbstractTest {
 		}
 	}
 
-	ResponseEntity<ResponseDTO> callDelete(final String documentId) {
+	ResponseEntity<EdsResponseDTO> callDelete(final String documentId) {
 		HttpHeaders headers = new HttpHeaders();
 		headers.setContentType(MediaType.APPLICATION_JSON);
 		headers.set(Constants.Headers.JWT_HEADER, generateJwt(null, false));
@@ -176,7 +174,7 @@ class DeleteTest extends AbstractTest {
 		final String urlReplace = "http://localhost:" + webServerAppCtxt.getWebServer().getPort() + webServerAppCtxt.getServletContext().getContextPath() + "/v1/documents/" + documentId;
 
 		HttpEntity<?> requestEntity = new HttpEntity<>(null, headers);
-		return restTemplate.exchange(urlReplace, HttpMethod.DELETE, requestEntity, ResponseDTO.class);
+		return restTemplate.exchange(urlReplace, HttpMethod.DELETE, null, EdsResponseDTO.class);
 	}
 
 }
