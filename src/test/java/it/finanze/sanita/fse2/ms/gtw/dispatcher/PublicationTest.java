@@ -363,37 +363,27 @@ class PublicationTest extends AbstractTest {
 		thrownException = assertThrows(HttpClientErrorException.BadRequest.class, () -> callPlainPublication(jwtToken, file, publicationRB));
 		assertTrue(thrownException.getMessage().contains(RestExecutionResultEnum.MANDATORY_ELEMENT_ERROR.getTitle()));
 	
-		publicationRB.setAssettoOrganizzativo(PracticeSettingCodeEnum.AD_PSC055);
-		thrownException = assertThrows(HttpClientErrorException.BadRequest.class, () -> callPlainPublication(jwtToken, file, publicationRB));
-		assertTrue(thrownException.getMessage().contains(RestExecutionResultEnum.MANDATORY_ELEMENT_ERROR.getTitle()));
-	
 		publicationRB.setTipoAttivitaClinica(AttivitaClinicaEnum.CON);
 		thrownException = assertThrows(HttpClientErrorException.BadRequest.class, () -> callPlainPublication(jwtToken, file, publicationRB));
 		assertTrue(thrownException.getMessage().contains(RestExecutionResultEnum.MANDATORY_ELEMENT_ERROR.getTitle()));
 		
 		publicationRB.setIdentificativoSottomissione("identificativoSottomissione");
 		thrownException = assertThrows(HttpClientErrorException.BadRequest.class, () -> callPlainPublication(jwtToken, file, publicationRB));
-		//assertTrue(thrownException.getMessage().contains(RestExecutionResultEnum.MANDATORY_ELEMENT_ERROR.getTitle()));
 		
 		publicationRB.setIdentificativoDoc(TestConstants.documentId);
-		//assertDoesNotThrow(() -> callPlainPublication(jwtToken, file, publicationRB));
-		
 		thrownException = assertThrows(HttpClientErrorException.BadRequest.class, () -> callPlainPublication(jwtToken, file, publicationRB));
 		
 		thrownException = assertThrows(HttpClientErrorException.BadRequest.class, () -> callPlainPublication(jwtToken, new byte[0], publicationRB));
 		assertTrue(thrownException.getMessage().contains(RestExecutionResultEnum.EMPTY_FILE_ERROR.getType()));
 	
-		publicationRB.setWorkflowInstanceId("NON EXISTING");
 		thrownException = assertThrows(HttpClientErrorException.BadRequest.class, () -> callPlainPublication(jwtToken, file, publicationRB));
 		log.info(ExceptionUtils.getStackTrace(thrownException));
 
-		publicationRB.setWorkflowInstanceId("wfid");
-		final String jwtWrongHashToken = generateWrongJwt("randomHash", false, false, false);
-		ResponseEntity<ValidationResDTO> responseValidation = callPlainValidation(jwtWrongHashToken, file, validationRB);
-		assertEquals(HttpStatus.SC_CREATED, responseValidation.getStatusCode().value());
-		publicationRB.setWorkflowInstanceId("wfid");
-		thrownException = assertThrows(HttpClientErrorException.BadRequest.class, () -> callPlainPublication(jwtWrongHashToken, file, publicationRB));
-		assertTrue(thrownException.getMessage().contains(RestExecutionResultEnum.DOCUMENT_HASH_VALIDATION_ERROR.getType()));
+		thrownException = assertThrows(HttpClientErrorException.Forbidden.class, () -> callPlainValidation("AAA", file, validationRB));
+		publicationRB.setWorkflowInstanceId("NON EXISTING");
+		thrownException = assertThrows(HttpClientErrorException.Forbidden.class, () -> callPlainPublication("AAA", file, publicationRB));
+		System.out.print(thrownException.getMessage().toString());
+		assertTrue(thrownException.getMessage().contains("Token JWT non valido"));
 	}
 	
 	
@@ -559,19 +549,10 @@ class PublicationTest extends AbstractTest {
 		final byte[] pdfAttachment = FileUtility.getFileFromInternalResources("Files/attachment/CDA_OK_SIGNED.pdf");
 		final ValidationInfoDTO info = new ValidationInfoDTO(RawValidationEnum.OK, new ArrayList<>(), "", "");
 		given(validatorClient.validate(anyString())).willReturn(info); // Mocking validation
-
-		final Map<String, RestExecutionResultEnum> res = callValidation(ActivityEnum.VALIDATION, HealthDataFormatEnum.CDA, InjectionModeEnum.ATTACHMENT, pdfAttachment, true, true, true);
-		final Optional<String> firstKey = res.keySet().stream().findFirst();
-
-		String transactionId = "";
-		if (firstKey.isPresent()) {
-			transactionId = firstKey.get();
-		}
-
-		/*cdaRepo.create(ValidatedDocumentsETY.setContent("6XpKL8W/lQjXvnZ24wFNts5itL07id7suEe+YluhfcY=", "wfid")); */ 
 		PublicationCreationReqDTO reqDTO = buildReqDTO(); 
-
-		final RestExecutionResultEnum resPublication = callPublication(pdfAttachment, reqDTO, transactionId, msCfg.getFromGovway(), true);
+//		String wfId = "2.16.840.1.113883.2.9.2.120.4.4.97bb3fc5bee3032679f4f07419e04af6375baafa17024527a98ede920c6812ed.fb187ee47b^^^^urn:ihe:iti:xdw:2013:workflowInstanceId";
+		
+		final RestExecutionResultEnum resPublication = callPublication(pdfAttachment, reqDTO, "wfid", msCfg.getFromGovway(), true);
 		assertEquals(RestExecutionResultEnum.OK, resPublication);
 	}
 
