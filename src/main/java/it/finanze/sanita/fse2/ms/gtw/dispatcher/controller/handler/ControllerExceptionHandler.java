@@ -3,6 +3,15 @@
  */
 package it.finanze.sanita.fse2.ms.gtw.dispatcher.controller.handler;
 
+import brave.Tracer;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.ErrorResponseDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.LogTraceInfoDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.ValidationErrorResponseDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ErrorInstanceEnum;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.RestExecutionResultEnum;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.*;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -13,23 +22,6 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
-
-import brave.Tracer;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.ErrorResponseDTO;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.LogTraceInfoDTO;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.ValidationErrorResponseDTO;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ErrorInstanceEnum;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.RestExecutionResultEnum;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.BusinessException;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.ConnectionRefusedException;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.EdsException;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.IniException;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.MockEnabledException;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.ValidationErrorException;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.ValidationException;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.ValidationPublicationErrorException;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  *	Exceptions Handler.
@@ -155,25 +147,25 @@ public class ControllerExceptionHandler extends ResponseEntityExceptionHandler {
 	 * @param ex		exception
 	 * @return
 	 */
-//	@ExceptionHandler(value = {ServerResponseException.class})
-//	protected ResponseEntity<ErrorResponseDTO> handleServerResponseException(ServerResponseException ex) {
-//		log.error("handleServerResponseException()" , ex);
-//		int status = ex.getStatusCode();
-//
-//		ErrorResponseDTO out = new ErrorResponseDTO(
-//			getLogTraceInfo(),
-//			RestExecutionResultEnum.SERVICE_ERROR.getType(),
-//			RestExecutionResultEnum.SERVICE_ERROR.getTitle(),
-//			ex.getDetail(),
-//			ex.getStatusCode(),
-//			String.format("%s/%s", RestExecutionResultEnum.SERVICE_ERROR.getType(), ex.getMicroservice())
-//		);
-//
-//		HttpHeaders headers = new HttpHeaders();
-//		headers.setContentType(MediaType.APPLICATION_PROBLEM_JSON);
-//
-//		return new ResponseEntity<>(out, headers, status);
-//	}
+	@ExceptionHandler(value = {ServerResponseException.class})
+	protected ResponseEntity<ErrorResponseDTO> handleServerResponseException(ServerResponseException ex) {
+		log.error("handleServerResponseException()" , ex);
+		int status = ex.getStatusCode();
+
+		ErrorResponseDTO out = new ErrorResponseDTO(
+			getLogTraceInfo(),
+			RestExecutionResultEnum.SERVICE_ERROR.getType(),
+			RestExecutionResultEnum.SERVICE_ERROR.getTitle(),
+			ex.getDetail(),
+			ex.getStatusCode(),
+			String.format("%s/%s", RestExecutionResultEnum.SERVICE_ERROR.getType(), ex.getMicroservice())
+		);
+
+		HttpHeaders headers = new HttpHeaders();
+		headers.setContentType(MediaType.APPLICATION_PROBLEM_JSON);
+
+		return new ResponseEntity<>(out, headers, status);
+	}
 
 
 //	/**
