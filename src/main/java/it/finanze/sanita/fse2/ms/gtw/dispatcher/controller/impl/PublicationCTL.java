@@ -36,6 +36,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.Date;
+import java.util.Objects;
 
 import static it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants.App.*;
 import static it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventStatusEnum.BLOCKING_ERROR;
@@ -393,18 +394,18 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 			// [2] Send delete request to EDS
 			// ==============================
 			EdsResponseDTO edsResponse = edsClient.delete(idDoc);
-			// Exit if necessary						
-			if(edsResponse!=null) {
-				if (!isTestEnv && !edsResponse.isEsito()) {
-					// Update transaction status
-					kafkaSRV.sendDeleteStatus(log.getTraceID(), workflowInstanceId, idDoc, edsResponse.getMessageError(), BLOCKING_ERROR, token.getPayload(), EDS_DELETE);
-					throw new EdsException("Error encountered while sending delete information to EDS client");
+			// Exit if necessary
+			Objects.requireNonNull(edsResponse, "PublicationCTL returned an error - edsResponse is null!");
+
+			if (!isTestEnv && !edsResponse.isEsito()) {
+				// Update transaction status
+				kafkaSRV.sendDeleteStatus(log.getTraceID(), workflowInstanceId, idDoc, edsResponse.getMessageError(), BLOCKING_ERROR, token.getPayload(), EDS_DELETE);
+				throw new EdsException("Error encountered while sending delete information to EDS client");
 			} else {
 				// Update transaction status
 				kafkaSRV.sendDeleteStatus(log.getTraceID(), workflowInstanceId, idDoc, "Delete effettuata su eds", SUCCESS, token.getPayload(), EDS_DELETE);
-			} 
-				throw new NullPointerException("PublicationCTL returned an error - edsResponse is null!");
-			}			
+			}
+
 
 			// ==============================
 			// [3] Send delete request to INI
@@ -416,7 +417,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 			boolean iniMockMessage = !isNullOrEmpty(iniResponse.getErrorMessage()) && iniResponse.getErrorMessage().contains("Invalid region ip");
 			// Exit if necessary
 			if (isTestEnv && iniMockMessage) {
-				throw new MockEnabledException(iniResponse.getErrorMessage(), edsResponse != null ? edsResponse.getMessageError() : null);
+				throw new MockEnabledException(iniResponse.getErrorMessage(), edsResponse.getMessageError());
 			}
 
 			// Check response errors
