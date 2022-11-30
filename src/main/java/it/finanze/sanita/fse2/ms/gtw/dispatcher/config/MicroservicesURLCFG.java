@@ -60,5 +60,8 @@ public class MicroservicesURLCFG implements Serializable {
 	
 	@Value("${ms.calls.transform-engine}")
 	private Boolean callTransformEngine;
+	
+	@Value("${ms.url.status-check-client-service}")
+	private String statusCheckClientHost;
 
 }

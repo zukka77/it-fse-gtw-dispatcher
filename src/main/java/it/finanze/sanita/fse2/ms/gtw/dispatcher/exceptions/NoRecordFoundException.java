@@ -3,44 +3,37 @@
  */
 package it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions;
 
-/**
- * 
- *
- *	Eccezione di record not found.
- */
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.ErrorResponseDTO;
+import lombok.Getter;
+
 public class NoRecordFoundException extends RuntimeException {
 
+	@Getter
+	private ErrorResponseDTO error;
+	
+	@Getter
+	private Integer status;
+	
 	/**
-	 * Seriale.
+	 * Serial version uid.
 	 */
-	private static final long serialVersionUID = 5632725723070077498L;
+	private static final long serialVersionUID = -8624582745572789610L;
 
-	/**
-	 * Costruttore.
-	 * 
-	 * @param msg	messaggio
-	 */
-	public NoRecordFoundException(final String msg) {
+	public NoRecordFoundException(String msg) {
 		super(msg);
 	}
-	
-	/**
-	 * Costruttore.
-	 * 
-	 * @param msg	messaggio
-	 * @param e		eccezione
-	 */
-	public NoRecordFoundException(final String msg, final Exception e) {
-		super(msg, e);
-	}
-	
-	/**
-	 * Costruttore.
-	 * 
-	 * @param e	eccezione.
-	 */
-	public NoRecordFoundException(final Exception e) {
+
+	public NoRecordFoundException(Exception e) {
 		super(e);
 	}
 	
+	public NoRecordFoundException(ErrorResponseDTO inError, Integer inStatus) {
+		error = inError;
+		status = inStatus;
+	}
+
+	public NoRecordFoundException(String msg, Exception e) {
+		super(msg, e);
+	}
+
 }

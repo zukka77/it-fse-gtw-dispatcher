@@ -168,25 +168,25 @@ public class ControllerExceptionHandler extends ResponseEntityExceptionHandler {
 	}
 
 
-//	/**
-//	 * Management record not found exception received by clients.
-//	 * 
-//	 * @param ex		exception
-//	 * @param request	request
-//	 * @return			
-//	 */
-//	@ExceptionHandler(value = {RecordNotFoundException.class})
-//	protected ResponseEntity<ErrorResponseDTO> handleRecordNotFoundException(final RecordNotFoundException ex, final WebRequest request) {
-//		log.error("" , ex);  
-//		Integer status = 404;
-//
-//		ErrorResponseDTO out = new ErrorResponseDTO(getLogTraceInfo(), RestExecutionResultEnum.RECORD_NOT_FOUND.getType(), RestExecutionResultEnum.RECORD_NOT_FOUND.getTitle(), ExceptionUtils.getMessage(ex), status, ErrorInstanceEnum.NO_INFO.getInstance());
-//
-//		HttpHeaders headers = new HttpHeaders();
-//		headers.setContentType(MediaType.APPLICATION_PROBLEM_JSON);
-//
-//		return new ResponseEntity<>(out, headers, status);
-//	}
+	/**
+	 * Management record not found exception received by clients.
+	 * 
+	 * @param ex		exception
+	 * @param request	request
+	 * @return			
+	 */
+	@ExceptionHandler(value = {NoRecordFoundException.class})
+	protected ResponseEntity<ErrorResponseDTO> handleRecordNotFoundException(final NoRecordFoundException ex, final WebRequest request) {
+		log.error("" , ex);  
+		Integer status = 404;
+
+		ErrorResponseDTO out = new ErrorResponseDTO(getLogTraceInfo(), RestExecutionResultEnum.RECORD_NOT_FOUND.getType(), RestExecutionResultEnum.RECORD_NOT_FOUND.getTitle(), ExceptionUtils.getMessage(ex), status, ErrorInstanceEnum.NO_INFO.getInstance());
+
+		HttpHeaders headers = new HttpHeaders();
+		headers.setContentType(MediaType.APPLICATION_PROBLEM_JSON);
+
+		return new ResponseEntity<>(out, headers, status);
+	}
 
 
 
