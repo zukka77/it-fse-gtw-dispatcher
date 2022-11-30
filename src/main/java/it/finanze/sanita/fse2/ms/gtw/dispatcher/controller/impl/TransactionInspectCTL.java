@@ -14,7 +14,6 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.TransactionInspectR
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.ITransactionInspectSRV;
 import lombok.extern.slf4j.Slf4j;
 
-@Slf4j
 @RestController
 public class TransactionInspectCTL extends AbstractCTL implements ITransactionInspectCTL {
 
@@ -28,24 +27,12 @@ public class TransactionInspectCTL extends AbstractCTL implements ITransactionIn
 
 	@Override
 	public TransactionInspectResDTO getEvents(String workflowInstanceId, HttpServletRequest request) {
-		log.info("Get events START");
-		
-		transactionInspectSRV.callSearchEventByWorkflowInstanceId();
-		return null;
-	}
-
-	@Override
-	public LastTransactionResponseDTO getLastEvent(String workflowInstanceId, HttpServletRequest request) {
-		log.info("Search last event START");
-		
-		transactionInspectSRV.callSearchLastEventByWorkflowInstanceId();
-		return null;
+		return transactionInspectSRV.callSearchEventByWorkflowInstanceId(workflowInstanceId);
 	}
 
  
 	@Override
 	public TransactionInspectResDTO getEventsByTraceId(String traceId, HttpServletRequest request) {
-		transactionInspectSRV.callSearchEventByTraceId();
-		return null;
+		return transactionInspectSRV.callSearchEventByTraceId(traceId);
 	}
 }

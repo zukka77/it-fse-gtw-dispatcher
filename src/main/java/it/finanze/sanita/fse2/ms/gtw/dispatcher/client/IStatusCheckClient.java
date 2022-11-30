@@ -1,10 +1,13 @@
 package it.finanze.sanita.fse2.ms.gtw.dispatcher.client;
 
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.LastTransactionResponseDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.TransactionInspectResDTO;
+
 public interface IStatusCheckClient {
 
-	void callSearchLastEventByWorkflowInstanceId();
-
-	public void callSearchEventByWorkflowInstanceId();
-
-	public void callSearchEventByTraceId();
+	LastTransactionResponseDTO callSearchLastEventByWorkflowInstanceId();
+	
+	TransactionInspectResDTO callSearchEventByTraceId();
+	
+	TransactionInspectResDTO callSearchEventByWorkflowInstanceId();
 }

@@ -9,30 +9,30 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class StatusCheckDTO {
 
-	private String eventType;
+	String eventType;
 
-	private Date eventDate;  
+	Date eventDate;  
 	
-	private String eventStatus;
+	String eventStatus;
 	
-	private String message;
+	String message;
 
-	private String identificativoDocumento;
+	String identificativoDocumento;
 
-	private String subject;
+	String subject;
 
-	private String subjectRole;
+	String subjectRole;
 	
-	private String tipoAttivita;
+	String tipoAttivita;
 	
-	private String organizzazione;
+	String organizzazione;
 	
-	private String workflowInstanceId;
+	String workflowInstanceId;
 	
-	private String traceId;
+	String traceId;
 	
-	private String issuer;
+	String issuer;
 	
-	private Date expiringDate;
+	Date expiringDate;
 	
 }

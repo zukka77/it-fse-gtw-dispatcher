@@ -1,11 +1,14 @@
 package it.finanze.sanita.fse2.ms.gtw.dispatcher.service;
 
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.LastTransactionResponseDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.TransactionInspectResDTO;
+
 public interface ITransactionInspectSRV {
 
-	void callSearchLastEventByWorkflowInstanceId();
+	LastTransactionResponseDTO callSearchLastEventByWorkflowInstanceId(String workflowInstanceId);
 
-	void callSearchEventByWorkflowInstanceId();
+	TransactionInspectResDTO callSearchEventByWorkflowInstanceId(String workflowInstanceId);
 
-	void callSearchEventByTraceId();
+	TransactionInspectResDTO callSearchEventByTraceId(String traceId);
 
 }
