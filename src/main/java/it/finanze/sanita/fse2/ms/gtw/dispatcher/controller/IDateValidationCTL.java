@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -22,6 +23,7 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.DateValidationDTO;
 
 @RequestMapping(path = "/v1")
 @Tag(name = "Test CTL")
+@Hidden
 public interface IDateValidationCTL {
 	
 	@PutMapping(value = "/documents/update/{wiid}/{day}")

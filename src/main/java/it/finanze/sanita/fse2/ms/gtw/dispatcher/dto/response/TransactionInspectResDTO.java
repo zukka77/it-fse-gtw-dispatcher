@@ -5,6 +5,8 @@ package it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response;
 
 import java.util.List;
 
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Schema;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.StatusCheckDTO;
 import lombok.Getter;
 import lombok.Setter;
@@ -21,6 +23,8 @@ public class TransactionInspectResDTO extends ResponseDTO {
 	 */
 	private static final long serialVersionUID = -1550024371939901939L;
 	
+    
+	@ArraySchema(minItems = 0, maxItems = 1000, schema = @Schema(implementation = StatusCheckDTO.class))
 	private List<StatusCheckDTO> transactionData;
 	
 	public TransactionInspectResDTO() {
