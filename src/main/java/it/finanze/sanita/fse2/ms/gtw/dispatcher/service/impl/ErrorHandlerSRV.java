@@ -184,7 +184,9 @@ public class ErrorHandlerSRV implements IErrorHandlerSRV {
         String role = (jwtToken!=null && jwtToken.getPayload().getSubject_role()!=null && !StringUtility.isNullOrEmpty(jwtToken.getPayload().getSubject_role())) ? jwtToken.getPayload().getSubject_role() : Constants.App.JWT_MISSING_SUBJECT_ROLE;
         String subjectFiscalCode = (jwtToken != null ? CfUtility.extractFiscalCodeFromJwtSub(jwtToken.getPayload().getSub()) : Constants.App.JWT_MISSING_SUBJECT);
         
-        logger.error(e.getError().getDetail() + " " + workflowInstanceId, OperationLogEnum.VAL_CDA2, ResultLogEnum.KO, startDateOperation, validationResult.getErrorCategory(), issuer, documentType, role, subjectFiscalCode);
+        if (RestExecutionResultEnum.VOCABULARY_ERROR != RestExecutionResultEnum.get(capturedErrorType)) {
+        	logger.error(e.getError().getDetail() + " " + workflowInstanceId, OperationLogEnum.VAL_CDA2, ResultLogEnum.KO, startDateOperation, validationResult.getErrorCategory(), issuer, documentType, role, subjectFiscalCode);
+        }
         throw new ValidationErrorException(validationResult, StringUtility.sanitizeMessage(e.getError().getDetail()), workflowInstanceId, errorInstance);
     }
 
