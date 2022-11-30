@@ -7,7 +7,6 @@ import java.util.List;
 
 import javax.validation.constraints.Size;
 
-import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.media.Schema;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.AttivitaClinicaEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.HealthDataFormatEnum;
@@ -53,10 +52,6 @@ public class PublicationCreationReqDTO extends PublicationMetadataReqDTO {
 	@Size(min = 0, max = 100)
 	private String identificativoRep;
 
-    @Schema(description = "Forza pubblicazione documento" , defaultValue = "false")
-    @Hidden
-    private boolean forcePublish;
-
     @Schema(description = "Priorita")
     private Boolean priorita;
     
@@ -67,7 +62,6 @@ public class PublicationCreationReqDTO extends PublicationMetadataReqDTO {
     		InjectionModeEnum mode,
     		String identificativoDoc,
     		String identificativoRep,
-    		boolean forcePublish,
     		Boolean priorita,
     		HealthcareFacilityEnum tipologiaStruttura, 
     		List<String> attiCliniciRegoleAccesso, 
@@ -84,7 +78,6 @@ public class PublicationCreationReqDTO extends PublicationMetadataReqDTO {
     	this.mode = mode;
     	this.identificativoDoc = identificativoDoc;
     	this.identificativoRep = identificativoRep;
-    	this.forcePublish = forcePublish;
     	this.priorita = priorita;
     }
     

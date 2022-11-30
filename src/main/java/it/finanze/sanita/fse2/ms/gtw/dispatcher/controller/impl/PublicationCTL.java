@@ -305,7 +305,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 			validation.setDocument(docT);
 			validation.setKafkaKey(key);
 	
-			if (!Boolean.TRUE.equals(jsonObj.isForcePublish()) || isReplace) {
+			if (isReplace) {
 				validationInfo = getValidationInfo(cda, jsonObj.getWorkflowInstanceId());
 			} else {
 				validationInfo.setWorkflowInstanceId(getWorkflowInstanceId(docT));
@@ -315,7 +315,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 
 			ValidationDataDTO validatedDocument = cdaSRV.getByWorkflowInstanceId(validationInfo.getWorkflowInstanceId()); 
 			
-			if (!Boolean.TRUE.equals(jsonObj.isForcePublish()) || isReplace) {				
+			if (isReplace) {				
 				transformId = validatedDocument.getTransformID(); 
 				xsltID = validatedDocument.getXsltID(); 
 				cdaSRV.consumeHash(validationInfo.getHash()); 

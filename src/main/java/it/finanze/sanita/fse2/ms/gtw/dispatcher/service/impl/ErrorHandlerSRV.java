@@ -46,7 +46,7 @@ public class ErrorHandlerSRV implements IErrorHandlerSRV {
     public void connectionRefusedExceptionHandler(Date startDateOperation, ValidationDataDTO validationInfo, JWTTokenDTO jwtToken, 
         PublicationCreationReqDTO jsonObj, LogTraceInfoDTO traceInfoDTO, ConnectionRefusedException ex,
         boolean isPublication, final String documentType) {
-        if (jsonObj == null || !Boolean.TRUE.equals(jsonObj.isForcePublish())) {
+        if (jsonObj == null) {
             cdaSRV.consumeHash(validationInfo.getHash());
         }
 
@@ -77,7 +77,7 @@ public class ErrorHandlerSRV implements IErrorHandlerSRV {
     @Override
     public void publicationValidationExceptionHandler(Date startDateOperation, ValidationDataDTO validationInfo, JWTTokenDTO jwtToken, 
         PublicationCreationReqDTO jsonObj, LogTraceInfoDTO traceInfoDTO, ValidationException e, boolean isPublication, final String documentType) {
-        if (jsonObj == null || !Boolean.TRUE.equals(jsonObj.isForcePublish())) {
+        if (jsonObj == null) {
             cdaSRV.consumeHash(validationInfo.getHash());
         }
 

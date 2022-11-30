@@ -201,7 +201,6 @@ public abstract class AbstractCTL implements Serializable {
 				.conservazioneANorma(tsDTO.getConservazioneANorma())
 				.tipoAttivitaClinica(tsDTO.getTipoAttivitaClinica())
 				.identificativoSottomissione(tsDTO.getIdentificativoSottomissione())
-				.forcePublish(tsDTO.isForcePublish())
 				.build();
 	}
 
@@ -219,12 +218,7 @@ public abstract class AbstractCTL implements Serializable {
     protected String checkPublicationMandatoryElements(final PublicationCreationReqDTO jsonObj, final boolean isReplace) {
     	String out = null;
 
-    	if (Boolean.TRUE.equals(jsonObj.isForcePublish())
-				&& !(StringUtility.isNullOrEmpty(jsonObj.getWorkflowInstanceId())
-						|| App.MISSING_WORKFLOW_PLACEHOLDER.equals(jsonObj.getWorkflowInstanceId()))) {
-
-			out = "Il campo workflow instance id non deve essere valorizzato in modalità force publish.";
-		} else if (StringUtility.isNullOrEmpty(jsonObj.getIdentificativoDoc()) && !isReplace) {
+    	if (StringUtility.isNullOrEmpty(jsonObj.getIdentificativoDoc()) && !isReplace) {
     		out = "Il campo identificativo documento deve essere valorizzato.";
     	} else if (StringUtility.isNullOrEmpty(jsonObj.getIdentificativoRep())) {
     		out = "Il campo identificativo rep deve essere valorizzato.";

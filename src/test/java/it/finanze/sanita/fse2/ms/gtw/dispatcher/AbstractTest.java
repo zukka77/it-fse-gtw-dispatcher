@@ -341,7 +341,6 @@ public abstract class AbstractTest {
 		publicationRB.setAssettoOrganizzativo(PracticeSettingCodeEnum.AD_PSC055);
 		publicationRB.setTipoAttivitaClinica(AttivitaClinicaEnum.CON);
 		publicationRB.setIdentificativoSottomissione("identificativoSottomissione");
-		publicationRB.setForcePublish(true);
 		return publicationRB;
 	}
 	

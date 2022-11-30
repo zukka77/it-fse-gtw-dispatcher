@@ -205,7 +205,7 @@ class PublicationTest extends AbstractTest {
 
 	@Test
 	void jwtValidation () {
-		byte[] pdfAttachment = FileUtility.getFileFromInternalResources("Files/attachment/CDA_MAP.pdf");
+		byte[] pdfAttachment = FileUtility.getFileFromInternalResources("Files/attachment/REPLACE_FILE.pdf");
 		String encoded = StringUtility.encodeSHA256(pdfAttachment);
 		String token = generateJwt(pdfAttachment, true);
 		
@@ -279,7 +279,6 @@ class PublicationTest extends AbstractTest {
 				conservazioneANorma("Conservazione sostitutiva").
 				dataFinePrestazione(""+new Date().getTime()).
 				dataInizioPrestazione(""+new Date().getTime()).
-				forcePublish(false).
 				healthDataFormat(HealthDataFormatEnum.CDA).
 				identificativoDoc("Identificativo doc").
 				identificativoRep("Identificativo rep").
@@ -300,7 +299,6 @@ class PublicationTest extends AbstractTest {
 				conservazioneANorma("Conservazione sostitutiva").
 				dataFinePrestazione(""+new Date().getTime()).
 				dataInizioPrestazione(""+new Date().getTime()).
-				forcePublish(false).
 				healthDataFormat(HealthDataFormatEnum.CDA).
 				identificativoDoc("Identificativo doc").
 				identificativoRep("Identificativo rep").

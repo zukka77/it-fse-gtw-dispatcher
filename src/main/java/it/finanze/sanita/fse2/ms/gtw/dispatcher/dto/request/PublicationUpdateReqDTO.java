@@ -52,7 +52,6 @@ public class PublicationUpdateReqDTO extends PublicationMetadataReqDTO {
     		InjectionModeEnum mode,
     		String identificativoDoc,
     		String identificativoRep,
-    		boolean forcePublish,
     		Boolean priorita,
     		HealthcareFacilityEnum tipologiaStruttura, 
     		List<String> attiCliniciRegoleAccesso, 
