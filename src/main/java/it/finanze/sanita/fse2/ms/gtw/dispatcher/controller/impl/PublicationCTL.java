@@ -305,30 +305,22 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 			validation.setDocument(docT);
 			validation.setKafkaKey(key);
 	
-			if (isReplace) {
-				validationInfo = getValidationInfo(cda, jsonObj.getWorkflowInstanceId());
-			} else {
-				validationInfo.setWorkflowInstanceId(getWorkflowInstanceId(docT));
-			}
-	
+			validationInfo = getValidationInfo(cda, jsonObj.getWorkflowInstanceId());
 			validation.setValidationData(validationInfo); // Updating validation info
 
 			ValidationDataDTO validatedDocument = cdaSRV.getByWorkflowInstanceId(validationInfo.getWorkflowInstanceId()); 
-			
-			if (isReplace) {				
-				transformId = validatedDocument.getTransformID(); 
-				xsltID = validatedDocument.getXsltID(); 
-				cdaSRV.consumeHash(validationInfo.getHash()); 
-								
-				if(DateUtility.getDifferenceDays(validatedDocument.getInsertionDate(), new Date()) > validationCFG.getDaysAllowToPublishAfterValidation()) {
-					final ErrorResponseDTO error = ErrorResponseDTO.builder()
-							.type(OLDER_DAY.getType())
-							.title(OLDER_DAY.getTitle())
-							.instance(ErrorInstanceEnum.OLDER_DAY.getInstance())
-							.detail("Error: cannot publish documents older than " + validationCFG.getDaysAllowToPublishAfterValidation() + " days").build();
-					throw new ValidationException(error); 
-				} 
-				
+
+			transformId = validatedDocument.getTransformID(); 
+			xsltID = validatedDocument.getXsltID(); 
+			cdaSRV.consumeHash(validationInfo.getHash()); 
+
+			if(DateUtility.getDifferenceDays(validatedDocument.getInsertionDate(), new Date()) > validationCFG.getDaysAllowToPublishAfterValidation()) {
+				final ErrorResponseDTO error = ErrorResponseDTO.builder()
+						.type(OLDER_DAY.getType())
+						.title(OLDER_DAY.getTitle())
+						.instance(ErrorInstanceEnum.OLDER_DAY.getInstance())
+						.detail("Error: cannot publish documents older than " + validationCFG.getDaysAllowToPublishAfterValidation() + " days").build();
+				throw new ValidationException(error); 
 			}
 			
 			final String documentSha256 = encodeSHA256(bytePDF);
