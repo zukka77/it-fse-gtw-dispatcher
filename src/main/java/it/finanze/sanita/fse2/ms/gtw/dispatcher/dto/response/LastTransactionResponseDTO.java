@@ -3,32 +3,41 @@
  */
 package it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response;
 
-import io.swagger.v3.oas.annotations.media.Schema;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.StatusCheckDTO;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 
-@Data
-@EqualsAndHashCode(callSuper = true)
 public class LastTransactionResponseDTO extends ResponseDTO {
 
-	/**
-	 * Serial version uid.
-	 */
-	private static final long serialVersionUID = -7747265284310662589L;
 	private String transactionStatus;
 
-	@Schema(description = "Ultimo evento trovato")
-	private transient StatusCheckDTO lastTransactionData;
+	private StatusCheckDTO lastTransactionData;
 
 	public LastTransactionResponseDTO() {
 		super();
 		lastTransactionData = null;
 	}
 
-	public LastTransactionResponseDTO(final LogTraceInfoDTO traceInfo, final String transactionStatus, final StatusCheckDTO lastTransactionData) {
+	public LastTransactionResponseDTO(final LogTraceInfoDTO traceInfo, final String inTransactionStatus, final StatusCheckDTO inLastTransactionData) {
 		super(traceInfo);
+		transactionStatus = inTransactionStatus;
+		lastTransactionData = inLastTransactionData;
+	}
+
+	public String getTransactionStatus() {
+		return transactionStatus;
+	}
+
+	public void setTransactionStatus(String transactionStatus) {
 		this.transactionStatus = transactionStatus;
+	}
+
+	public StatusCheckDTO getLastTransactionData() {
+		return lastTransactionData;
+	}
+
+	public void setLastTransactionData(StatusCheckDTO lastTransactionData) {
 		this.lastTransactionData = lastTransactionData;
 	}
+	
+	
 }
