@@ -52,7 +52,7 @@ public class ErrorResponseDTO extends AbstractDTO {
 	private String title;
 
 	@Schema(description = "Dettaglio della tipologia d’errore")
-	@Size(min = 0, max = 1000)
+	@Size(min = 0, max = 10000)
 	private String detail;
 
 	@Schema(description = "Stato http")
