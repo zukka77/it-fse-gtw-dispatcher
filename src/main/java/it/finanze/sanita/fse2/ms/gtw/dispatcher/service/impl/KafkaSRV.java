@@ -196,7 +196,7 @@ public class KafkaSRV implements IKafkaSRV {
 	@Override
 	public void sendUpdateStatus(String traceId, String workflowInstanceId, String idDoc, EventStatusEnum eventStatus, JWTPayloadDTO jwt,
 			String message,EventTypeEnum event) {
-		sendStatusMessage(traceId, workflowInstanceId,event , eventStatus, null, idDoc, jwt,null);
+		sendStatusMessage(traceId, workflowInstanceId,event , eventStatus, message, idDoc, jwt,null);
 	}
 
 	private String sendObjectAsJson(Object o) {
