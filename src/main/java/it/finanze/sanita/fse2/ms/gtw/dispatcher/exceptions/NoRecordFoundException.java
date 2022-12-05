@@ -14,10 +14,6 @@ public class NoRecordFoundException extends RuntimeException {
 	@Getter
 	private Integer status;
 	
-	/**
-	 * Serial version uid.
-	 */
-	private static final long serialVersionUID = -8624582745572789610L;
 
 	public NoRecordFoundException(String msg) {
 		super(msg);

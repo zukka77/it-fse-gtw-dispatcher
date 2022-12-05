@@ -12,7 +12,6 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.ErrorResponseDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.TransactionInspectResDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.BusinessException;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.NoRecordFoundException;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility;
 import lombok.extern.slf4j.Slf4j;
 
 @Component
@@ -54,12 +53,8 @@ public class StatusCheckClient implements IStatusCheckClient {
 		
 		// 404 Not found.
 		if (HttpStatus.NOT_FOUND.equals(e1.getStatusCode())) {
-			try {
-				ErrorResponseDTO error = StringUtility.fromJSON(e1.getMessage(), ErrorResponseDTO.class);
-				throw new NoRecordFoundException(error,e1.getStatusCode().value());
-			} catch(Exception ex) {
-				throw new NoRecordFoundException(e1);
-			}
+			ErrorResponseDTO error = ErrorResponseDTO.builder().detail("No Record Found").build();
+			throw new NoRecordFoundException(error,e1.getStatusCode().value());
 		}
 		
 		// 500 Internal Server Error.
