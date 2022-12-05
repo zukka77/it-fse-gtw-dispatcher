@@ -63,11 +63,12 @@ public class KafkaTopicCFG {
 	@PostConstruct
 	public void afterInit() {
 		if (profileUtility.isTestProfile()) {
-			this.statusManagerTopic = Constants.Profile.TEST_PREFIX + this.statusManagerTopic;
-			this.dispatcherIndexerTopic = Constants.Profile.TEST_PREFIX + this.dispatcherIndexerTopic;
-			this.dispatcherPublisherTopic = Constants.Profile.TEST_PREFIX + this.dispatcherPublisherTopic;
-			this.dispatcherIndexerRetryUpdateTopic = Constants.Profile.TEST_PREFIX + this.dispatcherIndexerRetryUpdateTopic;
-			this.dispatcherIndexerRetryDeleteTopic = Constants.Profile.TEST_PREFIX + this.dispatcherIndexerRetryDeleteTopic;
+			statusManagerTopic = Constants.Profile.TEST_PREFIX + statusManagerTopic;
+			dispatcherIndexerTopic = Constants.Profile.TEST_PREFIX + dispatcherIndexerTopic;
+			dispatcherIndexerRetryDeleteTopic = Constants.Profile.TEST_PREFIX + dispatcherIndexerRetryDeleteTopic;
+			dispatcherPublisherTopic = Constants.Profile.TEST_PREFIX + dispatcherPublisherTopic;
+			logTopic = Constants.Profile.TEST_PREFIX + logTopic;
+			dispatcherIndexerRetryUpdateTopic = Constants.Profile.TEST_PREFIX + dispatcherIndexerRetryUpdateTopic;
 		}
 	}
 }

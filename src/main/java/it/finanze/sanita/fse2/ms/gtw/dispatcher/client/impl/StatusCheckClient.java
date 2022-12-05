@@ -34,8 +34,8 @@ public class StatusCheckClient implements IStatusCheckClient {
 		} catch (HttpStatusCodeException e1) {
 			errorHandler(e1);
 		} catch (Exception e) {
-			log.error("Errore durante l'invocazione dell' API messageUploaderSync(). ", e);
-			throw new BusinessException("Errore durante l'invocazione dell' API messageUploaderSync(). ", e);
+			log.error("Errore durante l'invocazione dell' API call search event by wii.", e);
+			throw new BusinessException("Errore durante l'invocazione dell' API call search event by wii.", e);
 		}
 
 		return out;
@@ -59,6 +59,5 @@ public class StatusCheckClient implements IStatusCheckClient {
 		if (HttpStatus.INTERNAL_SERVER_ERROR.equals(e1.getStatusCode())) {
 			throw new BusinessException(msg, e1);
 		}
-	 
 	}
 }

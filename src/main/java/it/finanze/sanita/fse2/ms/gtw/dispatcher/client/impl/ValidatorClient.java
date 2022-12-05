@@ -3,23 +3,20 @@
  */
 package it.finanze.sanita.fse2.ms.gtw.dispatcher.client.impl;
 
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.impl.base.AbstractClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.RestClientException;
+import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.IValidatorClient;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.impl.base.AbstractClient;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.MicroservicesURLCFG;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.ValidationInfoDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.client.ValidationReqDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.client.ValidationResDTO;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.BusinessException;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.ConnectionRefusedException;
 import lombok.extern.slf4j.Slf4j;
 
@@ -50,22 +47,16 @@ public class ValidatorClient extends AbstractClient implements IValidatorClient 
 
         HttpEntity<?> entity = new HttpEntity<>(req, headers);
         
-        ResponseEntity<ValidationResDTO> response = null;
+        ValidationResDTO response = null;
         try {
-        	response = restTemplate.exchange(msUrlCFG.getValidatorHost() + "/v1/validate", HttpMethod.POST, entity, ValidationResDTO.class);
-			final ValidationResDTO result = response.getBody();
-			log.debug("{} status returned from Validator Client", response.getStatusCode());
-			log.debug("{} body returned from Validator Client", result);
-			if (result != null) {
-				out = result.getResult();
-			}
-        } catch(RestClientException cex) {
+        	response = restTemplate.postForObject(msUrlCFG.getValidatorHost() + "/v1/validate", entity, ValidationResDTO.class);
+        	if(response!=null) {
+        		out = response.getResult();
+        	}
+        } catch(ResourceAccessException cex) {
         	log.error("Connect error while call validation ep :" + cex);
         	throw new ConnectionRefusedException(msUrlCFG.getValidatorHost(),"Connection refused");
-		} catch(Exception ex) {
-        	log.error("Generic error while call validation ep :" + ex);
-        	throw new BusinessException("Generic error while call validation ep :" + ex);
-        }
+		}  
         
         return out;
     }

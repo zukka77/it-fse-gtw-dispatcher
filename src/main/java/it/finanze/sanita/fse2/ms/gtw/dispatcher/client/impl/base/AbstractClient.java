@@ -7,7 +7,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestClientResponseException;
 
+import com.google.gson.JsonObject;
+
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.ServerResponseException;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility;
 
 /**
  * Abstract class for client implementations.
@@ -15,13 +18,21 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.ServerResponseExcepti
 public abstract class AbstractClient {
 
 	protected void toServerResponseEx(String identifier, String microservice, RestClientResponseException ex, String endpoint) {
+		String message = "";
+		try {
+			JsonObject jsonObj = StringUtility.fromJSON(ex.getResponseBodyAsString(), JsonObject.class);
+			message = jsonObj.get("errorMessage").getAsString();
+		} catch(Exception e) {
+			message = ex.getResponseBodyAsString();
+		}
+		
 		throw new ServerResponseException(
 			microservice,
 			endpoint,
 			String.format("%s - Errore durante invocazione /%s", identifier, endpoint),
 			HttpStatus.valueOf(ex.getRawStatusCode()),
 			ex.getRawStatusCode(),
-			ex.getResponseBodyAsString()
+			message
 		);
 
 	}

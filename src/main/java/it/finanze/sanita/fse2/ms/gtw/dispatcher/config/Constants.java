@@ -19,21 +19,6 @@ public final class Constants {
 		public static final String BASE = "it.finanze.sanita.fse2.ms.gtw.dispatcher";
 
 		/**
-		 * Controller path.
-		 */
-		public static final String CONTROLLER = "it.finanze.sanita.fse2.ms.gtw.dispatcher.controller";
-
-		/**
-		 * Service path.
-		 */
-		public static final String SERVICE = "it.finanze.sanita.fse2.ms.gtw.dispatcher.service";
-
-		/**
-		 * Configuration path.
-		 */
-		public static final String CONFIG = "it.finanze.sanita.fse2.ms.gtw.dispatcher.config";
-		
-		/**
 		 * Configuration mongo path.
 		 */
 		public static final String CONFIG_MONGO = "it.finanze.sanita.fse2.ms.gtw.dispatcher.config.mongo";
@@ -43,21 +28,23 @@ public final class Constants {
 		 */
 		public static final String REPOSITORY_MONGO = "it.finanze.sanita.fse2.ms.gtw.dispatcher.repository";
 		 
-		
+		private ComponentScan() {
+
+		}
 
 	}
 	
 	public static final class Collections {
 
 		/** 
-			 * INI EDS Invocation Collection 
-			 */
+		 * INI EDS Invocation Collection 
+		 */
 		public static final String INI_EDS_INVOCATION = "ini_eds_invocation";
 
-			/** 
-			 * Collection where validated documents info is saved
-			 */
-			public static final String VALIDATED_DOCUMENTS = "validated_documents"; 
+		/** 
+		 * Collection where validated documents info is saved
+		 */
+		public static final String VALIDATED_DOCUMENTS = "validated_documents"; 
 
 		private Collections() {
 

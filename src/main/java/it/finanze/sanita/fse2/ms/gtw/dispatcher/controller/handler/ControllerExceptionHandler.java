@@ -30,13 +30,11 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 @Slf4j
 public class ControllerExceptionHandler extends ResponseEntityExceptionHandler {
 
-
 	/**
 	 * Tracker log.
 	 */
 	@Autowired
 	private Tracer tracer;
-
 
 	/**
 	 * Management validation exception.
@@ -154,8 +152,8 @@ public class ControllerExceptionHandler extends ResponseEntityExceptionHandler {
 
 		ErrorResponseDTO out = new ErrorResponseDTO(
 			getLogTraceInfo(),
-			RestExecutionResultEnum.SERVICE_ERROR.getType(),
-			RestExecutionResultEnum.SERVICE_ERROR.getTitle(),
+			RestExecutionResultEnum.INI_EXCEPTION.getType(),
+			RestExecutionResultEnum.INI_EXCEPTION.getTitle(),
 			ex.getDetail(),
 			ex.getStatusCode(),
 			String.format("%s/%s", RestExecutionResultEnum.SERVICE_ERROR.getType(), ex.getMicroservice())

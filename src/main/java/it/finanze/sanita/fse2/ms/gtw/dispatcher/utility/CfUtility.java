@@ -6,6 +6,8 @@ package it.finanze.sanita.fse2.ms.gtw.dispatcher.utility;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants;
 
 public class CfUtility {
+	
+	private CfUtility() {}
 
 	public static final int CF_NON_CORRETTO = 0;
 	public static final int CF_OK_16 = 1;
@@ -145,11 +147,7 @@ public class CfUtility {
 		else
 			return CF_CHECK_DIGIT_16;
 	}
-
-	public static boolean checkDigit(String cf) {
-		return true;
-	}
-
+ 
 	private static int convertiDispari(char c) {
 		switch (c) {
 		case '0':
