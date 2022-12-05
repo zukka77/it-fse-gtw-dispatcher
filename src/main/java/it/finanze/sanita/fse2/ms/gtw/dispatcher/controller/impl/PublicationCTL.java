@@ -159,8 +159,6 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 				IniReferenceRequestDTO iniReq = new IniReferenceRequestDTO(idDoc, validationInfo.getJwtToken().getPayload());
 				IniReferenceResponseDTO response = iniClient.reference(iniReq);
 				
-				kafkaSRV.sendReplaceStatus(traceInfoDTO.getTraceID(), validationInfo.getValidationData().getWorkflowInstanceId(), SUCCESS, null, validationInfo.getJsonObj(), validationInfo.getJwtToken() != null ? validationInfo.getJwtToken().getPayload() : null);
-				
 				if(!isNullOrEmpty(response.getErrorMessage())) {
 					log.error("Errore. Nessun riferimento trovato.");
 					throw new IniException("Errore. Nessun riferimento trovato.");
