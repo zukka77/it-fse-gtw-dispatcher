@@ -3,10 +3,7 @@
  */
 package it.finanze.sanita.fse2.ms.gtw.dispatcher.client;
 
-import java.io.Serializable;
-
-
-public interface IAnaClient extends Serializable{
+public interface IAnaClient {
 	
 	Boolean callAnaClient(String codFiscale);
 }

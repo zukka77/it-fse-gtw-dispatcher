@@ -15,12 +15,8 @@ import lombok.Data;
  */
 @Data
 @Component
-public class KafkaPropertiesCFG implements Serializable {
+public class KafkaPropertiesCFG {
   
-	/**
-	 *  Serial version uid
-	 */
-	private static final long serialVersionUID = -7936473659737067416L;
 
 	/**
 	 *  Boostrap server.

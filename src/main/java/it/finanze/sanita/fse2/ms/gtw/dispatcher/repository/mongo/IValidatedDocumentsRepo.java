@@ -3,12 +3,10 @@
  */
 package it.finanze.sanita.fse2.ms.gtw.dispatcher.repository.mongo;
 
-import java.io.Serializable;
-
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.ValidationDataDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.repository.entity.ValidatedDocumentsETY;
 
-public interface IValidatedDocumentsRepo extends Serializable {
+public interface IValidatedDocumentsRepo {
 	
 	void create(final ValidatedDocumentsETY ety);
 

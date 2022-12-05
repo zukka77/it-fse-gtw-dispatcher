@@ -53,10 +53,6 @@ import static it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility.isN
 @Slf4j
 @RestController
 public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
-	/**
-	 * Serial version uid.
-	 */
-	private static final long serialVersionUID = 1711126466058952723L;
 
 	@Autowired
 	private IKafkaSRV kafkaSRV;
