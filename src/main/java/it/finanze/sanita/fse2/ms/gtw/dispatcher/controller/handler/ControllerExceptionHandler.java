@@ -287,7 +287,7 @@ public class ControllerExceptionHandler extends ResponseEntityExceptionHandler {
 		log.error("" , ex);  
 		Integer status = 404;
 
-		ErrorResponseDTO out = new ErrorResponseDTO(getLogTraceInfo(), RestExecutionResultEnum.EDS_EXCEPTION.getType(), RestExecutionResultEnum.EDS_EXCEPTION.getTitle(), ExceptionUtils.getMessage(ex), status, ErrorInstanceEnum.NO_INFO.getInstance());
+		ErrorResponseDTO out = new ErrorResponseDTO(getLogTraceInfo(), RestExecutionResultEnum.EDS_EXCEPTION.getType(), RestExecutionResultEnum.EDS_EXCEPTION.getTitle(), ErrorInstanceEnum.EDS_DOCUMENT_MISSING.getDescription(), status, ErrorInstanceEnum.EDS_DOCUMENT_MISSING.getInstance());
 
 		HttpHeaders headers = new HttpHeaders();
 		headers.setContentType(MediaType.APPLICATION_PROBLEM_JSON);
