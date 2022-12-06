@@ -28,6 +28,8 @@ public class LogDTO {
 	
 	private String op_issuer;
 
+	private String op_locality;
+
 	private String op_document_type;
 	
 	private String op_role;

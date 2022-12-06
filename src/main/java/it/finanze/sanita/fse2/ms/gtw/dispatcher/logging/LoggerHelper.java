@@ -46,12 +46,13 @@ public class LoggerHelper {
 	 * Implements structured logs, at all logging levels
 	 */
 	public void trace(String message, ILogEnum operation, ResultLogEnum result, Date startDateOperation, 
-			String issuer, String role, String subjectFiscalCode) {
+			String issuer, String role, String subjectFiscalCode, String locality) {
 
 		final String gtwName = getGatewayName();
 		
 		LogDTO logDTO = LogDTO.builder().
 				op_issuer(issuer).
+				op_locality(locality).
 				message(message).
 				operation(operation.getCode()).
 				op_result(result.getCode()).
@@ -72,12 +73,13 @@ public class LoggerHelper {
 	}
 
 	public void debug(String message,  ILogEnum operation, ResultLogEnum result, Date startDateOperation, 
-				String issuer, String role, String subject) {
+				String issuer, String role, String subject, String locality) {
 		
 		final String gtwName = getGatewayName();
 
 		LogDTO logDTO = LogDTO.builder().
 				op_issuer(issuer).
+				op_locality(locality).
 				message(message).
 				operation(operation.getCode()).
 				op_result(result.getCode()).
@@ -97,12 +99,13 @@ public class LoggerHelper {
 	} 
 	 
 	public void info(String message, ILogEnum operation, ResultLogEnum result, Date startDateOperation, String issuer, 
-			String documentType, String role, String subject) {
+			String documentType, String role, String subject, String locality) {
 
 		final String gtwName = getGatewayName();
 		
 		LogDTO logDTO = LogDTO.builder().
 				op_issuer(issuer).
+				op_locality(locality).
 				message(message).
 				operation(operation.getCode()).
 				op_result(result.getCode()).
@@ -124,12 +127,13 @@ public class LoggerHelper {
 	} 
 	
 	public void warn(String message, ILogEnum operation, ResultLogEnum result, Date startDateOperation, 
-			String issuer, String role, String subject) {
+			String issuer, String role, String subject, String locality) {
 		
 		final String gtwName = getGatewayName();
 
 		LogDTO logDTO = LogDTO.builder().
 				op_issuer(issuer).
+				op_locality(locality).
 				message(message).
 				operation(operation.getCode()).
 				op_result(result.getCode()).
@@ -150,12 +154,13 @@ public class LoggerHelper {
 	} 
 	
 	public void error(String message, ILogEnum operation, ResultLogEnum result, Date startDateOperation,
-			   ILogEnum error, String issuer, String documentType, String role, String subject) {
+			   ILogEnum error, String issuer, String documentType, String role, String subject, String locality) {
 		
 		final String gtwName = getGatewayName();
 
 		LogDTO logDTO = LogDTO.builder().
 				op_issuer(issuer).
+				op_locality(locality).
 				message(message).
 				operation(operation.getCode()).
 				op_result(result.getCode()).
