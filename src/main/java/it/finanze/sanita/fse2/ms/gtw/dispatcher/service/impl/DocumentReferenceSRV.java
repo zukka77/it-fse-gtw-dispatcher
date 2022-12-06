@@ -189,7 +189,6 @@ public class DocumentReferenceSRV implements IDocumentReferenceSRV {
 		
 		final Element confidentialityElement = docCDA.select("ClinicalDocument > confidentialityCode").first();
 		if (confidentialityElement != null) {
-			confidentialityElement.attr("code");
 			documentEntryDTO.setConfidentialityCode(confidentialityElement.attr("code"));
 		}
 
