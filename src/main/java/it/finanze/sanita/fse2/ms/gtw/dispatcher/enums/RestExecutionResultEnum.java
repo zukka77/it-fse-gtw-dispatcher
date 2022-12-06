@@ -30,7 +30,7 @@ public enum RestExecutionResultEnum {
 	SERVICE_ERROR("msg/service-error", "Errore di comunicazione service-to-service", ErrorLogEnum.KO_GENERIC, EventStatusEnum.BLOCKING_ERROR),
 	GENERIC_ERROR("/msg/generic-error", "Errore generico.", ErrorLogEnum.KO_GENERIC, EventStatusEnum.BLOCKING_ERROR),
 	MISSING_TOKEN("msg/missing-token", "Token non fornito", ErrorLogEnum.KO_GENERIC,EventStatusEnum.BLOCKING_ERROR),
-	INI_EXCEPTION("msg/ini-error", "Ini error", ErrorLogEnum.KO_GENERIC,EventStatusEnum.BLOCKING_ERROR),
+	INI_EXCEPTION("msg/ini-error", "Ini error.", ErrorLogEnum.KO_GENERIC,EventStatusEnum.BLOCKING_ERROR),
 	EDS_EXCEPTION("msg/eds-error", "Eds error.", ErrorLogEnum.KO_GENERIC,EventStatusEnum.BLOCKING_ERROR),
 	OLDER_DAY("/msg/max-day-limit-exceed", "Error: document exceeded the maximum period to be published", ErrorLogEnum.KO_PUB,EventStatusEnum.BLOCKING_ERROR);
 
