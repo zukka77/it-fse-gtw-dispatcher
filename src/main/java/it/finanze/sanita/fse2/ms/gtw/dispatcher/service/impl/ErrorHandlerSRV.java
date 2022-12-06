@@ -12,7 +12,6 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.JWTTokenDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.ValidationDataDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.PublicationCreationReqDTO;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.TSPublicationCreationReqDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.LogTraceInfoDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ErrorInstanceEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventStatusEnum;
@@ -116,54 +115,6 @@ public class ErrorHandlerSRV implements IErrorHandlerSRV {
         	logger.error(errorMessage + " " + validationInfo.getWorkflowInstanceId(), OperationLogEnum.REPLACE_CDA2, ResultLogEnum.KO, startDateOperation, errorType.getErrorCategory(), issuer, documentType, role, subjectFiscalCode, locality);
         }
         throw new ValidationPublicationErrorException(errorType,StringUtility.sanitizeMessage(errorMessage), errorInstance);
-    }
-
-    @Override
-    public void tsFeedingValidationExceptionHandler(Date startDateOperation, String workflowInstanceId, JWTTokenDTO jwtToken, 
-        TSPublicationCreationReqDTO jsonObj, LogTraceInfoDTO traceInfoDTO, ValidationException e, final String documentType) {
-        String errorMessage = e.getMessage();
-        String capturedErrorType = RestExecutionResultEnum.GENERIC_ERROR.getType();
-        String errorInstance = ErrorInstanceEnum.NO_INFO.getInstance();
-        
-        EventStatusEnum errorEventStatus =  RestExecutionResultEnum.GENERIC_ERROR.getEventStatusEnum();
-        if (e.getError() != null) {
-            errorMessage = e.getError().getDetail();
-            capturedErrorType = e.getError().getType();
-            errorInstance = e.getError().getInstance();
-            errorEventStatus = RestExecutionResultEnum.get(capturedErrorType).getEventStatusEnum();
-        }
-
-        final RestExecutionResultEnum result = RestExecutionResultEnum.get(capturedErrorType);
-
-        kafkaSRV.sendFeedingStatus(traceInfoDTO.getTraceID(), workflowInstanceId, errorEventStatus, errorMessage, jsonObj, jwtToken != null ? jwtToken.getPayload() : null);
-
-        String issuer = (jwtToken != null && jwtToken.getPayload()!= null && !StringUtility.isNullOrEmpty(jwtToken.getPayload().getIss())) ? jwtToken.getPayload().getIss() : Constants.App.JWT_MISSING_ISSUER_PLACEHOLDER;
-        String role = (jwtToken!=null && jwtToken.getPayload().getSubject_role()!=null && !StringUtility.isNullOrEmpty(jwtToken.getPayload().getSubject_role())) ? jwtToken.getPayload().getSubject_role() : Constants.App.JWT_MISSING_SUBJECT_ROLE;
-        String subjectFiscalCode = (jwtToken != null ? CfUtility.extractFiscalCodeFromJwtSub(jwtToken.getPayload().getSub()) : Constants.App.JWT_MISSING_SUBJECT);
-        String locality = (jwtToken!=null && jwtToken.getPayload().getLocality()!=null && !StringUtility.isNullOrEmpty(jwtToken.getPayload().getLocality())) ? jwtToken.getPayload().getLocality() : Constants.App.JWT_MISSING_LOCALITY;
-        
-        logger.error(errorMessage + " " + workflowInstanceId, OperationLogEnum.PUB_CDA2, ResultLogEnum.KO, startDateOperation, result.getErrorCategory(), issuer, documentType, role, subjectFiscalCode, locality);
-        throw new ValidationPublicationErrorException(result, StringUtility.sanitizeMessage(e.getError().getDetail()), errorInstance);
-    }
-
-    @Override
-    public void tsFeedingConnectionRefusedExceptionHandler(Date startDateOperation, String workflowInstanceId, JWTTokenDTO jwtToken, 
-        TSPublicationCreationReqDTO jsonObj, LogTraceInfoDTO traceInfoDTO, ConnectionRefusedException ex, final String documentType) {
-        String errorMessage = ex.getMessage();
-        String capturedErrorType = RestExecutionResultEnum.GENERIC_TIMEOUT.getType();
-        String errorInstance = ErrorInstanceEnum.NO_INFO.getInstance();
-
-        final RestExecutionResultEnum result = RestExecutionResultEnum.get(capturedErrorType);
-        EventStatusEnum errorEventStatus = result.getEventStatusEnum();
-
-        String issuer = (jwtToken != null && jwtToken.getPayload() != null && !StringUtility.isNullOrEmpty(jwtToken.getPayload().getIss())) ? jwtToken.getPayload().getIss() : Constants.App.JWT_MISSING_ISSUER_PLACEHOLDER;
-        String role = (jwtToken!=null && jwtToken.getPayload().getSubject_role()!=null && !StringUtility.isNullOrEmpty(jwtToken.getPayload().getSubject_role())) ? jwtToken.getPayload().getSubject_role() : Constants.App.JWT_MISSING_SUBJECT_ROLE;
-        String subjectFiscalCode = (jwtToken != null ? CfUtility.extractFiscalCodeFromJwtSub(jwtToken.getPayload().getSub()) : Constants.App.JWT_MISSING_SUBJECT);
-        String locality = (jwtToken!=null && jwtToken.getPayload().getLocality()!=null && !StringUtility.isNullOrEmpty(jwtToken.getPayload().getLocality())) ? jwtToken.getPayload().getLocality() : Constants.App.JWT_MISSING_LOCALITY;
-        
-        kafkaSRV.sendFeedingStatus(traceInfoDTO.getTraceID(), workflowInstanceId, errorEventStatus, errorMessage, jsonObj, jwtToken != null ? jwtToken.getPayload() : null);
-        logger.error(errorMessage + " " + workflowInstanceId, OperationLogEnum.PUB_CDA2, ResultLogEnum.KO, startDateOperation, result.getErrorCategory(), issuer, documentType, role, subjectFiscalCode, locality);
-        throw new ValidationPublicationErrorException(result, StringUtility.sanitizeMessage(ex.getMessage()), errorInstance);
     }
 
     @Override

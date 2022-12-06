@@ -30,13 +30,11 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 @Slf4j
 public class ControllerExceptionHandler extends ResponseEntityExceptionHandler {
 
-
 	/**
 	 * Tracker log.
 	 */
 	@Autowired
 	private Tracer tracer;
-
 
 	/**
 	 * Management validation exception.
@@ -154,8 +152,8 @@ public class ControllerExceptionHandler extends ResponseEntityExceptionHandler {
 
 		ErrorResponseDTO out = new ErrorResponseDTO(
 			getLogTraceInfo(),
-			RestExecutionResultEnum.SERVICE_ERROR.getType(),
-			RestExecutionResultEnum.SERVICE_ERROR.getTitle(),
+			RestExecutionResultEnum.INI_EXCEPTION.getType(),
+			RestExecutionResultEnum.INI_EXCEPTION.getTitle(),
 			ex.getDetail(),
 			ex.getStatusCode(),
 			String.format("%s/%s", RestExecutionResultEnum.SERVICE_ERROR.getType(), ex.getMicroservice())
@@ -176,11 +174,15 @@ public class ControllerExceptionHandler extends ResponseEntityExceptionHandler {
 	 * @return			
 	 */
 	@ExceptionHandler(value = {NoRecordFoundException.class})
-	protected ResponseEntity<ErrorResponseDTO> handleRecordNotFoundException(final NoRecordFoundException ex, final WebRequest request) {
+	protected ResponseEntity<ErrorResponseDTO> handleRecordNotFoundException(NoRecordFoundException ex, final WebRequest request) {
 		log.error("" , ex);  
 		Integer status = 404;
 
-		ErrorResponseDTO out = new ErrorResponseDTO(getLogTraceInfo(), RestExecutionResultEnum.RECORD_NOT_FOUND.getType(), RestExecutionResultEnum.RECORD_NOT_FOUND.getTitle(), ExceptionUtils.getMessage(ex), status, ErrorInstanceEnum.NO_INFO.getInstance());
+		String detail = ExceptionUtils.getMessage(ex);
+		if(ex.getError()!=null) {
+			detail = ex.getError().getDetail(); 
+		}
+		ErrorResponseDTO out = new ErrorResponseDTO(getLogTraceInfo(), RestExecutionResultEnum.RECORD_NOT_FOUND.getType(), RestExecutionResultEnum.RECORD_NOT_FOUND.getTitle(), detail , status, ErrorInstanceEnum.NO_INFO.getInstance());
 
 		HttpHeaders headers = new HttpHeaders();
 		headers.setContentType(MediaType.APPLICATION_PROBLEM_JSON);
@@ -285,7 +287,7 @@ public class ControllerExceptionHandler extends ResponseEntityExceptionHandler {
 		log.error("" , ex);  
 		Integer status = 404;
 
-		ErrorResponseDTO out = new ErrorResponseDTO(getLogTraceInfo(), RestExecutionResultEnum.EDS_EXCEPTION.getType(), RestExecutionResultEnum.EDS_EXCEPTION.getTitle(), ExceptionUtils.getMessage(ex), status, ErrorInstanceEnum.NO_INFO.getInstance());
+		ErrorResponseDTO out = new ErrorResponseDTO(getLogTraceInfo(), RestExecutionResultEnum.EDS_EXCEPTION.getType(), RestExecutionResultEnum.EDS_EXCEPTION.getTitle(), ErrorInstanceEnum.EDS_DOCUMENT_MISSING.getDescription(), status, ErrorInstanceEnum.EDS_DOCUMENT_MISSING.getInstance());
 
 		HttpHeaders headers = new HttpHeaders();
 		headers.setContentType(MediaType.APPLICATION_PROBLEM_JSON);

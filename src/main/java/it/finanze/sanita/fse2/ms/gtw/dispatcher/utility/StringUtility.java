@@ -3,10 +3,8 @@
  */
 package it.finanze.sanita.fse2.ms.gtw.dispatcher.utility;
 
-import java.net.InetAddress;
 import java.security.MessageDigest;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
 import java.util.Base64;
 import java.util.TimeZone;
 import java.util.UUID;
@@ -24,7 +22,6 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.ErrorResponseDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ErrorInstanceEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.RestExecutionResultEnum;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.UIDModeEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.BusinessException;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.ValidationException;
 import lombok.extern.slf4j.Slf4j;
@@ -125,40 +122,8 @@ public final class StringUtility {
 	    return UUID.randomUUID().toString();
 	}
 
-	public static String generateTransactionUID(final UIDModeEnum mode) {
-	    
-		String uid = null;
-
-		if (!Arrays.asList(UIDModeEnum.values()).contains(mode)) {
-			uid = UUID.randomUUID().toString().replace("-", "").substring(0, 10);
-		} else {
-			switch (mode) {
-				case HOSTNAME_UUID:
-					try {
-						final InetAddress ip = InetAddress.getLocalHost();
-						uid = ip.getHostName() + UUID.randomUUID().toString().replace("-", "");
-					} catch (final Exception e) {
-						log.error(Constants.App.HOST_ERROR, e);
-						throw new BusinessException(Constants.App.HOST_ERROR, e);
-					}
-					break;
-				case IP_UUID:
-					try {
-						final InetAddress ip = InetAddress.getLocalHost();
-						uid = ip.toString().replace(ip.getHostName() + "/", "")
-								+ UUID.randomUUID().toString().replace("-", "");
-					} catch (final Exception e) {
-						log.error(Constants.App.HOST_ERROR, e);
-						throw new BusinessException(Constants.App.HOST_ERROR, e);
-					}
-					break;
-				case UUID_UUID:
-					uid = UUID.randomUUID().toString().replace("-", "") + UUID.randomUUID().toString().replace("-", "");
-					break;
-			}
-		}
-
-		return uid;
+	public static String generateTransactionUID() {
+		return UUID.randomUUID().toString().replace("-", "").substring(0, 10);
 	}
 
 	/**

@@ -18,10 +18,6 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility;
 @RestController
 public class DateValidationCTL extends AbstractCTL implements IDateValidationCTL {
 
-	/**
-	 * Serial version uid.
-	 */
-	private static final long serialVersionUID = -6908455555111813931L;
 
 	@Autowired
 	private IDateValidationSRV dateValidationSRV;

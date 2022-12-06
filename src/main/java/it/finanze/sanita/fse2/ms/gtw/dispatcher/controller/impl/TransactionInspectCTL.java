@@ -15,11 +15,6 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.ITransactionInspectSRV;
 @RestController
 public class TransactionInspectCTL extends AbstractCTL implements ITransactionInspectCTL {
 
-	/**
-	 * Serial version uid.
-	 */
-	private static final long serialVersionUID = -745041092971509373L;
-	
 	@Autowired
 	private ITransactionInspectSRV transactionInspectSRV;
 
@@ -27,7 +22,6 @@ public class TransactionInspectCTL extends AbstractCTL implements ITransactionIn
 	public TransactionInspectResDTO getEvents(String workflowInstanceId, HttpServletRequest request) {
 		return transactionInspectSRV.callSearchEventByWorkflowInstanceId(workflowInstanceId);
 	}
-
  
 	@Override
 	public TransactionInspectResDTO getEventsByTraceId(String traceId, HttpServletRequest request) {

@@ -8,6 +8,7 @@ import org.springframework.web.client.RestTemplate;
 
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.IStatusCheckClient;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.MicroservicesURLCFG;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.ErrorResponseDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.TransactionInspectResDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.BusinessException;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.NoRecordFoundException;
@@ -34,8 +35,8 @@ public class StatusCheckClient implements IStatusCheckClient {
 		} catch (HttpStatusCodeException e1) {
 			errorHandler(e1);
 		} catch (Exception e) {
-			log.error("Errore durante l'invocazione dell' API messageUploaderSync(). ", e);
-			throw new BusinessException("Errore durante l'invocazione dell' API messageUploaderSync(). ", e);
+			log.error("Errore durante l'invocazione dell' API call search event by wii.", e);
+			throw new BusinessException("Errore durante l'invocazione dell' API call search event by wii.", e);
 		}
 
 		return out;
@@ -44,7 +45,16 @@ public class StatusCheckClient implements IStatusCheckClient {
 	@Override
 	public TransactionInspectResDTO callSearchEventByTraceId(final String traceId) {
 		String url = urlCFG.getStatusCheckClientHost() + "/v1/search/" + traceId;
-		return restTemplate.getForEntity(url, TransactionInspectResDTO.class).getBody();
+		TransactionInspectResDTO out = null;
+		try {	
+			out = restTemplate.getForEntity(url, TransactionInspectResDTO.class).getBody();
+		} catch (HttpStatusCodeException e1) {
+			errorHandler(e1);
+		} catch (Exception e) {
+			log.error("Errore durante l'invocazione dell' API call search event by traceid.", e);
+			throw new BusinessException("Errore durante l'invocazione dell' API call search event by traceid.", e);
+		}
+		return out; 
 	}
 
 	private void errorHandler(final HttpStatusCodeException e1) {
@@ -52,13 +62,13 @@ public class StatusCheckClient implements IStatusCheckClient {
 		
 		// 404 Not found.
 		if (HttpStatus.NOT_FOUND.equals(e1.getStatusCode())) {
-			throw new NoRecordFoundException(e1);
+			ErrorResponseDTO error = ErrorResponseDTO.builder().detail("No Record Found").build();
+			throw new NoRecordFoundException(error,e1.getStatusCode().value());
 		}
 		
 		// 500 Internal Server Error.
 		if (HttpStatus.INTERNAL_SERVER_ERROR.equals(e1.getStatusCode())) {
 			throw new BusinessException(msg, e1);
 		}
-	 
 	}
 }

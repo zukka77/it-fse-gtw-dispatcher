@@ -31,8 +31,8 @@ public class KafkaAppender<E> extends KafkaAppenderConfig<E> {
     private static final String KAFKA_LOGGER_PREFIX = KafkaProducer.class.getPackage().getName().replaceFirst("\\.producer$", "");
 
     private LazyProducer lazyProducer = null;
-    private final AppenderAttachableImpl<E> aai = new AppenderAttachableImpl<E>();
-    private final ConcurrentLinkedQueue<E> queue = new ConcurrentLinkedQueue<E>();
+    private final AppenderAttachableImpl<E> aai = new AppenderAttachableImpl<>();
+    private final ConcurrentLinkedQueue<E> queue = new ConcurrentLinkedQueue<>();
     private final FailedDeliveryCallback<E> failedDeliveryCallback = new FailedDeliveryCallback<E>() {
         @Override
         public void onFailedDelivery(E evt, Throwable throwable) {

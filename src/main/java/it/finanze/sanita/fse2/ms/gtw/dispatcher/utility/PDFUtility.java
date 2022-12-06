@@ -34,6 +34,8 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class PDFUtility {
 	
+	private PDFUtility() {}
+	
 	public static Map<String, AttachmentDTO> extractAttachments(byte[] bytePDF) {
 		Map<String, AttachmentDTO> out = new HashMap<>();
 		

@@ -8,7 +8,6 @@ import java.util.Date;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.JWTTokenDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.ValidationDataDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.PublicationCreationReqDTO;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.TSPublicationCreationReqDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.LogTraceInfoDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.ConnectionRefusedException;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.ValidationException;
@@ -52,26 +51,5 @@ public interface IErrorHandlerSRV {
      */
     void publicationValidationExceptionHandler(Date startDateOperation, ValidationDataDTO validationInfo, JWTTokenDTO jwtToken, 
             PublicationCreationReqDTO jsonObj, LogTraceInfoDTO traceInfoDTO, ValidationException e, boolean isPublication, String documentType);
-    /**
-     * Handle connection refused exception for ts feeding ep
-     * @param startDateOperation
-     * @param workflowInstanceId
-     * @param jwtToken
-     * @param jsonObj
-     * @param traceInfoDTO
-     * @param e
-     */
-    void tsFeedingValidationExceptionHandler(Date startDateOperation, String workflowInstanceId, JWTTokenDTO jwtToken, TSPublicationCreationReqDTO jsonObj, LogTraceInfoDTO traceInfoDTO, ValidationException e, String documentType);
-
-    /**
-     * Handle validation exception for ts feeding ep
-     * @param startDateOperation
-     * @param workflowInstanceId
-     * @param jwtToken
-     * @param jsonObj
-     * @param traceInfoDTO
-     * @param ex
-     */
-    void tsFeedingConnectionRefusedExceptionHandler(Date startDateOperation, String workflowInstanceId, JWTTokenDTO jwtToken, TSPublicationCreationReqDTO jsonObj, LogTraceInfoDTO traceInfoDTO, ConnectionRefusedException ex, String documentType);
-
+    
 }

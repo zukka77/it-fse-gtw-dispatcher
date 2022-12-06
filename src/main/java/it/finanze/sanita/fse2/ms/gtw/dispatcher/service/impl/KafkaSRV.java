@@ -57,13 +57,6 @@ public class KafkaSRV implements IKafkaSRV {
 	@Qualifier("txkafkatemplate")
 	private transient KafkaTemplate<String, String> txKafkaTemplate;
 
-	/**
-	 * Not transactional producer.
-	 */
-	@Autowired
-	@Qualifier("notxkafkatemplate")
-	private transient KafkaTemplate<String, String> notxKafkaTemplate;
-
 	@Autowired
 	private transient PriorityUtility priorityUtility;
 
@@ -72,7 +65,7 @@ public class KafkaSRV implements IKafkaSRV {
 		RecordMetadata out = null;
 		ProducerRecord<String, String> producerRecord = new ProducerRecord<>(topic, key, value);
 		try {
-			out = kafkaSend(producerRecord, trans);
+			out = kafkaSend(producerRecord);
 		} catch (Exception e) {
 			log.error("Send failed.", e);
 			throw new BusinessException(e);
@@ -81,44 +74,27 @@ public class KafkaSRV implements IKafkaSRV {
 	}
 
 	@SuppressWarnings("unchecked")
-	private RecordMetadata kafkaSend(ProducerRecord<String, String> producerRecord, boolean trans) {
-		RecordMetadata out = null;
-		Object result = null;
+	private RecordMetadata kafkaSend(ProducerRecord<String, String> producerRecord) {
+		Object result = txKafkaTemplate.executeInTransaction(t -> {
+			try {
+				return t.send(producerRecord).get();
+			} catch(InterruptedException e) {
+				log.error("InterruptedException caught. Interrupting thread...");					
+				Thread.currentThread().interrupt(); 
+				throw new BusinessException(e); 
+			}
+			catch (Exception e) {
+				throw new BusinessException(e);
+			}
+		});
 
-		if (trans) {
-			result = txKafkaTemplate.executeInTransaction(t -> {
-				try {
-					return t.send(producerRecord).get();
-				} catch(InterruptedException e) {
-					log.error("InterruptedException caught. Interrupting thread...");					
-					Thread.currentThread().interrupt(); 
-					throw new BusinessException(e); 
-				}
-				catch (Exception e) {
-					throw new BusinessException(e);
-				}
-			});
-		} else {
-			notxKafkaTemplate.send(producerRecord);
-		}
-
-		if(result != null) {
-			SendResult<String,String> sendResult = (SendResult<String, String>) result;
-			out = sendResult.getRecordMetadata();	
-		}
-
-		return out;
+		SendResult<String,String> sendResult = (SendResult<String, String>) result;
+		return sendResult.getRecordMetadata();	
 	}
 
 	
 	@Override
-	public void notifyChannel(
-			final String key,
-			final String kafkaValue,
-			PriorityTypeEnum priorityFromRequest,
-			TipoDocAltoLivEnum documentType,
-			DestinationTypeEnum destinationType
-	) {
+	public void notifyChannel(final String key,final String kafkaValue,PriorityTypeEnum priorityFromRequest,TipoDocAltoLivEnum documentType,DestinationTypeEnum destinationType) {
 		log.debug("Destination: {}", destinationType.name());
 		try {
 			String destTopic = priorityUtility.computeTopic(priorityFromRequest, destinationType, documentType);

@@ -3,9 +3,7 @@
  */
 package it.finanze.sanita.fse2.ms.gtw.dispatcher.client.impl;
 
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.impl.base.AbstractClient;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpStatusCodeException;
@@ -13,8 +11,10 @@ import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.IConfigClient;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.impl.base.AbstractClient;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.response.WhoIsResponseDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.MicroservicesURLCFG;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.BusinessException;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.ProfileUtility;
 import lombok.extern.slf4j.Slf4j;
@@ -26,19 +26,11 @@ import lombok.extern.slf4j.Slf4j;
 @Component
 public class ConfigClient extends AbstractClient implements IConfigClient {
 
-    /**
-	 * Serial version uid.
-	 */
-	private static final long serialVersionUID = -923144320301638618L;
-
-	/**
-     * Config host.
-     */
-    @Value("${ms.url.gtw-config}")
-    private String configHost;
-
+	@Autowired
+	private MicroservicesURLCFG msUrlCFG;
+	
     @Autowired
-    private transient RestTemplate restTemplate;
+    private RestTemplate restTemplate;
 
     @Autowired
     private ProfileUtility profileUtility;
@@ -48,7 +40,7 @@ public class ConfigClient extends AbstractClient implements IConfigClient {
         String gatewayName = null;
         try {
             log.debug("Config Client - Calling Config Client to get Gateway Name");
-            final String endpoint = configHost + Constants.Client.Config.WHOIS_PATH;
+            final String endpoint = msUrlCFG.getConfigHost() + Constants.Client.Config.WHOIS_PATH;
 
             final boolean isTestEnvironment = profileUtility.isDevOrDockerProfile() || profileUtility.isTestProfile();
             
@@ -84,7 +76,7 @@ public class ConfigClient extends AbstractClient implements IConfigClient {
 
     private boolean isReachable() {
         try {
-            final String endpoint = configHost + Constants.Client.Config.STATUS_PATH;
+            final String endpoint = msUrlCFG.getConfigHost() + Constants.Client.Config.STATUS_PATH;
             restTemplate.getForEntity(endpoint, String.class);
             return true;
         } catch (ResourceAccessException clientException) {

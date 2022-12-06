@@ -16,7 +16,6 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.IFhirMappingClient;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.MicroservicesURLCFG;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.FhirResourceDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.client.TransformResDTO;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.BusinessException;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.ConnectionRefusedException;
 import lombok.extern.slf4j.Slf4j;
 
@@ -24,13 +23,8 @@ import lombok.extern.slf4j.Slf4j;
 @Component
 public class FhirMappingClient implements IFhirMappingClient {
 
-	/**
-	 * Serial version uid. 
-	 */
-	private static final long serialVersionUID = 6009573115047546392L;
-
 	@Autowired
-	private transient RestTemplate restTemplate;
+	private RestTemplate restTemplate;
 
 	@Autowired
 	private MicroservicesURLCFG msUrlCFG;
@@ -39,30 +33,18 @@ public class FhirMappingClient implements IFhirMappingClient {
 	public TransformResDTO callConvertCdaInBundle(final FhirResourceDTO resourceToConvert) {
 		TransformResDTO out = null;
 		log.debug("Fhir Mapping Client - Calling Fhir Mapping to execute conversion");
-		HttpHeaders headers = new HttpHeaders();
 		ResponseEntity<TransformResDTO> response = null;
-
+		String url = msUrlCFG.getFhirMappingEngineHost() + "/v1/documents/transform";
+		HttpHeaders headers = new HttpHeaders();
+		headers.set("Content-Type", "application/json");
+		HttpEntity<?> entity = new HttpEntity<>(resourceToConvert, headers);
 		try {
-			String host = "";
-			if(Boolean.TRUE.equals(msUrlCFG.getCallTransformEngine())) {
-				host = msUrlCFG.getFhirMappingEngineHost();
-			} else {
-				host = msUrlCFG.getFhirMappingHost();
-			} 
-
-			headers.set("Content-Type", "application/json");
-			HttpEntity<?> entityXslm = new HttpEntity<>(resourceToConvert, headers);
-			response = restTemplate.exchange(host + "/v1/documents/transform", HttpMethod.POST, entityXslm, TransformResDTO.class);
-			log.debug("{} status returned from Fhir mapping Client", response.getStatusCode());
+			response = restTemplate.exchange(url, HttpMethod.POST, entity, TransformResDTO.class);
 			out = response.getBody();
-			log.debug("{} status returned from Fhir Mapping Client", response.getStatusCode());
 		} catch(ResourceAccessException cex) {
-			log.error("Connect error while call document reference ep :" + cex);
-			throw new ConnectionRefusedException(msUrlCFG.getFhirMappingHost(),"Connection refused");
-		} catch(Exception ex) {
-			log.error("Generic error while call document reference ep :" + ex);
-			throw new BusinessException("Generic error while call document reference ep :" + ex);
-		}
+			log.error("Connect error while call document transform :" + msUrlCFG.getFhirMappingEngineHost(),cex);
+			throw new ConnectionRefusedException(msUrlCFG.getFhirMappingEngineHost(),"Connection refused");
+		}  
 		return out;
 	}
 }

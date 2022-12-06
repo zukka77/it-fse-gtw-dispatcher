@@ -1,6 +1,8 @@
 package it.finanze.sanita.fse2.ms.gtw.dispatcher.client.routes.base;
 
 public final class ClientRoutes {
+	
+	private ClientRoutes() {}
 
     public static final class Ini {
 

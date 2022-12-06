@@ -27,7 +27,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
-import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -37,7 +36,6 @@ import org.springframework.test.context.ActiveProfiles;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.ValidationCFG;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.JWTHeaderDTO;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.UIDModeEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.logging.LoggerHelper;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.impl.UtilitySRV;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.CfUtility;
@@ -139,10 +137,8 @@ class UtilityTest extends AbstractTest{
     
     @ParameterizedTest
     @DisplayName("Transaction UID generation test")
-    @ValueSource(ints = { 1, 2, 3, 4})
-    void workflowInstanceIdTest(final int idMode) {
-
-        String uidGenerated = StringUtility.generateTransactionUID(UIDModeEnum.get(idMode));
+    void workflowInstanceIdTest() {
+        String uidGenerated = StringUtility.generateTransactionUID();
         assertFalse(StringUtility.isNullOrEmpty(uidGenerated));
     }
 

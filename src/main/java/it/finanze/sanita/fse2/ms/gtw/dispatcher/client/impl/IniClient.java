@@ -44,12 +44,7 @@ public class IniClient extends AbstractClient implements IIniClient {
 
 		try {
 			// Execute request
-			ResponseEntity<IniTraceResponseDTO> response = client.exchange(
-				endpoint,
-				DELETE,
-				new HttpEntity<>(request),
-				IniTraceResponseDTO.class
-			);
+			ResponseEntity<IniTraceResponseDTO> response = client.exchange(endpoint,DELETE,new HttpEntity<>(request),IniTraceResponseDTO.class);
 			// Retrieve body
 			output = response.getBody();
 		} catch (RestClientResponseException ex) {
@@ -69,12 +64,7 @@ public class IniClient extends AbstractClient implements IIniClient {
 
 		try {
 			// Execute request
-			ResponseEntity<IniReferenceResponseDTO> response = client.exchange(
-				endpoint,
-				POST,
-				new HttpEntity<>(request.getToken()),
-				IniReferenceResponseDTO.class
-			);
+			ResponseEntity<IniReferenceResponseDTO> response = client.exchange(endpoint,POST,new HttpEntity<>(request.getToken()),IniReferenceResponseDTO.class);
 			// Retrieve body
 			output = response.getBody();
 		} catch (RestClientResponseException ex) {
@@ -94,12 +84,7 @@ public class IniClient extends AbstractClient implements IIniClient {
 
 		try {
 			// Execute request
-			ResponseEntity<IniTraceResponseDTO> response = client.exchange(
-				endpoint,
-				PUT,
-				new HttpEntity<>(request),
-				IniTraceResponseDTO.class
-			);
+			ResponseEntity<IniTraceResponseDTO> response = client.exchange(endpoint,PUT,new HttpEntity<>(request),IniTraceResponseDTO.class);
 			// Retrieve body
 			output = response.getBody();
 		} catch (RestClientResponseException ex) {
@@ -119,12 +104,7 @@ public class IniClient extends AbstractClient implements IIniClient {
 
 		try {
 			// Execute request
-			ResponseEntity<GetMergedMetadatiDTO> response = client.exchange(
-				endpoint,
-				PUT,
-				new HttpEntity<>(request),
-				GetMergedMetadatiDTO.class
-			);
+			ResponseEntity<GetMergedMetadatiDTO> response = client.exchange(endpoint,PUT,new HttpEntity<>(request),GetMergedMetadatiDTO.class);
 			// Retrieve body
 			output = response.getBody();
 		} catch (RestClientResponseException ex) {

@@ -3,7 +3,9 @@
  */
 package it.finanze.sanita.fse2.ms.gtw.dispatcher.controller.impl;
 
-import java.io.Serializable;
+import static it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants.Headers.JWT_GOVWAY_HEADER;
+import static it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants.Headers.JWT_HEADER;
+
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Base64;
@@ -12,7 +14,6 @@ import java.util.Map;
 import javax.annotation.Nullable;
 import javax.servlet.http.HttpServletRequest;
 
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.PublicationMetadataReqDTO;
 import org.jsoup.Jsoup;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.CollectionUtils;
@@ -21,6 +22,7 @@ import org.springframework.web.multipart.MultipartFile;
 import brave.Tracer;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.IValidatorClient;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.CDACFG;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants.App;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.MicroservicesURLCFG;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.AttachmentDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.JWTPayloadDTO;
@@ -28,6 +30,7 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.JWTTokenDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.ValidationDataDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.ValidationInfoDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.PublicationCreationReqDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.PublicationMetadataReqDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.TSPublicationCreationReqDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.ValidationCDAReqDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.ErrorResponseDTO;
@@ -48,31 +51,23 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.PDFUtility;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility;
 import lombok.extern.slf4j.Slf4j;
 
-import static it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants.*;
-import static it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants.Headers.*;
-
 /**
  *	Abstract controller.
  */
 @Slf4j
-public abstract class AbstractCTL implements Serializable {
-
-	/**
-	 * Serial version uid.
-	 */
-	private static final long serialVersionUID = -3077780100650268134L;
-	
+public abstract class AbstractCTL {
+	 
 	@Autowired
-	private transient Tracer tracer;
+	private Tracer tracer;
 
     @Autowired
-	private transient IValidatorClient validatorClient;
+	private IValidatorClient validatorClient;
 
     @Autowired
 	private ICdaFacadeSRV cdaFacadeSRV;
 	
 	@Autowired
-	private transient CDACFG cdaCfg;
+	private CDACFG cdaCfg;
 
 	@Autowired
 	protected MicroservicesURLCFG msCfg;
@@ -539,7 +534,7 @@ public abstract class AbstractCTL implements Serializable {
 	 * Retrieve validation info of CDA on MongoDB.
 	 * 
 	 * @param cda CDA to check validation of.
-	 * @param wii WorkflowTransactionId, is not mandatory in publication. If not
+	 * @param wii WorkflowInstanceId, is not mandatory in publication. If not
 	 *            provided, the system will retrieve it from validation info.
 	 * @throws ValidationException If the hash does not exists or is associated with a different {@code wii}
 	 */

@@ -7,8 +7,8 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -34,7 +34,7 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.ValidationResDTO;
 public interface IValidationCTL {
 
 	
-	@RequestMapping(value = "/documents/validation", method = RequestMethod.POST, produces = { MediaType.APPLICATION_JSON_VALUE }, consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
+	@PostMapping(value = "/documents/validation", produces = { MediaType.APPLICATION_JSON_VALUE }, consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
 	@ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ValidationResDTO.class)))
 	@Operation(summary = "Validazione documenti", description = "Valida il CDA iniettato nel PDF fornito in input.")
 	@SecurityRequirements({

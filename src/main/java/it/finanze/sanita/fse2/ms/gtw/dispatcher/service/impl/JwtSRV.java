@@ -20,10 +20,6 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 public class JwtSRV extends AbstractService implements IJwtSRV {
 	
-	/**
-	 * Serial version uid.
-	 */
-	private static final long serialVersionUID = 1264747664221422792L;
 
 	@Autowired
 	private MicroservicesURLCFG urlCfg;

@@ -39,19 +39,14 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility;
 @RestController
 public class ValidationCTL extends AbstractCTL implements IValidationCTL {
 
-	/**
-	 * Serial version uid.
-	 */
-	private static final long serialVersionUID = 278537982196195315L;
-
 	@Autowired
 	private IKafkaSRV kafkaSRV;
 
 	@Autowired
-	private transient LoggerHelper logger;
+	private LoggerHelper logger;
 
 	@Autowired
-	private transient IErrorHandlerSRV errorHandlerSRV;
+	private IErrorHandlerSRV errorHandlerSRV;
 
 	@Override
 	public ResponseEntity<ValidationResDTO> validate(final ValidationCDAReqDTO requestBody, final MultipartFile file,

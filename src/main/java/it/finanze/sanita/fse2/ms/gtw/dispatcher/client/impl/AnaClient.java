@@ -14,15 +14,10 @@ import lombok.extern.slf4j.Slf4j;
 @Component
 public class AnaClient implements IAnaClient {
 
-	/**
-	 * Serial version uid.
-	 */
-	private static final long serialVersionUID = -7874491943915675375L;
-
+	 
 	@Override
 	public Boolean callAnaClient(final String codFiscale) {
 		log.warn("ATTENZIONE , Si sta chiamando il client mockato di Ana , assicurarsi che sia voluto");
-		// ResponseEntity<Boolean> response = null;
 		HttpHeaders headers = new HttpHeaders();
 		headers.set("Content-Type", "application/json");
 		AnaReqDTO req = new AnaReqDTO();
