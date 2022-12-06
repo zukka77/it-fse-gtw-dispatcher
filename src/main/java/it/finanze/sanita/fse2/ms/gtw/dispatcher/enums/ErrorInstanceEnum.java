@@ -27,7 +27,7 @@ public enum ErrorInstanceEnum {
 	NON_PDF_FILE("/multipart-file", "File type must be a PDF document"),
 	EMPTY_FILE("/empty-multipart-file", "File type must not be empty"),
 	OLDER_DAY("/msg/max-day-limit-exceed", "Cannot publish documents older"),
-	EDS_DOCUMENT_MISSING("/msg/eds-document-missing", "Document cannot be found on the Server");
+	EDS_DOCUMENT_MISSING("/msg/eds-document-missing", "Document cannot be found on the Server FHIR");
 	
 	private String instance;
 	private String description;
