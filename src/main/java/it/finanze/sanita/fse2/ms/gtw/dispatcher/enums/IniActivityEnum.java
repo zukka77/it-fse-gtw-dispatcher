@@ -3,6 +3,9 @@
  */
 package it.finanze.sanita.fse2.ms.gtw.dispatcher.enums;
 
+import lombok.Getter;
+
+@Getter
 public enum IniActivityEnum {
 
 	CREATE("CREATE", "Creazione"),
@@ -16,14 +19,6 @@ public enum IniActivityEnum {
 	private IniActivityEnum(String inCode, String inDescription) {
 		code = inCode;
 		description = inDescription;
-	}
-
-	public String getCode() {
-		return code;
-	}
-
-	public String getDescription() {
-		return description;
 	}
 
 }

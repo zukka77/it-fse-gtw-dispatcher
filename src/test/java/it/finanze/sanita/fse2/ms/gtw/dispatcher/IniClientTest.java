@@ -10,10 +10,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.GetMergedMetadatiDTO;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.IniReferenceResponseDTO;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatchers;
@@ -48,12 +44,6 @@ class IniClientTest {
     private IniClient iniClient;
 
     private IniMetadataUpdateReqDTO requestBody;
-
-    @BeforeEach
-    void init() {
-    	//TODO
-//        requestBody = new IniMetadataUpdateReqDTO("idDoc", new JWTPayloadDTO(), new PublicationMetadataReqDTO());
-    }
 
     @Test
     @DisplayName("Update - updateConnectionRefusedErrorTest")

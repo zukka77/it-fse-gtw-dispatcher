@@ -11,11 +11,6 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.CfUtility;
 
 @Service
 public class UtilitySRV extends AbstractService {
-
-	/**
-	 * Serial version uid.
-	 */
-	private static final long serialVersionUID = -4645168074042407899L;
 	
 	@Autowired
 	private transient ValidationCFG validationCfg;

@@ -134,13 +134,6 @@ class UtilityTest extends AbstractTest{
     	assertEquals(false, utilitySrv.isValidCf(fiscalCodeStp));
     	assertEquals(false, utilitySrv.isValidCf(fiscalCodeNull));
     }
-    
-    @ParameterizedTest
-    @DisplayName("Transaction UID generation test")
-    void workflowInstanceIdTest() {
-        String uidGenerated = StringUtility.generateTransactionUID();
-        assertFalse(StringUtility.isNullOrEmpty(uidGenerated));
-    }
 
     @Test
     @DisplayName("Mixed utility")

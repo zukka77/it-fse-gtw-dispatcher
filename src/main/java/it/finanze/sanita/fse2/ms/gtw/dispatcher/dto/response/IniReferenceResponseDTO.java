@@ -3,11 +3,13 @@
  */
 package it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
 @Getter
 @Setter
+@AllArgsConstructor
 public class IniReferenceResponseDTO extends ResponseDTO {
 
 	/**

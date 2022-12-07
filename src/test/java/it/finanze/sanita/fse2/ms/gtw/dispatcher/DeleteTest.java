@@ -34,7 +34,6 @@ import org.springframework.web.client.RestTemplate;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.EdsResponseDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.IniTraceResponseDTO;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.ResponseDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.BusinessException;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility;
 import lombok.extern.slf4j.Slf4j;
@@ -174,7 +173,7 @@ class DeleteTest extends AbstractTest {
 		final String urlReplace = "http://localhost:" + webServerAppCtxt.getWebServer().getPort() + webServerAppCtxt.getServletContext().getContextPath() + "/v1/documents/" + documentId;
 
 		HttpEntity<?> requestEntity = new HttpEntity<>(null, headers);
-		return restTemplate.exchange(urlReplace, HttpMethod.DELETE, null, EdsResponseDTO.class);
+		return restTemplate.exchange(urlReplace, HttpMethod.DELETE, requestEntity, EdsResponseDTO.class);
 	}
 
 }

@@ -23,12 +23,9 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Date;
-import java.util.Map;
-import java.util.Optional;
 import java.util.UUID;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.apache.http.HttpStatus;
 import org.bson.Document;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -44,6 +41,7 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
@@ -77,7 +75,6 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.RawValidationEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.RestExecutionResultEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.TipoDocAltoLivEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.repository.entity.ValidatedDocumentsETY;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.repository.mongo.impl.ValidatedDocumentsRepo;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.facade.ICdaFacadeSRV;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.FileUtility;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility;
@@ -103,9 +100,6 @@ class PublicationTest extends AbstractTest {
 
 	@MockBean
 	private MicroservicesURLCFG msCfg;
-
-	@Autowired
-	private ValidatedDocumentsRepo cdaRepo;
 	
 	@Autowired
 	private MongoTemplate mongo; 
@@ -114,16 +108,12 @@ class PublicationTest extends AbstractTest {
 	@BeforeEach
 	void createCollection(){
 		mongo.dropCollection(ValidatedDocumentsETY.class);
-		ValidatedDocumentsETY ety = new ValidatedDocumentsETY();
-		ety.setHashCda("hdkdkd");
-		ety.setInsertionDate(new Date());
-
-        mongo.save(ety);
+		given(msCfg.getConfigHost()).willReturn("http://localhost:8018");
 	}
 	
 	
 	@Test
-	void t1() {
+	void givenWrongFileFormat_shouldFailPublication() {
 		// non pdf file
     	byte[] wrongPdf = FileUtility.getFileFromInternalResources("Files/Test.docx");
         RestExecutionResultEnum resPublication = callPublication(wrongPdf,null, "aaaaa", false, true);
@@ -153,7 +143,7 @@ class PublicationTest extends AbstractTest {
 		TransformResDTO ref = new TransformResDTO();
 		ref.setErrorMessage("");
 		ref.setJson(Document.parse("{\"json\" : \"json\"}"));
-		doReturn(new ResponseEntity<>(ref, org.springframework.http.HttpStatus.OK))
+		doReturn(new ResponseEntity<>(ref, HttpStatus.OK))
 				.when(restTemplate).exchange(anyString(), eq(HttpMethod.POST), any(HttpEntity.class), eq(TransformResDTO.class));
 
 		byte[] pdfAttachment = FileUtility.getFileFromInternalResources("Files/attachment/CDA_OK_SIGNED.pdf");
@@ -161,18 +151,10 @@ class PublicationTest extends AbstractTest {
 		ValidationInfoDTO info = new ValidationInfoDTO(RawValidationEnum.OK, new ArrayList<>(), "", "");
 		given(validatorClient.validate(anyString())).willReturn(info);
 
-		Map<String,RestExecutionResultEnum> res = callValidation(ActivityEnum.VALIDATION, HealthDataFormatEnum.CDA, InjectionModeEnum.ATTACHMENT, pdfAttachment, true, false, true);
-		Optional<String> firstKey = res.keySet().stream().findFirst();
+		callValidation(ActivityEnum.VALIDATION, HealthDataFormatEnum.CDA, InjectionModeEnum.ATTACHMENT, pdfAttachment, true, false, true);
 
-		String transactionId = "";
-		if (firstKey.isPresent()) {
-			transactionId = firstKey.get();
-		}
-
-		cdaRepo.create(ValidatedDocumentsETY.setContent("6XpKL8W/lQjXvnZ24wFNts5itL07id7suEe+YluhfcY=", "wfid", "", ""));
 		PublicationCreationReqDTO reqDTO = buildReqDTO();
-
-		RestExecutionResultEnum resPublication = callPublication(pdfAttachment, reqDTO, transactionId, false, true);
+		RestExecutionResultEnum resPublication = callPublication(pdfAttachment, reqDTO, null, false, true);
 		assertNotNull(resPublication);
 		assertEquals(RestExecutionResultEnum.OK.getType(), resPublication.getType());
 
@@ -317,7 +299,7 @@ class PublicationTest extends AbstractTest {
 	void publicationErrorTest() {
 
 		//given(client.callConvertCdaInBundle(any(FhirResourceDTO.class))).willReturn(new TransformResDTO("", "{\"json\" : \"json\"}"));
-		doReturn(new ResponseEntity<>(new TransformResDTO("", Document.parse("{\"json\" : \"json\"}")), org.springframework.http.HttpStatus.OK))
+		doReturn(new ResponseEntity<>(new TransformResDTO("", Document.parse("{\"json\" : \"json\"}")), HttpStatus.OK))
 				.when(restTemplate).exchange(anyString(), eq(HttpMethod.POST), any(HttpEntity.class), eq(TransformResDTO.class));
 
 		final byte[] file = FileUtility.getFileFromInternalResources("Files" + File.separator + "attachment" + File.separator + "CDA_OK_SIGNED.pdf");
@@ -330,7 +312,7 @@ class PublicationTest extends AbstractTest {
 		given(validatorClient.validate(anyString())).willReturn(info);
 
 		ResponseEntity<ValidationResDTO> response = callPlainValidation(jwtToken, file, validationRB);
-		assertEquals(HttpStatus.SC_CREATED, response.getStatusCode().value());
+		assertEquals(HttpStatus.CREATED.value(), response.getStatusCode().value());
 		final String workflowInstanceId = "wfid";
 
 		PublicationCreationReqDTO publicationRB = new PublicationCreationReqDTO();
@@ -402,42 +384,36 @@ class PublicationTest extends AbstractTest {
 		TransformResDTO ref = new TransformResDTO();
 		ref.setErrorMessage("");
 		ref.setJson(Document.parse("{\"json\" : \"json\"}"));
-		doReturn(new ResponseEntity<>(ref, org.springframework.http.HttpStatus.OK))
+		doReturn(new ResponseEntity<>(ref, HttpStatus.OK))
 				.when(restTemplate).exchange(anyString(), eq(HttpMethod.POST), any(HttpEntity.class), eq(TransformResDTO.class));
 
 		byte[] pdfAttachment = FileUtility.getFileFromInternalResources("Files/attachment/CDA_OK_SIGNED.pdf");
 
-		ValidationInfoDTO info = new ValidationInfoDTO(RawValidationEnum.OK, new ArrayList<>(), "", "");
+		ValidationInfoDTO info = new ValidationInfoDTO(RawValidationEnum.OK, new ArrayList<>(), "wfid", "");
 		given(validatorClient.validate(anyString())).willReturn(info);
 
-		Map<String,RestExecutionResultEnum> res = callValidation(ActivityEnum.VALIDATION, HealthDataFormatEnum.CDA, InjectionModeEnum.ATTACHMENT, pdfAttachment, true, false, true);
-		Optional<String> firstKey = res.keySet().stream().findFirst();
-
-		String transactionId = "";
-		if (firstKey.isPresent()) {
-			transactionId = firstKey.get();
-		}
+		// Validation will insert hash in DB
+		callValidation(ActivityEnum.VALIDATION, HealthDataFormatEnum.CDA, InjectionModeEnum.ATTACHMENT, pdfAttachment, true, false, true);
 		
 		// Case 1: Date is over 5 days 
 		when(cdaFacadeSRV.getByWorkflowInstanceId(anyString())).thenReturn(validatedDocumentDateOverFiveDays); 
-
-		cdaRepo.create(ValidatedDocumentsETY.setContent("6XpKL8W/lQjXvnZ24wFNts5itL07id7suEe+YluhfcY=", "wfid", "", ""));
-		PublicationCreationReqDTO reqDTO = buildReqDTO();
-
-		RestExecutionResultEnum resPublication = callPublication(pdfAttachment, reqDTO, transactionId, false, true);
-		assertNotNull(resPublication);
-		assertEquals(RestExecutionResultEnum.GENERIC_ERROR.getType(), resPublication.getType()); 
 		
+		// Publication failure will remove hash from DB
+		RestExecutionResultEnum resPublication = callPublication(pdfAttachment, buildReqDTO(), null, false, true);
+		
+		assertNotNull(resPublication);
+		assertEquals(RestExecutionResultEnum.OLDER_DAY.getType(), resPublication.getType()); 
+
+		// Validation will insert hash in DB
+		callValidation(ActivityEnum.VALIDATION, HealthDataFormatEnum.CDA, InjectionModeEnum.ATTACHMENT, pdfAttachment, true, false, true);
+
 		// Case 2: Date is 3 days ago, should be OK
 		when(cdaFacadeSRV.getByWorkflowInstanceId(anyString())).thenReturn(validatedDocumentCorrectDate); 
 
-		cdaRepo.create(ValidatedDocumentsETY.setContent("6XpKL8W/lQjXvnZ24wFNts5itL07id7suEe+YluhfcY=", "wfid", "", ""));
-		PublicationCreationReqDTO reqDTOOk = buildReqDTO();
-
-		RestExecutionResultEnum resPublicationOk = callPublication(pdfAttachment, reqDTOOk, transactionId, false, true);
+		// Publication success will remove hash from DB
+		RestExecutionResultEnum resPublicationOk = callPublication(pdfAttachment, buildReqDTO(), null, false, true);
 		assertNotNull(resPublicationOk);
-		assertEquals(RestExecutionResultEnum.OK.getType(), resPublicationOk.getType()); 
-		
+		assertEquals(RestExecutionResultEnum.OK.getType(), resPublicationOk.getType());
 	}
 
 	
@@ -445,7 +421,7 @@ class PublicationTest extends AbstractTest {
 	void publicationWarningTest() {
 
 		//given(client.callConvertCdaInBundle(any(FhirResourceDTO.class))).willReturn(new TransformResDTO("", "{\"json\" : \"json\"}"));
-        doReturn(new ResponseEntity<>(new TransformResDTO("", Document.parse("{\"json\" : \"json\"}")), org.springframework.http.HttpStatus.OK))
+        doReturn(new ResponseEntity<>(new TransformResDTO("", Document.parse("{\"json\" : \"json\"}")), HttpStatus.OK))
 				.when(restTemplate).exchange(anyString(), eq(HttpMethod.POST), any(HttpEntity.class), eq(TransformResDTO.class));
 		final byte[] file = FileUtility.getFileFromInternalResources("Files" + File.separator + "attachment" + File.separator + "CDA_OK_SIGNED.pdf");
 		final String jwtToken = generateJwt(file, true);
@@ -457,7 +433,7 @@ class PublicationTest extends AbstractTest {
 		given(validatorClient.validate(anyString())).willReturn(info);
 
 		ResponseEntity<ValidationResDTO> response = callPlainValidation(jwtToken, file, validationRB);
-		assertEquals(HttpStatus.SC_CREATED, response.getStatusCode().value());
+		assertEquals(HttpStatus.CREATED.value(), response.getStatusCode().value());
 
 		PublicationCreationReqDTO publicationRB = buildCreationDTO(response.getBody().getWorkflowInstanceId(), null);
 		
@@ -486,7 +462,7 @@ class PublicationTest extends AbstractTest {
 	void publicationForcedTest() {
 
 		//given(client.callConvertCdaInBundle(any(FhirResourceDTO.class))).willReturn(new TransformResDTO("", "{\"json\" : \"json\"}"));
-		doReturn(new ResponseEntity<>(new TransformResDTO("", Document.parse("{\"json\" : \"json\"}")), org.springframework.http.HttpStatus.OK))
+		doReturn(new ResponseEntity<>(new TransformResDTO("", Document.parse("{\"json\" : \"json\"}")), HttpStatus.OK))
 				.when(restTemplate).exchange(anyString(), eq(HttpMethod.POST), any(HttpEntity.class), eq(TransformResDTO.class));
 
 		final byte[] file = FileUtility.getFileFromInternalResources("Files" + File.separator + "attachment" + File.separator + "CDA_OK_SIGNED.pdf");
@@ -505,7 +481,7 @@ class PublicationTest extends AbstractTest {
 
 		final ResponseEntity<PublicationResDTO> publicationResponse = callPlainPublication(jwtToken, file, publicationRB);
 		assertNotNull(publicationResponse);
-		assertEquals(HttpStatus.SC_CREATED, publicationResponse.getStatusCode().value());
+		assertEquals(HttpStatus.CREATED.value(), publicationResponse.getStatusCode().value());
 		assertNull(publicationResponse.getBody().getWarning());
 		
 	}
@@ -513,7 +489,7 @@ class PublicationTest extends AbstractTest {
 	@Test
 	void publicationForcedTestNullCases() {
 		
-		doReturn(new ResponseEntity<>(new TransformResDTO("", Document.parse("{\"json\" : \"json\"}")), org.springframework.http.HttpStatus.OK))
+		doReturn(new ResponseEntity<>(new TransformResDTO("", Document.parse("{\"json\" : \"json\"}")), HttpStatus.OK))
 		.when(restTemplate).exchange(anyString(), eq(HttpMethod.POST), any(HttpEntity.class), eq(TransformResDTO.class));
 
 		final byte[] file = FileUtility.getFileFromInternalResources("Files" + File.separator + "attachment" + File.separator + "CDA_OK_SIGNED.pdf");
@@ -539,32 +515,6 @@ class PublicationTest extends AbstractTest {
 	}
 
 	@Test
-	void govwayHeader () {
-
-		given(msCfg.getFromGovway()).willReturn(true);
-		mockDocumentRef();
-
-		final byte[] pdfAttachment = FileUtility.getFileFromInternalResources("Files/attachment/CDA_OK_SIGNED.pdf");
-		final ValidationInfoDTO info = new ValidationInfoDTO(RawValidationEnum.OK, new ArrayList<>(), "", "");
-		given(validatorClient.validate(anyString())).willReturn(info); // Mocking validation
-		PublicationCreationReqDTO reqDTO = buildReqDTO(); 
-//		String wfId = "2.16.840.1.113883.2.9.2.120.4.4.97bb3fc5bee3032679f4f07419e04af6375baafa17024527a98ede920c6812ed.fb187ee47b^^^^urn:ihe:iti:xdw:2013:workflowInstanceId";
-		
-		final RestExecutionResultEnum resPublication = callPublication(pdfAttachment, reqDTO, "wfid", msCfg.getFromGovway(), true);
-		assertEquals(RestExecutionResultEnum.OK, resPublication);
-	}
-
-	private void mockDocumentRef() {
-		TransformResDTO ref = new TransformResDTO();
-		ref.setErrorMessage("");
-		ref.setJson(Document.parse("{\"json\" : \"json\"}"));
-		//given(client.callConvertCdaInBundle(any(FhirResourceDTO.class))).willReturn(ref);
-		doReturn(new ResponseEntity<>(ref, org.springframework.http.HttpStatus.OK))
-				.when(restTemplate).exchange(anyString(), eq(HttpMethod.POST), any(HttpEntity.class), eq(TransformResDTO.class));
-
-	}
-
-	@Test
 	@DisplayName("error fhir creation")
 	void errorFhirResourceCreationTest() {
 		final byte[] file = FileUtility.getFileFromInternalResources("Files" + File.separator + "attachment" + File.separator + "CDA_OK_SIGNED.pdf");
@@ -586,7 +536,7 @@ class PublicationTest extends AbstractTest {
 
 		/*given(client.callConvertCdaInBundle(any(FhirResourceDTO.class)))
 				.willReturn(new TransformResDTO("Errore generico", null));*/
-		doReturn(new ResponseEntity<>(new TransformResDTO("Errore generico", null), org.springframework.http.HttpStatus.OK))
+		doReturn(new ResponseEntity<>(new TransformResDTO("Errore generico", null), HttpStatus.OK))
 				.when(restTemplate).exchange(anyString(), eq(HttpMethod.POST), any(HttpEntity.class), eq(TransformResDTO.class));
 
 

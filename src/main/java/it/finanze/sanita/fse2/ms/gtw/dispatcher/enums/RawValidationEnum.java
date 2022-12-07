@@ -2,7 +2,9 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 package it.finanze.sanita.fse2.ms.gtw.dispatcher.enums;
+import lombok.Getter;
 
+@Getter
 public enum RawValidationEnum {
 
 	OK("00", "OK"),
@@ -18,14 +20,6 @@ public enum RawValidationEnum {
 	private RawValidationEnum(String inCode, String inDescription) {
 		code = inCode;
 		description = inDescription;
-	}
-
-	public String getCode() {
-		return code;
-	}
-
-	public String getDescription() {
-		return description;
 	}
 
 }

@@ -31,7 +31,6 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.ValidationDataDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.ValidationInfoDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.PublicationCreationReqDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.PublicationMetadataReqDTO;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.TSPublicationCreationReqDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.ValidationCDAReqDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.ErrorResponseDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.LogTraceInfoDTO;
@@ -152,51 +151,6 @@ public abstract class AbstractCTL {
 		}
 
 		return out;
-	}
-
-	protected void validateTSPublicationReq(final TSPublicationCreationReqDTO jsonObj) {
-        
-		String errorMsg = checkTSPublicationMandatoryElements(jsonObj);
-		RestExecutionResultEnum errorType = RestExecutionResultEnum.MANDATORY_ELEMENT_ERROR;
-
-		if (errorMsg == null) {
-			errorType = RestExecutionResultEnum.FORMAT_ELEMENT_ERROR;
-			errorMsg = checkFormatDate(jsonObj.getDataInizioPrestazione(), jsonObj.getDataFinePrestazione());
-		}
-
-		if (errorMsg != null) {
-			String errorInstance = ErrorInstanceEnum.MISSING_MANDATORY_ELEMENT.getInstance();
-			if (RestExecutionResultEnum.FORMAT_ELEMENT_ERROR.equals(errorType)) {
-				errorInstance = ErrorInstanceEnum.INVALID_DATE_FORMAT.getInstance();
-			}
-
-			final ErrorResponseDTO error = ErrorResponseDTO.builder()
-				.type(errorType.getType())
-				.title(errorType.getTitle())
-				.instance(errorInstance)
-				.detail(errorMsg).build();
-
-			throw new ValidationException(error);
-		}
-
-    }
-
-	protected PublicationCreationReqDTO constructPublicationDTO(final TSPublicationCreationReqDTO tsDTO) {
-		return PublicationCreationReqDTO.builder()
-				.healthDataFormat(tsDTO.getHealthDataFormat())
-				.mode(tsDTO.getMode())
-				.tipologiaStruttura(tsDTO.getTipologiaStruttura())
-				.attiCliniciRegoleAccesso(tsDTO.getRegoleAccesso())
-				.identificativoDoc(tsDTO.getIdentificativoDoc())
-				.identificativoRep(tsDTO.getIdentificativoRep())
-				.tipoDocumentoLivAlto(tsDTO.getTipoDocumentoLivAlto())
-				.assettoOrganizzativo(tsDTO.getAssettoOrganizzativo())
-				.dataInizioPrestazione(tsDTO.getDataInizioPrestazione())
-				.dataFinePrestazione(tsDTO.getDataFinePrestazione())
-				.conservazioneANorma(tsDTO.getConservazioneANorma())
-				.tipoAttivitaClinica(tsDTO.getTipoAttivitaClinica())
-				.identificativoSottomissione(tsDTO.getIdentificativoSottomissione())
-				.build();
 	}
 
     protected String checkValidationMandatoryElements(final ValidationCDAReqDTO jsonObj) {
@@ -386,26 +340,6 @@ public abstract class AbstractCTL {
 		}
 	}
 
-	protected String checkTSPublicationMandatoryElements(final TSPublicationCreationReqDTO jsonObj) {
-    	String out = null;
-    	if (StringUtility.isNullOrEmpty(jsonObj.getIdentificativoDoc())) {
-    		out = "Il campo identificativo documento deve essere valorizzato.";
-    	} else if (StringUtility.isNullOrEmpty(jsonObj.getIdentificativoRep())) {
-    		out = "Il campo identificativo rep deve essere valorizzato.";
-    	} else if (jsonObj.getTipoDocumentoLivAlto()==null) {
-    		out = "Il campo tipo documento liv alto deve essere valorizzato.";
-    	} else if (jsonObj.getAssettoOrganizzativo()==null) {
-    		out = "Il campo assetto organizzativo deve essere valorizzato.";
-    	} else if (!utilitySrv.isValidCf(jsonObj.getIdentificativoPaziente())) {
-    		out = "Il campo identificativo paziente deve essere valorizzato.";
-    	} else if (jsonObj.getTipoAttivitaClinica()==null) {
-    		out = "Il campo tipo attivita clinica deve essere valorizzato.";
-    	} else if (StringUtility.isNullOrEmpty(jsonObj.getIdentificativoSottomissione())) {
-    		out = "Il campo identificativo sottomissione deve essere valorizzato.";
-    	} 
-    	return out;
-    }
-	
 	protected byte[] getAndValidateFile(final MultipartFile file) {
 		byte[] out = null;
 		

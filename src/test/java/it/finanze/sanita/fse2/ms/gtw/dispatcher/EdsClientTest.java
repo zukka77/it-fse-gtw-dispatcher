@@ -98,16 +98,6 @@ class EdsClientTest {
     }
 
     @Test
-    @DisplayName("Update - updateRecordHttpErrorTest")
-    void updateRecordHttpErrorTest() {
-        EdsResponseDTO responseMock = new EdsResponseDTO();
-        responseMock.setEsito(true);
-        Mockito.doReturn(new ResponseEntity<>(responseMock, HttpStatus.BAD_GATEWAY)).when(restTemplate)
-                .exchange(anyString(), eq(HttpMethod.PUT), any(HttpEntity.class), eq(EdsResponseDTO.class));
-        assertNull(edsClient.update(requestBody));
-    }
-
-    @Test
     @DisplayName("Update - updateRecordHttpBodyNullTest")
     void updateRecordHttpBodyNullTest() {
         Mockito.doReturn(new ResponseEntity<>(null, HttpStatus.BAD_GATEWAY)).when(restTemplate)

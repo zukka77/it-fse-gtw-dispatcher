@@ -3,6 +3,8 @@
  */
 package it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions;
 
+import lombok.Getter;
+
 /**
  * Connection refused error exception.
  */
@@ -13,15 +15,12 @@ public class ConnectionRefusedException extends RuntimeException {
 	 */
 	private static final long serialVersionUID = 1L;
 	
+	@Getter
 	private final String url;
 
-	public ConnectionRefusedException(final String inUrl,final String msg) {
+	public ConnectionRefusedException(final String inUrl, final String msg) {
 		super(msg);
 		url = inUrl;
-	}
-
-	public String getUrl() {
-		return url;
 	}
 
 }

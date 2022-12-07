@@ -2,9 +2,10 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 package it.finanze.sanita.fse2.ms.gtw.dispatcher.enums;
+import lombok.Getter;
 
+@Getter
 public enum LowLevelDocEnum {
-
 	
 	PRESCRIZIONE("2.16.840.1.113883.2.9.10.1.2","Prescrizione"),
 	REFERTO_LABORATORIO("2.16.840.1.113883.2.9.10.1.1","Referto di Laboratorio"),
@@ -28,14 +29,6 @@ public enum LowLevelDocEnum {
 	private LowLevelDocEnum(String inCode, String inDescription) {
 		code = inCode;
 		description = inDescription;
-	}
-
-	public String getCode() {
-		return code;
-	}
-
-	public String getDescription() {
-		return description;
 	}
 
 }

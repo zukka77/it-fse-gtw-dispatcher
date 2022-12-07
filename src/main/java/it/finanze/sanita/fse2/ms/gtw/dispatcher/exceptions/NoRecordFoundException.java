@@ -14,22 +14,9 @@ public class NoRecordFoundException extends RuntimeException {
 	@Getter
 	private Integer status;
 	
-
-	public NoRecordFoundException(String msg) {
-		super(msg);
-	}
-
-	public NoRecordFoundException(Exception e) {
-		super(e);
-	}
-	
 	public NoRecordFoundException(ErrorResponseDTO inError, Integer inStatus) {
 		error = inError;
 		status = inStatus;
-	}
-
-	public NoRecordFoundException(String msg, Exception e) {
-		super(msg, e);
 	}
 
 }

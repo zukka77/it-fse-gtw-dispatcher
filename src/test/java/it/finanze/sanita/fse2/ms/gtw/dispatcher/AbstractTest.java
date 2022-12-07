@@ -25,6 +25,7 @@ import org.springframework.web.client.RestTemplate;
 
 import com.google.gson.Gson;
 
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.routes.IniClientRoutes;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.CDACFG;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.AttachmentDTO;
@@ -55,6 +56,9 @@ public abstract class AbstractTest {
 
 	@Autowired
 	private RestTemplate restTemplate;
+
+	@Autowired
+	protected IniClientRoutes routes;
 
 	@Autowired
     private ServletWebServerApplicationContext webServerAppCtxt;

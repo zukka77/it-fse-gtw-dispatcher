@@ -21,7 +21,6 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.kafka.KafkaTopicCFG;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.JWTPayloadDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.KafkaStatusManagerDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.PublicationCreationReqDTO;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.TSPublicationCreationReqDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.AttivitaClinicaEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.DestinationTypeEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventStatusEnum;
@@ -159,14 +158,6 @@ public class KafkaSRV implements IKafkaSRV {
 	@Override
 	public void sendUpdateRequest(String workflowInstanceId, Object request) {
 		sendIndexerRetryMessage(workflowInstanceId, sendObjectAsJson(request),kafkaTopicCFG.getDispatcherIndexerRetryUpdateTopic());
-	}
-
-	@Override
-	public void sendFeedingStatus(final String traceId,final String workflowInstanceId, final EventStatusEnum eventStatus, final String message,
-								  final TSPublicationCreationReqDTO feedingReq, final JWTPayloadDTO jwtClaimDTO) {
-
-		sendStatusMessage(traceId,workflowInstanceId, EventTypeEnum.FEEDING, eventStatus, message, feedingReq.getIdentificativoDoc(),
-				jwtClaimDTO, feedingReq.getTipoAttivitaClinica());
 	}
 	
 	@Override
