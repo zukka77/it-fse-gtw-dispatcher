@@ -3,8 +3,6 @@
  */
 package it.finanze.sanita.fse2.ms.gtw.dispatcher.config.kafka;
 
-import java.io.Serializable;
-
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 

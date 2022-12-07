@@ -27,11 +27,6 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class ValidatedDocumentsRepo implements IValidatedDocumentsRepo {
 
-	/**
-	 * Serial version uid.
-	 */
-	private static final long serialVersionUID = -3844637790482539072L;
-
 	@Autowired
 	private transient MongoTemplate mongoTemplate;
 

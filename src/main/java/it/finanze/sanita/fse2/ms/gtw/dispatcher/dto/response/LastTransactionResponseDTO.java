@@ -4,7 +4,6 @@
 package it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response;
 
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.StatusCheckDTO;
-import lombok.Data;
 
 public class LastTransactionResponseDTO extends ResponseDTO {
 
