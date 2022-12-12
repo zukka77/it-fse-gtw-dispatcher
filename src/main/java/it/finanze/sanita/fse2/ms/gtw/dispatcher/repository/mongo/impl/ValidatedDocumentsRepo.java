@@ -39,7 +39,6 @@ public class ValidatedDocumentsRepo implements IValidatedDocumentsRepo {
 			ValidatedDocumentsETY etyFinded = mongoTemplate.findOne(query, ValidatedDocumentsETY.class);
 			if(etyFinded!=null) {
 				etyFinded.setPrimaryKeyTransform(ety.getPrimaryKeyTransform());
-				etyFinded.setPrimaryKeyXSLT(ety.getPrimaryKeyXSLT());
 				etyFinded.setWorkflowInstanceId(ety.getWorkflowInstanceId());
 				etyFinded.setInsertionDate(new Date());
 				mongoTemplate.save(etyFinded);
@@ -121,7 +120,6 @@ public class ValidatedDocumentsRepo implements IValidatedDocumentsRepo {
 			dto.setHash(ety.getHashCda());
 			dto.setCdaValidated(true);
 			dto.setWorkflowInstanceId(ety.getWorkflowInstanceId());
-			dto.setXsltID(ety.getPrimaryKeyXSLT());
 			dto.setTransformID(ety.getPrimaryKeyTransform());
 			dto.setInsertionDate(ety.getInsertionDate());
 		}

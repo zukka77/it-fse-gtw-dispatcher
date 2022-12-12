@@ -11,7 +11,6 @@ import java.util.Date;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Element;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
@@ -46,15 +45,10 @@ public class DocumentReferenceSRV implements IDocumentReferenceSRV {
 
 	@Autowired
 	private FhirMappingClient client;
-	 
- 
-	@Value("${ms.calls.transform-engine}")
-	private Boolean callsTransformEngine; 
-	
 	
 	@Override
 	public ResourceDTO createFhirResources(final String cda, final PublicationCreationReqDTO requestBody, 
-			final Integer size, final String hash, final String sourcePatientId, String transformId, String xsltID) {
+			final Integer size, final String hash, final String sourcePatientId, String transformId) {
 		final ResourceDTO output = new ResourceDTO();
 		try {
 			final org.jsoup.nodes.Document docCDA = Jsoup.parse(cda);
@@ -62,7 +56,7 @@ public class DocumentReferenceSRV implements IDocumentReferenceSRV {
 			
 			final DocumentReferenceDTO documentReferenceDTO = buildDocumentReferenceDTO(encodedCDA, requestBody, size, hash);
 						
-			final TransformResDTO resDTO = callFhirMapping(documentReferenceDTO, cda, transformId, xsltID); 
+			final TransformResDTO resDTO = callFhirMapping(documentReferenceDTO, cda, transformId); 
 			
 			if (!StringUtility.isNullOrEmpty(resDTO.getErrorMessage())) {
 				output.setErrorMessage(resDTO.getErrorMessage());
@@ -122,19 +116,15 @@ public class DocumentReferenceSRV implements IDocumentReferenceSRV {
 	}
 	
 	private TransformResDTO callFhirMapping(final DocumentReferenceDTO documentReferenceDTO, final String cda, 
-			String transformId,String xsltID) {
+			String transformId) {
 		TransformResDTO out = null;
 		try {
 			
 			final FhirResourceDTO req = new FhirResourceDTO();
 			req.setCda(cda);
 			req.setDocumentReferenceDTO(documentReferenceDTO); 
+			req.setObjectId(transformId);
 			
-			if(Boolean.TRUE.equals(callsTransformEngine)) {
-				req.setObjectId(transformId);
-			} else {
-				req.setObjectId(xsltID);
-			}
 			out = client.callConvertCdaInBundle(req);
 		} catch(final ConnectionRefusedException crex) {
 			throw crex;

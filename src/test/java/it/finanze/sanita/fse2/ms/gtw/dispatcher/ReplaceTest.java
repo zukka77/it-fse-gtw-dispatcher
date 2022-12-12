@@ -129,7 +129,7 @@ class ReplaceTest extends AbstractTest {
 	}
 
 	void mockValidation(byte[] pdfAttachment) {
-		ValidationInfoDTO info = new ValidationInfoDTO(RawValidationEnum.OK, new ArrayList<>(), "", "");
+		ValidationInfoDTO info = new ValidationInfoDTO(RawValidationEnum.OK, new ArrayList<>(), "");
 		given(validatorClient.validate(anyString())).willReturn(info);
 	}
 
@@ -226,7 +226,7 @@ class ReplaceTest extends AbstractTest {
 
 	private void mockFhirMapping() {
 		log.info("Mocking fhir-mapping client");
-		final ValidationInfoDTO info = new ValidationInfoDTO(RawValidationEnum.OK, new ArrayList<>(), "", "");
+		final ValidationInfoDTO info = new ValidationInfoDTO(RawValidationEnum.OK, new ArrayList<>(), "");
 		Mockito.doReturn(new ResponseEntity<>(info, HttpStatus.OK)).when(restTemplate).exchange(anyString(), eq(HttpMethod.POST), any(HttpEntity.class), eq(ValidationResDTO.class));
 	}
 
