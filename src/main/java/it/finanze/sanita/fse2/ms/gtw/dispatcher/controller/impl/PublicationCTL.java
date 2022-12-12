@@ -390,7 +390,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 					.type(FHIR_MAPPING_ERROR.getType())
 					.title(FHIR_MAPPING_ERROR.getTitle())
 					.instance(ErrorInstanceEnum.FHIR_RESOURCE_ERROR.getInstance())
-					.detail(FHIR_MAPPING_ERROR.getTitle()).build();
+					.detail(fhirResourcesDTO.getErrorMessage()).build();
 	
 				throw new ValidationException(error);
 			}
