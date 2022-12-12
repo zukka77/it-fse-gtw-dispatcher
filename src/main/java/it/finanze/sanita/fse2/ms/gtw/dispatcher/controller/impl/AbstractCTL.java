@@ -387,7 +387,7 @@ public abstract class AbstractCTL {
 				.title(RestExecutionResultEnum.MINING_CDA_ERROR.getTitle())
 				.type(RestExecutionResultEnum.MINING_CDA_ERROR.getType())
 				.instance(ErrorInstanceEnum.CDA_EXTRACTION.getInstance())
-				.detail(RestExecutionResultEnum.MINING_CDA_ERROR.getTitle()).build();
+				.detail(ErrorInstanceEnum.CDA_EXTRACTION.getDescription()).build();
 				
 			throw new ValidationException(error);
 		}
