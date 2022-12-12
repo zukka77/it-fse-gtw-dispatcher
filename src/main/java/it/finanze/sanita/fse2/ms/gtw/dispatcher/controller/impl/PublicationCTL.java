@@ -249,6 +249,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 		String role = Constants.App.JWT_MISSING_SUBJECT_ROLE;
 		String subjectFiscalCode = Constants.App.JWT_MISSING_SUBJECT;
 		String locality = Constants.App.JWT_MISSING_LOCALITY;
+		String warning = null;
 
 		LogTraceInfoDTO logTraceDTO = null;
 		try {
@@ -290,6 +291,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 							// Send to indexer
 							kafkaSRV.sendUpdateRequest(workflowInstanceId, new IniMetadataUpdateReqDTO(metadatiToUpdate.getMarshallResponse(), jwtToken.getPayload()));
 							kafkaSRV.sendUpdateStatus(logTraceDTO.getTraceID(), workflowInstanceId, idDoc, EventStatusEnum.ASYNC_RETRY, jwtToken.getPayload(), "Transazione presa in carico", INI_UPDATE);
+							warning = Misc.WARN_ASYNC_TRANSACTION;
 						} else {
 							kafkaSRV.sendUpdateStatus(logTraceDTO.getTraceID(), workflowInstanceId, idDoc, SUCCESS, jwtToken.getPayload(), "Update ini effettuato correttamente", INI_UPDATE);
 						}
@@ -316,7 +318,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 			throw e;
 		}
 
-		return new ResponseWifDTO(workflowInstanceId, logTraceDTO);
+		return new ResponseWifDTO(workflowInstanceId, logTraceDTO, warning);
 	}
 
 	private ValidationCreationInputDTO validateInput(final MultipartFile file, final HttpServletRequest request, final boolean isReplace,
@@ -412,6 +414,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 		String role = Constants.App.JWT_MISSING_SUBJECT_ROLE;
 		String subjectFiscalCode = Constants.App.JWT_MISSING_SUBJECT;
 		String locality = Constants.App.JWT_MISSING_LOCALITY;
+		String warning = null;
 
 		try {
 			// Extract token
@@ -470,6 +473,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 				// Update transaction status
 				kafkaSRV.sendDeleteStatus(log.getTraceID(), workflowInstanceId, idDoc, "Transazione presa in carico", EventStatusEnum.ASYNC_RETRY, token.getPayload(),
 						INI_DELETE);
+				warning = Misc.WARN_ASYNC_TRANSACTION;
 			} else {
 				// Update transaction status
 				kafkaSRV.sendDeleteStatus(log.getTraceID(), workflowInstanceId, idDoc, "Delete effettuata su ini", SUCCESS, token.getPayload(), INI_DELETE);
@@ -497,7 +501,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 			throw e;
 		}
 		
-		return new ResponseWifDTO(workflowInstanceId, log);
+		return new ResponseWifDTO(workflowInstanceId, log, warning);
 	}
 	
 	private DeleteRequestDTO buildRequestForIni(final String identificativoDocumento, final String uuid, final JWTTokenDTO jwtTokenDTO) {
