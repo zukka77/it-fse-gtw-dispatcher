@@ -3,18 +3,13 @@
  */
 package it.finanze.sanita.fse2.ms.gtw.dispatcher.repository.mongo;
 
-import java.util.Map;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.repository.entity.AuditETY;
 
-import org.springframework.stereotype.Repository;
-
- 
-@Repository
 public interface IAuditRepo {
  
-
 	/**
 	 * Salvataggio audit request and response.
 	 */
-	void save(Map<String, Object> auditMap);
+	void save(AuditETY auditETY);
 
 }

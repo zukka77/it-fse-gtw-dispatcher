@@ -7,33 +7,7 @@ package it.finanze.sanita.fse2.ms.gtw.dispatcher.config;
  * Constants application.
  */
 public final class Constants {
-
-	/**
-	 *	Path scan.
-	 */
-	public static final class ComponentScan {
-
-		/**
-		 * Base path.
-		 */
-		public static final String BASE = "it.finanze.sanita.fse2.ms.gtw.dispatcher";
-
-		/**
-		 * Configuration mongo path.
-		 */
-		public static final String CONFIG_MONGO = "it.finanze.sanita.fse2.ms.gtw.dispatcher.config.mongo";
-		
-		/**
-		 * Configuration mongo repository path.
-		 */
-		public static final String REPOSITORY_MONGO = "it.finanze.sanita.fse2.ms.gtw.dispatcher.repository";
-		 
-		private ComponentScan() {
-
-		}
-
-	}
-	
+ 
 	public static final class Collections {
 
 		/** 
@@ -45,6 +19,12 @@ public final class Constants {
 		 * Collection where validated documents info is saved
 		 */
 		public static final String VALIDATED_DOCUMENTS = "validated_documents"; 
+		
+		/** 
+		 * Collection where validated documents info is saved
+		 */
+		public static final String AUDIT = "audit";
+		
 
 		private Collections() {
 

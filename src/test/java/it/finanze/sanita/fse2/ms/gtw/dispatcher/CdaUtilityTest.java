@@ -3,20 +3,19 @@
  */
 package it.finanze.sanita.fse2.ms.gtw.dispatcher;
 
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.ValidationException;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.CdaUtility;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
 import org.jsoup.nodes.Document;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.test.context.ActiveProfiles;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.ValidationException;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.CdaUtility;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@ComponentScan(basePackages = {Constants.ComponentScan.BASE})
 @ActiveProfiles(Constants.Profile.TEST)
 class CdaUtilityTest {
     @Test

@@ -32,4 +32,14 @@ public class CollectionNaming {
     	} 
     	return Constants.Collections.VALIDATED_DOCUMENTS; 
     }
+    
+    @Bean("auditBean")
+    public String getAudit() {
+    	if(profileUtility.isTestProfile()) {
+    		return Constants.Profile.TEST_PREFIX + Constants.Collections.AUDIT; 
+    	} 
+    	return Constants.Collections.AUDIT; 
+    }
+    
+    
 }
