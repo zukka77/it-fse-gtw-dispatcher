@@ -6,7 +6,6 @@ package it.finanze.sanita.fse2.ms.gtw.dispatcher.controller;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.constraints.Size;
 
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.ResponseWifDTO;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -32,7 +31,7 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.PublicationMetadataR
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.PublicationUpdateReqDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.ErrorResponseDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.PublicationResDTO;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.ResponseDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.ResponseWifDTO;
 
 /**
  * Controller publication.
@@ -109,7 +108,7 @@ public interface IPublicationCTL {
 	ResponseEntity<PublicationResDTO> replace(@Size(min = 1, max = 256)@PathVariable(value = "idDoc", required = true) String idDoc, @RequestBody(required = false) PublicationUpdateReqDTO requestBody, @RequestPart("file") MultipartFile file, HttpServletRequest request);
 
 	@DeleteMapping(value = "/documents/{idDoc}", produces = { MediaType.APPLICATION_JSON_VALUE })
-	@ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ResponseDTO.class)))
+	@ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ResponseWifDTO.class)))
 	@Operation(summary = "Eliminazione documento", description = "Elimina il documento identificato da oid fornito in input.")
 	@SecurityRequirements({
 		@SecurityRequirement(name = "bearerAuth"),
