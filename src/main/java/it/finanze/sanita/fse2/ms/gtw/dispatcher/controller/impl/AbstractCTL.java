@@ -132,9 +132,7 @@ public abstract class AbstractCTL {
         return out;
     }
 
-	protected PublicationMetadataReqDTO getAndValidateUpdateMetadataReq(final String jsonREQ) {
-
-		final PublicationMetadataReqDTO out = StringUtility.fromJSONJackson(jsonREQ, PublicationMetadataReqDTO.class);
+	protected void validateUpdateMetadataReq(final PublicationMetadataReqDTO out) {
 		final String errorMsg = checkUpdateMandatoryElements(out);
 
 		if (errorMsg != null) {
@@ -145,8 +143,6 @@ public abstract class AbstractCTL {
 					.detail(errorMsg).build();
 			throw new ValidationException(error);
 		}
-
-		return out;
 	}
 
     protected String checkValidationMandatoryElements(final ValidationCDAReqDTO jsonObj) {

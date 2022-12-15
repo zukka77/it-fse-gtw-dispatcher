@@ -5,7 +5,6 @@ package it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response;
 
 import javax.validation.constraints.Size;
 
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.AbstractDTO;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -14,12 +13,7 @@ import lombok.Setter;
  */
 @Getter
 @Setter
-public class ResponseDTO extends AbstractDTO {
-
-	/**
-	 * Serial version uid.
-	 */
-	private static final long serialVersionUID = 3473312771318529328L;
+public class ResponseDTO {
 
 	/**
 	 * Trace id log.

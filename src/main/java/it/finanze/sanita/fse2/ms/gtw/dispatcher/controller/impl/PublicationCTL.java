@@ -202,7 +202,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 				
 				if(!isNullOrEmpty(response.getErrorMessage())) {
 					log.error("Errore. Nessun riferimento trovato.");
-					throw new IniException("Errore. Nessun riferimento trovato.");
+					throw new IniException(response.getErrorMessage());
 				}
 				
 
@@ -239,7 +239,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 
 
 	@Override
-	public ResponseWifDTO updateMetadata(final String idDoc, final PublicationMetadataReqDTO requestBody, final HttpServletRequest request) {
+	public ResponseWifDTO updateMetadata(final String idDoc, final PublicationMetadataReqDTO jsonObj, final HttpServletRequest request) {
 
 		// Estrazione token
 		JWTTokenDTO jwtToken = null;
@@ -264,7 +264,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 			locality = jwtToken.getPayload().getLocality();
 			subjectFiscalCode = CfUtility.extractFiscalCodeFromJwtSub(jwtToken.getPayload().getSub());
 
-			PublicationMetadataReqDTO jsonObj = getAndValidateUpdateMetadataReq(request.getParameter("requestBody"));
+			validateUpdateMetadataReq(jsonObj);
 
 			final GetMergedMetadatiDTO metadatiToUpdate = iniClient.metadata(new MergedMetadatiRequestDTO(idDoc,jwtToken.getPayload(), jsonObj));
 			if(!StringUtility.isNullOrEmpty(metadatiToUpdate.getErrorMessage()) && !metadatiToUpdate.getErrorMessage().contains("Invalid region ip")) {
@@ -285,11 +285,11 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 						kafkaSRV.sendUpdateStatus(logTraceDTO.getTraceID(), workflowInstanceId, idDoc, SUCCESS, jwtToken.getPayload(), "Regime di mock",
 								INI_UPDATE);
 					} else {
-						IniTraceResponseDTO res = iniClient.update(new IniMetadataUpdateReqDTO(metadatiToUpdate.getMarshallResponse(), jwtToken.getPayload()));
+						IniTraceResponseDTO res = iniClient.update(new IniMetadataUpdateReqDTO(metadatiToUpdate.getMarshallResponse(), jwtToken.getPayload(),metadatiToUpdate.getDocumentType()));
 						// Check response errors
 						if(!StringUtility.isNullOrEmpty(res.getErrorMessage())) {
 							// Send to indexer
-							kafkaSRV.sendUpdateRequest(workflowInstanceId, new IniMetadataUpdateReqDTO(metadatiToUpdate.getMarshallResponse(), jwtToken.getPayload()));
+							kafkaSRV.sendUpdateRequest(workflowInstanceId, new IniMetadataUpdateReqDTO(metadatiToUpdate.getMarshallResponse(), jwtToken.getPayload(), metadatiToUpdate.getDocumentType()));
 							kafkaSRV.sendUpdateStatus(logTraceDTO.getTraceID(), workflowInstanceId, idDoc, EventStatusEnum.ASYNC_RETRY, jwtToken.getPayload(), "Transazione presa in carico", INI_UPDATE);
 							warning = Misc.WARN_ASYNC_TRANSACTION;
 						} else {
@@ -405,12 +405,12 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 	
 	@Override
 	public ResponseWifDTO delete(String idDoc, HttpServletRequest request) {
+		final Date startOperation = new Date();
 		// Create request tracking
 		LogTraceInfoDTO log = getLogTraceInfo();
 		String workflowInstanceId = createWorkflowInstanceId(idDoc);
 
 		JWTTokenDTO token = null;
-		Date startOperation = new Date();
 		String role = Constants.App.JWT_MISSING_SUBJECT_ROLE;
 		String subjectFiscalCode = Constants.App.JWT_MISSING_SUBJECT;
 		String locality = Constants.App.JWT_MISSING_LOCALITY;
@@ -456,7 +456,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 			// ==============================
 			// [3] Send delete request to INI
 			// ==============================
-			DeleteRequestDTO deleteRequestDTO = buildRequestForIni(idDoc, iniReference.getUuid(), token);
+			DeleteRequestDTO deleteRequestDTO = buildRequestForIni(idDoc, iniReference.getUuid(), token,iniReference.getDocumentType());
 			IniTraceResponseDTO iniResponse = iniClient.delete(deleteRequestDTO);
 
 			// Check mock errors
@@ -504,7 +504,8 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 		return new ResponseWifDTO(workflowInstanceId, log, warning);
 	}
 	
-	private DeleteRequestDTO buildRequestForIni(final String identificativoDocumento, final String uuid, final JWTTokenDTO jwtTokenDTO) {
+	private DeleteRequestDTO buildRequestForIni(final String identificativoDocumento, final String uuid, final JWTTokenDTO jwtTokenDTO,
+			final String documentType) {
 		DeleteRequestDTO out = null;
 		try {
 			JWTPayloadDTO jwtPayloadDTO = jwtTokenDTO.getPayload();
@@ -522,6 +523,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 					subject_organization_id(jwtPayloadDTO.getSubject_organization_id()).
 					subject_organization(jwtPayloadDTO.getSubject_organization()).
 					subject_role(jwtPayloadDTO.getSubject_role()).
+					documentType(documentType).
 					build();
 		} catch(Exception ex) {
 			log.error("Error while build request delete for ini : " , ex);

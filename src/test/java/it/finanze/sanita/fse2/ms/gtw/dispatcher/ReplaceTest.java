@@ -10,6 +10,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.BDDMockito.given;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -27,7 +28,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -42,7 +42,6 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
-import static org.mockito.BDDMockito.given;
 
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.IValidatorClient;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants;
@@ -99,7 +98,7 @@ class ReplaceTest extends AbstractTest {
 
 		mockDocumentRef();
 		mockFhirMapping();
-		mockGetReference(new IniReferenceResponseDTO(idDocument, null));
+		mockGetReference(new IniReferenceResponseDTO(idDocument, null, "DocumentType"));
 		
 		final byte[] pdfAttachment = FileUtility.getFileFromInternalResources("Files" + File.separator + "attachment" + File.separator + filename);
 		
@@ -141,7 +140,7 @@ class ReplaceTest extends AbstractTest {
 
 		mockDocumentRef();
 		mockFhirMapping();
-		mockGetReference(new IniReferenceResponseDTO(idDocument, null));
+		mockGetReference(new IniReferenceResponseDTO(idDocument, null,"DocumentType"));
 
 		final byte[] notPdfFile = FileUtility.getFileFromInternalResources("Files/Test.docx");
 		assertThrows(HttpClientErrorException.BadRequest.class, 

@@ -40,6 +40,10 @@ public class PublicationUpdateReqDTO extends PublicationMetadataReqDTO {
 	@Schema(description = "Modalità di iniezione del CDA")
 	private InjectionModeEnum mode;
 
+	@Schema(description = "Identificativo documento", required = true)
+	@Size(min = 0, max = 100)
+	private String identificativoDoc;
+	
 	@Schema(description = "Identificativo repository", required = true)
 	@Size(min = 0, max = 100)
 	private String identificativoRep;
