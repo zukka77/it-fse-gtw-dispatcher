@@ -40,7 +40,6 @@ import com.google.gson.Gson;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.IEdsClient;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.IIniClient;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.JwtCFG;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants.Headers;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants.Misc;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.ValidationCFG;
@@ -125,9 +124,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 
 	@Autowired
 	private ValidationCFG validationCFG;
-
-	@Autowired
-	private JwtCFG jwtCFG;
+ 
 	
 	@Override
 	public ResponseEntity<PublicationResDTO> create(final PublicationCreationReqDTO requestBody, final MultipartFile file, final HttpServletRequest request) {
@@ -496,7 +493,8 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 			// ==============================
 			// [3] Send delete request to INI
 			// ==============================
-			DeleteRequestDTO deleteRequestDTO = buildRequestForIni(idDoc, iniReference.getUuid(), token,iniReference.getDocumentType());
+			DeleteRequestDTO deleteRequestDTO = buildRequestForIni(idDoc, iniReference.getUuid(), token,iniReference.getDocumentType(),
+					subjApplicationId, subjApplicationVendor, subjApplicationVersion);
 			IniTraceResponseDTO iniResponse = iniClient.delete(deleteRequestDTO);
 
 			// Check mock errors
@@ -546,7 +544,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 	}
 	
 	private DeleteRequestDTO buildRequestForIni(final String identificativoDocumento, final String uuid, final JWTTokenDTO jwtTokenDTO,
-			final String documentType) {
+			final String documentType, String applicationId, String applicationVendor, String applicationVersion) {
 		DeleteRequestDTO out = null;
 		try {
 			JWTPayloadDTO jwtPayloadDTO = jwtTokenDTO.getPayload();
@@ -565,6 +563,9 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 					subject_organization(jwtPayloadDTO.getSubject_organization()).
 					subject_role(jwtPayloadDTO.getSubject_role()).
 					documentType(documentType).
+					subject_application_id(applicationId).
+					subject_application_vendor(applicationVendor).
+					subject_application_version(applicationVersion).
 					build();
 		} catch(Exception ex) {
 			log.error("Error while build request delete for ini : " , ex);

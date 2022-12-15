@@ -27,4 +27,7 @@ public class DeleteRequestDTO {
     private String resource_hl7_type;
     private Boolean patient_consent;
     private String documentType;
+	private String subject_application_id;
+	private String subject_application_vendor;
+	private String subject_application_version;
 }
