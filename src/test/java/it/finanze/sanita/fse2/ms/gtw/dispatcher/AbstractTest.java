@@ -200,9 +200,13 @@ public abstract class AbstractTest {
 
 	protected String generateJwtPayload(final String documentHash, final String personId, final String subject, final String docType) {
 		
+		String applicationId = "ApplicationId";
+		String applicationVendor = "ApplicationVendor";
+		String applicationVersion = "ApplicationVersion";
 		final JWTPayloadDTO jwtPayload = new JWTPayloadDTO("080", 1540890704, 1540918800, "1540918800", 
 		"fse-gateway", subject, "080", "Regione Emilia-Romagna", "080",
-		"APR", personId, true, "TREATMENT", docType, "CREATE", documentHash);
+		"APR", personId, true, "TREATMENT", docType, "CREATE", documentHash,
+		applicationId,applicationVendor,applicationVersion);
 		return Base64.getEncoder().encodeToString(new Gson().toJson(jwtPayload).getBytes());
 	}
 
@@ -234,10 +238,14 @@ public abstract class AbstractTest {
 		final String cda = extractCDA(file);
 		final String docType = getDocTypeFromCda(cda);
 		final String personId = getPersonIdFromCda(cda);
+		
+		String applicationId = "ApplicationId";
+		String applicationVendor = "ApplicationVendor";
+		String applicationVersion = "ApplicationVersion";
 
 		final JWTPayloadDTO jwtPayload = new JWTPayloadDTO("201123456", 1540890704, 1540918800, "1540918800", 
 		"fse-gateway", "RSSMRA22A01A399Z", "120", "Regione Lazio", "Regione Lazio",
-		"AAS", personId, true, "TREATMENT", docType, "CREATE", documentHash);
+		"AAS", personId, true, "TREATMENT", docType, "CREATE", documentHash,applicationId,applicationVendor,applicationVersion);
 		return Base64.getEncoder().encodeToString(new Gson().toJson(jwtPayload).getBytes());
 	}
 
@@ -289,6 +297,9 @@ public abstract class AbstractTest {
 	protected String generateWrongJwt(final String documentHash, boolean nullHeader, boolean nullPayload, boolean customResourceHl7) {
 		JWTHeaderDTO jwtHeader = null;
 		JWTPayloadDTO jwtPayload = null;
+		String applicationId = "ApplicationId";
+		String applicationVendor = "ApplicationVendor";
+		String applicationVersion = "ApplicationVersion";
 		if (!nullPayload) {
 			jwtPayload = new JWTPayloadDTO(
 					"201123456",
@@ -306,7 +317,10 @@ public abstract class AbstractTest {
 					"TREATMENT",
 					customResourceHl7 ? "custom" : "('11502-2^^2.16.840.1.113883.6.1')",
 					"CREATE",
-					documentHash
+					documentHash,
+					applicationId,
+					applicationVendor,
+					applicationVersion
 			);
 		}
 

@@ -87,6 +87,10 @@ public class ControllerExceptionHandler extends ResponseEntityExceptionHandler {
 		final HttpHeaders headers = new HttpHeaders();
 		headers.setContentType(MediaType.APPLICATION_PROBLEM_JSON);
 
+		ErrorResponseDTO errorResponseDTO = ex.getError();
+		LogTraceInfoDTO traceInfoDTO = getLogTraceInfo();
+		errorResponseDTO.setSpanID(traceInfoDTO.getSpanID());
+		errorResponseDTO.setTraceID(traceInfoDTO.getTraceID());
 		return new ResponseEntity<>(ex.getError(), headers, status);
 	}
 
