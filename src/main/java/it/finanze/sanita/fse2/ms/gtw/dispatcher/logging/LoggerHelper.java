@@ -46,7 +46,8 @@ public class LoggerHelper {
 	 * Implements structured logs, at all logging levels
 	 */
 	public void trace(String message, ILogEnum operation, ResultLogEnum result, Date startDateOperation, 
-			String issuer, String role, String subjectFiscalCode, String locality) {
+			String issuer, String role, String subjectFiscalCode, String locality,
+			String applicationId, String applicationVendor, String applicationVersion) {
 
 		final String gtwName = getGatewayName();
 		
@@ -62,6 +63,9 @@ public class LoggerHelper {
 				op_fiscal_code(subjectFiscalCode).
 				gateway_name(gtwName).
 				microservice_name(msName).
+				op_application_id(applicationId).
+				op_application_vendor(applicationVendor).
+				op_application_version(applicationVersion).
 				build();
 
 		final String logMessage = StringUtility.toJSON(logDTO);
@@ -73,7 +77,8 @@ public class LoggerHelper {
 	}
 
 	public void debug(String message,  ILogEnum operation, ResultLogEnum result, Date startDateOperation, 
-				String issuer, String role, String subject, String locality) {
+				String issuer, String role, String subject, String locality,
+				String applicationId, String applicationVendor, String applicationVersion) {
 		
 		final String gtwName = getGatewayName();
 
@@ -89,6 +94,9 @@ public class LoggerHelper {
 				op_fiscal_code(subject).
 				gateway_name(gtwName).
 				microservice_name(msName).
+				op_application_id(applicationId).
+				op_application_vendor(applicationVendor).
+				op_application_version(applicationVersion).
 				build();
 		
 		final String logMessage = StringUtility.toJSON(logDTO);
@@ -99,7 +107,8 @@ public class LoggerHelper {
 	} 
 	 
 	public void info(String message, ILogEnum operation, ResultLogEnum result, Date startDateOperation, String issuer, 
-			String documentType, String role, String subject, String locality) {
+			String documentType, String role, String subject, String locality,
+			String applicationId, String applicationVendor, String applicationVersion) {
 
 		final String gtwName = getGatewayName();
 		
@@ -116,6 +125,9 @@ public class LoggerHelper {
 				op_fiscal_code(subject).
 				gateway_name(gtwName).
 				microservice_name(msName).
+				op_application_id(applicationId).
+				op_application_vendor(applicationVendor).
+				op_application_version(applicationVersion).
 				build();
 		
 		final String logMessage = StringUtility.toJSON(logDTO);
@@ -127,7 +139,8 @@ public class LoggerHelper {
 	} 
 	
 	public void warn(String message, ILogEnum operation, ResultLogEnum result, Date startDateOperation, 
-			String issuer, String role, String subject, String locality) {
+			String issuer, String role, String subject, String locality,
+			String applicationId, String applicationVendor, String applicationVersion) {
 		
 		final String gtwName = getGatewayName();
 
@@ -143,6 +156,9 @@ public class LoggerHelper {
 				op_fiscal_code(subject).
 				gateway_name(gtwName).
 				microservice_name(msName).
+				op_application_id(applicationId).
+				op_application_vendor(applicationVendor).
+				op_application_version(applicationVersion).
 				build();
 		
 		final String logMessage = StringUtility.toJSON(logDTO);
@@ -154,7 +170,8 @@ public class LoggerHelper {
 	} 
 	
 	public void error(String message, ILogEnum operation, ResultLogEnum result, Date startDateOperation,
-			   ILogEnum error, String issuer, String documentType, String role, String subject, String locality) {
+			   ILogEnum error, String issuer, String documentType, String role, String subject, String locality,
+			   String applicationId, String applicationVendor, String applicationVersion) {
 		
 		final String gtwName = getGatewayName();
 
@@ -173,6 +190,9 @@ public class LoggerHelper {
 				op_fiscal_code(subject).
 				gateway_name(gtwName).
 				microservice_name(msName).
+				op_application_id(applicationId).
+				op_application_vendor(applicationVendor).
+				op_application_version(applicationVersion).
 				build();
 		
 		final String logMessage = StringUtility.toJSON(logDTO);

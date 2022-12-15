@@ -49,8 +49,7 @@ public class ValidationCTL extends AbstractCTL implements IValidationCTL {
 	private IErrorHandlerSRV errorHandlerSRV;
 
 	@Override
-	public ResponseEntity<ValidationResDTO> validate(final ValidationCDAReqDTO requestBody, final MultipartFile file,
-			final HttpServletRequest request) {
+	public ResponseEntity<ValidationResDTO> validate(final ValidationCDAReqDTO requestBody, final MultipartFile file, final HttpServletRequest request) {
 		final Date startDateOperation = new Date();
 		LogTraceInfoDTO traceInfoDTO = getLogTraceInfo();
 
@@ -63,6 +62,10 @@ public class ValidationCTL extends AbstractCTL implements IValidationCTL {
 		String role = Constants.App.JWT_MISSING_SUBJECT_ROLE;
 		String subjectFiscalCode = Constants.App.JWT_MISSING_SUBJECT;
 
+		String subjApplicationId = null;
+		String subjApplicationVendor = null;
+		String subjApplicationVersion = null;
+		
 		try {
 			if (Boolean.TRUE.equals(msCfg.getFromGovway())) {
 				jwtToken = extractAndValidateJWT(request.getHeader(Constants.Headers.JWT_GOVWAY_HEADER),
@@ -81,6 +84,11 @@ public class ValidationCTL extends AbstractCTL implements IValidationCTL {
 			workflowInstanceId = CdaUtility.getWorkflowInstanceId(docT);
 
 			validateJWT(jwtToken, cda);
+			
+			subjApplicationId = jwtToken.getPayload().getSubject_application_id(); 
+			subjApplicationVendor = jwtToken.getPayload().getSubject_application_vendor();
+			subjApplicationVersion = jwtToken.getPayload().getSubject_application_version();
+			
 			warning = validate(cda, jsonObj.getActivity(), workflowInstanceId);
 			String message = null;
 			if (jsonObj.getActivity().equals(ActivityEnum.VERIFICA)) {
@@ -96,7 +104,8 @@ public class ValidationCTL extends AbstractCTL implements IValidationCTL {
 					&& !StringUtility.isNullOrEmpty(jwtToken.getPayload().getLocality())) ? jwtToken.getPayload().getLocality()
 							: Constants.App.JWT_MISSING_LOCALITY;
 
-			logger.info("Validation CDA completed for workflow instance Id " + workflowInstanceId, OperationLogEnum.VAL_CDA2, ResultLogEnum.OK, startDateOperation, issuer, CdaUtility.getDocumentType(docT), role, subjectFiscalCode, locality);
+			logger.info("Validation CDA completed for workflow instance Id " + workflowInstanceId, OperationLogEnum.VAL_CDA2, ResultLogEnum.OK, startDateOperation, issuer, CdaUtility.getDocumentType(docT), role, subjectFiscalCode, locality,
+					subjApplicationId,subjApplicationVendor,subjApplicationVersion);
 			request.setAttribute("JWT_ISSUER", issuer);
 		} catch (final ValidationException e) {
 			errorHandlerSRV.validationExceptionHandler(startDateOperation, traceInfoDTO, workflowInstanceId, jwtToken,

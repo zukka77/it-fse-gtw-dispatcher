@@ -39,4 +39,10 @@ public class LogDTO {
 	private String gateway_name;
 	
 	private String microservice_name;
+	
+	private String op_application_id;
+	
+	private String op_application_vendor;
+	
+	private String op_application_version;
 }

@@ -66,10 +66,16 @@ public class ErrorHandlerSRV implements IErrorHandlerSRV {
         String subjectFiscalCode = (jwtToken != null ? CfUtility.extractFiscalCodeFromJwtSub(jwtToken.getPayload().getSub()) : Constants.App.JWT_MISSING_SUBJECT);
         String locality = (jwtToken!=null && jwtToken.getPayload().getLocality()!=null && !StringUtility.isNullOrEmpty(jwtToken.getPayload().getLocality())) ? jwtToken.getPayload().getLocality() : Constants.App.JWT_MISSING_LOCALITY;
         
+        String subjectApplicationId = (jwtToken != null && jwtToken.getPayload() != null && !StringUtility.isNullOrEmpty(jwtToken.getPayload().getSubject_application_id())) ? jwtToken.getPayload().getSubject_application_id() : "SUBJECT APP ID UNDEFINED";
+        String subjectApplicationVendor = (jwtToken != null && jwtToken.getPayload() != null && !StringUtility.isNullOrEmpty(jwtToken.getPayload().getSubject_application_vendor())) ? jwtToken.getPayload().getSubject_application_vendor() : "SUBJECT APP VENDOR UNDEFINED";
+        String subjectApplicationVersion = (jwtToken != null && jwtToken.getPayload() != null && !StringUtility.isNullOrEmpty(jwtToken.getPayload().getSubject_application_version())) ? jwtToken.getPayload().getSubject_application_version() : "SUBJECT APP VERSION UNDEFINED";
+        
         if(isPublication) {
-        	logger.error(errorMessage + " " + validationInfo.getWorkflowInstanceId(), OperationLogEnum.PUB_CDA2, ResultLogEnum.KO, startDateOperation, errorType.getErrorCategory(), issuer, documentType, role, subjectFiscalCode, locality);
+        	logger.error(errorMessage + " " + validationInfo.getWorkflowInstanceId(), OperationLogEnum.PUB_CDA2, ResultLogEnum.KO, startDateOperation, errorType.getErrorCategory(), issuer, documentType, role, subjectFiscalCode, locality,
+        			subjectApplicationId, subjectApplicationVendor,subjectApplicationVersion);
         } else {
-        	logger.error(errorMessage + " " + validationInfo.getWorkflowInstanceId(), OperationLogEnum.REPLACE_CDA2, ResultLogEnum.KO, startDateOperation, errorType.getErrorCategory(), issuer, documentType, role, subjectFiscalCode, locality);
+        	logger.error(errorMessage + " " + validationInfo.getWorkflowInstanceId(), OperationLogEnum.REPLACE_CDA2, ResultLogEnum.KO, startDateOperation, errorType.getErrorCategory(), issuer, documentType, role, subjectFiscalCode, locality,
+        			subjectApplicationId, subjectApplicationVendor,subjectApplicationVersion);
         }
         throw new ValidationPublicationErrorException(errorType, StringUtility.sanitizeMessage(errorType.getTitle()), errorInstance);
     }
@@ -109,10 +115,16 @@ public class ErrorHandlerSRV implements IErrorHandlerSRV {
         String subjectFiscalCode = (jwtToken != null ? CfUtility.extractFiscalCodeFromJwtSub(jwtToken.getPayload().getSub()) : Constants.App.JWT_MISSING_SUBJECT);
         String locality = (jwtToken!=null && jwtToken.getPayload().getLocality()!=null && !StringUtility.isNullOrEmpty(jwtToken.getPayload().getLocality())) ? jwtToken.getPayload().getLocality() : Constants.App.JWT_MISSING_LOCALITY;
         
+        String subjectApplicationId = (jwtToken != null && jwtToken.getPayload() != null && !StringUtility.isNullOrEmpty(jwtToken.getPayload().getSubject_application_id())) ? jwtToken.getPayload().getSubject_application_id() : "SUBJECT APP ID UNDEFINED";
+        String subjectApplicationVendor = (jwtToken != null && jwtToken.getPayload() != null && !StringUtility.isNullOrEmpty(jwtToken.getPayload().getSubject_application_vendor())) ? jwtToken.getPayload().getSubject_application_vendor() : "SUBJECT APP VENDOR UNDEFINED";
+        String subjectApplicationVersion = (jwtToken != null && jwtToken.getPayload() != null && !StringUtility.isNullOrEmpty(jwtToken.getPayload().getSubject_application_version())) ? jwtToken.getPayload().getSubject_application_version() : "SUBJECT APP VERSION UNDEFINED";
+       
         if(isPublication) {
-        	logger.error(errorMessage + " " + validationInfo.getWorkflowInstanceId(), OperationLogEnum.PUB_CDA2, ResultLogEnum.KO, startDateOperation, errorType.getErrorCategory(), issuer, documentType, role, subjectFiscalCode, locality);
+        	logger.error(errorMessage + " " + validationInfo.getWorkflowInstanceId(), OperationLogEnum.PUB_CDA2, ResultLogEnum.KO, startDateOperation, errorType.getErrorCategory(), issuer, documentType, role, subjectFiscalCode, locality,
+        			subjectApplicationId,subjectApplicationVendor,subjectApplicationVersion);
         } else {
-        	logger.error(errorMessage + " " + validationInfo.getWorkflowInstanceId(), OperationLogEnum.REPLACE_CDA2, ResultLogEnum.KO, startDateOperation, errorType.getErrorCategory(), issuer, documentType, role, subjectFiscalCode, locality);
+        	logger.error(errorMessage + " " + validationInfo.getWorkflowInstanceId(), OperationLogEnum.REPLACE_CDA2, ResultLogEnum.KO, startDateOperation, errorType.getErrorCategory(), issuer, documentType, role, subjectFiscalCode, locality,
+        			subjectApplicationId,subjectApplicationVendor,subjectApplicationVersion);
         }
         throw new ValidationPublicationErrorException(errorType,StringUtility.sanitizeMessage(errorMessage), errorInstance);
     }
@@ -140,8 +152,13 @@ public class ErrorHandlerSRV implements IErrorHandlerSRV {
         String subjectFiscalCode = (jwtToken != null ? CfUtility.extractFiscalCodeFromJwtSub(jwtToken.getPayload().getSub()) : Constants.App.JWT_MISSING_SUBJECT);
         String locality = (jwtToken!=null && jwtToken.getPayload().getLocality()!=null && !StringUtility.isNullOrEmpty(jwtToken.getPayload().getLocality())) ? jwtToken.getPayload().getLocality() : Constants.App.JWT_MISSING_LOCALITY;
         
+        String subjectApplicationId = (jwtToken != null && jwtToken.getPayload() != null && !StringUtility.isNullOrEmpty(jwtToken.getPayload().getSubject_application_id())) ? jwtToken.getPayload().getSubject_application_id() : "SUBJECT APP ID UNDEFINED";
+        String subjectApplicationVendor = (jwtToken != null && jwtToken.getPayload() != null && !StringUtility.isNullOrEmpty(jwtToken.getPayload().getSubject_application_vendor())) ? jwtToken.getPayload().getSubject_application_vendor() : "SUBJECT APP VENDOR UNDEFINED";
+        String subjectApplicationVersion = (jwtToken != null && jwtToken.getPayload() != null && !StringUtility.isNullOrEmpty(jwtToken.getPayload().getSubject_application_version())) ? jwtToken.getPayload().getSubject_application_version() : "SUBJECT APP VERSION UNDEFINED";
+       
         if (RestExecutionResultEnum.VOCABULARY_ERROR != RestExecutionResultEnum.get(capturedErrorType)) {
-        	logger.error(e.getError().getDetail() + " " + workflowInstanceId, OperationLogEnum.VAL_CDA2, ResultLogEnum.KO, startDateOperation, validationResult.getErrorCategory(), issuer, documentType, role, subjectFiscalCode, locality);
+        	logger.error(e.getError().getDetail() + " " + workflowInstanceId, OperationLogEnum.VAL_CDA2, ResultLogEnum.KO, startDateOperation, validationResult.getErrorCategory(), issuer, documentType, role, subjectFiscalCode, locality,
+        			subjectApplicationId,subjectApplicationVendor,subjectApplicationVersion);
         }
         throw new ValidationErrorException(validationResult, StringUtility.sanitizeMessage(e.getError().getDetail()), workflowInstanceId, errorInstance);
     }

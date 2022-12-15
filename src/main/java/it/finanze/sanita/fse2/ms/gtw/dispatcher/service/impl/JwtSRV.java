@@ -9,11 +9,13 @@ import org.springframework.stereotype.Service;
 
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.impl.AnaClient;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.JwtCFG;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.MicroservicesURLCFG;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.JWTPayloadDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.PurposeOfUseEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.SubjectOrganizationEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.IJwtSRV;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -29,6 +31,9 @@ public class JwtSRV extends AbstractService implements IJwtSRV {
 
 	@Autowired
 	private UtilitySRV utilitySrv;
+	
+	@Autowired
+	private JwtCFG jwtCFG;
 	
 
 	@Override
@@ -61,6 +66,12 @@ public class JwtSRV extends AbstractService implements IJwtSRV {
 			error = "Campo jti non valido";
 		} else if (!Boolean.TRUE.equals(payload.getPatient_consent())) {
 			error = "Il consenso del paziente è obbligatorio";
+		} else if(jwtCFG.isClaimsRequired() && StringUtility.isNullOrEmpty(payload.getSubject_application_id())) {
+			error = "Il subject id application è obbligatorio";
+		} else if(jwtCFG.isClaimsRequired() && StringUtility.isNullOrEmpty(payload.getSubject_application_vendor())) {
+			error = "Il subject application vendor è obbligatorio";
+		} else if(jwtCFG.isClaimsRequired() && StringUtility.isNullOrEmpty(payload.getSubject_application_version())) {
+			error = "Il subject application version è obbligatorio";
 		}
 
 		return error;

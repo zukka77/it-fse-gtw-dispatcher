@@ -110,7 +110,12 @@ public class JWTPayloadDTO {
 	private String action_id;
 
 	private String attachment_hash;
-	
+
+	private String subject_application_id;
+
+	private String subject_application_vendor;
+
+	private String subject_application_version;
 	
 	
 	/**
@@ -119,7 +124,7 @@ public class JWTPayloadDTO {
 	 * @param json The JWT token raw to map.
 	 * @return The object built or {@code null} if the JSON is invalid.
 	 */
-	public static JWTPayloadDTO extractPayload(String json) {
+	public static JWTPayloadDTO extractPayload(final String json) {
 
 		JWTPayloadDTO jwtPayload = null;
 		try {
