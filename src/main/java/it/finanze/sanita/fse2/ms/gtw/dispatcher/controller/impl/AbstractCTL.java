@@ -132,8 +132,8 @@ public abstract class AbstractCTL {
         return out;
     }
 
-	protected void getAndValidateUpdateMetadataReq(final PublicationMetadataReqDTO jsonREQ) {
-		final String errorMsg = checkUpdateMandatoryElements(jsonREQ);
+	protected void validateUpdateMetadataReq(final PublicationMetadataReqDTO out) {
+		final String errorMsg = checkUpdateMandatoryElements(out);
 
 		if (errorMsg != null) {
 			final ErrorResponseDTO error = ErrorResponseDTO.builder()

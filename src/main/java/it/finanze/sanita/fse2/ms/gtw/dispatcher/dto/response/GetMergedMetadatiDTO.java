@@ -11,4 +11,6 @@ public class GetMergedMetadatiDTO {
 	private String errorMessage;
 	
 	private String marshallResponse;
+	
+	private String documentType;
 }

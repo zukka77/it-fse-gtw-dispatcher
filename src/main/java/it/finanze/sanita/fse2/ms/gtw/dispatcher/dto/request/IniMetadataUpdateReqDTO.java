@@ -15,4 +15,6 @@ public class IniMetadataUpdateReqDTO {
     
     private JWTPayloadDTO token;
     
+    private String documentType;
+    
 }
