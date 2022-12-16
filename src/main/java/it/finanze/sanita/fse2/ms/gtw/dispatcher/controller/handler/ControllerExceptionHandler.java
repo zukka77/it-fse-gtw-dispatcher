@@ -244,6 +244,10 @@ public class ControllerExceptionHandler extends ResponseEntityExceptionHandler {
 				RestExecutionResultEnum.INVALID_TOKEN_FIELD.equals(ex.getResult())) {
 			status = 403;
 		}
+		
+		if (RestExecutionResultEnum.GENERIC_TIMEOUT.equals(ex.getResult())) {
+			status = 504;
+		}
 
 		ErrorResponseDTO out = new ErrorResponseDTO(getLogTraceInfo(), ex.getResult().getType(), ex.getResult().getTitle(), ex.getMessage(), status, ex.getErrorInstance());
 
