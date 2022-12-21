@@ -72,7 +72,6 @@ public class OpenApiCFG {
 			final Contact contact = new Contact();
 			contact.setName(customOpenapi.getContactName());
 			contact.setUrl(customOpenapi.getContactUrl());
-			contact.setEmail(customOpenapi.getContactMail());
 			openApi.getInfo().setContact(contact);
 
 			// Adding extensions

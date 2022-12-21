@@ -36,9 +36,6 @@ public class CustomSwaggerCFG {
     @Value("${docs.info.contact.url}")
     private String contactUrl;
 
-    @Value("${docs.info.contact.mail}")
-    private String contactMail;
-
     @Value("${server.port}")
     private Integer port;
 
