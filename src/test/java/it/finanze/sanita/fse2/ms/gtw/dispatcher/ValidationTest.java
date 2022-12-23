@@ -130,51 +130,51 @@ class ValidationTest extends AbstractTest {
     	assertEquals(RestExecutionResultEnum.MINING_CDA_ERROR, result.values().iterator().next());
     }
 
-    @Test
-	@DisplayName("Validation Test")
-	void validationTest() {
+    // @Test
+	// @DisplayName("Validation Test")
+	// void validationTest() {
 
-		byte[] pdfAttachment = FileUtility.getFileFromInternalResources("Files/attachment/pdf_msg_SATLED_LED_Lettera_di_Dimissione.pdf");
-		byte[] pdfResource = FileUtility.getFileFromInternalResources("Files/resource/cert1.pdf");
+	// 	byte[] pdfAttachment = FileUtility.getFileFromInternalResources("Files/attachment/pdf_msg_SATLED_LED_Lettera_di_Dimissione.pdf");
+	// 	byte[] pdfResource = FileUtility.getFileFromInternalResources("Files/resource/cert1.pdf");
 
-		String cda = extractCDA(pdfAttachment);
-		final String hashedCdaAttachment = StringUtility.encodeSHA256B64(cda);
+	// 	String cda = extractCDA(pdfAttachment);
+	// 	final String hashedCdaAttachment = StringUtility.encodeSHA256B64(cda);
 
-		cdaSRV.consumeHash(hashedCdaAttachment);
+	// 	cdaSRV.consumeHash(hashedCdaAttachment);
 
-		cda = extractCDA(pdfResource);
-		final String hashedCdaResource = StringUtility.encodeSHA256B64(cda);
+	// 	cda = extractCDA(pdfResource);
+	// 	final String hashedCdaResource = StringUtility.encodeSHA256B64(cda);
 
-		cdaSRV.consumeHash(hashedCdaResource);
+	// 	cdaSRV.consumeHash(hashedCdaResource);
 
-		Map<String, RestExecutionResultEnum> result = callValidation(ActivityEnum.VERIFICA, HealthDataFormatEnum.CDA,
-				InjectionModeEnum.ATTACHMENT, pdfResource, true, false, true);
-		assertNotNull(result);
-		assertEquals(RestExecutionResultEnum.MINING_CDA_ERROR, result.values().iterator().next());
+	// 	Map<String, RestExecutionResultEnum> result = callValidation(ActivityEnum.VERIFICA, HealthDataFormatEnum.CDA,
+	// 			InjectionModeEnum.ATTACHMENT, pdfResource, true, false, true);
+	// 	assertNotNull(result);
+	// 	assertEquals(RestExecutionResultEnum.MINING_CDA_ERROR, result.values().iterator().next());
 
-		result = callValidation(ActivityEnum.VERIFICA, HealthDataFormatEnum.CDA, InjectionModeEnum.RESOURCE,
-				pdfAttachment, true, false, true);
-		assertEquals(RestExecutionResultEnum.MINING_CDA_ERROR, result.values().iterator().next());
+	// 	result = callValidation(ActivityEnum.VERIFICA, HealthDataFormatEnum.CDA, InjectionModeEnum.RESOURCE,
+	// 			pdfAttachment, true, false, true);
+	// 	assertEquals(RestExecutionResultEnum.MINING_CDA_ERROR, result.values().iterator().next());
 
-		result = callValidation(ActivityEnum.VERIFICA, HealthDataFormatEnum.CDA, InjectionModeEnum.ATTACHMENT,
-				pdfAttachment, true, false, true);
-		assertEquals(RestExecutionResultEnum.OK, result.values().iterator().next());
-		assertNull(cdaSRV.get(hashedCdaAttachment), "La transazione non deve essere presente.");
+	// 	result = callValidation(ActivityEnum.VERIFICA, HealthDataFormatEnum.CDA, InjectionModeEnum.ATTACHMENT,
+	// 			pdfAttachment, true, false, true);
+	// 	assertEquals(RestExecutionResultEnum.OK, result.values().iterator().next());
+	// 	assertNull(cdaSRV.get(hashedCdaAttachment), "La transazione non deve essere presente.");
 
-		result = callValidation(ActivityEnum.VERIFICA, HealthDataFormatEnum.CDA, InjectionModeEnum.RESOURCE,
-				pdfResource, true, false, true);
-		assertEquals(RestExecutionResultEnum.OK, result.values().iterator().next());
-		assertNull(cdaSRV.get(hashedCdaResource), "La transazione non deve essere presente.");
+	// 	result = callValidation(ActivityEnum.VERIFICA, HealthDataFormatEnum.CDA, InjectionModeEnum.RESOURCE,
+	// 			pdfResource, true, false, true);
+	// 	assertEquals(RestExecutionResultEnum.OK, result.values().iterator().next());
+	// 	assertNull(cdaSRV.get(hashedCdaResource), "La transazione non deve essere presente.");
 
-		result = callValidation(ActivityEnum.VERIFICA, HealthDataFormatEnum.CDA, null, pdfAttachment, true, false,
-				true);
-		assertEquals(RestExecutionResultEnum.OK, result.values().iterator().next());
-		assertNull(cdaSRV.get(hashedCdaAttachment), "La transazione non deve essere presente.");
+	// 	result = callValidation(ActivityEnum.VERIFICA, HealthDataFormatEnum.CDA, null, pdfAttachment, true, false,
+	// 			true);
+	// 	assertEquals(RestExecutionResultEnum.OK, result.values().iterator().next());
+	// 	assertNull(cdaSRV.get(hashedCdaAttachment), "La transazione non deve essere presente.");
 
-		result = callValidation(ActivityEnum.VERIFICA, HealthDataFormatEnum.CDA, null, pdfResource, true, false, true);
-		assertEquals(RestExecutionResultEnum.OK, result.values().iterator().next());
-		assertNull(cdaSRV.get(hashedCdaResource), "La transazione non deve essere presente.");
-	}
+	// 	result = callValidation(ActivityEnum.VERIFICA, HealthDataFormatEnum.CDA, null, pdfResource, true, false, true);
+	// 	assertEquals(RestExecutionResultEnum.OK, result.values().iterator().next());
+	// 	assertNull(cdaSRV.get(hashedCdaResource), "La transazione non deve essere presente.");
+	// }
 
     @Test
     @DisplayName("Pre Publish Test")

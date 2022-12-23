@@ -135,28 +135,28 @@ class PublicationTest extends AbstractTest {
 		assertFalse(cdaFacadeSRV.retrieveValidationInfo(unmatchingHash, wii).isCdaValidated(), "If the hash present on Mongo is different from expected one, the result should be false");
 	}
 
-	@Test
-	@DisplayName("Validation + Publication")
-	void testPublication() {
-		TransformResDTO ref = new TransformResDTO();
-		ref.setErrorMessage("");
-		ref.setJson(Document.parse("{\"json\" : \"json\"}"));
-		doReturn(new ResponseEntity<>(ref, HttpStatus.OK))
-				.when(restTemplate).exchange(anyString(), eq(HttpMethod.POST), any(HttpEntity.class), eq(TransformResDTO.class));
+	// @Test
+	// @DisplayName("Validation + Publication")
+	// void testPublication() {
+	// 	TransformResDTO ref = new TransformResDTO();
+	// 	ref.setErrorMessage("");
+	// 	ref.setJson(Document.parse("{\"json\" : \"json\"}"));
+	// 	doReturn(new ResponseEntity<>(ref, HttpStatus.OK))
+	// 			.when(restTemplate).exchange(anyString(), eq(HttpMethod.POST), any(HttpEntity.class), eq(TransformResDTO.class));
 
-		byte[] pdfAttachment = FileUtility.getFileFromInternalResources("Files/attachment/CDA_OK_SIGNED.pdf");
+	// 	byte[] pdfAttachment = FileUtility.getFileFromInternalResources("Files/attachment/CDA_OK_SIGNED.pdf");
 
-		ValidationInfoDTO info = new ValidationInfoDTO(RawValidationEnum.OK, new ArrayList<>(), "");
-		given(validatorClient.validate(anyString())).willReturn(info);
+	// 	ValidationInfoDTO info = new ValidationInfoDTO(RawValidationEnum.OK, new ArrayList<>(), "");
+	// 	given(validatorClient.validate(anyString())).willReturn(info);
 
-		callValidation(ActivityEnum.VALIDATION, HealthDataFormatEnum.CDA, InjectionModeEnum.ATTACHMENT, pdfAttachment, true, false, true);
+	// 	callValidation(ActivityEnum.VALIDATION, HealthDataFormatEnum.CDA, InjectionModeEnum.ATTACHMENT, pdfAttachment, true, false, true);
 
-		PublicationCreationReqDTO reqDTO = buildReqDTO();
-		RestExecutionResultEnum resPublication = callPublication(pdfAttachment, reqDTO, null, false, true);
-		assertNotNull(resPublication);
-		assertEquals(RestExecutionResultEnum.OK.getType(), resPublication.getType());
+	// 	PublicationCreationReqDTO reqDTO = buildReqDTO();
+	// 	RestExecutionResultEnum resPublication = callPublication(pdfAttachment, reqDTO, null, false, true);
+	// 	assertNotNull(resPublication);
+	// 	assertEquals(RestExecutionResultEnum.OK.getType(), resPublication.getType());
 
-	}
+	// }
 
 	@Test
     @DisplayName("File tests")
@@ -415,25 +415,25 @@ class PublicationTest extends AbstractTest {
 	}
 
 	
-	@Test
-	void publicationWarningTest() {
+	// @Test
+	// void publicationWarningTest() {
 
-		//given(client.callConvertCdaInBundle(any(FhirResourceDTO.class))).willReturn(new TransformResDTO("", "{\"json\" : \"json\"}"));
-        doReturn(new ResponseEntity<>(new TransformResDTO("", Document.parse("{\"json\" : \"json\"}")), HttpStatus.OK))
-				.when(restTemplate).exchange(anyString(), eq(HttpMethod.POST), any(HttpEntity.class), eq(TransformResDTO.class));
-		final byte[] file = FileUtility.getFileFromInternalResources("Files" + File.separator + "attachment" + File.separator + "CDA_OK_SIGNED.pdf");
-		final String jwtToken = generateJwt(file, true);
+	// 	//given(client.callConvertCdaInBundle(any(FhirResourceDTO.class))).willReturn(new TransformResDTO("", "{\"json\" : \"json\"}"));
+    //     doReturn(new ResponseEntity<>(new TransformResDTO("", Document.parse("{\"json\" : \"json\"}")), HttpStatus.OK))
+	// 			.when(restTemplate).exchange(anyString(), eq(HttpMethod.POST), any(HttpEntity.class), eq(TransformResDTO.class));
+	// 	final byte[] file = FileUtility.getFileFromInternalResources("Files" + File.separator + "attachment" + File.separator + "CDA_OK_SIGNED.pdf");
+	// 	final String jwtToken = generateJwt(file, true);
 		
-		ValidationCDAReqDTO validationRB = validateDataPreparation();
+	// 	ValidationCDAReqDTO validationRB = validateDataPreparation();
 		
-		// Mocking validator
-		ValidationInfoDTO info = new ValidationInfoDTO(RawValidationEnum.OK, new ArrayList<>(), "");
-		given(validatorClient.validate(anyString())).willReturn(info);
+	// 	// Mocking validator
+	// 	ValidationInfoDTO info = new ValidationInfoDTO(RawValidationEnum.OK, new ArrayList<>(), "");
+	// 	given(validatorClient.validate(anyString())).willReturn(info);
 
-		ResponseEntity<ValidationResDTO> response = callPlainValidation(jwtToken, file, validationRB);
-		assertEquals(HttpStatus.CREATED.value(), response.getStatusCode().value());
+	// 	ResponseEntity<ValidationResDTO> response = callPlainValidation(jwtToken, file, validationRB);
+	// 	assertEquals(HttpStatus.CREATED.value(), response.getStatusCode().value());
 
-		PublicationCreationReqDTO publicationRB = buildCreationDTO(response.getBody().getWorkflowInstanceId(), null);
+	// 	PublicationCreationReqDTO publicationRB = buildCreationDTO(response.getBody().getWorkflowInstanceId(), null);
 		
 //		PublicationCreationReqDTO publicationRB = new PublicationCreationReqDTO();
 //
@@ -449,12 +449,12 @@ class PublicationTest extends AbstractTest {
 //		publicationRB.setIdentificativoSottomissione("identificativoSottomissione");
 //		publicationRB.setIdentificativoDoc(TestConstants.documentId);
 		
-		final ResponseEntity<PublicationResDTO> publicationResponse = callPlainPublication(jwtToken, file, publicationRB);
+	// 	final ResponseEntity<PublicationResDTO> publicationResponse = callPlainPublication(jwtToken, file, publicationRB);
 
-		assertEquals(Constants.Misc.WARN_EXTRACTION_SELECTION, publicationResponse.getBody().getWarning());
-		assertNotNull(publicationResponse.getBody().getWarning());
-		assertDoesNotThrow(()->publicationResponse);
-	}
+	// 	assertEquals(Constants.Misc.WARN_EXTRACTION_SELECTION, publicationResponse.getBody().getWarning());
+	// 	assertNotNull(publicationResponse.getBody().getWarning());
+	// 	assertDoesNotThrow(()->publicationResponse);
+	// }
 
 	@Test
 	void publicationForcedTest() {
@@ -484,33 +484,33 @@ class PublicationTest extends AbstractTest {
 		
 	}
 	
-	@Test
-	void publicationForcedTestNullCases() {
+	// @Test
+	// void publicationForcedTestNullCases() {
 		
-		doReturn(new ResponseEntity<>(new TransformResDTO("", Document.parse("{\"json\" : \"json\"}")), HttpStatus.OK))
-		.when(restTemplate).exchange(anyString(), eq(HttpMethod.POST), any(HttpEntity.class), eq(TransformResDTO.class));
+	// 	doReturn(new ResponseEntity<>(new TransformResDTO("", Document.parse("{\"json\" : \"json\"}")), HttpStatus.OK))
+	// 	.when(restTemplate).exchange(anyString(), eq(HttpMethod.POST), any(HttpEntity.class), eq(TransformResDTO.class));
 
-		final byte[] file = FileUtility.getFileFromInternalResources("Files" + File.separator + "attachment" + File.separator + "CDA_OK_SIGNED.pdf");
-		final String jwtToken = generateJwt(file, true);
+	// 	final byte[] file = FileUtility.getFileFromInternalResources("Files" + File.separator + "attachment" + File.separator + "CDA_OK_SIGNED.pdf");
+	// 	final String jwtToken = generateJwt(file, true);
 
-		// Mocking Validator - null InjectionModeEnum param
-		final ValidationInfoDTO info = new ValidationInfoDTO(RawValidationEnum.OK, new ArrayList<>(), "");
-		given(validatorClient.validate(anyString())).willReturn(info);
+	// 	// Mocking Validator - null InjectionModeEnum param
+	// 	final ValidationInfoDTO info = new ValidationInfoDTO(RawValidationEnum.OK, new ArrayList<>(), "");
+	// 	given(validatorClient.validate(anyString())).willReturn(info);
 
-		final ValidationCDAReqDTO validationRBnullMode = validateDataPreparation();
-		validationRBnullMode.setMode(null);
+	// 	final ValidationCDAReqDTO validationRBnullMode = validateDataPreparation();
+	// 	validationRBnullMode.setMode(null);
 		
-		final ResponseEntity<ValidationResDTO> validationResponseNullMode = callPlainValidation(jwtToken, file, validationRBnullMode);
-		assumeFalse(validationResponseNullMode == null);
+	// 	final ResponseEntity<ValidationResDTO> validationResponseNullMode = callPlainValidation(jwtToken, file, validationRBnullMode);
+	// 	assumeFalse(validationResponseNullMode == null);
 		
-		final PublicationCreationReqDTO publicationRBnullMode = publicationDataPreparation();
-		publicationRBnullMode.setMode(null);
+	// 	final PublicationCreationReqDTO publicationRBnullMode = publicationDataPreparation();
+	// 	publicationRBnullMode.setMode(null);
 		
-		final ResponseEntity<PublicationResDTO> publicationResponseNullMode = callPlainPublication(jwtToken, file, publicationRBnullMode);
-		assertNotNull(publicationResponseNullMode.getBody().getWarning());
-		assertEquals(Constants.Misc.WARN_EXTRACTION_SELECTION, publicationResponseNullMode.getBody().getWarning()); 
+	// 	final ResponseEntity<PublicationResDTO> publicationResponseNullMode = callPlainPublication(jwtToken, file, publicationRBnullMode);
+	// 	assertNotNull(publicationResponseNullMode.getBody().getWarning());
+	// 	assertEquals(Constants.Misc.WARN_EXTRACTION_SELECTION, publicationResponseNullMode.getBody().getWarning()); 
 		
-	}
+	// }
 
 	@Test
 	@DisplayName("error fhir creation")
@@ -545,36 +545,36 @@ class PublicationTest extends AbstractTest {
 		));
 	}
 
-	@Test
-	@DisplayName("error fhir mapping connection refused")
-	void errorFhirResourceConnectionRefusedTest() {
-		final byte[] file = FileUtility.getFileFromInternalResources("Files" + File.separator + "attachment" + File.separator + "CDA_OK_SIGNED.pdf");
-		final String jwtToken = generateJwt(file, true);
+	// @Test
+	// @DisplayName("error fhir mapping connection refused")
+	// void errorFhirResourceConnectionRefusedTest() {
+	// 	final byte[] file = FileUtility.getFileFromInternalResources("Files" + File.separator + "attachment" + File.separator + "CDA_OK_SIGNED.pdf");
+	// 	final String jwtToken = generateJwt(file, true);
 
-		final ValidationCDAReqDTO validationRB = validateDataPreparation();
+	// 	final ValidationCDAReqDTO validationRB = validateDataPreparation();
 
-		// Mocking validator
-		final ValidationInfoDTO info = new ValidationInfoDTO(RawValidationEnum.OK, new ArrayList<>(), "");
-		given(validatorClient.validate(anyString())).willReturn(info);
+	// 	// Mocking validator
+	// 	final ValidationInfoDTO info = new ValidationInfoDTO(RawValidationEnum.OK, new ArrayList<>(), "");
+	// 	given(validatorClient.validate(anyString())).willReturn(info);
 
-		final ResponseEntity<ValidationResDTO> validationResponse = callPlainValidation(jwtToken, file, validationRB);
-		assumeFalse(validationResponse == null);
+	// 	final ResponseEntity<ValidationResDTO> validationResponse = callPlainValidation(jwtToken, file, validationRB);
+	// 	assumeFalse(validationResponse == null);
 
-		final PublicationCreationReqDTO publicationRB = publicationDataPreparation();
+	// 	final PublicationCreationReqDTO publicationRB = publicationDataPreparation();
 
-		ResourceDTO fhirResourcesDTO = new ResourceDTO();
-		fhirResourcesDTO.setErrorMessage("Errore generico");
+	// 	ResourceDTO fhirResourcesDTO = new ResourceDTO();
+	// 	fhirResourcesDTO.setErrorMessage("Errore generico");
 
-		/*given(client.callConvertCdaInBundle(any(FhirResourceDTO.class)))
-				.willReturn(new TransformResDTO("Errore generico", null));*/
-		doThrow(new ResourceAccessException(""))
-				.when(restTemplate).exchange(anyString(), eq(HttpMethod.POST), any(HttpEntity.class), eq(TransformResDTO.class));
+	// 	/*given(client.callConvertCdaInBundle(any(FhirResourceDTO.class)))
+	// 			.willReturn(new TransformResDTO("Errore generico", null));*/
+	// 	doThrow(new ResourceAccessException(""))
+	// 			.when(restTemplate).exchange(anyString(), eq(HttpMethod.POST), any(HttpEntity.class), eq(TransformResDTO.class));
 
 
-		assertThrows(HttpClientErrorException.BadRequest.class, () -> callPlainPublication(
-				jwtToken,
-				file,
-				publicationRB
-		));
-	}
+	// 	assertThrows(HttpClientErrorException.BadRequest.class, () -> callPlainPublication(
+	// 			jwtToken,
+	// 			file,
+	// 			publicationRB
+	// 	));
+	// }
 }
