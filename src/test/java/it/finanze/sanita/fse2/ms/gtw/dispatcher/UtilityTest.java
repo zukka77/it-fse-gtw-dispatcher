@@ -10,12 +10,18 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.when;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.Base64;
+import java.util.List;
 import java.util.regex.Pattern;
 
 import javax.xml.stream.FactoryConfigurationError;
@@ -27,19 +33,28 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.mockito.ArgumentMatchers;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
 
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.PriorityDocumentCFG;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.ValidationCFG;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.JWTHeaderDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.EdsResponseDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.TipoDocAltoLivEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.logging.LoggerHelper;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.impl.UtilitySRV;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.CfUtility;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.FileUtility;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.PDFUtility;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.PriorityUtility;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility;
 import lombok.extern.slf4j.Slf4j;
 
@@ -54,6 +69,12 @@ class UtilityTest extends AbstractTest{
 
     @MockBean
     ValidationCFG validationCfg;
+    
+    @MockBean
+    PriorityDocumentCFG priorityDocumentCfg;
+    
+    @Autowired
+    PriorityUtility priorityUtility; 
 
     @Autowired
     LoggerHelper logger;
@@ -145,6 +166,27 @@ class UtilityTest extends AbstractTest{
 
         JWTHeaderDTO head = new JWTHeaderDTO("alg", "typ", "kid", "x5c");
         assertDoesNotThrow(() -> StringUtility.fromJSON(StringUtility.toJSON(head), JWTHeaderDTO.class));
+    }
+ 
+    @Test
+    @DisplayName("Compute Priority Doc Type Test")
+    void computePriorityDocType() {
+    	List<String> respListLowPriority = new ArrayList<String>(); 
+    	List<String> respListMediumPriority = new ArrayList<String>(); 
+    	List<String> respListHighPriority = new ArrayList<String>(); 
+
+    	respListLowPriority.add("WOR"); 
+    	respListMediumPriority.add("REF"); 
+    	respListHighPriority.add("LDO"); 
+
+		Mockito.doReturn("WOR").when(priorityDocumentCfg).getLowPriorityDocuments(); 
+		Mockito.doReturn("REF").when(priorityDocumentCfg).getMediumPriorityDocuments(); 
+		Mockito.doReturn("LDO").when(priorityDocumentCfg).getHighPriorityDocuments(); 
+		
+		assertEquals(Constants.Misc.LOW_PRIORITY, priorityUtility.computePriorityPerDocumentType(TipoDocAltoLivEnum.WOR)); 
+		assertEquals(Constants.Misc.MEDIUM_PRIORITY, priorityUtility.computePriorityPerDocumentType(TipoDocAltoLivEnum.REF)); 
+		assertEquals(Constants.Misc.HIGH_PRIORITY, priorityUtility.computePriorityPerDocumentType(TipoDocAltoLivEnum.LDO)); 
+
     }
  
 

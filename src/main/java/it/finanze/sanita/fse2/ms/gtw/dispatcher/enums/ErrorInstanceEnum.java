@@ -43,29 +43,5 @@ public enum ErrorInstanceEnum {
 		return out;
 	}
 
-	public static RestExecutionResultEnum fromRawResult(RawValidationEnum rawResult) {
-
-		RestExecutionResultEnum result;
-
-		switch (rawResult) {
-			case VOCABULARY_ERROR:
-				result = RestExecutionResultEnum.VOCABULARY_ERROR;
-				break;
-			case SEMANTIC_ERROR:
-				result = RestExecutionResultEnum.SEMANTIC_ERROR;
-				break;
-			case SYNTAX_ERROR:
-				result = RestExecutionResultEnum.SYNTAX_ERROR;
-				break;
-			case OK:
-				result = RestExecutionResultEnum.OK;
-				break;
-			default:
-				result = RestExecutionResultEnum.GENERIC_ERROR;
-				break;
-		}
-
-		return result;
-	}
 
 }
