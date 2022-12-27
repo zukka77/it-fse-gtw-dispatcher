@@ -13,11 +13,6 @@ import lombok.Setter;
 @Setter
 public class GetMergedMetadatiResponseDTO extends ResponseDTO {
 
-	/**
-	 * Serial version uid.
-	 */
-	private static final long serialVersionUID = 5457503502983726876L;
-	
 	private GetMergedMetadatiDTO response;
 
 	public GetMergedMetadatiResponseDTO() {

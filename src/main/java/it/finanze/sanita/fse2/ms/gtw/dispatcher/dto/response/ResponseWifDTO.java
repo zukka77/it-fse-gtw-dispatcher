@@ -10,8 +10,6 @@ import lombok.Setter;
 @Setter
 public class ResponseWifDTO extends ResponseDTO {
 
-	private static final long serialVersionUID = 6778081959922405644L;
-	
 	@Size(min = 0, max = 10000)
 	@Schema(description = "Dettaglio del warning")
 	private String warning;

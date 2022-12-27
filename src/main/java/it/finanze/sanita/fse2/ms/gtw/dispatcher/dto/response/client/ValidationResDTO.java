@@ -16,12 +16,7 @@ import lombok.Setter;
 @Setter
 public class ValidationResDTO extends ResponseDTO {
 
-	/**
-	 * Serial version uid.
-	 */
-	private static final long serialVersionUID = -2618965716083072681L;
-
-	private final transient ValidationInfoDTO result;
+	private final ValidationInfoDTO result;
 	
 	public ValidationResDTO() {
 		super();

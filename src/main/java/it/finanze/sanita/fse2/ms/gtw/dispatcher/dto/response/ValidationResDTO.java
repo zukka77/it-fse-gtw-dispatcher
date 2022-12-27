@@ -16,11 +16,6 @@ import lombok.Setter;
 @Setter
 public class ValidationResDTO extends ResponseDTO {
 
-	/**
-	 * Serial version uid.
-	 */
-	private static final long serialVersionUID = -2144353497297675698L;
-	
 	@Size(min = 0, max = 256)
 	@Schema(description = "Identificativo univoco della transazione")
 	private String workflowInstanceId;

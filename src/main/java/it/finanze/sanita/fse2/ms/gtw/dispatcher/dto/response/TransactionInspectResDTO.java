@@ -18,11 +18,6 @@ import lombok.Setter;
 @Setter
 public class TransactionInspectResDTO extends ResponseDTO {
 
-	/**
-	 * Serial version uid.
-	 */
-	private static final long serialVersionUID = -1550024371939901939L;
-	
     
 	@ArraySchema(minItems = 0, maxItems = 1000, schema = @Schema(implementation = StatusCheckDTO.class))
 	private List<StatusCheckDTO> transactionData;

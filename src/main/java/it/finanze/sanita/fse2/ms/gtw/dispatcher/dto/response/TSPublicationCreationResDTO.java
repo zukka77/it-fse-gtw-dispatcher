@@ -13,11 +13,6 @@ import lombok.Setter;
 @Setter
 public class TSPublicationCreationResDTO extends ResponseDTO {
 
-	/**
-	 * Serial version uid.
-	 */
-	private static final long serialVersionUID = -1550774371939901939L;
-
 	private String workflowInstanceId;
 	
 	private String warning;

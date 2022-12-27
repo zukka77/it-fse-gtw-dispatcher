@@ -17,11 +17,6 @@ import lombok.Setter;
 @AllArgsConstructor 
 public class PublicationResDTO extends ResponseDTO { 
 
-	/**
-	 * Serial version uid.
-	 */
-	private static final long serialVersionUID = -1550024371939901939L;
-	
 	@Size(min = 0, max = 10000)
 	@Schema(description = "Dettaglio del warning")
 	private String warning;
