@@ -113,7 +113,7 @@ public class ValidationCTL extends AbstractCTL implements IValidationCTL {
 					&& !StringUtility.isNullOrEmpty(jwtToken.getPayload().getLocality())) ? jwtToken.getPayload().getLocality()
 							: Constants.App.JWT_MISSING_LOCALITY;
 
-			logger.info("Validation CDA completed for workflow instance Id " + workflowInstanceId, OperationLogEnum.VAL_CDA2, ResultLogEnum.OK, startDateOperation, issuer, CdaUtility.getDocumentType(docT), role, subjectFiscalCode, locality,
+			logger.info(Constants.App.LOG_TYPE_CONTROL,workflowInstanceId, "Validation CDA completed for workflow instance Id " + workflowInstanceId, OperationLogEnum.VAL_CDA2, ResultLogEnum.OK, startDateOperation, issuer, CdaUtility.getDocumentType(docT), role, subjectFiscalCode, locality,
 					subjApplicationId,subjApplicationVendor,subjApplicationVersion);
 			request.setAttribute("JWT_ISSUER", issuer);
 		} catch (final ValidationException e) {

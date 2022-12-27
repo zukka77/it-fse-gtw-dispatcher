@@ -15,7 +15,7 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.IValidatorClient;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.impl.base.AbstractClient;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.MicroservicesURLCFG;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.ValidationInfoDTO;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.client.ValidationReqDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.client.ValidationRequestDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.client.ValidationResDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.ConnectionRefusedException;
 import lombok.extern.slf4j.Slf4j;
@@ -36,14 +36,15 @@ public class ValidatorClient extends AbstractClient implements IValidatorClient 
 
     @Override
     @CircuitBreaker(name = "validationCDA")
-    public ValidationInfoDTO validate(final String cda) {
+    public ValidationInfoDTO validate(final String cda, final String workflowInstanceId) {
         log.debug("Validator Client - Calling Validator to execute validation of CDA");
         ValidationInfoDTO out = null;
         HttpHeaders headers = new HttpHeaders();
         headers.set("Content-Type", "application/json");
         
-        ValidationReqDTO req = new ValidationReqDTO();
+        ValidationRequestDTO req = new ValidationRequestDTO();
         req.setCda(cda);
+        req.setWorkflowInstanceId(workflowInstanceId);
 
         HttpEntity<?> entity = new HttpEntity<>(req, headers);
         

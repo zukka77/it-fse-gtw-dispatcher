@@ -85,6 +85,9 @@ public final class Constants {
 
 		public static final String MISSING_WORKFLOW_PLACEHOLDER = "UNKNOWN_WORKFLOW_ID";
 		public static final String MISSING_DOC_TYPE_PLACEHOLDER = "UNKNOWN_DOCUMENT_TYPE";
+		
+		public static final String LOG_TYPE_KPI = "gateway-structured-log";
+		public static final String LOG_TYPE_CONTROL = "gateway-control-structured-log";
 
 		private App() {
 			//This method is intentionally left blank.

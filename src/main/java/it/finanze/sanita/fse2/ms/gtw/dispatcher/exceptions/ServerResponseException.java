@@ -17,7 +17,13 @@ import lombok.Setter;
 @AllArgsConstructor
 public class ServerResponseException extends RuntimeException {
 
+	/**
+	 * Serial version uid.
+	 */
+	private static final long serialVersionUID = -8171450249714278521L;
+	
 	private String microservice;
+	
 	private String target;
 	
 	private String message;

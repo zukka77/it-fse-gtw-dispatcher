@@ -71,10 +71,10 @@ public class ErrorHandlerSRV implements IErrorHandlerSRV {
         String subjectApplicationVersion = (jwtToken != null && jwtToken.getPayload() != null && !StringUtility.isNullOrEmpty(jwtToken.getPayload().getSubject_application_version())) ? jwtToken.getPayload().getSubject_application_version() : "SUBJECT APP VERSION UNDEFINED";
         
         if(isPublication) {
-        	logger.error(errorMessage + " " + validationInfo.getWorkflowInstanceId(), OperationLogEnum.PUB_CDA2, ResultLogEnum.KO, startDateOperation, errorType.getErrorCategory(), issuer, documentType, role, subjectFiscalCode, locality,
+        	logger.error(Constants.App.LOG_TYPE_CONTROL,validationInfo.getWorkflowInstanceId(),errorMessage + " " + validationInfo.getWorkflowInstanceId(), OperationLogEnum.PUB_CDA2, ResultLogEnum.KO, startDateOperation, errorType.getErrorCategory(), issuer, documentType, role, subjectFiscalCode, locality,
         			subjectApplicationId, subjectApplicationVendor,subjectApplicationVersion);
         } else {
-        	logger.error(errorMessage + " " + validationInfo.getWorkflowInstanceId(), OperationLogEnum.REPLACE_CDA2, ResultLogEnum.KO, startDateOperation, errorType.getErrorCategory(), issuer, documentType, role, subjectFiscalCode, locality,
+        	logger.error(Constants.App.LOG_TYPE_CONTROL,validationInfo.getWorkflowInstanceId(),errorMessage + " " + validationInfo.getWorkflowInstanceId(), OperationLogEnum.REPLACE_CDA2, ResultLogEnum.KO, startDateOperation, errorType.getErrorCategory(), issuer, documentType, role, subjectFiscalCode, locality,
         			subjectApplicationId, subjectApplicationVendor,subjectApplicationVersion);
         }
         throw new ValidationPublicationErrorException(errorType, StringUtility.sanitizeMessage(errorType.getTitle()), errorInstance);
@@ -120,10 +120,10 @@ public class ErrorHandlerSRV implements IErrorHandlerSRV {
         String subjectApplicationVersion = (jwtToken != null && jwtToken.getPayload() != null && !StringUtility.isNullOrEmpty(jwtToken.getPayload().getSubject_application_version())) ? jwtToken.getPayload().getSubject_application_version() : "SUBJECT APP VERSION UNDEFINED";
        
         if(isPublication) {
-        	logger.error(errorMessage + " " + validationInfo.getWorkflowInstanceId(), OperationLogEnum.PUB_CDA2, ResultLogEnum.KO, startDateOperation, errorType.getErrorCategory(), issuer, documentType, role, subjectFiscalCode, locality,
+        	logger.error(Constants.App.LOG_TYPE_CONTROL,validationInfo.getWorkflowInstanceId(),errorMessage + " " + validationInfo.getWorkflowInstanceId(), OperationLogEnum.PUB_CDA2, ResultLogEnum.KO, startDateOperation, errorType.getErrorCategory(), issuer, documentType, role, subjectFiscalCode, locality,
         			subjectApplicationId,subjectApplicationVendor,subjectApplicationVersion);
         } else {
-        	logger.error(errorMessage + " " + validationInfo.getWorkflowInstanceId(), OperationLogEnum.REPLACE_CDA2, ResultLogEnum.KO, startDateOperation, errorType.getErrorCategory(), issuer, documentType, role, subjectFiscalCode, locality,
+        	logger.error(Constants.App.LOG_TYPE_CONTROL,validationInfo.getWorkflowInstanceId(),errorMessage + " " + validationInfo.getWorkflowInstanceId(), OperationLogEnum.REPLACE_CDA2, ResultLogEnum.KO, startDateOperation, errorType.getErrorCategory(), issuer, documentType, role, subjectFiscalCode, locality,
         			subjectApplicationId,subjectApplicationVendor,subjectApplicationVersion);
         }
         throw new ValidationPublicationErrorException(errorType,StringUtility.sanitizeMessage(errorMessage), errorInstance);
@@ -157,7 +157,7 @@ public class ErrorHandlerSRV implements IErrorHandlerSRV {
         String subjectApplicationVersion = (jwtToken != null && jwtToken.getPayload() != null && !StringUtility.isNullOrEmpty(jwtToken.getPayload().getSubject_application_version())) ? jwtToken.getPayload().getSubject_application_version() : "SUBJECT APP VERSION UNDEFINED";
        
         if (RestExecutionResultEnum.VOCABULARY_ERROR != RestExecutionResultEnum.get(capturedErrorType)) {
-        	logger.error(e.getError().getDetail() + " " + workflowInstanceId, OperationLogEnum.VAL_CDA2, ResultLogEnum.KO, startDateOperation, validationResult.getErrorCategory(), issuer, documentType, role, subjectFiscalCode, locality,
+        	logger.error(Constants.App.LOG_TYPE_CONTROL,workflowInstanceId,e.getError().getDetail() + " " + workflowInstanceId, OperationLogEnum.VAL_CDA2, ResultLogEnum.KO, startDateOperation, validationResult.getErrorCategory(), issuer, documentType, role, subjectFiscalCode, locality,
         			subjectApplicationId,subjectApplicationVendor,subjectApplicationVersion);
         }
         throw new ValidationErrorException(validationResult, StringUtility.sanitizeMessage(e.getError().getDetail()), workflowInstanceId, errorInstance);

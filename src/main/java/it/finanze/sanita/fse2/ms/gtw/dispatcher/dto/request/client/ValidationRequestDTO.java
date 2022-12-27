@@ -17,14 +17,12 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class ValidationReqDTO extends AbstractDTO {
+public class ValidationRequestDTO extends AbstractDTO {
 
-    /**
-	 * Serial version uid.
-	 */
-	private static final long serialVersionUID = 5185149500828632803L;
+	@Schema(description = "cda")
+    private String cda;
 	
-	@Schema(description = "CDA")
-    private String cda; 
+	@Schema(description = "workflow_instance_id")
+    private String workflowInstanceId;
 
 }

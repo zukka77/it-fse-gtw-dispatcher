@@ -45,12 +45,10 @@ public class LoggerHelper {
 	/* 
 	 * Implements structured logs, at all logging levels
 	 */
-	public void trace(String message, ILogEnum operation, ResultLogEnum result, Date startDateOperation, 
+	public void trace(String logType,String workflowInstanceId, String message, ILogEnum operation, ResultLogEnum result, Date startDateOperation, 
 			String issuer, String role, String subjectFiscalCode, String locality,
 			String applicationId, String applicationVendor, String applicationVersion) {
 
-		final String gtwName = getGatewayName();
-		
 		LogDTO logDTO = LogDTO.builder().
 				op_issuer(issuer).
 				op_locality(locality).
@@ -61,11 +59,13 @@ public class LoggerHelper {
 				op_timestamp_end(dateFormat.format(new Date())).
 				op_role(role).
 				op_fiscal_code(subjectFiscalCode).
-				gateway_name(gtwName).
+				gateway_name(getGatewayName()).
 				microservice_name(msName).
 				op_application_id(applicationId).
 				op_application_vendor(applicationVendor).
 				op_application_version(applicationVersion).
+				log_type(logType).
+				workflow_instance_id(workflowInstanceId).
 				build();
 
 		final String logMessage = StringUtility.toJSON(logDTO);
@@ -76,12 +76,10 @@ public class LoggerHelper {
 		}
 	}
 
-	public void debug(String message,  ILogEnum operation, ResultLogEnum result, Date startDateOperation, 
+	public void debug(String logType,String workflowInstanceId, String message,  ILogEnum operation, ResultLogEnum result, Date startDateOperation, 
 				String issuer, String role, String subject, String locality,
 				String applicationId, String applicationVendor, String applicationVersion) {
 		
-		final String gtwName = getGatewayName();
-
 		LogDTO logDTO = LogDTO.builder().
 				op_issuer(issuer).
 				op_locality(locality).
@@ -92,11 +90,13 @@ public class LoggerHelper {
 				op_timestamp_end(dateFormat.format(new Date())).
 				op_role(role).
 				op_fiscal_code(subject).
-				gateway_name(gtwName).
+				gateway_name(getGatewayName()).
 				microservice_name(msName).
 				op_application_id(applicationId).
 				op_application_vendor(applicationVendor).
 				op_application_version(applicationVersion).
+				log_type(logType).
+				workflow_instance_id(workflowInstanceId).
 				build();
 		
 		final String logMessage = StringUtility.toJSON(logDTO);
@@ -106,12 +106,10 @@ public class LoggerHelper {
 		}
 	} 
 	 
-	public void info(String message, ILogEnum operation, ResultLogEnum result, Date startDateOperation, String issuer, 
+	public void info(String logType,String workflowInstanceId, String message, ILogEnum operation, ResultLogEnum result, Date startDateOperation, String issuer, 
 			String documentType, String role, String subject, String locality,
 			String applicationId, String applicationVendor, String applicationVersion) {
 
-		final String gtwName = getGatewayName();
-		
 		LogDTO logDTO = LogDTO.builder().
 				op_issuer(issuer).
 				op_locality(locality).
@@ -123,27 +121,27 @@ public class LoggerHelper {
 				op_document_type(documentType).
 				op_role(role).
 				op_fiscal_code(subject).
-				gateway_name(gtwName).
+				gateway_name(getGatewayName()).
 				microservice_name(msName).
 				op_application_id(applicationId).
 				op_application_vendor(applicationVendor).
 				op_application_version(applicationVersion).
+				log_type(logType).
+				workflow_instance_id(workflowInstanceId).
 				build();
 		
 		final String logMessage = StringUtility.toJSON(logDTO);
 		log.info(logMessage);
+		
 		if (Boolean.TRUE.equals(kafkaLogEnable)) {
 			kafkaLog.info(logMessage);
-			log.info("After send kafka message");
 		}
 	} 
 	
-	public void warn(String message, ILogEnum operation, ResultLogEnum result, Date startDateOperation, 
+	public void warn(String logType,String workflowInstanceId, String message, ILogEnum operation, ResultLogEnum result, Date startDateOperation, 
 			String issuer, String role, String subject, String locality,
 			String applicationId, String applicationVendor, String applicationVersion) {
 		
-		final String gtwName = getGatewayName();
-
 		LogDTO logDTO = LogDTO.builder().
 				op_issuer(issuer).
 				op_locality(locality).
@@ -154,11 +152,13 @@ public class LoggerHelper {
 				op_timestamp_end(dateFormat.format(new Date())).
 				op_role(role).
 				op_fiscal_code(subject).
-				gateway_name(gtwName).
+				gateway_name(getGatewayName()).
 				microservice_name(msName).
 				op_application_id(applicationId).
 				op_application_vendor(applicationVendor).
 				op_application_version(applicationVersion).
+				log_type(logType).
+				workflow_instance_id(workflowInstanceId).
 				build();
 		
 		final String logMessage = StringUtility.toJSON(logDTO);
@@ -169,12 +169,10 @@ public class LoggerHelper {
  
 	} 
 	
-	public void error(String message, ILogEnum operation, ResultLogEnum result, Date startDateOperation,
+	public void error(String logType,String workflowInstanceId, String message, ILogEnum operation, ResultLogEnum result, Date startDateOperation,
 			   ILogEnum error, String issuer, String documentType, String role, String subject, String locality,
 			   String applicationId, String applicationVendor, String applicationVersion) {
 		
-		final String gtwName = getGatewayName();
-
 		LogDTO logDTO = LogDTO.builder().
 				op_issuer(issuer).
 				op_locality(locality).
@@ -188,11 +186,13 @@ public class LoggerHelper {
 				op_document_type(documentType).
 				op_role(role).
 				op_fiscal_code(subject).
-				gateway_name(gtwName).
+				gateway_name(getGatewayName()).
 				microservice_name(msName).
 				op_application_id(applicationId).
 				op_application_vendor(applicationVendor).
 				op_application_version(applicationVersion).
+				log_type(logType).
+				workflow_instance_id(workflowInstanceId).
 				build();
 		
 		final String logMessage = StringUtility.toJSON(logDTO);

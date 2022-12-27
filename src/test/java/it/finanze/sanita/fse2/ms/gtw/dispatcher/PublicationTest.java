@@ -3,7 +3,6 @@
  */
 package it.finanze.sanita.fse2.ms.gtw.dispatcher;
 
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -16,7 +15,6 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 
 import java.io.File;
@@ -46,7 +44,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.IValidatorClient;
@@ -307,7 +304,7 @@ class PublicationTest extends AbstractTest {
 		
 		// Mocking validator
 		ValidationInfoDTO info = new ValidationInfoDTO(RawValidationEnum.OK, new ArrayList<>(), "");
-		given(validatorClient.validate(anyString())).willReturn(info);
+		given(validatorClient.validate(anyString(),anyString())).willReturn(info);
 
 		ResponseEntity<ValidationResDTO> response = callPlainValidation(jwtToken, file, validationRB);
 		assertEquals(HttpStatus.CREATED.value(), response.getStatusCode().value());
@@ -388,7 +385,7 @@ class PublicationTest extends AbstractTest {
 		byte[] pdfAttachment = FileUtility.getFileFromInternalResources("Files/attachment/CDA_OK_SIGNED.pdf");
 
 		ValidationInfoDTO info = new ValidationInfoDTO(RawValidationEnum.OK, new ArrayList<>(), "wfid");
-		given(validatorClient.validate(anyString())).willReturn(info);
+		given(validatorClient.validate(anyString(),anyString())).willReturn(info);
 
 		// Validation will insert hash in DB
 		callValidation(ActivityEnum.VALIDATION, HealthDataFormatEnum.CDA, InjectionModeEnum.ATTACHMENT, pdfAttachment, true, false, true);
@@ -470,7 +467,7 @@ class PublicationTest extends AbstractTest {
 			
 		// Mocking validator
 		final ValidationInfoDTO info = new ValidationInfoDTO(RawValidationEnum.OK, new ArrayList<>(), "");
-		given(validatorClient.validate(anyString())).willReturn(info);
+		given(validatorClient.validate(anyString(),anyString())).willReturn(info);
 
 		final ResponseEntity<ValidationResDTO> validationResponse = callPlainValidation(jwtToken, file, validationRB);
 		assumeFalse(validationResponse == null);
@@ -522,7 +519,7 @@ class PublicationTest extends AbstractTest {
 
 		// Mocking validator
 		final ValidationInfoDTO info = new ValidationInfoDTO(RawValidationEnum.OK, new ArrayList<>(), "");
-		given(validatorClient.validate(anyString())).willReturn(info);
+		given(validatorClient.validate(anyString(),anyString())).willReturn(info);
 
 		final ResponseEntity<ValidationResDTO> validationResponse = callPlainValidation(jwtToken, file, validationRB);
 		assumeFalse(validationResponse == null);

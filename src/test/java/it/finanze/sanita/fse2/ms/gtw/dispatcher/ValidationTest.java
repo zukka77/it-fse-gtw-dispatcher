@@ -5,7 +5,6 @@ package it.finanze.sanita.fse2.ms.gtw.dispatcher;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -113,7 +112,7 @@ class ValidationTest extends AbstractTest {
 
 	@BeforeEach
 	void mockValidatorClient() {
-		when(validatorClient.validate(anyString())).thenReturn(ValidationInfoDTO.builder().result(RawValidationEnum.OK).build());
+		when(validatorClient.validate(anyString(),anyString())).thenReturn(ValidationInfoDTO.builder().result(RawValidationEnum.OK).build());
 	}
 
     @Test
@@ -461,7 +460,7 @@ class ValidationTest extends AbstractTest {
 		final String hashedCdaResource = StringUtility.encodeSHA256B64(cda);
 
 		cdaSRV.consumeHash(hashedCdaResource);
-		when(validatorClient.validate(anyString())).thenReturn(ValidationInfoDTO.builder().result(RawValidationEnum.SYNTAX_ERROR).build());
+		when(validatorClient.validate(anyString(),anyString())).thenReturn(ValidationInfoDTO.builder().result(RawValidationEnum.SYNTAX_ERROR).build());
 		Map<String, RestExecutionResultEnum> result = callValidation(
 				ActivityEnum.VERIFICA, HealthDataFormatEnum.CDA,
 				null,

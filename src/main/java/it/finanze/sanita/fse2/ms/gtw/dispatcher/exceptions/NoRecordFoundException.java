@@ -8,6 +8,11 @@ import lombok.Getter;
 
 public class NoRecordFoundException extends RuntimeException {
 
+	/**
+	 * Serial version uid.
+	 */
+	private static final long serialVersionUID = -1545283262352643111L;
+
 	@Getter
 	private ErrorResponseDTO error;
 	
