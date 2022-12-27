@@ -9,6 +9,7 @@ import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.SendResult;
 import org.springframework.stereotype.Service;
@@ -41,23 +42,21 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class KafkaSRV implements IKafkaSRV {
 
-	/**
-	 * Serial version uid.
-	 */
-	private static final long serialVersionUID = 987723954716001270L;
-
 	@Autowired
-	private transient KafkaTopicCFG kafkaTopicCFG;
+	private KafkaTopicCFG kafkaTopicCFG;
+	
+	@Value("${spring.application.name}")
+	private String msName;
 
 	/**
 	 * Transactional producer.
 	 */
 	@Autowired
 	@Qualifier("txkafkatemplate")
-	private transient KafkaTemplate<String, String> txKafkaTemplate;
+	private KafkaTemplate<String, String> txKafkaTemplate;
 
 	@Autowired
-	private transient PriorityUtility priorityUtility;
+	private PriorityUtility priorityUtility;
 
 	@Override
 	public RecordMetadata sendMessage(String topic, String key, String value, boolean trans) {
@@ -197,6 +196,7 @@ public class KafkaSRV implements IKafkaSRV {
 					tipoAttivita(tipoAttivita).
 					subject(jwtClaimDTO != null ? jwtClaimDTO.getSub() : null).
 					organizzazione(jwtClaimDTO != null ? jwtClaimDTO.getSubject_organization_id() : null).
+					microserviceName(msName).
 					build();
 
 			String json = StringUtility.toJSONJackson(statusManagerMessage);
@@ -206,10 +206,5 @@ public class KafkaSRV implements IKafkaSRV {
 			throw new BusinessException(ex);
 		}
 	}
-
-	@Override
-	public void sendLoggerStatus(final String log) {
-		sendMessage(kafkaTopicCFG.getLogTopic(), "KEY", log, true);
-		
-	}
+ 
 }

@@ -18,11 +18,6 @@ import lombok.Getter;
 @Builder
 public class KafkaStatusManagerDTO extends AbstractDTO {
 
-	/**
-	 * Serial version uid.
-	 */
-	private static final long serialVersionUID = 7080680277816570116L;
-	
 	private String traceId;
 	
 	private EventTypeEnum eventType;
@@ -44,5 +39,7 @@ public class KafkaStatusManagerDTO extends AbstractDTO {
 	private String organizzazione;
 	
 	private String issuer;
+	
+	private String microserviceName;
 	
 }

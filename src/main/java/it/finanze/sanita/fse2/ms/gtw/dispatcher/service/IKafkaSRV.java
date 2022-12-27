@@ -3,8 +3,6 @@
  */
 package it.finanze.sanita.fse2.ms.gtw.dispatcher.service;
 
-import java.io.Serializable;
-
 import org.apache.kafka.clients.producer.RecordMetadata;
 
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.JWTPayloadDTO;
@@ -18,7 +16,7 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.TipoDocAltoLivEnum;
 /**
  * Interface for service used to handle kafka communications
  */
-public interface IKafkaSRV extends Serializable {
+public interface IKafkaSRV {
 
 	/**
 	 * Send message over kafka topic
@@ -47,7 +45,6 @@ public interface IKafkaSRV extends Serializable {
 	void sendReplaceStatus(String traceId,String workflowInstanceId, EventStatusEnum eventStatus, String message, PublicationCreationReqDTO publicationReq, JWTPayloadDTO jwtClaimDTO);
 	void sendDeleteStatus(String traceId, String workflowInstanceId, String idDoc, String message, EventStatusEnum eventStatus, JWTPayloadDTO jwt, EventTypeEnum eventType);
 	void sendDeleteRequest(String workflowInstanceId, Object request);
-	void sendLoggerStatus(String log);
 	
 	void sendUpdateStatus(String traceId, String workflowInstanceId, String idDoc, EventStatusEnum eventStatus, JWTPayloadDTO jwt, String message,EventTypeEnum event);
 
