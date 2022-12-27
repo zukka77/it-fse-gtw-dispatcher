@@ -301,11 +301,13 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 						kafkaSRV.sendUpdateStatus(logTraceDTO.getTraceID(), workflowInstanceId, idDoc, SUCCESS, jwtToken.getPayload(), "Regime di mock",
 								INI_UPDATE);
 					} else {
-						IniTraceResponseDTO res = iniClient.update(new IniMetadataUpdateReqDTO(metadatiToUpdate.getMarshallResponse(), jwtToken.getPayload(),metadatiToUpdate.getDocumentType()));
+						IniTraceResponseDTO res = iniClient.update(new IniMetadataUpdateReqDTO(metadatiToUpdate.getMarshallResponse(), jwtToken.getPayload(),metadatiToUpdate.getDocumentType(),
+								workflowInstanceId));
 						// Check response errors
 						if(!StringUtility.isNullOrEmpty(res.getErrorMessage())) {
 							// Send to indexer
-							kafkaSRV.sendUpdateRequest(workflowInstanceId, new IniMetadataUpdateReqDTO(metadatiToUpdate.getMarshallResponse(), jwtToken.getPayload(), metadatiToUpdate.getDocumentType()));
+							kafkaSRV.sendUpdateRequest(workflowInstanceId, new IniMetadataUpdateReqDTO(metadatiToUpdate.getMarshallResponse(), jwtToken.getPayload(), metadatiToUpdate.getDocumentType(),
+									workflowInstanceId));
 							kafkaSRV.sendUpdateStatus(logTraceDTO.getTraceID(), workflowInstanceId, idDoc, EventStatusEnum.ASYNC_RETRY, jwtToken.getPayload(), "Transazione presa in carico", INI_UPDATE);
 							warning = Misc.WARN_ASYNC_TRANSACTION;
 						} else {
@@ -497,7 +499,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 			// [3] Send delete request to INI
 			// ==============================
 			DeleteRequestDTO deleteRequestDTO = buildRequestForIni(idDoc, iniReference.getUuid(), token,iniReference.getDocumentType(),
-					subjApplicationId, subjApplicationVendor, subjApplicationVersion);
+					subjApplicationId, subjApplicationVendor, subjApplicationVersion,workflowInstanceId);
 			IniTraceResponseDTO iniResponse = iniClient.delete(deleteRequestDTO);
 
 			// Check mock errors
@@ -555,7 +557,8 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 	}
 	
 	private DeleteRequestDTO buildRequestForIni(final String identificativoDocumento, final String uuid, final JWTTokenDTO jwtTokenDTO,
-			final String documentType, String applicationId, String applicationVendor, String applicationVersion) {
+			final String documentType, String applicationId, String applicationVendor, String applicationVersion,
+			final String workflowInstanceId) {
 		DeleteRequestDTO out = null;
 		try {
 			JWTPayloadDTO jwtPayloadDTO = jwtTokenDTO.getPayload();
@@ -577,6 +580,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 					subject_application_id(applicationId).
 					subject_application_vendor(applicationVendor).
 					subject_application_version(applicationVersion).
+					workflow_instance_id(workflowInstanceId).
 					build();
 		} catch(Exception ex) {
 			log.error("Error while build request delete for ini : " , ex);

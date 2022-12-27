@@ -30,4 +30,5 @@ public class DeleteRequestDTO {
 	private String subject_application_id;
 	private String subject_application_vendor;
 	private String subject_application_version;
+	private String workflow_instance_id;
 }

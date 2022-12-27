@@ -17,4 +17,6 @@ public class IniMetadataUpdateReqDTO {
     
     private String documentType;
     
+    private String workflow_instance_id;
+    
 }
