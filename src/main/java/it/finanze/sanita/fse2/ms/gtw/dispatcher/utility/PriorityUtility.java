@@ -60,7 +60,7 @@ public class PriorityUtility {
      * @param documentType
      * @return
      */
-    private String computePriorityPerDocumentType(TipoDocAltoLivEnum documentType) {
+    public String computePriorityPerDocumentType(TipoDocAltoLivEnum documentType) {
         if (priorityDocumentCFG.getLowPriorityDocuments().contains(documentType.getCode())) {
             log.debug("Low priority document: {}", documentType.getCode());
             return Constants.Misc.LOW_PRIORITY;

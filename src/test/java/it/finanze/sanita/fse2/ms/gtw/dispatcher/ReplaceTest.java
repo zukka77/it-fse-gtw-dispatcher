@@ -11,6 +11,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -20,8 +22,10 @@ import java.util.List;
 import org.bson.Document;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -39,16 +43,21 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.IIniClient;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.IValidatorClient;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.ValidationInfoDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.PublicationCreationReqDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.IniReferenceResponseDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.IniTraceResponseDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.PublicationResDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.TransactionInspectResDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.client.TransformResDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.client.ValidationResDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ActivityEnum;
@@ -60,6 +69,7 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.InjectionModeEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.PracticeSettingCodeEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.RawValidationEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.TipoDocAltoLivEnum;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.BusinessException;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.repository.entity.IniEdsInvocationETY;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.repository.entity.ValidatedDocumentsETY;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.FileUtility;
@@ -82,6 +92,9 @@ class ReplaceTest extends AbstractTest {
 
 	@Autowired
 	MongoTemplate mongoTemplate;
+	
+	@SpyBean
+	private IIniClient iniClient;
 
 	@BeforeEach
 	void setup() {
@@ -89,211 +102,269 @@ class ReplaceTest extends AbstractTest {
 		mongoTemplate.dropCollection(ValidatedDocumentsETY.class);
 	}
 
-	// @ParameterizedTest
-	// @DisplayName("Replace of a document")
-	// @ValueSource(strings = {"CDA_OK_SIGNED.pdf", "LDO_OK.pdf", "RAD_OK.pdf", "RSA_OK.pdf", "VPS_OK.pdf"})
-	// void givenACorrectCDA_shouldInsertInInvocations(final String filename) {
+	 @ParameterizedTest
+	 @DisplayName("Replace of a document")
+	 @ValueSource(strings = {"CDA_OK_SIGNED.pdf", "LDO_OK.pdf", "RAD_OK.pdf", "RSA_OK.pdf", "VPS_OK.pdf"})
+	 void givenACorrectCDA_shouldInsertInInvocations(final String filename) {
 
-	// 	final String idDocument = StringUtility.generateUUID();
+	 	final String idDocument = StringUtility.generateUUID();
 
-	// 	mockDocumentRef();
-	// 	mockFhirMapping();
-	// 	mockGetReference(new IniReferenceResponseDTO(idDocument, null, "DocumentType"));
+	 	mockDocumentRef();
+	 	mockFhirMapping();
+	 	//mockIniClient(HttpStatus.OK, true); 
+	 	mockIniClient(HttpStatus.OK, true); 
+	 	mockGetReference(new IniReferenceResponseDTO(idDocument, null, "DocumentType"));
+		Mockito.doReturn(new IniReferenceResponseDTO(idDocument, "DocumentType", "")).when(iniClient).reference(any(it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.IniReferenceRequestDTO.class)); 
+
+	 	final byte[] pdfAttachment = FileUtility.getFileFromInternalResources("Files" + File.separator + "attachment" + File.separator + filename);
 		
-	// 	final byte[] pdfAttachment = FileUtility.getFileFromInternalResources("Files" + File.separator + "attachment" + File.separator + filename);
+	 	mockValidation(pdfAttachment);
+	 	
+	 	ValidationInfoDTO info = new ValidationInfoDTO(RawValidationEnum.OK, new ArrayList<>(), "");
+	 	given(validatorClient.validate(anyString(), anyString())).willReturn(info);
+	 	
+	 	callValidation(ActivityEnum.VALIDATION, HealthDataFormatEnum.CDA, InjectionModeEnum.ATTACHMENT, pdfAttachment, true, false, true);
 		
-	// 	mockValidation(pdfAttachment);
-	// 	callValidation(ActivityEnum.VALIDATION, HealthDataFormatEnum.CDA, InjectionModeEnum.ATTACHMENT, pdfAttachment, true, false, true);
+	 	final ResponseEntity<PublicationResDTO> response = callReplace(idDocument, pdfAttachment);
+	 	final PublicationResDTO body = response.getBody();
+
+	 	assertTrue(StringUtility.isNullOrEmpty(body.getWarning()), "With a correct CDA, no warning should have been returned");
+	 	assertNotNull(body.getWorkflowInstanceId(), "A workflow instance id should have been returned");
+	
+	 	final List<IniEdsInvocationETY> invocations = getIniInvocationEntities(body.getWorkflowInstanceId());
+	 	assertEquals(1, invocations.size(), "Only one insertion should have been made");
 		
-	// 	final ResponseEntity<PublicationResDTO> response = callReplace(idDocument, pdfAttachment);
-	// 	final PublicationResDTO body = response.getBody();
+	 	final IniEdsInvocationETY invocation = invocations.get(0);
+	 	assertEquals(idDocument, invocation.getRiferimentoIni(), "The same document Id should be present on the entity invocations");
+	 	assertEquals(3, invocation.getMetadata().size(), "The three metadata should have been present on invocations collection");
+	 	assertNotNull(invocation.getData(), "The data of invocation contains CDA info and cannot be null");
+	 }
 
-	// 	assertTrue(StringUtility.isNullOrEmpty(body.getWarning()), "With a correct CDA, no warning should have been returned");
-	// 	assertNotNull(body.getWorkflowInstanceId(), "A workflow instance id should have been returned");
+	 private void mockGetReference(IniReferenceResponseDTO expectedResponse) {
+
+	 	log.info("Mocking ini reference");
+	 	Mockito.doReturn(ResponseEntity.ok(expectedResponse)).when(restTemplate).exchange(anyString(), eq(HttpMethod.POST), any(HttpEntity.class), eq(IniReferenceResponseDTO.class));
+	 }
+
+	 void mockValidation(byte[] pdfAttachment) {
+	 	ValidationInfoDTO info = new ValidationInfoDTO(RawValidationEnum.OK, new ArrayList<>(), "");
+	 	given(validatorClient.validate(anyString(), anyString())).willReturn(info);
+	 }
+
+	 @ParameterizedTest
+	 @DisplayName("Calling replace with invalid request body")
+	 @ValueSource(strings = {"CDA_OK_SIGNED.pdf", "LDO_OK.pdf", "RAD_OK.pdf", "RSA_OK.pdf", "VPS_OK.pdf"})
+	 void givenInvalidRequest_shouldReturnError(final String filename) {
+
+	 	final String idDocument = StringUtility.generateUUID();
+
+	 	IniReferenceResponseDTO responseDto = new IniReferenceResponseDTO(); 
+	 	responseDto.setUuid("test");
+	 	responseDto.setDocumentType("DocumentType"); 
+	 	
+	 	mockDocumentRef();
+	 	mockFhirMapping();
+	 	mockGetReference(new IniReferenceResponseDTO(idDocument, null,"DocumentType"));
+	 	//when(iniClient.reference(any(it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.IniReferenceRequestDTO.class))).thenReturn(true); 
+		Mockito.doReturn(new IniReferenceResponseDTO("uuid", "DocumentType", "")).when(iniClient).reference(any(it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.IniReferenceRequestDTO.class)); 
+
+	 	final byte[] notPdfFile = FileUtility.getFileFromInternalResources("Files/Test.docx");
+	 	assertThrows(HttpClientErrorException.BadRequest.class, 
+	 		() ->  callReplace(idDocument, notPdfFile, null, false), "Not providing a valid file should throw a bad request exception");
+
+	 	final byte[] pdfAttachment = FileUtility.getFileFromInternalResources("Files/attachment/" + filename);
+	 	PublicationCreationReqDTO rBody = PublicationCreationReqDTO.builder().build();
+	 	assertThrows(HttpClientErrorException.BadRequest.class, 
+	 		() ->  callReplace(idDocument, pdfAttachment, rBody, true), "Not providing a valid request body should throw a bad request exception");
 	
-	// 	final List<IniEdsInvocationETY> invocations = getIniInvocationEntities(body.getWorkflowInstanceId());
-	// 	assertEquals(1, invocations.size(), "Only one insertion should have been made");
-		
-	// 	final IniEdsInvocationETY invocation = invocations.get(0);
-	// 	assertEquals(idDocument, invocation.getRiferimentoIni(), "The same document Id should be present on the entity invocations");
-	// 	assertEquals(3, invocation.getMetadata().size(), "The three metadata should have been present on invocations collection");
-	// 	assertNotNull(invocation.getData(), "The data of invocation contains CDA info and cannot be null");
-	// }
+	 	mockValidation(pdfAttachment);
+	 	callValidation(ActivityEnum.VALIDATION, HealthDataFormatEnum.CDA, InjectionModeEnum.ATTACHMENT, pdfAttachment, true, false, true);
 
-	// private void mockGetReference(IniReferenceResponseDTO expectedResponse) {
+	 	rBody.setAssettoOrganizzativo(PracticeSettingCodeEnum.AD_PSC001);
+	 	assertThrows(HttpClientErrorException.BadRequest.class, 
+	 		() ->  callReplace(idDocument, pdfAttachment, rBody, true), "Not providing a valid request body should throw a bad request exception");
 
-	// 	log.info("Mocking ini reference");
-	// 	Mockito.doReturn(ResponseEntity.ok(expectedResponse)).when(restTemplate).exchange(anyString(), eq(HttpMethod.POST), any(HttpEntity.class), eq(IniReferenceResponseDTO.class));
-	// }
+	 	callValidation(ActivityEnum.VALIDATION, HealthDataFormatEnum.CDA, InjectionModeEnum.ATTACHMENT, pdfAttachment, true, false, true);
 
-	// void mockValidation(byte[] pdfAttachment) {
-	// 	ValidationInfoDTO info = new ValidationInfoDTO(RawValidationEnum.OK, new ArrayList<>(), "");
-	// 	given(validatorClient.validate(anyString())).willReturn(info);
-	// }
-
-	// @ParameterizedTest
-	// @DisplayName("Calling replace with invalid request body")
-	// @ValueSource(strings = {"CDA_OK_SIGNED.pdf", "LDO_OK.pdf", "RAD_OK.pdf", "RSA_OK.pdf", "VPS_OK.pdf"})
-	// void givenInvalidRequest_shouldReturnError(final String filename) {
-
-	// 	final String idDocument = StringUtility.generateUUID();
-
-	// 	mockDocumentRef();
-	// 	mockFhirMapping();
-	// 	mockGetReference(new IniReferenceResponseDTO(idDocument, null,"DocumentType"));
-
-	// 	final byte[] notPdfFile = FileUtility.getFileFromInternalResources("Files/Test.docx");
-	// 	assertThrows(HttpClientErrorException.BadRequest.class, 
-	// 		() ->  callReplace(idDocument, notPdfFile, null, false), "Not providing a valid file should throw a bad request exception");
-
-	// 	final byte[] pdfAttachment = FileUtility.getFileFromInternalResources("Files/attachment/" + filename);
-	// 	PublicationCreationReqDTO rBody = PublicationCreationReqDTO.builder().build();
-	// 	assertThrows(HttpClientErrorException.BadRequest.class, 
-	// 		() ->  callReplace(idDocument, pdfAttachment, rBody, true), "Not providing a valid request body should throw a bad request exception");
-	
-	// 	mockValidation(pdfAttachment);
-	// 	callValidation(ActivityEnum.VALIDATION, HealthDataFormatEnum.CDA, InjectionModeEnum.ATTACHMENT, pdfAttachment, true, false, true);
-
-	// 	rBody.setAssettoOrganizzativo(PracticeSettingCodeEnum.AD_PSC001);
-	// 	assertThrows(HttpClientErrorException.BadRequest.class, 
-	// 		() ->  callReplace(idDocument, pdfAttachment, rBody, true), "Not providing a valid request body should throw a bad request exception");
-
-	// 	callValidation(ActivityEnum.VALIDATION, HealthDataFormatEnum.CDA, InjectionModeEnum.ATTACHMENT, pdfAttachment, true, false, true);
-
-	// 	rBody.setConservazioneANorma("Conservazione sostitutiva");
-	// 	assertThrows(HttpClientErrorException.BadRequest.class, 
-	// 		() ->  callReplace(idDocument, pdfAttachment, rBody, true), "Not providing a valid request body should throw a bad request exception");
+	 	rBody.setConservazioneANorma("Conservazione sostitutiva");
+	 	assertThrows(HttpClientErrorException.BadRequest.class, 
+	 		() ->  callReplace(idDocument, pdfAttachment, rBody, true), "Not providing a valid request body should throw a bad request exception");
 	
 		
-	// 	callValidation(ActivityEnum.VALIDATION, HealthDataFormatEnum.CDA, InjectionModeEnum.ATTACHMENT, pdfAttachment, true, false, true);
+	 	callValidation(ActivityEnum.VALIDATION, HealthDataFormatEnum.CDA, InjectionModeEnum.ATTACHMENT, pdfAttachment, true, false, true);
 
-	// 	rBody.setDataFinePrestazione(String.valueOf(new Date().getTime()));
-	// 	rBody.setDataInizioPrestazione(String.valueOf(new Date().getTime()));
-	// 	rBody.setHealthDataFormat(HealthDataFormatEnum.CDA);
-	// 	assertThrows(HttpClientErrorException.BadRequest.class, 
-	// 		() ->  callReplace(idDocument, pdfAttachment, rBody, true), "Not providing a valid request body should throw a bad request exception");
+	 	rBody.setDataFinePrestazione(String.valueOf(new Date().getTime()));
+	 	rBody.setDataInizioPrestazione(String.valueOf(new Date().getTime()));
+	 	rBody.setHealthDataFormat(HealthDataFormatEnum.CDA);
+	 	assertThrows(HttpClientErrorException.BadRequest.class, 
+	 		() ->  callReplace(idDocument, pdfAttachment, rBody, true), "Not providing a valid request body should throw a bad request exception");
 	
-	// 	callValidation(ActivityEnum.VALIDATION, HealthDataFormatEnum.CDA, InjectionModeEnum.ATTACHMENT, pdfAttachment, true, false, true);
+	 	callValidation(ActivityEnum.VALIDATION, HealthDataFormatEnum.CDA, InjectionModeEnum.ATTACHMENT, pdfAttachment, true, false, true);
 
-	// 	rBody.setIdentificativoRep("Identificativo rep");
-	// 	assertThrows(HttpClientErrorException.BadRequest.class, 
-	// 		() ->  callReplace(idDocument, pdfAttachment, rBody, true), "Not providing a valid request body should throw a bad request exception");
+	 	rBody.setIdentificativoRep("Identificativo rep");
+	 	assertThrows(HttpClientErrorException.BadRequest.class, 
+	 		() ->  callReplace(idDocument, pdfAttachment, rBody, true), "Not providing a valid request body should throw a bad request exception");
 	
-	// 	callValidation(ActivityEnum.VALIDATION, HealthDataFormatEnum.CDA, InjectionModeEnum.ATTACHMENT, pdfAttachment, true, false, true);
+	 	callValidation(ActivityEnum.VALIDATION, HealthDataFormatEnum.CDA, InjectionModeEnum.ATTACHMENT, pdfAttachment, true, false, true);
 			
-	// 	rBody.setIdentificativoSottomissione("Identificativo Sottomissione");
-	// 	assertThrows(HttpClientErrorException.BadRequest.class, 
-	// 		() ->  callReplace(idDocument, pdfAttachment, rBody, true), "Not providing a valid request body should throw a bad request exception");
+	 	rBody.setIdentificativoSottomissione("Identificativo Sottomissione");
+	 	assertThrows(HttpClientErrorException.BadRequest.class, 
+	 		() ->  callReplace(idDocument, pdfAttachment, rBody, true), "Not providing a valid request body should throw a bad request exception");
 			
-	// 	callValidation(ActivityEnum.VALIDATION, HealthDataFormatEnum.CDA, InjectionModeEnum.ATTACHMENT, pdfAttachment, true, false, true);
+	 	callValidation(ActivityEnum.VALIDATION, HealthDataFormatEnum.CDA, InjectionModeEnum.ATTACHMENT, pdfAttachment, true, false, true);
 	
-	// 	rBody.setAttiCliniciRegoleAccesso(java.util.Arrays.asList(EventCodeEnum._94503_0.getCode()));
-	// 	assertThrows(HttpClientErrorException.BadRequest.class, 
-	// 		() ->  callReplace(idDocument, pdfAttachment, rBody, true), "Not providing a valid request body should throw a bad request exception");
+	 	rBody.setAttiCliniciRegoleAccesso(java.util.Arrays.asList(EventCodeEnum._94503_0.getCode()));
+	 	assertThrows(HttpClientErrorException.BadRequest.class, 
+	 		() ->  callReplace(idDocument, pdfAttachment, rBody, true), "Not providing a valid request body should throw a bad request exception");
 	
-	// 	callValidation(ActivityEnum.VALIDATION, HealthDataFormatEnum.CDA, InjectionModeEnum.ATTACHMENT, pdfAttachment, true, false, true);
+	 	callValidation(ActivityEnum.VALIDATION, HealthDataFormatEnum.CDA, InjectionModeEnum.ATTACHMENT, pdfAttachment, true, false, true);
 
-	// 	rBody.setTipoAttivitaClinica(AttivitaClinicaEnum.CON);
-	// 	assertThrows(HttpClientErrorException.BadRequest.class, 
-	// 		() ->  callReplace(idDocument, pdfAttachment, rBody, true), "Not providing a valid request body should throw a bad request exception");
+	 	rBody.setTipoAttivitaClinica(AttivitaClinicaEnum.CON);
+	 	assertThrows(HttpClientErrorException.BadRequest.class, 
+	 		() ->  callReplace(idDocument, pdfAttachment, rBody, true), "Not providing a valid request body should throw a bad request exception");
 	
-	// 	callValidation(ActivityEnum.VALIDATION, HealthDataFormatEnum.CDA, InjectionModeEnum.ATTACHMENT, pdfAttachment, true, false, true);
+	 	callValidation(ActivityEnum.VALIDATION, HealthDataFormatEnum.CDA, InjectionModeEnum.ATTACHMENT, pdfAttachment, true, false, true);
 
-	// 	rBody.setTipoDocumentoLivAlto(TipoDocAltoLivEnum.WOR);
-	// 	assertThrows(HttpClientErrorException.BadRequest.class, 
-	// 		() ->  callReplace(idDocument, pdfAttachment, rBody, true), "Not providing a valid request body should throw a bad request exception");
+	 	rBody.setTipoDocumentoLivAlto(TipoDocAltoLivEnum.WOR);
+	 	assertThrows(HttpClientErrorException.BadRequest.class, 
+	 		() ->  callReplace(idDocument, pdfAttachment, rBody, true), "Not providing a valid request body should throw a bad request exception");
 	
-	// 	rBody.setTipologiaStruttura(HealthcareFacilityEnum.Ospedale);
+	 	rBody.setTipologiaStruttura(HealthcareFacilityEnum.Ospedale);
 	
-	// 	callValidation(ActivityEnum.VALIDATION, HealthDataFormatEnum.CDA, InjectionModeEnum.ATTACHMENT, pdfAttachment, true, false, true);
+	 	callValidation(ActivityEnum.VALIDATION, HealthDataFormatEnum.CDA, InjectionModeEnum.ATTACHMENT, pdfAttachment, true, false, true);
 
-	// 	ResponseEntity<PublicationResDTO> response = callReplace(idDocument, pdfAttachment, rBody, true);
-	// 	assertEquals(Constants.Misc.WARN_EXTRACTION_SELECTION, response.getBody().getWarning(), 
-	// 		"Not providing injection mode should not stop the call but should return a warning");
+	 	ResponseEntity<PublicationResDTO> response = callReplace(idDocument, pdfAttachment, rBody, true);
+	 	assertEquals(Constants.Misc.WARN_EXTRACTION_SELECTION, response.getBody().getWarning(), 
+	 		"Not providing injection mode should not stop the call but should return a warning");
 		
-	// 	assertNotNull(response.getBody().getWorkflowInstanceId(), "Workflow instance id should not be null");
+	 	assertNotNull(response.getBody().getWorkflowInstanceId(), "Workflow instance id should not be null");
 
-	// 	rBody.setMode(InjectionModeEnum.ATTACHMENT);
+	 	rBody.setMode(InjectionModeEnum.ATTACHMENT);
 		
-	// 	callValidation(ActivityEnum.VALIDATION, HealthDataFormatEnum.CDA, InjectionModeEnum.ATTACHMENT, pdfAttachment, true, false, true);
+	 	callValidation(ActivityEnum.VALIDATION, HealthDataFormatEnum.CDA, InjectionModeEnum.ATTACHMENT, pdfAttachment, true, false, true);
 
-	// 	response = callReplace(idDocument, pdfAttachment, rBody, true);
-	// 	assertTrue(StringUtility.isNullOrEmpty(response.getBody().getWarning()), "No warning should have be returned with a correct CDA");
-	// 	assertNotNull(response.getBody().getWorkflowInstanceId(), "Workflow instance id should not be null");
-	// }
+	 	response = callReplace(idDocument, pdfAttachment, rBody, true);
+	 	assertTrue(StringUtility.isNullOrEmpty(response.getBody().getWarning()), "No warning should have be returned with a correct CDA");
+	 	assertNotNull(response.getBody().getWorkflowInstanceId(), "Workflow instance id should not be null");
+	 }
 
-	// private void mockFhirMapping() {
-	// 	log.info("Mocking fhir-mapping client");
-	// 	final ValidationInfoDTO info = new ValidationInfoDTO(RawValidationEnum.OK, new ArrayList<>(), "");
-	// 	Mockito.doReturn(new ResponseEntity<>(info, HttpStatus.OK)).when(restTemplate).exchange(anyString(), eq(HttpMethod.POST), any(HttpEntity.class), eq(ValidationResDTO.class));
-	// }
+	 private void mockFhirMapping() {
+	 	log.info("Mocking fhir-mapping client");
+	 	final ValidationInfoDTO info = new ValidationInfoDTO(RawValidationEnum.OK, new ArrayList<>(), "");
+	 	Mockito.doReturn(new ResponseEntity<>(info, HttpStatus.OK)).when(restTemplate).exchange(anyString(), eq(HttpMethod.POST), any(HttpEntity.class), eq(ValidationResDTO.class));
+	 }
 
-	// private List<IniEdsInvocationETY> getIniInvocationEntities(final String workflowInstanceId) {
-	// 	Query query = new Query();
-	// 	query.addCriteria(Criteria.where("workflow_instance_id").is(workflowInstanceId));
-	// 	return mongoTemplate.find(query, IniEdsInvocationETY.class);
-	// }
+	 private List<IniEdsInvocationETY> getIniInvocationEntities(final String workflowInstanceId) {
+	 	Query query = new Query();
+	 	query.addCriteria(Criteria.where("workflow_instance_id").is(workflowInstanceId));
+	 	return mongoTemplate.find(query, IniEdsInvocationETY.class);
+	 }
 
-	// ResponseEntity<PublicationResDTO> callReplace(final String idDocumentReplace, final byte[] fileByte) {
-	// 	return callReplace(idDocumentReplace, fileByte, null, true);
-	// }
+	 ResponseEntity<PublicationResDTO> callReplace(final String idDocumentReplace, final byte[] fileByte) {
+	 	return callReplace(idDocumentReplace, fileByte, null, true);
+	 }
 
-	// ResponseEntity<PublicationResDTO> callReplace(final String idDocumentReplace, final byte[] fileByte, final PublicationCreationReqDTO requestBody, final boolean isValidFile) {
-	// 	LinkedMultiValueMap<String, Object> map = new LinkedMultiValueMap<>();
+	 ResponseEntity<PublicationResDTO> callReplace(final String idDocumentReplace, final byte[] fileByte, final PublicationCreationReqDTO requestBody, final boolean isValidFile) {
+	 	LinkedMultiValueMap<String, Object> map = new LinkedMultiValueMap<>();
 
-	// 	ByteArrayResource fileAsResource = new ByteArrayResource(fileByte) {
-	// 		@Override
-	// 		public String getFilename(){
-	// 			return "file";
-	// 		}
-	// 	};
+	 	ByteArrayResource fileAsResource = new ByteArrayResource(fileByte) {
+	 		@Override
+	 		public String getFilename(){
+	 			return "file";
+	 		}
+	 	};
 
-	// 	map.add("file", fileAsResource);
-	// 	if (requestBody == null) {
-	// 		log.info("Creating a valid request body");
-	// 		map.add("requestBody", buildCreationDTO());
-	// 	} else {
-	// 		map.add("requestBody", requestBody);
-	// 	}
+	 	map.add("file", fileAsResource);
+	 	if (requestBody == null) {
+	 		log.info("Creating a valid request body");
+	 		map.add("requestBody", buildCreationDTO());
+	 	} else {
+	 		map.add("requestBody", requestBody);
+	 	}
 
-	// 	HttpHeaders headers = new HttpHeaders();
-	// 	headers.setContentType(MediaType.MULTIPART_FORM_DATA);
-	// 	log.info("Simulating a valid json payload");
-	// 	headers.set(Constants.Headers.JWT_HEADER, generateJwt(fileByte, isValidFile));
+	 	HttpHeaders headers = new HttpHeaders();
+	 	headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+	 	log.info("Simulating a valid json payload");
+	 	headers.set(Constants.Headers.JWT_HEADER, generateJwt(fileByte, isValidFile));
 
-	// 	final String urlReplace = "http://localhost:" + webServerAppCtxt.getWebServer().getPort() + webServerAppCtxt.getServletContext().getContextPath() + "/v1/documents/" + idDocumentReplace;
-	// 	HttpEntity<LinkedMultiValueMap<String, Object>> requestEntity = new HttpEntity<>(map, headers);
-	// 	return restTemplate.exchange(urlReplace, HttpMethod.PUT, requestEntity, PublicationResDTO.class);
-	// }
-	
+	 	final String urlReplace = "http://localhost:" + webServerAppCtxt.getWebServer().getPort() + webServerAppCtxt.getServletContext().getContextPath() + "/v1/documents/" + idDocumentReplace;
+	 	HttpEntity<LinkedMultiValueMap<String, Object>> requestEntity = new HttpEntity<>(map, headers);
+	 	return restTemplate.exchange(urlReplace, HttpMethod.PUT, requestEntity, PublicationResDTO.class);
+	 }
+		
+	 PublicationCreationReqDTO buildCreationDTO() {
+	 	PublicationCreationReqDTO output = PublicationCreationReqDTO.builder().
+	 			assettoOrganizzativo(PracticeSettingCodeEnum.AD_PSC001).
+	 			conservazioneANorma("Conservazione sostitutiva").
+	 			dataFinePrestazione(""+new Date().getTime()).
+	 			dataInizioPrestazione(""+new Date().getTime()).
+	 			healthDataFormat(HealthDataFormatEnum.CDA).
+	 			identificativoRep("Identificativo rep").
+	 			identificativoSottomissione("Identificativo Sottomissione").
+	 			mode(InjectionModeEnum.ATTACHMENT).
+	 			attiCliniciRegoleAccesso(java.util.Arrays.asList(EventCodeEnum._94503_0.getCode())).
+	 			tipoAttivitaClinica(AttivitaClinicaEnum.CON).
+	 			tipoDocumentoLivAlto(TipoDocAltoLivEnum.WOR).
+	 			tipologiaStruttura(HealthcareFacilityEnum.Ospedale).
+	 			build();
+	 	return output;
+	 } 
+	 
+	void mockIniClient(final HttpStatus status, boolean esito) {
+			log.info("Mocking INI client");
+			IniTraceResponseDTO response = new IniTraceResponseDTO();
+			IniReferenceResponseDTO referenceResponse = new IniReferenceResponseDTO();
+			if (status.is2xxSuccessful() && esito) {
+				response.setSpanID(StringUtility.generateUUID());
+				response.setTraceID(StringUtility.generateUUID());
+				response.setEsito(true);
+				response.setErrorMessage(null);
+				referenceResponse.setSpanID(StringUtility.generateUUID());
+				referenceResponse.setTraceID(StringUtility.generateUUID());
+				referenceResponse.setErrorMessage(null);
+				referenceResponse.setUuid(StringUtility.generateUUID());
+				Mockito.doReturn(new ResponseEntity<>(referenceResponse, status)).when(restTemplate).exchange(anyString(), eq(HttpMethod.POST), any(HttpEntity.class), ArgumentMatchers.eq(IniReferenceResponseDTO.class));
+				Mockito.doReturn(new ResponseEntity<>(response, status)).when(restTemplate).exchange(anyString(), eq(HttpMethod.PUT), any(HttpEntity.class), ArgumentMatchers.eq(IniTraceResponseDTO.class));
+				Mockito.doReturn(new ResponseEntity<>(response, status)).when(restTemplate).exchange(anyString(), eq(HttpMethod.DELETE), any(HttpEntity.class), ArgumentMatchers.eq(IniTraceResponseDTO.class));
+			} else if (status.equals(HttpStatus.NOT_FOUND) && !esito) {
+				referenceResponse.setSpanID(StringUtility.generateUUID());
+				referenceResponse.setTraceID(StringUtility.generateUUID());
+				referenceResponse.setErrorMessage("Not found on INI");
+				referenceResponse.setUuid(null);
+				Mockito.doReturn(new ResponseEntity<>(referenceResponse, HttpStatus.OK)).when(restTemplate).exchange(anyString(), eq(HttpMethod.POST), any(HttpEntity.class), ArgumentMatchers.eq(IniReferenceResponseDTO.class));
+				Mockito.doReturn(new ResponseEntity<>(response, status)).when(restTemplate).exchange(anyString(), eq(HttpMethod.PUT), any(HttpEntity.class), ArgumentMatchers.eq(IniTraceResponseDTO.class));
+			} else if (status.equals(HttpStatus.BAD_REQUEST) && !esito) {
+				referenceResponse.setSpanID(StringUtility.generateUUID());
+				referenceResponse.setTraceID(StringUtility.generateUUID());
+				referenceResponse.setErrorMessage(null);
+				referenceResponse.setUuid(StringUtility.generateUUID());
+				response.setSpanID(StringUtility.generateUUID());
+				response.setTraceID(StringUtility.generateUUID());
+				response.setEsito(false);
+				response.setErrorMessage("Generic error from INI");
+				Mockito.doReturn(new ResponseEntity<>(response, HttpStatus.OK)).when(restTemplate).exchange(anyString(), eq(HttpMethod.POST), any(HttpEntity.class), ArgumentMatchers.eq(IniReferenceResponseDTO.class));
+				Mockito.doReturn(new ResponseEntity<>(response, HttpStatus.OK)).when(restTemplate).exchange(anyString(), eq(HttpMethod.DELETE), any(HttpEntity.class), ArgumentMatchers.eq(IniTraceResponseDTO.class));
+				Mockito.doReturn(new ResponseEntity<>(response, status)).when(restTemplate).exchange(anyString(), eq(HttpMethod.PUT), any(HttpEntity.class), ArgumentMatchers.eq(IniTraceResponseDTO.class));
+			} else if (status.is4xxClientError()) {
+				Mockito.doThrow(new RestClientException("")).when(restTemplate).exchange(anyString(), eq(HttpMethod.POST), any(HttpEntity.class), ArgumentMatchers.eq(IniReferenceResponseDTO.class));
+				Mockito.doReturn(new ResponseEntity<>(response, status)).when(restTemplate).exchange(anyString(), eq(HttpMethod.PUT), any(HttpEntity.class), ArgumentMatchers.eq(IniTraceResponseDTO.class));
+				Mockito.doThrow(new RestClientException("")).when(restTemplate).exchange(anyString(), eq(HttpMethod.DELETE), any(HttpEntity.class), ArgumentMatchers.eq(IniTraceResponseDTO.class));
+			} else {
+				Mockito.doThrow(new BusinessException("")).when(restTemplate).exchange(anyString(), eq(HttpMethod.POST), any(HttpEntity.class), ArgumentMatchers.eq(IniReferenceResponseDTO.class));
+				Mockito.doReturn(new ResponseEntity<>(response, status)).when(restTemplate).exchange(anyString(), eq(HttpMethod.PUT), any(HttpEntity.class), ArgumentMatchers.eq(IniTraceResponseDTO.class));
+				Mockito.doThrow(new BusinessException("")).when(restTemplate).exchange(anyString(), eq(HttpMethod.DELETE), any(HttpEntity.class), ArgumentMatchers.eq(IniTraceResponseDTO.class));
+			}
+		}
 
-	// PublicationCreationReqDTO buildCreationDTO() {
-	// 	PublicationCreationReqDTO output = PublicationCreationReqDTO.builder().
-	// 			assettoOrganizzativo(PracticeSettingCodeEnum.AD_PSC001).
-	// 			conservazioneANorma("Conservazione sostitutiva").
-	// 			dataFinePrestazione(""+new Date().getTime()).
-	// 			dataInizioPrestazione(""+new Date().getTime()).
-	// 			healthDataFormat(HealthDataFormatEnum.CDA).
-	// 			identificativoRep("Identificativo rep").
-	// 			identificativoSottomissione("Identificativo Sottomissione").
-	// 			mode(InjectionModeEnum.ATTACHMENT).
-	// 			attiCliniciRegoleAccesso(java.util.Arrays.asList(EventCodeEnum._94503_0.getCode())).
-	// 			tipoAttivitaClinica(AttivitaClinicaEnum.CON).
-	// 			tipoDocumentoLivAlto(TipoDocAltoLivEnum.WOR).
-	// 			tipologiaStruttura(HealthcareFacilityEnum.Ospedale).
-	// 			build();
-	// 	return output;
-	// }
+	 void mockDocumentRef() {
 
-	// void mockDocumentRef() {
+	 	log.info("Mocking document reference");
 
-	// 	log.info("Mocking document reference");
+	 	TransformResDTO ref = new TransformResDTO();
+	 	ref.setErrorMessage("");
+	 	ref.setJson(Document.parse("{\"json\" : \"json\"}"));
 
-	// 	TransformResDTO ref = new TransformResDTO();
-	// 	ref.setErrorMessage("");
-	// 	ref.setJson(Document.parse("{\"json\" : \"json\"}"));
-
-	// 	Mockito.doReturn(new ResponseEntity<>(ref, HttpStatus.OK)).when(restTemplate)
-	// 			.exchange(anyString(), eq(HttpMethod.POST), any(HttpEntity.class), eq(TransformResDTO.class));
-	// }
+	 	Mockito.doReturn(new ResponseEntity<>(ref, HttpStatus.OK)).when(restTemplate)
+	 			.exchange(anyString(), eq(HttpMethod.POST), any(HttpEntity.class), eq(TransformResDTO.class));
+	 } 
 }

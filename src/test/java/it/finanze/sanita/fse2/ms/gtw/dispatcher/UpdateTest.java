@@ -75,55 +75,55 @@ class UpdateTest extends AbstractTest {
 		assertEquals(HttpStatus.BAD_REQUEST, responseDTO.getStatusCode());
 	}
 
-	// @Test
-	// @DisplayName("Update of a document")
-	// void givenAnIdentifier_shouldExecuteUpdate() throws Exception {
+	 @Test
+	 @DisplayName("Update of a document")
+	 void givenAnIdentifier_shouldExecuteUpdate() throws Exception {
 
-	// 	final String idDocument = StringUtility.generateUUID();
-	// 	mockEdsClient(HttpStatus.OK);
-	// 	mockIniClient(HttpStatus.OK, true);
+	 	final String idDocument = StringUtility.generateUUID();
+	 	mockEdsClient(HttpStatus.OK);
+	 	mockIniClient(HttpStatus.OK, true);
 
-	// 	final ResponseEntity<ResponseDTO> response = callUpdate(idDocument, false);
-	// 	final ResponseDTO body = response.getBody();
+	 	final ResponseEntity<ResponseDTO> response = callUpdate(idDocument, false);
+	 	final ResponseDTO body = response.getBody();
 
-	// 	assertNotNull(body, "A response body should have been returned");
-	// 	assertNotNull(body.getSpanID(), "A span ID should have been returned");
-	// 	assertNotNull(body.getTraceID(), "A trace ID should have been returned");
-	// }
+	 	assertNotNull(body, "A response body should have been returned");
+	 	assertNotNull(body.getSpanID(), "A span ID should have been returned");
+	 	assertNotNull(body.getTraceID(), "A trace ID should have been returned");
+	 }
 
-	// @Test
-	// @DisplayName("Not found INI Error returned")
-	// void whenIniFailsForNotFound_anErrorShouldBeReturned() throws Exception {
-	// 	final String idDocument = StringUtility.generateUUID();
+	 @Test
+	 @DisplayName("Not found INI Error returned")
+	 void whenIniFailsForNotFound_anErrorShouldBeReturned() throws Exception {
+	 	final String idDocument = StringUtility.generateUUID();
 
-	// 	mockIniClient(HttpStatus.NOT_FOUND, false);
-	// 	mockEdsClient(HttpStatus.OK);
-	// 	ResponseEntity<ResponseDTO> response = callUpdate(idDocument, false);
-	// 	assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-	// }
+	 	mockIniClient(HttpStatus.NOT_FOUND, false);
+	 	mockEdsClient(HttpStatus.OK);
+	 	ResponseEntity<ResponseDTO> response = callUpdate(idDocument, false);
+	 	assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+	 }
 
-	// @Test
-	// @DisplayName("Generic INI Error returned")
-	// void whenIniFailsForGenericHttp_anErrorShouldBeReturned() throws Exception {
-	// 	final String idDocument = StringUtility.generateUUID();
+	 @Test
+	 @DisplayName("Generic INI Error returned")
+	 void whenIniFailsForGenericHttp_anErrorShouldBeReturned() throws Exception {
+	 	final String idDocument = StringUtility.generateUUID();
 
-	// 	mockIniClient(HttpStatus.BAD_REQUEST, false);
-	// 	mockEdsClient(HttpStatus.OK);
-	// 	ResponseEntity<ResponseDTO> response = callUpdate(idDocument, false);
-	// 	assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-	// }
+	 	mockIniClient(HttpStatus.BAD_REQUEST, false);
+	 	mockEdsClient(HttpStatus.OK);
+	 	ResponseEntity<ResponseDTO> response = callUpdate(idDocument, false);
+	 	assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+	 }
 
-	// @Test
-	// @DisplayName("EDS Error returned")
-	// void whenEdsFails_anErrorShouldBeReturned() throws Exception {
+	 @Test
+	 @DisplayName("EDS Error returned")
+	 void whenEdsFails_anErrorShouldBeReturned() throws Exception {
 
-	// 	final String idDocument = StringUtility.generateUUID();
+	 	final String idDocument = StringUtility.generateUUID();
 
-	// 	mockIniClient(HttpStatus.OK, true);
-	// 	mockEdsClient(HttpStatus.INTERNAL_SERVER_ERROR);
-	// 	ResponseEntity<ResponseDTO> response = callUpdate(idDocument, false);
-	// 	assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
-	// }
+	 	mockIniClient(HttpStatus.OK, true);
+	 	mockEdsClient(HttpStatus.INTERNAL_SERVER_ERROR);
+	 	ResponseEntity<ResponseDTO> response = callUpdate(idDocument, false);
+	 	assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+	 }
 
 	void mockIniClient(final HttpStatus status, boolean esito) {
 		log.info("Mocking INI client");
@@ -179,6 +179,7 @@ class UpdateTest extends AbstractTest {
 				MockMvcRequestBuilders.put("http://localhost:" +
 					webServerAppCtxt.getWebServer().getPort() + webServerAppCtxt.getServletContext().getContextPath() +
 					"/v1/documents/" + documentId + "/metadata")
+					.content(objectMapper.writeValueAsString(document))
 					.param("requestBody", objectMapper.writeValueAsString(document))
 					.headers(headers);
 

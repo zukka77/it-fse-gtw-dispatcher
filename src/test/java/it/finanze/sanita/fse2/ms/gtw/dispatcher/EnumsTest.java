@@ -13,6 +13,7 @@ import org.springframework.test.context.ActiveProfiles;
 
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ActivityEnum;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ErrorInstanceEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventCodeEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventStatusEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventTypeEnum;
@@ -144,7 +145,17 @@ class EnumsTest {
         String description = "Oscuramento del documento";
         assertEquals(description, EventCodeEnum.P99.getDescription());
         assertEquals(code, EventCodeEnum.P99.getCode());
-    }
+    } 
+    
+    @Test
+    @DisplayName("ErrorInstanceEnum test")
+    void testErrorInstanceEnum() {
+
+        ErrorInstanceEnum enumTest = ErrorInstanceEnum.EMPTY_FILE; 
+        ErrorInstanceEnum outTestEnum = enumTest.get("/empty-multipart-file"); 
+        
+        assertEquals(outTestEnum, ErrorInstanceEnum.EMPTY_FILE);
+    } 
 
     @Test
     @DisplayName("RestExecutionResultEnum test")

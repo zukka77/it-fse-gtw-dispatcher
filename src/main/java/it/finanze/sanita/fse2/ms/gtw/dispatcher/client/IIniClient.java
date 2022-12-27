@@ -17,7 +17,7 @@ public interface IIniClient {
 	
 	IniTraceResponseDTO update(IniMetadataUpdateReqDTO iniReq);
 
-	IniReferenceResponseDTO reference(IniReferenceRequestDTO iniReq);
+	IniReferenceResponseDTO reference(it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.IniReferenceRequestDTO iniReferenceRequestDTO);
 	
 	GetMergedMetadatiDTO metadata(MergedMetadatiRequestDTO iniReq);
 
