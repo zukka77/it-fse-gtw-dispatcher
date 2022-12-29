@@ -66,13 +66,13 @@ class DocumentReferenceTest extends AbstractTest {
 		TransformResDTO res = new TransformResDTO();
 		res.setErrorMessage("");
 		res.setJson(Document.parse("{\"json\" : \"json\"}"));
-		given(client.callConvertCdaInBundle(any(FhirResourceDTO.class))).willReturn(res);
+		given(client.callConvertCdaInBundle(any(FhirResourceDTO.class),"")).willReturn(res);
 		byte[] cdaFile = FileUtility.getFileFromInternalResources("Files" + File.separator + "Esempio CDA2_Referto Medicina di Laboratorio v6_OK.xml");
 		String cda = new String(cdaFile);
 		PublicationCreationReqDTO reqDTO = buildPublicationReqDTO(workflowInstanceId);
 		String documentSha = StringUtility.encodeSHA256(cdaFile);
 		ResourceDTO resourceDTO = documentReferenceSRV.createFhirResources(cda, reqDTO, documentSha.length(), documentSha,
-				"PersonId", "");
+				"PersonId", "",false);
 		assertNotNull(resourceDTO.getDocumentEntryJson());
 		assertNotNull(resourceDTO.getSubmissionSetEntryJson());
 		assertNull(resourceDTO.getErrorMessage());
@@ -115,13 +115,13 @@ class DocumentReferenceTest extends AbstractTest {
 		String workflowInstanceId = StringUtility.generateUUID();
 		TransformResDTO res = new TransformResDTO();
 		res.setErrorMessage("errorMessage");
-		given(client.callConvertCdaInBundle(any(FhirResourceDTO.class))).willReturn(res);
+		given(client.callConvertCdaInBundle(any(FhirResourceDTO.class),"")).willReturn(res);
 		byte[] cdaFile = FileUtility.getFileFromInternalResources("Files" + File.separator + "Esempio CDA2_Referto Medicina di Laboratorio v6_OK.xml");
 		String cda = new String(cdaFile);
 		PublicationCreationReqDTO reqDTO = buildPublicationReqDTO(workflowInstanceId);
 		String documentSha = StringUtility.encodeSHA256(cdaFile);
 		ResourceDTO resourceDTO = documentReferenceSRV.createFhirResources(cda, reqDTO, documentSha.length(), documentSha,
-				"PersonId", "");
+				"PersonId", "",false);
 		ResourceDTO expectedOutputDTO = new ResourceDTO();
 		expectedOutputDTO.setErrorMessage("errorMessage");
 		assertEquals(expectedOutputDTO, resourceDTO);
@@ -134,13 +134,13 @@ class DocumentReferenceTest extends AbstractTest {
 		TransformResDTO res = new TransformResDTO();
 		res.setErrorMessage("");
 		res.setJson(Document.parse("{\"json\" : \"json\"}"));
-		given(client.callConvertCdaInBundle(any(FhirResourceDTO.class))).willThrow(ConnectionRefusedException.class);
+		given(client.callConvertCdaInBundle(any(FhirResourceDTO.class),"")).willThrow(ConnectionRefusedException.class);
 		byte[] cdaFile = FileUtility.getFileFromInternalResources("Files" + File.separator + "Esempio CDA2_Referto Medicina di Laboratorio v6_OK.xml");
 		String cda = new String(cdaFile);
 		PublicationCreationReqDTO reqDTO = buildPublicationReqDTO(workflowInstanceId);
 		String documentSha = StringUtility.encodeSHA256(cdaFile);
 		assertThrows(ConnectionRefusedException.class, () -> documentReferenceSRV.createFhirResources(cda, reqDTO, documentSha.length(), documentSha,
-				"PersonId", ""));
+				"PersonId", "",false));
 	}
 
 	@Test
@@ -150,12 +150,12 @@ class DocumentReferenceTest extends AbstractTest {
 		TransformResDTO res = new TransformResDTO();
 		res.setErrorMessage("");
 		res.setJson(Document.parse("{\"json\" : \"json\"}"));
-		given(client.callConvertCdaInBundle(any(FhirResourceDTO.class))).willThrow(BusinessException.class);
+		given(client.callConvertCdaInBundle(any(FhirResourceDTO.class),"")).willThrow(BusinessException.class);
 		byte[] cdaFile = FileUtility.getFileFromInternalResources("Files" + File.separator + "Esempio CDA2_Referto Medicina di Laboratorio v6_OK.xml");
 		String cda = new String(cdaFile);
 		PublicationCreationReqDTO reqDTO = buildPublicationReqDTO(workflowInstanceId);
 		String documentSha = StringUtility.encodeSHA256(cdaFile);
 		assertThrows(BusinessException.class, () -> documentReferenceSRV.createFhirResources(cda, reqDTO, documentSha.length(), documentSha,
-				"PersonId", ""));
+				"PersonId", "",false));
 	}
 }

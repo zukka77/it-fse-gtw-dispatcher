@@ -8,5 +8,6 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.client.TransformRes
 
 public interface IFhirMappingClient {
 
-	TransformResDTO callConvertCdaInBundle(final FhirResourceDTO resourceToConvert);
+	TransformResDTO callConvertCdaInBundle(FhirResourceDTO resourceToConvert, String url);
+	
 }

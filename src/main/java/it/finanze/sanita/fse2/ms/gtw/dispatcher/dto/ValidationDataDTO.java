@@ -24,4 +24,6 @@ public class ValidationDataDTO {
     
     private Date insertionDate; 
     
+    private boolean isAccreditamento;
+    
 }

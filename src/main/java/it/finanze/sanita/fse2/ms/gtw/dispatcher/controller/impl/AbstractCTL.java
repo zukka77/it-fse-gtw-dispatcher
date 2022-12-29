@@ -9,6 +9,7 @@ import static it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants.Headers.
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Base64;
+import java.util.Date;
 import java.util.Map;
 
 import javax.annotation.Nullable;
@@ -24,6 +25,7 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.IValidatorClient;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.CDACFG;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants.App;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.MicroservicesURLCFG;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.ValidationCFG;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.AttachmentDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.JWTPayloadDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.JWTTokenDTO;
@@ -456,6 +458,10 @@ public abstract class AbstractCTL {
 		}
 	}
 
+    
+    @Autowired
+    private ValidationCFG validationCFG;
+    
 	/**
 	 * Retrieve validation info of CDA on MongoDB.
 	 * 
@@ -469,16 +475,19 @@ public abstract class AbstractCTL {
 
 		ValidationDataDTO validationInfo = cdaFacadeSRV.retrieveValidationInfo(hashedCDA, wii);
 		if (!validationInfo.isCdaValidated()) {
-			final ErrorResponseDTO error = ErrorResponseDTO.builder()
-				.type(RestExecutionResultEnum.CDA_MATCH_ERROR.getType())
-				.title(RestExecutionResultEnum.CDA_MATCH_ERROR.getTitle())
-				.instance(ErrorInstanceEnum.CDA_NOT_VALIDATED.getInstance())
-				.detail("Il CDA non risulta validato").build();
-			
-			throw new ValidationException(error);
-		} else {
-			return validationInfo;
-		}
+			if(!validationCFG.getHashAllowed().isEmpty() && validationCFG.getHashAllowed().contains(hashedCDA)) {
+				validationInfo.setAccreditamento(true);
+			} else {
+				final ErrorResponseDTO error = ErrorResponseDTO.builder()
+						.type(RestExecutionResultEnum.CDA_MATCH_ERROR.getType())
+						.title(RestExecutionResultEnum.CDA_MATCH_ERROR.getTitle())
+						.instance(ErrorInstanceEnum.CDA_NOT_VALIDATED.getInstance())
+						.detail("Il CDA non risulta validato").build();
+				
+				throw new ValidationException(error);
+			}
+		}  
+		return validationInfo;
 	}
 
     protected String checkFormatDate(final String dataInizio, final String dataFine) {

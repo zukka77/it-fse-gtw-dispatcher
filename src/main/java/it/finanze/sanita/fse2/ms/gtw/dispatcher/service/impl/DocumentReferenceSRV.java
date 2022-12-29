@@ -48,7 +48,8 @@ public class DocumentReferenceSRV implements IDocumentReferenceSRV {
 	
 	@Override
 	public ResourceDTO createFhirResources(final String cda, final PublicationCreationReqDTO requestBody, 
-			final Integer size, final String hash, final String sourcePatientId, String transformId) {
+			final Integer size, final String hash, final String sourcePatientId, String transformId,
+			final boolean isAccreditamento) {
 		final ResourceDTO output = new ResourceDTO();
 		try {
 			final org.jsoup.nodes.Document docCDA = Jsoup.parse(cda);
@@ -56,7 +57,7 @@ public class DocumentReferenceSRV implements IDocumentReferenceSRV {
 			
 			final DocumentReferenceDTO documentReferenceDTO = buildDocumentReferenceDTO(encodedCDA, requestBody, size, hash);
 						
-			final TransformResDTO resDTO = callFhirMapping(documentReferenceDTO, cda, transformId); 
+			final TransformResDTO resDTO = callFhirMapping(documentReferenceDTO, cda, transformId,isAccreditamento); 
 			
 			if (!StringUtility.isNullOrEmpty(resDTO.getErrorMessage())) {
 				output.setErrorMessage(resDTO.getErrorMessage());
@@ -116,7 +117,7 @@ public class DocumentReferenceSRV implements IDocumentReferenceSRV {
 	}
 	
 	private TransformResDTO callFhirMapping(final DocumentReferenceDTO documentReferenceDTO, final String cda, 
-			String transformId) {
+			String transformId, boolean isAccreditamento) {
 		TransformResDTO out = null;
 		try {
 			
@@ -125,7 +126,12 @@ public class DocumentReferenceSRV implements IDocumentReferenceSRV {
 			req.setDocumentReferenceDTO(documentReferenceDTO); 
 			req.setObjectId(transformId);
 			
-			out = client.callConvertCdaInBundle(req);
+			String url = "/v1/documents/transform";
+			if(isAccreditamento) {
+				url = "/v1/documents/transform-template-id-root";
+			} 
+			
+			out = client.callConvertCdaInBundle(req,url);	
 		} catch(final ConnectionRefusedException crex) {
 			throw crex;
 		} catch(final Exception ex) {

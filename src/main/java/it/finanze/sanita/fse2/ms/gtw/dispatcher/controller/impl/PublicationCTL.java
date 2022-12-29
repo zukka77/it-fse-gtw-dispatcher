@@ -86,6 +86,7 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.IErrorHandlerSRV;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.IKafkaSRV;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.facade.ICdaFacadeSRV;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.impl.IniEdsInvocationSRV;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.CdaUtility;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.CfUtility;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.DateUtility;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility;
@@ -132,7 +133,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 		final LogTraceInfoDTO traceInfoDTO = getLogTraceInfo();
 
 		ValidationCreationInputDTO validationInfo = new ValidationCreationInputDTO();
-		validationInfo.setValidationData(new ValidationDataDTO(null, false, MISSING_WORKFLOW_PLACEHOLDER, null, new Date()));
+		validationInfo.setValidationData(new ValidationDataDTO(null, false, MISSING_WORKFLOW_PLACEHOLDER, null, new Date(),false));
 
 		String role = Constants.App.JWT_MISSING_SUBJECT_ROLE;
 		String subjectFiscalCode = Constants.App.JWT_MISSING_SUBJECT;
@@ -194,7 +195,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 			final LogTraceInfoDTO traceInfoDTO = getLogTraceInfo();
 
 			ValidationCreationInputDTO validationInfo = new ValidationCreationInputDTO();
-			validationInfo.setValidationData(new ValidationDataDTO(null, false, MISSING_WORKFLOW_PLACEHOLDER, null, new Date()));
+			validationInfo.setValidationData(new ValidationDataDTO(null, false, MISSING_WORKFLOW_PLACEHOLDER, null, new Date(),false));
 
 			String role = Constants.App.JWT_MISSING_SUBJECT_ROLE;
 			String subjectFiscalCode = Constants.App.JWT_MISSING_SUBJECT;
@@ -390,10 +391,20 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 
 			ValidationDataDTO validatedDocument = cdaSRV.getByWorkflowInstanceId(validationInfo.getWorkflowInstanceId()); 
 
+			if(validationInfo.isAccreditamento()) {
+				String wiiAcc = CdaUtility.getWorkflowInstanceId(docT);
+				validationInfo.setWorkflowInstanceId(wiiAcc);
+				validatedDocument.setAccreditamento(true);
+				validatedDocument.setCdaValidated(true);
+				validatedDocument.setWorkflowInstanceId(wiiAcc);
+				validatedDocument.setTransformID(docT.select("templateid").get(0).attr("root"));
+			}
+			
 			transformId = validatedDocument.getTransformID(); 
 			cdaSRV.consumeHash(validationInfo.getHash()); 
 
-			if(DateUtility.getDifferenceDays(validatedDocument.getInsertionDate(), new Date()) > validationCFG.getDaysAllowToPublishAfterValidation()) {
+			if(!validationInfo.isAccreditamento() 
+					&& DateUtility.getDifferenceDays(validatedDocument.getInsertionDate(), new Date()) > validationCFG.getDaysAllowToPublishAfterValidation()) {
 				final ErrorResponseDTO error = ErrorResponseDTO.builder()
 						.type(OLDER_DAY.getType())
 						.title(OLDER_DAY.getTitle())
@@ -408,7 +419,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 			validateDocumentHash(documentSha256, validation.getJwtToken());
 	
 			final ResourceDTO fhirResourcesDTO = documentReferenceSRV.createFhirResources(cda, jsonObj, bytePDF.length, documentSha256,
-				validation.getJwtToken().getPayload().getPerson_id(), transformId);
+				validation.getJwtToken().getPayload().getPerson_id(), transformId,validationInfo.isAccreditamento());
 	
 			validation.setFhirResource(fhirResourcesDTO);
 			

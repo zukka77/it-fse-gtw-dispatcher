@@ -30,16 +30,16 @@ public class FhirMappingClient implements IFhirMappingClient {
 	private MicroservicesURLCFG msUrlCFG;
 
 	@Override
-	public TransformResDTO callConvertCdaInBundle(final FhirResourceDTO resourceToConvert) {
+	public TransformResDTO callConvertCdaInBundle(final FhirResourceDTO resourceToConvert, final String url) {
 		TransformResDTO out = null;
 		log.debug("Fhir Mapping Client - Calling Fhir Mapping to execute conversion");
 		ResponseEntity<TransformResDTO> response = null;
-		String url = msUrlCFG.getFhirMappingEngineHost() + "/v1/documents/transform";
+		String fullurl = msUrlCFG.getFhirMappingEngineHost() + url;
 		HttpHeaders headers = new HttpHeaders();
 		headers.set("Content-Type", "application/json");
 		HttpEntity<?> entity = new HttpEntity<>(resourceToConvert, headers);
 		try {
-			response = restTemplate.exchange(url, HttpMethod.POST, entity, TransformResDTO.class);
+			response = restTemplate.exchange(fullurl, HttpMethod.POST, entity, TransformResDTO.class);
 			out = response.getBody();
 		} catch(ResourceAccessException cex) {
 			log.error("Connect error while call document transform :" + msUrlCFG.getFhirMappingEngineHost(),cex);

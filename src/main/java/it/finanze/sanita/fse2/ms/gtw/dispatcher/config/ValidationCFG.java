@@ -3,6 +3,8 @@
  */
 package it.finanze.sanita.fse2.ms.gtw.dispatcher.config;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 
@@ -21,4 +23,6 @@ public class ValidationCFG {
 	@Value("${days.allow-publish-after-validation}")
 	private Integer daysAllowToPublishAfterValidation;
     
+	@Value("${accreditamento.hash-allowed}")
+	private List<String> hashAllowed;
 }
