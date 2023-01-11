@@ -34,6 +34,7 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.PublicationCreationR
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.client.TransformResDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.AttivitaClinicaEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventCodeEnum;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventTypeEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.HealthDataFormatEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.HealthcareFacilityEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.InjectionModeEnum;
@@ -77,7 +78,7 @@ class DocumentReferenceTest extends AbstractTest {
 		assertNotNull(resourceDTO.getSubmissionSetEntryJson());
 		assertNull(resourceDTO.getErrorMessage());
 		
-		final String jwt = generateJwt(cdaFile, true);
+		final String jwt = generateJwt(cdaFile, true, EventTypeEnum.PUBLICATION);
 		String[] chunks = jwt.substring(Constants.App.BEARER_PREFIX.length()).split("\\.");
 				
 		final String payload = new String(Base64.getDecoder().decode(chunks[1]));

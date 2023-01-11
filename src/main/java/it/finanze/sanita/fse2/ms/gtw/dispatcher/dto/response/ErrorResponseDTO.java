@@ -25,11 +25,6 @@ import lombok.EqualsAndHashCode;
 public class ErrorResponseDTO extends AbstractDTO {
 
 	/**
-	 * Serial version uid.
-	 */
-	private static final long serialVersionUID = 137633410161165390L;
-
-	/**
 	 * Trace id log.
 	 */
 	@Schema(description = "Indentificativo univoco della richiesta dell'utente")

@@ -44,6 +44,7 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.EdsResponseDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.GetMergedMetadatiDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.IniTraceResponseDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.ResponseDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventTypeEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.BusinessException;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility;
 import lombok.extern.slf4j.Slf4j;
@@ -168,7 +169,7 @@ class UpdateTest extends AbstractTest {
 	ResponseEntity<ResponseDTO> callUpdate(final String documentId, boolean validationException) throws Exception {
 		HttpHeaders headers = new HttpHeaders();
 		headers.setContentType(MediaType.APPLICATION_JSON);
-		headers.set(Constants.Headers.JWT_HEADER, generateJwt(null, false));
+		headers.set(Constants.Headers.JWT_HEADER, generateJwt(null, false, EventTypeEnum.UPDATE));
 
 		ObjectMapper objectMapper = new ObjectMapper();
 		PublicationMetadataReqDTO document = new Gson().fromJson(TEST_REQUEST_BODY, PublicationMetadataReqDTO.class);

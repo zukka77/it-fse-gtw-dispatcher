@@ -20,11 +20,6 @@ import lombok.NoArgsConstructor;
 @EqualsAndHashCode(callSuper=true)
 public class TransformResDTO extends AbstractDTO {
 
-	/**
-	 * Serial version uid.
-	 */
-	private static final long serialVersionUID = -2618965716083072681L;
-	
 	private String errorMessage;
 	
 	private Document json;

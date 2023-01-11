@@ -25,8 +25,6 @@ import lombok.Setter;
 @AllArgsConstructor
 public class PublicationMetadataReqDTO extends AbstractDTO {
 
-	private static final long serialVersionUID = 8736849367644751300L;
-
 	@Schema(description = "Tipologia struttura che ha prodotto il documento", required = true)
 	private HealthcareFacilityEnum tipologiaStruttura;
 

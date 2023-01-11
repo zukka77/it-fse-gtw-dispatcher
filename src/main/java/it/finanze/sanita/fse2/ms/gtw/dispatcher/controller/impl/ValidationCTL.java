@@ -11,6 +11,7 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.LogTraceInfoDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.ValidationResDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ActivityEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventStatusEnum;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventTypeEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.OperationLogEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ResultLogEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.ValidationException;
@@ -70,10 +71,10 @@ public class ValidationCTL extends AbstractCTL implements IValidationCTL {
 		try {
 			if (Boolean.TRUE.equals(msCfg.getFromGovway())) {
 				jwtToken = extractAndValidateJWT(request.getHeader(Constants.Headers.JWT_GOVWAY_HEADER),
-						msCfg.getFromGovway());
+						msCfg.getFromGovway(), EventTypeEnum.VALIDATION);
 			} else {
 				jwtToken = extractAndValidateJWT(request.getHeader(Constants.Headers.JWT_HEADER),
-						msCfg.getFromGovway());
+						msCfg.getFromGovway(), EventTypeEnum.VALIDATION);
 			}
 
 			role = jwtToken.getPayload().getSubject_role();

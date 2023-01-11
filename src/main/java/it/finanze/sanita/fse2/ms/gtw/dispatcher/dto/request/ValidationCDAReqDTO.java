@@ -29,11 +29,6 @@ import lombok.extern.jackson.Jacksonized;
 @JacksonStdImpl
 public class ValidationCDAReqDTO extends AbstractDTO {
 
-    /**
-	 * Serial version uid.
-	 */
-	private static final long serialVersionUID = -5495396011147827913L;
-
     @Schema(description = "Formato dei dati sanitari")
     private HealthDataFormatEnum healthDataFormat;
     

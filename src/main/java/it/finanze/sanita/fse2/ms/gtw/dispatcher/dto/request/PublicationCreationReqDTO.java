@@ -29,11 +29,6 @@ import lombok.Setter;
 @AllArgsConstructor
 public class PublicationCreationReqDTO extends PublicationMetadataReqDTO {
 
-	/**
-	 * Serial version uid.
-	 */
-	private static final long serialVersionUID = -5437339267676346343L;
-
 	@Schema(description = "Identificativo del workflow")
 	@Size(min = 0, max = 256)
 	private String workflowInstanceId;

@@ -29,11 +29,6 @@ import lombok.Setter;
 @AllArgsConstructor
 public class PublicationUpdateReqDTO extends PublicationMetadataReqDTO {
 
-	/**
-	 * Serial version uid.
-	 */
-	private static final long serialVersionUID = -5437339267676346343L;
-
 	@Schema(description = "Formato dei dati sanitari")
 	private HealthDataFormatEnum healthDataFormat;
 

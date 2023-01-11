@@ -267,9 +267,9 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 		String subjApplicationVersion = null;
 		try {
 			if (Boolean.TRUE.equals(msCfg.getFromGovway())) {
-				jwtToken = extractAndValidateJWT(request.getHeader(Headers.JWT_GOVWAY_HEADER), msCfg.getFromGovway());
+				jwtToken = extractAndValidateJWT(request.getHeader(Headers.JWT_GOVWAY_HEADER), msCfg.getFromGovway(), EventTypeEnum.UPDATE);
 			} else {
-				jwtToken = extractAndValidateJWT(request.getHeader(Headers.JWT_HEADER), msCfg.getFromGovway());
+				jwtToken = extractAndValidateJWT(request.getHeader(Headers.JWT_HEADER), msCfg.getFromGovway(), EventTypeEnum.UPDATE);
 			}
 
 			role = jwtToken.getPayload().getSubject_role();
@@ -361,9 +361,9 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 		try {
 			final JWTTokenDTO jwtToken;
 			if (Boolean.TRUE.equals(msCfg.getFromGovway())) {
-				jwtToken = extractAndValidateJWT(request.getHeader(Headers.JWT_GOVWAY_HEADER), msCfg.getFromGovway());
+				jwtToken = extractAndValidateJWT(request.getHeader(Headers.JWT_GOVWAY_HEADER), msCfg.getFromGovway(), isReplace ? EventTypeEnum.REPLACE : EventTypeEnum.PUBLICATION);
 			} else {
-				jwtToken = extractAndValidateJWT(request.getHeader(Headers.JWT_HEADER), msCfg.getFromGovway());
+				jwtToken = extractAndValidateJWT(request.getHeader(Headers.JWT_HEADER), msCfg.getFromGovway(), isReplace ? EventTypeEnum.REPLACE : EventTypeEnum.PUBLICATION);
 			}
 			validation.setJwtToken(jwtToken);
 

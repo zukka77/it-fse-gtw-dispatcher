@@ -37,6 +37,7 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.LogTraceInfoDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ActivityEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ErrorInstanceEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventCodeEnum;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventTypeEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.InjectionModeEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.RawValidationEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.RestExecutionResultEnum;
@@ -206,29 +207,31 @@ public abstract class AbstractCTL {
 			jwt = req.getHeader(JWT_HEADER);
 		}
 		// Delegate extract and validate function
-		return extractAndValidateJWT(jwt, govway);
+		return extractAndValidateJWT(jwt, govway, EventTypeEnum.DELETE);
 	}
 
-	protected JWTTokenDTO extractAndValidateJWT(final String jwt, final boolean isFromGovway) {
+	protected JWTTokenDTO extractAndValidateJWT(final String jwt, final boolean isFromGovway, EventTypeEnum eventType) {
 
 		final JWTTokenDTO token = extractJWT(jwt, isFromGovway);
-
-		try {
-			String errorMsg = jwtSRV.validatePayload(token.getPayload());
-			if (errorMsg != null) {
-				final ErrorResponseDTO error = ErrorResponseDTO.builder()
-					.type(RestExecutionResultEnum.INVALID_TOKEN_FIELD.getType())
-					.title(RestExecutionResultEnum.INVALID_TOKEN_FIELD.getTitle())
-					.instance(ErrorInstanceEnum.JWT_MALFORMED_FIELD.getInstance())
-					.detail(errorMsg).build();
-
-				throw new ValidationException(error);
-			}
-		} catch (final ValidationException e) {
-			throw e;
-		} catch (final Exception ex) {
-			log.error("Errore durante la validazione del token JWT", ex);
-			throw new BusinessException("Errore durante la validazione del token JWT", ex);
+		
+		switch (eventType) {
+			case PUBLICATION:
+				jwtSRV.validatePayloadForCreate(token.getPayload());
+				break;
+			case UPDATE:
+				jwtSRV.validatePayloadForUpdate(token.getPayload());
+				break;
+			case DELETE:
+				jwtSRV.validatePayloadForDelete(token.getPayload());
+				break;
+			case REPLACE:
+				jwtSRV.validatePayloadForReplace(token.getPayload());
+				break;
+			case VALIDATION:
+				jwtSRV.validatePayloadForValidation(token.getPayload());
+				break;
+			default:
+				throw new IllegalStateException("Unexpected value: " + eventType);
 		}
 
 		return token;

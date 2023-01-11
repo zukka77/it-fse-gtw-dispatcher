@@ -11,8 +11,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -22,7 +20,6 @@ import java.util.List;
 import org.bson.Document;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentMatchers;
@@ -43,7 +40,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClientException;
@@ -57,12 +53,12 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.PublicationCreationR
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.IniReferenceResponseDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.IniTraceResponseDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.PublicationResDTO;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.TransactionInspectResDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.client.TransformResDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.client.ValidationResDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ActivityEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.AttivitaClinicaEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventCodeEnum;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventTypeEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.HealthDataFormatEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.HealthcareFacilityEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.InjectionModeEnum;
@@ -285,7 +281,7 @@ class ReplaceTest extends AbstractTest {
 	 	HttpHeaders headers = new HttpHeaders();
 	 	headers.setContentType(MediaType.MULTIPART_FORM_DATA);
 	 	log.info("Simulating a valid json payload");
-	 	headers.set(Constants.Headers.JWT_HEADER, generateJwt(fileByte, isValidFile));
+	 	headers.set(Constants.Headers.JWT_HEADER, generateJwt(fileByte, isValidFile, EventTypeEnum.REPLACE));
 
 	 	final String urlReplace = "http://localhost:" + webServerAppCtxt.getWebServer().getPort() + webServerAppCtxt.getServletContext().getContextPath() + "/v1/documents/" + idDocumentReplace;
 	 	HttpEntity<LinkedMultiValueMap<String, Object>> requestEntity = new HttpEntity<>(map, headers);

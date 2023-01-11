@@ -17,11 +17,6 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper=true)
 public class ValidationErrorResponseDTO extends ErrorResponseDTO {
 
-	/**
-	 * Serial version uid.
-	 */
-	private static final long serialVersionUID = -6684870619268235535L;
-	
 	@Schema(description = "Identificativo del workflow")
 	@Size(min = 0, max = 256)
 	private String workflowInstanceId;
