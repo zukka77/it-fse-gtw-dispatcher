@@ -201,10 +201,13 @@ public abstract class AbstractTest {
 
 	protected String generateJwtPayload(final String documentHash, final String personId, final String subject, final String docType, EventTypeEnum eventType) {
 		String action = "CREATE";
+		String purposeOfUse = "TREATMENT";
 		if (EventTypeEnum.UPDATE.equals(eventType)) {
 			action = "UPDATE";
+			purposeOfUse = "UPDATE";
 		} else if (EventTypeEnum.DELETE.equals(eventType)) {
 			action = "DELETE";
+			purposeOfUse = "UPDATE";
 		}
 
 		String applicationId = "ApplicationId";
@@ -212,7 +215,7 @@ public abstract class AbstractTest {
 		String applicationVersion = "ApplicationVersion";
 		final JWTPayloadDTO jwtPayload = new JWTPayloadDTO("080", 1540890704, 1540918800, "1540918800", 
 		"fse-gateway", subject, "080", "Regione Emilia-Romagna", "080",
-		"APR", personId, true, "TREATMENT", docType, action, documentHash,
+		"APR", personId, true, purposeOfUse, docType, action, documentHash,
 		applicationId,applicationVendor,applicationVersion);
 		return Base64.getEncoder().encodeToString(new Gson().toJson(jwtPayload).getBytes());
 	}
