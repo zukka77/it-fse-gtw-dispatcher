@@ -42,6 +42,7 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.ValidationInfoDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.ValidationCDAReqDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.ValidationResDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ActivityEnum;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventTypeEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.HealthDataFormatEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.InjectionModeEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.RawValidationEnum;
@@ -257,7 +258,7 @@ class ValidationTest extends AbstractTest {
     	byte[] pdfAttachment = FileUtility.getFileFromInternalResources("Files/attachment/pdf_msg_SATLED_LED_Lettera_di_Dimissione.pdf");
     	byte[] pdfResource = FileUtility.getFileFromInternalResources("Files/resource/cert1.pdf");
 		final byte[] file = FileUtility.getFileFromInternalResources("Files" + File.separator + "attachment" + File.separator + "CDA_OK_SIGNED.pdf");
-		final String jwtToken = generateJwt(file, true);
+		final String jwtToken = generateJwt(file, true, EventTypeEnum.VALIDATION);
 
 		ValidationCDAReqDTO requestBody = new ValidationCDAReqDTO();
 		
@@ -282,7 +283,7 @@ class ValidationTest extends AbstractTest {
     	byte[] pdfAttachment = FileUtility.getFileFromInternalResources("Files/attachment/pdf_msg_SATLED_LED_Lettera_di_Dimissione.pdf");
     	byte[] pdfResource = FileUtility.getFileFromInternalResources("Files/resource/cert1.pdf");
 		final byte[] file = FileUtility.getFileFromInternalResources("Files" + File.separator + "attachment" + File.separator + "CDA_OK_SIGNED.pdf");
-		final String jwtToken = generateJwt(file, true);
+		final String jwtToken = generateJwt(file, true, EventTypeEnum.VALIDATION);
 
 		ValidationCDAReqDTO requestBody = new ValidationCDAReqDTO();
 		 
@@ -398,7 +399,7 @@ class ValidationTest extends AbstractTest {
 
 		final byte[] file = FileUtility.getFileFromInternalResources("Files" + File.separator + "attachment" + File.separator + "CDA_OK_SIGNED.pdf");
 
-		final String jwtToken = generateJwt(file, true);
+		final String jwtToken = generateJwt(file, true, EventTypeEnum.VALIDATION);
 		ValidationCDAReqDTO requestBody = new ValidationCDAReqDTO();
 		Exception thrownException = assertThrows(HttpClientErrorException.BadRequest.class, () -> callPlainValidation(jwtToken, file, requestBody));
 		assertTrue(thrownException.getMessage().contains(RestExecutionResultEnum.MANDATORY_ELEMENT_ERROR.getType()));

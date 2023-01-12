@@ -38,6 +38,7 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.PublicationResDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.ValidationResDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ActivityEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.AttivitaClinicaEnum;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventTypeEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.HealthDataFormatEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.HealthcareFacilityEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.InjectionModeEnum;
@@ -102,7 +103,7 @@ public abstract class AbstractTest {
 				if (fromGovway) {
 					headers.set(Constants.Headers.JWT_GOVWAY_HEADER, generateJwtGovwayPayload(fileByte));
 				} else {
-					headers.set(Constants.Headers.JWT_HEADER, generateJwt(fileByte, isValidMultipart));
+					headers.set(Constants.Headers.JWT_HEADER, generateJwt(fileByte, isValidMultipart, EventTypeEnum.VALIDATION));
 				}
 			} 
 			String urlValidation = getBaseUrl() + "/v1/documents/validation";
@@ -161,7 +162,7 @@ public abstract class AbstractTest {
 		return "RSSMRA22A01A399Z";
 	}
 
-	protected String generateJwt(final byte[] file, final boolean isValidFile) {
+	protected String generateJwt(final byte[] file, final boolean isValidFile, EventTypeEnum eventType) {
 		
 		byte [] pdfFile = null;
 		if (isValidFile) {
@@ -181,7 +182,7 @@ public abstract class AbstractTest {
 
 		StringBuilder encodedJwtToken = new StringBuilder(Constants.App.BEARER_PREFIX) // Bearer prefix
 			.append("RkFLRV9IRUFERVI=") // Fake Header
-			.append(".").append(generateJwtPayload(documentHash, personId, "SSSMNN75B01F257L^^^&amp;2.16.840.1.113883.2.9.4.3.2&amp;ISO", docType)) // Payload
+			.append(".").append(generateJwtPayload(documentHash, personId, "SSSMNN75B01F257L^^^&amp;2.16.840.1.113883.2.9.4.3.2&amp;ISO", docType, eventType)) // Payload
 			.append(".").append("RkFLRV9TSUdOQVRVUkU="); // Fake Signature
 		return encodedJwtToken.toString();
 	}
@@ -198,14 +199,23 @@ public abstract class AbstractTest {
 		return docT.select("patientRole > id").get(0).attr("extension");
 	}
 
-	protected String generateJwtPayload(final String documentHash, final String personId, final String subject, final String docType) {
-		
+	protected String generateJwtPayload(final String documentHash, final String personId, final String subject, final String docType, EventTypeEnum eventType) {
+		String action = "CREATE";
+		String purposeOfUse = "TREATMENT";
+		if (EventTypeEnum.UPDATE.equals(eventType)) {
+			action = "UPDATE";
+			purposeOfUse = "UPDATE";
+		} else if (EventTypeEnum.DELETE.equals(eventType)) {
+			action = "DELETE";
+			purposeOfUse = "UPDATE";
+		}
+
 		String applicationId = "ApplicationId";
 		String applicationVendor = "ApplicationVendor";
 		String applicationVersion = "ApplicationVersion";
 		final JWTPayloadDTO jwtPayload = new JWTPayloadDTO("080", 1540890704, 1540918800, "1540918800", 
 		"fse-gateway", subject, "080", "Regione Emilia-Romagna", "080",
-		"APR", personId, true, "TREATMENT", docType, "CREATE", documentHash,
+		"APR", personId, true, purposeOfUse, docType, action, documentHash,
 		applicationId,applicationVendor,applicationVersion);
 		return Base64.getEncoder().encodeToString(new Gson().toJson(jwtPayload).getBytes());
 	}

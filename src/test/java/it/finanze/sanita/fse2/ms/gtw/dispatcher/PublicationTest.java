@@ -66,6 +66,7 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.client.TransformRes
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ActivityEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.AttivitaClinicaEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventCodeEnum;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventTypeEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.HealthDataFormatEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.HealthcareFacilityEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.InjectionModeEnum;
@@ -187,7 +188,7 @@ class PublicationTest extends AbstractTest {
 	void jwtValidation () {
 		byte[] pdfAttachment = FileUtility.getFileFromInternalResources("Files/attachment/REPLACE_FILE.pdf");
 		String encoded = StringUtility.encodeSHA256(pdfAttachment);
-		String token = generateJwt(pdfAttachment, true);
+		String token = generateJwt(pdfAttachment, true, EventTypeEnum.PUBLICATION);
 		
 		log.info("Token: {}", token);
 		
@@ -230,7 +231,7 @@ class PublicationTest extends AbstractTest {
 			if (fromGoveway) {
 				headers.set(Constants.Headers.JWT_GOVWAY_HEADER, generateJwtGovwayPayload(fileByte));
 			} else {
-				headers.set(Constants.Headers.JWT_HEADER, generateJwt(fileByte, isValidFile));
+				headers.set(Constants.Headers.JWT_HEADER, generateJwt(fileByte, isValidFile, EventTypeEnum.PUBLICATION));
 			}
 
 			String urlPublication = "http://localhost:" + webServerAppCtxt.getWebServer().getPort() + webServerAppCtxt.getServletContext().getContextPath() + "/v1/documents";
@@ -301,7 +302,7 @@ class PublicationTest extends AbstractTest {
 				.when(restTemplate).exchange(anyString(), eq(HttpMethod.POST), any(HttpEntity.class), eq(TransformResDTO.class));
 
 		final byte[] file = FileUtility.getFileFromInternalResources("Files" + File.separator + "attachment" + File.separator + "CDA_OK_SIGNED.pdf");
-		final String jwtToken = generateJwt(file, true);
+		final String jwtToken = generateJwt(file, true, EventTypeEnum.PUBLICATION);
 		
 		ValidationCDAReqDTO validationRB = validateDataPreparation();
 		
@@ -422,7 +423,7 @@ class PublicationTest extends AbstractTest {
         doReturn(new ResponseEntity<>(new TransformResDTO("", Document.parse("{\"json\" : \"json\"}")), HttpStatus.OK))
 				.when(restTemplate).exchange(anyString(), eq(HttpMethod.POST), any(HttpEntity.class), eq(TransformResDTO.class));
 		final byte[] file = FileUtility.getFileFromInternalResources("Files" + File.separator + "attachment" + File.separator + "CDA_OK_SIGNED.pdf");
-		final String jwtToken = generateJwt(file, true);
+		final String jwtToken = generateJwt(file, true, EventTypeEnum.PUBLICATION);
 		
 		ValidationCDAReqDTO validationRB = validateDataPreparation();
 		
@@ -464,7 +465,7 @@ class PublicationTest extends AbstractTest {
 				.when(restTemplate).exchange(anyString(), eq(HttpMethod.POST), any(HttpEntity.class), eq(TransformResDTO.class));
 
 		final byte[] file = FileUtility.getFileFromInternalResources("Files" + File.separator + "attachment" + File.separator + "CDA_OK_SIGNED.pdf");
-		final String jwtToken = generateJwt(file, true);
+		final String jwtToken = generateJwt(file, true, EventTypeEnum.PUBLICATION);
 		
 		final ValidationCDAReqDTO validationRB = validateDataPreparation();
 			
@@ -491,7 +492,7 @@ class PublicationTest extends AbstractTest {
 		.when(restTemplate).exchange(anyString(), eq(HttpMethod.POST), any(HttpEntity.class), eq(TransformResDTO.class));
 
 		final byte[] file = FileUtility.getFileFromInternalResources("Files" + File.separator + "attachment" + File.separator + "CDA_OK_SIGNED.pdf");
-		final String jwtToken = generateJwt(file, true);
+		final String jwtToken = generateJwt(file, true, EventTypeEnum.PUBLICATION);
 
 		// Mocking Validator - null InjectionModeEnum param
 		final ValidationInfoDTO info = new ValidationInfoDTO(RawValidationEnum.OK, new ArrayList<>(), "");
@@ -516,7 +517,7 @@ class PublicationTest extends AbstractTest {
 	@DisplayName("error fhir creation")
 	void errorFhirResourceCreationTest() {
 		final byte[] file = FileUtility.getFileFromInternalResources("Files" + File.separator + "attachment" + File.separator + "CDA_OK_SIGNED.pdf");
-		final String jwtToken = generateJwt(file, true);
+		final String jwtToken = generateJwt(file, true, EventTypeEnum.PUBLICATION);
 
 		final ValidationCDAReqDTO validationRB = validateDataPreparation();
 
@@ -549,7 +550,7 @@ class PublicationTest extends AbstractTest {
 	@DisplayName("error fhir mapping connection refused")
 	void errorFhirResourceConnectionRefusedTest() {
 		final byte[] file = FileUtility.getFileFromInternalResources("Files" + File.separator + "attachment" + File.separator + "CDA_OK_SIGNED.pdf");
-		final String jwtToken = generateJwt(file, true);
+		final String jwtToken = generateJwt(file, true, EventTypeEnum.PUBLICATION);
 
 		final ValidationCDAReqDTO validationRB = validateDataPreparation();
 

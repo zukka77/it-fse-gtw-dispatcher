@@ -38,4 +38,13 @@ public enum RoleEnum {
 		description = inDescription;
 	}
 
+	public static RoleEnum get(String code) {
+		for (RoleEnum role : RoleEnum.values()) {
+			if (role.getCode().equals(code)) {
+				return role;
+			}
+		}
+		return null;
+	}
+
 }

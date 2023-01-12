@@ -3,124 +3,223 @@
  */
 package it.finanze.sanita.fse2.ms.gtw.dispatcher.service.impl;
 
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.impl.AnaClient;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.JwtCFG;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.MicroservicesURLCFG;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.JWTPayloadDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.ErrorResponseDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ActionEnum;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ErrorInstanceEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.PurposeOfUseEnum;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.RestExecutionResultEnum;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.RoleEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.SubjectOrganizationEnum;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.ValidationException;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.IJwtSRV;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility;
-import lombok.extern.slf4j.Slf4j;
 
-@Slf4j
 @Service
 public class JwtSRV extends AbstractService implements IJwtSRV {
 	
-
-	@Autowired
-	private MicroservicesURLCFG urlCfg;
-
-	@Autowired
-	private AnaClient anaCall;
-
 	@Autowired
 	private UtilitySRV utilitySrv;
 	
 	@Autowired
 	private JwtCFG jwtCFG;
 	
+	@Override
+	public void validatePayloadForValidation(JWTPayloadDTO payload) {
+		performCommonValidation(payload);
+		checkNull(payload.getPatient_consent(), "patient_consent");
+		checkNull(payload.getResource_hl7_type(), "resource_hl7_type");
+		validateActionCoherence(payload, ActionEnum.CREATE);
+		validatePurposeOfUseCoherence(payload, PurposeOfUseEnum.TREATMENT);
+	}
+	
+	@Override
+	public void validatePayloadForCreate(JWTPayloadDTO payload) {
+		performCommonValidation(payload);
+		checkNull(payload.getPatient_consent(), "patient_consent");
+		checkNull(payload.getResource_hl7_type(), "resource_hl7_type");
+		validateActionCoherence(payload, ActionEnum.CREATE);
+		validatePurposeOfUseCoherence(payload, PurposeOfUseEnum.TREATMENT);
+	}
 
 	@Override
-	public String validatePayload(JWTPayloadDTO payload) {
-		String error = null;
-
-		if (payload == null) {
-			error = "Il payload del JWT non è valido";
-		} else if (!isValidOid(payload.getSub(),false)) {
-			error = "Codice fiscale nel campo subject non valido";
-		} else if (!isValidOid(payload.getPerson_id(),urlCfg.getAnaEnableValidation())) {
-			error = "Codice fiscale nel campo person non valido";
-		} else if (SubjectOrganizationEnum.getCode(payload.getSubject_organization_id())==null) {
-			error = "Campo subject organization id non valido";
-		} else if (SubjectOrganizationEnum.getDisplay(payload.getSubject_organization())==null) {
-			error = "Campo subject organization description non valido";
-		} else if(!SubjectOrganizationEnum.getCode(payload.getSubject_organization_id()).equals(SubjectOrganizationEnum.getDisplay(payload.getSubject_organization()))){
-			error = "I campi subject organization e descrizione non sono concordi";
-		} else if (StringUtils.isEmpty(payload.getLocality())) {
-			error = "Campo locality non valido";
-		} else if (StringUtils.isEmpty(payload.getSubject_role())) {
-			error = "Campo subject role non valido";
-		} else if (PurposeOfUseEnum.get(payload.getPurpose_of_use())==null) {
-			error = "Campo purpose of use non valido";
-		} else if (!ActionEnum.isAllowed(payload.getAction_id())) {
-			error = "Azione non permessa";
-		} else if (StringUtils.isEmpty(payload.getIss())) {
-			error = "Campo issuer non valido";
-		} else if (StringUtils.isEmpty(payload.getJti())) {
-			error = "Campo jti non valido";
-		} else if (!Boolean.TRUE.equals(payload.getPatient_consent())) {
-			error = "Il consenso del paziente è obbligatorio";
-		} else if(jwtCFG.isClaimsRequired() && StringUtility.isNullOrEmpty(payload.getSubject_application_id())) {
-			error = "Il subject id application è obbligatorio";
-		} else if(jwtCFG.isClaimsRequired() && StringUtility.isNullOrEmpty(payload.getSubject_application_vendor())) {
-			error = "Il subject application vendor è obbligatorio";
-		} else if(jwtCFG.isClaimsRequired() && StringUtility.isNullOrEmpty(payload.getSubject_application_version())) {
-			error = "Il subject application version è obbligatorio";
-		}
-
-		return error;
+	public void validatePayloadForReplace(JWTPayloadDTO payload) {
+		performCommonValidation(payload);
+		checkNull(payload.getPatient_consent(), "patient_consent");
+		checkNull(payload.getResource_hl7_type(), "resource_hl7_type");
+		validateActionCoherence(payload, ActionEnum.CREATE);
+		validatePurposeOfUseCoherence(payload, PurposeOfUseEnum.TREATMENT);
 	}
 	
-	private boolean isValidOid(String rawOid,boolean callAna) {
-		boolean out = false;
+	@Override
+	public void validatePayloadForUpdate(JWTPayloadDTO payload) {
+		performCommonValidation(payload);
+		checkNull(payload.getPatient_consent(), "patient_consent");
+		validateActionCoherence(payload, ActionEnum.UPDATE);
+		validatePurposeOfUseCoherence(payload, PurposeOfUseEnum.UPDATE);
+	}
+
+	@Override
+	public void validatePayloadForDelete(JWTPayloadDTO payload) {
+		performCommonValidation(payload);
+		validateActionCoherence(payload, ActionEnum.DELETE);
+		validatePurposeOfUseCoherence(payload, PurposeOfUseEnum.UPDATE);
+	}
+
+	private void performCommonValidation(JWTPayloadDTO payload) {
+		validateMandatoryFields(payload);
+		validateFiscalCodes(payload);
+		validateFieldsValue(payload);
+	}
+	
+	public void validateMandatoryFields(JWTPayloadDTO payload) {
+		checkNull(payload, "jwt payload");
+		checkNull(payload.getAction_id(), "action_id");
+		checkNull(payload.getLocality(), "locality");
+		checkNull(payload.getPerson_id(), "person_id");
+		checkNull(payload.getPurpose_of_use(), "purpose_of_use");
+		checkNull(payload.getSubject_organization(), "subject_organization");
+		checkNull(payload.getSubject_organization_id(), "subject_organization_id");
+		checkNull(payload.getSubject_role(), "subject_role");
+
+		if (jwtCFG.isClaimsRequired()) {
+			checkNull(payload.getSubject_application_id(), "subject_application_id");
+			checkNull(payload.getSubject_application_vendor(), "subject_application_vendor");
+			checkNull(payload.getSubject_application_version(), "subject_application_version");
+		}
+	}
+
+	private void validateFiscalCodes(JWTPayloadDTO payload) {
+		checkFiscalCode(payload.getSub(), "sub");
+		checkFiscalCode(payload.getPerson_id(), "person_id");
+	}
+
+	private void validateFieldsValue(JWTPayloadDTO payload) {
+		checkEnumValue(ActionEnum.get(payload.getAction_id()), payload.getAction_id(), "action_id");
+		checkEnumValue(PurposeOfUseEnum.get(payload.getPurpose_of_use()), payload.getPurpose_of_use(), "purpose_of_use");
+		checkEnumValue(RoleEnum.get(payload.getSubject_role()), payload.getSubject_role(), "subject_role");
+
+		SubjectOrganizationEnum subjectOrganizationFromId = SubjectOrganizationEnum.getCode(payload.getSubject_organization_id());
+		checkEnumValue(subjectOrganizationFromId, payload.getSubject_organization_id(), "subject_organization_id");
+
+		SubjectOrganizationEnum subjectOrganizationFromDescription = SubjectOrganizationEnum.getDisplay(payload.getSubject_organization());
+		checkEnumValue(subjectOrganizationFromDescription, payload.getSubject_organization(), "subject_organization");
+
+		validateSubjectOrganizationCoherence(subjectOrganizationFromId, subjectOrganizationFromDescription);
+	}
+	
+	private void validateActionCoherence(JWTPayloadDTO payload, ActionEnum expectedAction) {
+		ActionEnum action = ActionEnum.get(payload.getAction_id());
+		if (!expectedAction.equals(action)) {
+			ErrorResponseDTO error = ErrorResponseDTO.builder()
+				.type(RestExecutionResultEnum.INVALID_TOKEN_FIELD.getType())
+				.title(RestExecutionResultEnum.INVALID_TOKEN_FIELD.getTitle())
+				.instance(ErrorInstanceEnum.JWT_MALFORMED_FIELD.getInstance())
+				.detail(String.format("Il campo action_id non coerente con operazione richiesta"))
+				.build();
+
+			throw new ValidationException(error);
+		}
+	}
+	
+	private void validatePurposeOfUseCoherence(JWTPayloadDTO payload, PurposeOfUseEnum expectedPurpose) {
+		PurposeOfUseEnum purpose = PurposeOfUseEnum.get(payload.getPurpose_of_use());
+		if (!expectedPurpose.equals(purpose)) {
+			ErrorResponseDTO error = ErrorResponseDTO.builder()
+				.type(RestExecutionResultEnum.INVALID_TOKEN_FIELD.getType())
+				.title(RestExecutionResultEnum.INVALID_TOKEN_FIELD.getTitle())
+				.instance(ErrorInstanceEnum.JWT_MALFORMED_FIELD.getInstance())
+				.detail(String.format("Il campo purpose_of_use non coerente con operazione richiesta"))
+				.build();
+
+			throw new ValidationException(error);
+		}
+	}
+
+	private void validateSubjectOrganizationCoherence(SubjectOrganizationEnum subjectOrganizationFromId, SubjectOrganizationEnum subjectOrganizationFromDescription) {
+		if (!subjectOrganizationFromId.equals(subjectOrganizationFromDescription)) {
+			ErrorResponseDTO error = ErrorResponseDTO.builder()
+				.type(RestExecutionResultEnum.INVALID_TOKEN_FIELD.getType())
+				.title(RestExecutionResultEnum.INVALID_TOKEN_FIELD.getTitle())
+				.instance(ErrorInstanceEnum.JWT_MALFORMED_FIELD.getInstance())
+				.detail("I campi subject_organization_id e subject_organization non sono coerenti")
+				.build();
+
+			throw new ValidationException(error);
+		}		
+	}
+
+	private void checkEnumValue(Object enumValue, String givenValue, String fieldName) {
+		if (enumValue == null) {
+			ErrorResponseDTO error = ErrorResponseDTO.builder()
+				.type(RestExecutionResultEnum.INVALID_TOKEN_FIELD.getType())
+				.title(RestExecutionResultEnum.INVALID_TOKEN_FIELD.getTitle())
+				.instance(ErrorInstanceEnum.JWT_MALFORMED_FIELD.getInstance())
+				.detail(String.format("Il campo %s non è corretto", fieldName))
+				.build();
+
+			throw new ValidationException(error);
+		}
+
+	}
+
+	private void checkNull(String value, String fieldName) {
+		if (StringUtils.isEmpty(value)) {
+			ErrorResponseDTO error = ErrorResponseDTO.builder()
+				.type(RestExecutionResultEnum.INVALID_TOKEN_FIELD.getType())
+				.title(RestExecutionResultEnum.INVALID_TOKEN_FIELD.getTitle())
+				.instance(ErrorInstanceEnum.MISSING_JWT_FIELD.getInstance())
+				.detail(String.format("Il campo %s non è valorizzato", fieldName))
+				.build();
+
+			throw new ValidationException(error);
+		}
+	}
+
+	private void checkNull(Object value, String fieldName) {
+		if (ObjectUtils.isEmpty(value)) {
+			ErrorResponseDTO error = ErrorResponseDTO.builder()
+				.type(RestExecutionResultEnum.INVALID_TOKEN_FIELD.getType())
+				.title(RestExecutionResultEnum.INVALID_TOKEN_FIELD.getTitle())
+				.instance(ErrorInstanceEnum.MISSING_JWT_FIELD.getInstance())
+				.detail(String.format("Il campo %s non è valorizzato", fieldName))
+				.build();
+
+			throw new ValidationException(error);
+		}
+	}
+
+	private void checkFiscalCode(String givenValue, String fieldName) {
+		if (!isValidOid(givenValue)) {
+			ErrorResponseDTO error = ErrorResponseDTO.builder()
+				.type(RestExecutionResultEnum.INVALID_TOKEN_FIELD.getType())
+				.title(RestExecutionResultEnum.INVALID_TOKEN_FIELD.getTitle())
+				.instance(ErrorInstanceEnum.JWT_MALFORMED_FIELD.getInstance())
+				.detail(String.format("Il codice fiscale nel campo %s non è corretto", fieldName))
+				.build();
+
+			throw new ValidationException(error);
+		}
+	}
+	
+	private boolean isValidOid(String oid) {
+		if (oid == null) return false;
 		
-		if (rawOid != null) {
-			final String [] chunks = rawOid.split("\\^\\^\\^");
-				if (chunks.length > 1) {
-					log.debug("Searching oid");
-					final String[] chunkedInfo = chunks[1].split("&amp;");
-					if (chunkedInfo.length > 1 && Constants.OIDS.OID_MEF.equals(chunkedInfo[1])) {
-						if(callAna) {
-							out = anaCall.callAnaClient(chunks[0]);
-						} else {
-							out = utilitySrv.isValidCf(chunks[0]);
-						}
-					} else {
-						out = true;
-					}
-				} else {
-					if(callAna) {
-						out = anaCall.callAnaClient(chunks[0]);
-					} else {
-						out = utilitySrv.isValidCf(chunks[0]);
-					}
-				}
-		} else {
-			out = false;
-		}
+		final String[] chunks = oid.split("\\^\\^\\^");
+		if (chunks.length == 0) return false;
+		if (chunks.length == 1) return utilitySrv.isValidCf(chunks[0]);
 		
-		return out;
-	}
-	
-	private enum ActionEnum {
-
-		CREATE, READ, UPDATE, DELETE;
-
-		private static boolean isAllowed(final String value) {
-
-			for (ActionEnum v : ActionEnum.values()) {
-				if (v.name().equals(value)) {
-					return true;
-				}
-			}
-			return false;
+		final String[] chunkedInfo = chunks[1].split("&amp;");
+		if (chunkedInfo.length > 1 && Constants.OIDS.OID_MEF.equals(chunkedInfo[1])) {
+			return utilitySrv.isValidCf(chunks[0]);
 		}
+
+		return true;
 	}
-	
 }

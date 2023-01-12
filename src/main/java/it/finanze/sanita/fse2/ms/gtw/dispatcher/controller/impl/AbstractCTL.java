@@ -15,6 +15,8 @@ import javax.annotation.Nullable;
 import javax.servlet.http.HttpServletRequest;
 
 import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.select.Elements;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.multipart.MultipartFile;
@@ -37,6 +39,7 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.LogTraceInfoDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ActivityEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ErrorInstanceEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventCodeEnum;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventTypeEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.InjectionModeEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.RawValidationEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.RestExecutionResultEnum;
@@ -206,29 +209,31 @@ public abstract class AbstractCTL {
 			jwt = req.getHeader(JWT_HEADER);
 		}
 		// Delegate extract and validate function
-		return extractAndValidateJWT(jwt, govway);
+		return extractAndValidateJWT(jwt, govway, EventTypeEnum.DELETE);
 	}
 
-	protected JWTTokenDTO extractAndValidateJWT(final String jwt, final boolean isFromGovway) {
+	protected JWTTokenDTO extractAndValidateJWT(final String jwt, final boolean isFromGovway, EventTypeEnum eventType) {
 
 		final JWTTokenDTO token = extractJWT(jwt, isFromGovway);
-
-		try {
-			String errorMsg = jwtSRV.validatePayload(token.getPayload());
-			if (errorMsg != null) {
-				final ErrorResponseDTO error = ErrorResponseDTO.builder()
-					.type(RestExecutionResultEnum.INVALID_TOKEN_FIELD.getType())
-					.title(RestExecutionResultEnum.INVALID_TOKEN_FIELD.getTitle())
-					.instance(ErrorInstanceEnum.JWT_MALFORMED_FIELD.getInstance())
-					.detail(errorMsg).build();
-
-				throw new ValidationException(error);
-			}
-		} catch (final ValidationException e) {
-			throw e;
-		} catch (final Exception ex) {
-			log.error("Errore durante la validazione del token JWT", ex);
-			throw new BusinessException("Errore durante la validazione del token JWT", ex);
+		
+		switch (eventType) {
+			case PUBLICATION:
+				jwtSRV.validatePayloadForCreate(token.getPayload());
+				break;
+			case UPDATE:
+				jwtSRV.validatePayloadForUpdate(token.getPayload());
+				break;
+			case DELETE:
+				jwtSRV.validatePayloadForDelete(token.getPayload());
+				break;
+			case REPLACE:
+				jwtSRV.validatePayloadForReplace(token.getPayload());
+				break;
+			case VALIDATION:
+				jwtSRV.validatePayloadForValidation(token.getPayload());
+				break;
+			default:
+				throw new IllegalStateException("Unexpected value: " + eventType);
 		}
 
 		return token;
@@ -289,49 +294,54 @@ public abstract class AbstractCTL {
 
 		return jwtToken;
 	}
-
+	
 	protected void validateJWT(final JWTTokenDTO jwtToken, final String cda) {
-		String errorMessage = "";
-		boolean isValidDocType = false;
-		try {
-			org.jsoup.nodes.Document docT = Jsoup.parse(cda);
-			String code = docT.select("code").get(0).attr("code");
-			String codeSystem = docT.select("code").get(0).attr("codeSystem");
-			String hl7Type = "('" + code + "^^" + codeSystem + "')";
-			
-			String patientRoleCF = docT.select("patientRole > id").get(0).attr("extension");
-			
-			if(!hl7Type.equals(jwtToken.getPayload().getResource_hl7_type())) {
-				errorMessage = "JWT payload: Tipologia documento diversa dalla tipologia di CDA (code - codesystem)";
-				throw new BusinessException(errorMessage);
-			}
-			
-			isValidDocType = true;
-			if(StringUtility.isNullOrEmpty(errorMessage)) {
-				final String [] chunks = jwtToken.getPayload().getPerson_id().split("\\^");
-				if(!chunks[0].equals(patientRoleCF)) {
-					errorMessage = "JWT payload: Person id presente nel JWT differente dal codice fiscale del paziente previsto sul CDA";
-					throw new BusinessException(errorMessage);
-				}
-			}
-			
-		} catch (final Exception e) {
-			log.error("Error while validating JWT payload with CDA", e);
-			String errorInstance = ErrorInstanceEnum.DOCUMENT_TYPE_MISMATCH.getInstance();
-			if (isValidDocType) {
-				errorInstance = ErrorInstanceEnum.PERSON_ID_MISMATCH.getInstance();
-			}
-
-			final ErrorResponseDTO error = ErrorResponseDTO.builder()
-				.type(RestExecutionResultEnum.INVALID_TOKEN_FIELD.getType())
-				.title(RestExecutionResultEnum.INVALID_TOKEN_FIELD.getTitle())
-				.instance(errorInstance)
-				.detail(errorMessage)
-				.build();
-			throw new ValidationException(error);
-		}
+		Document docT = Jsoup.parse(cda);
+		validateResourceHl7Type(jwtToken, docT);
+		validatePersonId(jwtToken, docT);
 	}
 
+	private void validateResourceHl7Type(JWTTokenDTO jwtToken, Document docT) {
+		Elements element = docT.select("code");
+		if (element.isEmpty()) {
+			String message = "JWT payload: non è stato possibile verificare la tipologia del CDA";
+			throwInvalidTokenError(ErrorInstanceEnum.DOCUMENT_TYPE_MISMATCH, message);
+		}
+		
+		String code = element.get(0).attr("code");
+		String codeSystem = element.get(0).attr("codeSystem");
+		String hl7Type = "('" + code + "^^" + codeSystem + "')";
+		if(!hl7Type.equals(jwtToken.getPayload().getResource_hl7_type())) {
+			String message = "JWT payload: Tipologia documento diversa dalla tipologia di CDA (code - codesystem)";
+			throwInvalidTokenError(ErrorInstanceEnum.DOCUMENT_TYPE_MISMATCH, message);
+		}
+	}
+	
+	private void validatePersonId(JWTTokenDTO jwtToken, Document docT) {
+		Elements element = docT.select("patientRole > id");
+		if (element.isEmpty()) {
+			String message = "JWT payload: non è stato possibile verificare il codice fiscale del paziente presente nel CDA";
+			throwInvalidTokenError(ErrorInstanceEnum.PERSON_ID_MISMATCH, message);
+		}
+		
+		String patientRoleCF = element.get(0).attr("extension");
+		String[] chunks = jwtToken.getPayload().getPerson_id().split("\\^");
+		if(!chunks[0].equals(patientRoleCF)) { 
+			String message = "JWT payload: Person id presente nel JWT differente dal codice fiscale del paziente previsto sul CDA";
+			throwInvalidTokenError(ErrorInstanceEnum.PERSON_ID_MISMATCH, message);
+		}
+		
+	}
+
+	private void throwInvalidTokenError(ErrorInstanceEnum errorInstance, String errorMessage) {
+		ErrorResponseDTO error = ErrorResponseDTO.builder()
+				.type(RestExecutionResultEnum.INVALID_TOKEN_FIELD.getType())
+				.title(RestExecutionResultEnum.INVALID_TOKEN_FIELD.getTitle())
+				.instance(errorInstance.getInstance())
+				.detail(errorMessage)
+				.build();
+		throw new ValidationException(error);
+	}
 	protected byte[] getAndValidateFile(final MultipartFile file) {
 		byte[] out = null;
 		
