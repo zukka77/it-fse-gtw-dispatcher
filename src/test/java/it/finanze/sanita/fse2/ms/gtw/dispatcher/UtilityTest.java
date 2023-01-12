@@ -148,7 +148,7 @@ class UtilityTest extends AbstractTest{
     @Test
     @DisplayName("Mixed utility")
     void genericUtility() {
-        byte[] pdfAttachment = FileUtility.getFileFromInternalResources("Files/attachment/CDA_OK_SIGNED.pdf");
+        byte[] pdfAttachment = FileUtility.getFileFromInternalResources("Files/attachment/LAB_OK.pdf");
         assertNotNull(StringUtility.encodeBase64(pdfAttachment));
         assertNotNull(StringUtility.encodeHex(pdfAttachment));
         assertNotNull(StringUtility.encodeSHA256(pdfAttachment));

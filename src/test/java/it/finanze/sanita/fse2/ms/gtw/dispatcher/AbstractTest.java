@@ -169,7 +169,7 @@ public abstract class AbstractTest {
 			pdfFile = file;
 		} else {
 			// To generate a jwt is necessary that the file is valid
-			pdfFile = FileUtility.getFileFromInternalResources("Files" + File.separator + "attachment" + File.separator + "CDA_OK_SIGNED.pdf");
+			pdfFile = FileUtility.getFileFromInternalResources("Files" + File.separator + "attachment" + File.separator + "LAB_OK.pdf");
 		}
 		final String documentHash = StringUtility.encodeSHA256(pdfFile);
 		final String cda = extractCDA(pdfFile);

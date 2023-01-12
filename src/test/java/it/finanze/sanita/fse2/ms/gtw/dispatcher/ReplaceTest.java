@@ -100,7 +100,7 @@ class ReplaceTest extends AbstractTest {
 
 	 @ParameterizedTest
 	 @DisplayName("Replace of a document")
-	 @ValueSource(strings = {"CDA_OK_SIGNED.pdf", "LDO_OK.pdf", "RAD_OK.pdf", "RSA_OK.pdf", "VPS_OK.pdf"})
+	 @ValueSource(strings = {"LAB_OK.pdf", "LDO_OK.pdf", "RAD_OK.pdf", "RSA_OK.pdf", "VPS_OK.pdf"})
 	 void givenACorrectCDA_shouldInsertInInvocations(final String filename) {
 
 	 	final String idDocument = StringUtility.generateUUID();
@@ -149,7 +149,7 @@ class ReplaceTest extends AbstractTest {
 
 	 @ParameterizedTest
 	 @DisplayName("Calling replace with invalid request body")
-	 @ValueSource(strings = {"CDA_OK_SIGNED.pdf", "LDO_OK.pdf", "RAD_OK.pdf", "RSA_OK.pdf", "VPS_OK.pdf"})
+	 @ValueSource(strings = {"LAB_OK.pdf", "LDO_OK.pdf", "RAD_OK.pdf", "RSA_OK.pdf", "VPS_OK.pdf"})
 	 void givenInvalidRequest_shouldReturnError(final String filename) {
 
 	 	final String idDocument = StringUtility.generateUUID();

@@ -25,12 +25,13 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.SignatureInfoDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.SignatureValidationDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.SignVerificationModeEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.BusinessException;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class SignerHelper {
-	
-	private SignerHelper() {}
 
 	/******************************************************
 	*	VALIDATE PADES SIGNATURE

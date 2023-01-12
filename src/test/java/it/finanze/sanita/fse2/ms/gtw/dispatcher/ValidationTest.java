@@ -256,7 +256,7 @@ class ValidationTest extends AbstractTest {
 	void validationWarningTestOK() {
     	byte[] pdfAttachment = FileUtility.getFileFromInternalResources("Files/attachment/pdf_msg_SATLED_LED_Lettera_di_Dimissione.pdf");
     	byte[] pdfResource = FileUtility.getFileFromInternalResources("Files/resource/cert1.pdf");
-		final byte[] file = FileUtility.getFileFromInternalResources("Files" + File.separator + "attachment" + File.separator + "CDA_OK_SIGNED.pdf");
+		final byte[] file = FileUtility.getFileFromInternalResources("Files" + File.separator + "attachment" + File.separator + "LAB_OK.pdf");
 		final String jwtToken = generateJwt(file, true, EventTypeEnum.VALIDATION);
 
 		ValidationCDAReqDTO requestBody = new ValidationCDAReqDTO();
@@ -281,7 +281,7 @@ class ValidationTest extends AbstractTest {
 	void validationWarningTestKO() {
     	byte[] pdfAttachment = FileUtility.getFileFromInternalResources("Files/attachment/pdf_msg_SATLED_LED_Lettera_di_Dimissione.pdf");
     	byte[] pdfResource = FileUtility.getFileFromInternalResources("Files/resource/cert1.pdf");
-		final byte[] file = FileUtility.getFileFromInternalResources("Files" + File.separator + "attachment" + File.separator + "CDA_OK_SIGNED.pdf");
+		final byte[] file = FileUtility.getFileFromInternalResources("Files" + File.separator + "attachment" + File.separator + "LAB_OK.pdf");
 		final String jwtToken = generateJwt(file, true, EventTypeEnum.VALIDATION);
 
 		ValidationCDAReqDTO requestBody = new ValidationCDAReqDTO();
@@ -330,7 +330,7 @@ class ValidationTest extends AbstractTest {
 		final Long start = new Date().getTime();
 		int u = 0;
 
-		byte[] pdf = FileUtility.getFileFromInternalResources("CDA_OK_SIGNED.pdf");
+		byte[] pdf = FileUtility.getFileFromInternalResources("LAB_OK.pdf");
 		for (; u < N_UTENTI; u++) {
 			log.info("START USER: " + u);
 			startUser(syncOK, syncKO,pdf);
@@ -396,7 +396,7 @@ class ValidationTest extends AbstractTest {
 	@Test
 	void validationErrorTest() throws JsonProcessingException {
 
-		final byte[] file = FileUtility.getFileFromInternalResources("Files" + File.separator + "attachment" + File.separator + "CDA_OK_SIGNED.pdf");
+		final byte[] file = FileUtility.getFileFromInternalResources("Files" + File.separator + "attachment" + File.separator + "LAB_OK.pdf");
 
 		final String jwtToken = generateJwt(file, true, EventTypeEnum.VALIDATION);
 		ValidationCDAReqDTO requestBody = new ValidationCDAReqDTO();
@@ -423,7 +423,7 @@ class ValidationTest extends AbstractTest {
 	@DisplayName("extractJWT error tests")
 	void extractJwtErrorTests() {
 		final byte[] file = FileUtility.getFileFromInternalResources(
-				"Files" + File.separator + "attachment" + File.separator + "CDA_OK_SIGNED.pdf");
+				"Files" + File.separator + "attachment" + File.separator + "LAB_OK.pdf");
 
 		// null payload
 		final String jwtTokenNullPayload = generateWrongJwt(StringUtility.encodeSHA256(file), false, true, false);
@@ -436,7 +436,7 @@ class ValidationTest extends AbstractTest {
 	@DisplayName("validate JWT error tests")
 	void validateJwtErrorTests() {
 		final byte[] file = FileUtility.getFileFromInternalResources(
-				"Files" + File.separator + "attachment" + File.separator + "CDA_OK_SIGNED.pdf");
+				"Files" + File.separator + "attachment" + File.separator + "LAB_OK.pdf");
 
 		// null payload
 		final String jwtTokenWrongPayload = generateWrongJwt(StringUtility.encodeSHA256(file), false, false, true);

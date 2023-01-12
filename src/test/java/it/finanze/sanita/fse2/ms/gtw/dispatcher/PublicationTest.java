@@ -275,7 +275,7 @@ class PublicationTest extends AbstractTest {
 		doReturn(new ResponseEntity<>(new TransformResDTO("", Document.parse("{\"json\" : \"json\"}")), HttpStatus.OK))
 				.when(restTemplate).exchange(anyString(), eq(HttpMethod.POST), any(HttpEntity.class), eq(TransformResDTO.class));
 
-		final byte[] file = FileUtility.getFileFromInternalResources("Files" + File.separator + "attachment" + File.separator + "CDA_OK_SIGNED.pdf");
+		final byte[] file = FileUtility.getFileFromInternalResources("Files" + File.separator + "attachment" + File.separator + "LAB_OK.pdf");
 		final String jwtToken = generateJwt(file, true, EventTypeEnum.PUBLICATION);
 		
 		ValidationCDAReqDTO validationRB = validateDataPreparation();
@@ -360,7 +360,7 @@ class PublicationTest extends AbstractTest {
 		doReturn(new ResponseEntity<>(ref, HttpStatus.OK))
 				.when(restTemplate).exchange(anyString(), eq(HttpMethod.POST), any(HttpEntity.class), eq(TransformResDTO.class));
 
-		byte[] pdfAttachment = FileUtility.getFileFromInternalResources("Files/attachment/CDA_OK_SIGNED.pdf");
+		byte[] pdfAttachment = FileUtility.getFileFromInternalResources("Files/attachment/LAB_OK.pdf");
 
 		ValidationInfoDTO info = new ValidationInfoDTO(RawValidationEnum.OK, new ArrayList<>(), "wfid");
 		given(validatorClient.validate(anyString(),anyString())).willReturn(info);
@@ -396,7 +396,7 @@ class PublicationTest extends AbstractTest {
 		doReturn(new ResponseEntity<>(new TransformResDTO("", Document.parse("{\"json\" : \"json\"}")), HttpStatus.OK))
 				.when(restTemplate).exchange(anyString(), eq(HttpMethod.POST), any(HttpEntity.class), eq(TransformResDTO.class));
 
-		final byte[] file = FileUtility.getFileFromInternalResources("Files" + File.separator + "attachment" + File.separator + "CDA_OK_SIGNED.pdf");
+		final byte[] file = FileUtility.getFileFromInternalResources("Files" + File.separator + "attachment" + File.separator + "LAB_OK.pdf");
 		final String jwtToken = generateJwt(file, true, EventTypeEnum.PUBLICATION);
 		
 		final ValidationCDAReqDTO validationRB = validateDataPreparation();
@@ -420,7 +420,7 @@ class PublicationTest extends AbstractTest {
 	@Test
 	@DisplayName("error fhir creation")
 	void errorFhirResourceCreationTest() {
-		final byte[] file = FileUtility.getFileFromInternalResources("Files" + File.separator + "attachment" + File.separator + "CDA_OK_SIGNED.pdf");
+		final byte[] file = FileUtility.getFileFromInternalResources("Files" + File.separator + "attachment" + File.separator + "LAB_OK.pdf");
 		final String jwtToken = generateJwt(file, true, EventTypeEnum.PUBLICATION);
 
 		final ValidationCDAReqDTO validationRB = validateDataPreparation();
