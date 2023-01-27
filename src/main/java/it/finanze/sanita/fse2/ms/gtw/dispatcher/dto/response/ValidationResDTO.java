@@ -20,7 +20,7 @@ public class ValidationResDTO extends ResponseDTO {
 	@Schema(description = "Identificativo univoco della transazione")
 	private String workflowInstanceId;
 	
-	@Size(min = 0, max = 10000)
+	@Size(min = 0, max = 50000)
 	@Schema(description = "Dettaglio del warning")
 	private String warning;
 
