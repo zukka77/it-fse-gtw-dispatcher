@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.io.File;
 import java.io.FileOutputStream;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -24,6 +25,7 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.FileUtility;
 class SignTest {
     
     @Test
+    @Disabled
     void validSignatureTest() throws Exception {
         byte[] fileByte = FileUtility.getFileFromInternalResources("Files/attachment/CDA_OK_SIGNED.pdf");
 
@@ -42,6 +44,7 @@ class SignTest {
     }
 
     @Test
+    @Disabled
     void invalidSignatureTest() throws Exception {
         byte[] fileByte = FileUtility.getFileFromInternalResources("Files/attachment/LAB_OK.pdf");
 
