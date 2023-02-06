@@ -121,6 +121,7 @@ public class ValidatedDocumentsRepo implements IValidatedDocumentsRepo {
 			dto.setCdaValidated(true);
 			dto.setWorkflowInstanceId(ety.getWorkflowInstanceId());
 			dto.setTransformID(ety.getPrimaryKeyTransform());
+			dto.setEngineID(ety.getPrimaryKeyEngine());
 			dto.setInsertionDate(ety.getInsertionDate());
 		}
 		return dto;

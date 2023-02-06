@@ -30,16 +30,20 @@ public class ValidatedDocumentsETY {
 	private String workflowInstanceId; 
 	
 	@Field(name = "pkey_transform")
-	private String primaryKeyTransform; 
+	private String primaryKeyTransform;
+
+	@Field(name = "pkey_engine")
+	private String primaryKeyEngine;
 	
 	@Field(name = "insertion_date")
 	private Date insertionDate;
 
-	public static ValidatedDocumentsETY setContent(String hash, String wii, String transformID) {
+	public static ValidatedDocumentsETY setContent(String hash, String wii, String transformID, String engineID) {
         ValidatedDocumentsETY entity = new ValidatedDocumentsETY();
         entity.setHashCda(hash);
 		entity.setWorkflowInstanceId(wii);
-		entity.setPrimaryKeyTransform(transformID); 
+		entity.setPrimaryKeyTransform(transformID);
+		entity.setPrimaryKeyEngine(engineID);
         return entity;
     }
 }

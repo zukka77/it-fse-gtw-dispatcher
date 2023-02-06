@@ -403,23 +403,23 @@ public abstract class AbstractCTL {
 	protected String validate(final String cda, final ActivityEnum activity, final String workflowInstanceId) {
 		String errorDetail = "";
 		try {
-			final ValidationInfoDTO rawValidationRes = validatorClient.validate(cda,workflowInstanceId);
+			final ValidationInfoDTO rawValRes = validatorClient.validate(cda,workflowInstanceId);
 
 			if (ActivityEnum.VALIDATION.equals(activity)
-					&& Arrays.asList(RawValidationEnum.OK, RawValidationEnum.SEMANTIC_WARNING).contains(rawValidationRes.getResult())) {
+					&& Arrays.asList(RawValidationEnum.OK, RawValidationEnum.SEMANTIC_WARNING).contains(rawValRes.getResult())) {
 				final String hashedCDA = StringUtility.encodeSHA256B64(cda);
-				cdaFacadeSRV.create(hashedCDA, workflowInstanceId, rawValidationRes.getTransformID());
+				cdaFacadeSRV.create(hashedCDA, workflowInstanceId, rawValRes.getTransformID(), rawValRes.getEngineID());
 			}
 
-			if (!RawValidationEnum.OK.equals(rawValidationRes.getResult())) {
-				final RestExecutionResultEnum result = RestExecutionResultEnum.fromRawResult(rawValidationRes.getResult());
+			if (!RawValidationEnum.OK.equals(rawValRes.getResult())) {
+				final RestExecutionResultEnum result = RestExecutionResultEnum.fromRawResult(rawValRes.getResult());
 				errorDetail = result.getTitle();
-				if (!CollectionUtils.isEmpty(rawValidationRes.getMessage())) {
-					errorDetail = String.join(",", rawValidationRes.getMessage());
+				if (!CollectionUtils.isEmpty(rawValRes.getMessage())) {
+					errorDetail = String.join(",", rawValRes.getMessage());
 				}
 				
 				
-				if(!RawValidationEnum.SEMANTIC_WARNING.equals(rawValidationRes.getResult())){
+				if(!RawValidationEnum.SEMANTIC_WARNING.equals(rawValRes.getResult())){
 					final ErrorResponseDTO error = ErrorResponseDTO.builder()
 							.type(result.getType()).title(result.getTitle())
 							.instance("/validation/error").detail(errorDetail).build();

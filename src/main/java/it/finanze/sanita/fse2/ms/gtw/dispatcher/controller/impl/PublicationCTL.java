@@ -94,7 +94,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 		);
 
 		ValidationCreationInputDTO validationInfo = new ValidationCreationInputDTO();
-		validationInfo.setValidationData(new ValidationDataDTO(null, false, MISSING_WORKFLOW_PLACEHOLDER, null, new Date()));
+		validationInfo.setValidationData(new ValidationDataDTO(null, false, MISSING_WORKFLOW_PLACEHOLDER, null, null, new Date()));
 
 		String role = Constants.App.JWT_MISSING_SUBJECT_ROLE;
 		String subjectFiscalCode = Constants.App.JWT_MISSING_SUBJECT;
@@ -163,7 +163,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 			final LogTraceInfoDTO traceInfoDTO = getLogTraceInfo();
 
 			ValidationCreationInputDTO validationInfo = new ValidationCreationInputDTO();
-			validationInfo.setValidationData(new ValidationDataDTO(null, false, MISSING_WORKFLOW_PLACEHOLDER, null, new Date()));
+			validationInfo.setValidationData(new ValidationDataDTO(null, false, MISSING_WORKFLOW_PLACEHOLDER, null, null, new Date()));
 
 			String role = Constants.App.JWT_MISSING_SUBJECT_ROLE;
 			String subjectFiscalCode = Constants.App.JWT_MISSING_SUBJECT;
@@ -356,7 +356,8 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 		
 		validation.setValidationData(validationInfo);
 
-		String transformId = ""; 
+		String transformId = "";
+		String engineId = "";
 
 		try {
 			final JWTTokenDTO jwtToken;
@@ -388,7 +389,8 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 
 			ValidationDataDTO validatedDocument = cdaSRV.getByWorkflowInstanceId(validationInfo.getWorkflowInstanceId()); 
 
-			transformId = validatedDocument.getTransformID(); 
+			transformId = validatedDocument.getTransformID();
+			engineId = validatedDocument.getEngineID();
 			cdaSRV.consumeHash(validationInfo.getHash()); 
 
 			if(DateUtility.getDifferenceDays(validatedDocument.getInsertionDate(), new Date()) > validationCFG.getDaysAllowToPublishAfterValidation()) {
@@ -406,7 +408,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 			validateDocumentHash(documentSha256, validation.getJwtToken());
 	
 			final ResourceDTO fhirResourcesDTO = documentReferenceSRV.createFhirResources(cda, jsonObj, bytePDF.length, documentSha256,
-				validation.getJwtToken().getPayload().getPerson_id(), transformId);
+				validation.getJwtToken().getPayload().getPerson_id(), transformId, engineId);
 	
 			validation.setFhirResource(fhirResourcesDTO);
 			
