@@ -3,20 +3,86 @@
  */
 package it.finanze.sanita.fse2.ms.gtw.dispatcher.controller.impl;
 
+import static it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants.App.JWT_MISSING_ISSUER_PLACEHOLDER;
+import static it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants.App.MISSING_DOC_TYPE_PLACEHOLDER;
+import static it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants.App.MISSING_WORKFLOW_PLACEHOLDER;
+import static it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventStatusEnum.BLOCKING_ERROR;
+import static it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventStatusEnum.SUCCESS;
+import static it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventTypeEnum.EDS_DELETE;
+import static it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventTypeEnum.EDS_UPDATE;
+import static it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventTypeEnum.INI_DELETE;
+import static it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventTypeEnum.INI_UPDATE;
+import static it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventTypeEnum.RIFERIMENTI_INI;
+import static it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.RestExecutionResultEnum.FHIR_MAPPING_ERROR;
+import static it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.RestExecutionResultEnum.INI_EXCEPTION;
+import static it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.RestExecutionResultEnum.OLDER_DAY;
+import static it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.RestExecutionResultEnum.get;
+import static it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.CdaUtility.createWorkflowInstanceId;
+import static it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.CdaUtility.extractFieldCda;
+import static it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.CdaUtility.getDocumentType;
+import static it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility.encodeSHA256;
+import static it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility.isNullOrEmpty;
+
+import java.util.Date;
+import java.util.Objects;
+
+import javax.servlet.http.HttpServletRequest;
+
+import org.jsoup.Jsoup;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
+
 import com.google.gson.Gson;
+
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.IEdsClient;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.IIniClient;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants.Headers;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants.Misc;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.ValidationCFG;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.controller.IPublicationCTL;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.*;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.*;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.*;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.*;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.*;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.AccreditamentoSimulationDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.IndexerValueDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.JWTPayloadDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.JWTTokenDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.ResourceDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.ValidationCreationInputDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.ValidationDataDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.DeleteRequestDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.EdsMetadataUpdateReqDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.IniMetadataUpdateReqDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.IniReferenceRequestDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.MergedMetadatiRequestDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.PublicationCreationReqDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.PublicationMetadataReqDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.PublicationUpdateReqDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.EdsResponseDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.ErrorResponseDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.GetMergedMetadatiDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.IniReferenceResponseDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.IniTraceResponseDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.LogTraceInfoDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.PublicationResDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.ResponseWifDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.DestinationTypeEnum;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ErrorInstanceEnum;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventStatusEnum;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventTypeEnum;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.OperationLogEnum;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.PriorityTypeEnum;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ProcessorOperationEnum;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.RestExecutionResultEnum;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ResultLogEnum;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.BusinessException;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.ConnectionRefusedException;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.EdsException;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.IniException;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.MockEnabledException;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.ValidationException;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.logging.LoggerHelper;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.IAccreditamentoSimulationSRV;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.IDocumentReferenceSRV;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.IErrorHandlerSRV;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.IKafkaSRV;
@@ -26,25 +92,6 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.CfUtility;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.DateUtility;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility;
 import lombok.extern.slf4j.Slf4j;
-import org.jsoup.Jsoup;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.multipart.MultipartFile;
-
-import javax.servlet.http.HttpServletRequest;
-import java.util.Date;
-import java.util.Objects;
-
-import static it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants.App.*;
-import static it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventStatusEnum.BLOCKING_ERROR;
-import static it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventStatusEnum.SUCCESS;
-import static it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventTypeEnum.*;
-import static it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.RestExecutionResultEnum.*;
-import static it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.CdaUtility.*;
-import static it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility.encodeSHA256;
-import static it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility.isNullOrEmpty;
 
 /**
  *  Publication controller.
@@ -79,6 +126,9 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 
 	@Autowired
 	private ValidationCFG validationCFG;
+	
+	@Autowired
+	private IAccreditamentoSimulationSRV accreditamentoSimulationSRV;
  
 	
 	@Override
@@ -86,12 +136,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 		final Date startDateOperation = new Date();
 		final LogTraceInfoDTO traceInfoDTO = getLogTraceInfo();
 
-		log.info("[START] {}() with arguments {}={}, {}={}, {}={}",
-			"create",
-			"traceId", traceInfoDTO.getTraceID(),
-			"wif", requestBody.getWorkflowInstanceId(),
-			"idDoc", requestBody.getIdentificativoDoc()
-		);
+		log.info("[START] {}() with arguments {}={}, {}={}, {}={}","create","traceId", traceInfoDTO.getTraceID(),"wif", requestBody.getWorkflowInstanceId(),"idDoc", requestBody.getIdentificativoDoc());
 
 		ValidationCreationInputDTO validationInfo = new ValidationCreationInputDTO();
 		validationInfo.setValidationData(new ValidationDataDTO(null, false, MISSING_WORKFLOW_PLACEHOLDER, null, new Date()));
@@ -104,7 +149,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 		String subjApplicationVendor = null;
 		String subjApplicationVersion = null;
 		try {
-			validationInfo = validateInput(file, request, false,traceInfoDTO);
+			validationInfo = publicationAndReplace(file, request, false,traceInfoDTO);
 
 			if (validationInfo.getValidationError() != null) {
 				throw validationInfo.getValidationError();
@@ -146,12 +191,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 			warning = Misc.WARN_EXTRACTION_SELECTION;
 		}
 
-		log.info("[EXIT] {}() with arguments {}={}, {}={}, {}={}",
-			"create",
-			"traceId", traceInfoDTO.getTraceID(),
-			"wif", requestBody.getWorkflowInstanceId(),
-			"idDoc", requestBody.getIdentificativoDoc()
-		);
+		log.info("[EXIT] {}() with arguments {}={}, {}={}, {}={}","create","traceId", traceInfoDTO.getTraceID(),"wif", requestBody.getWorkflowInstanceId(),"idDoc", requestBody.getIdentificativoDoc());
 		
 		return new ResponseEntity<>(new PublicationResDTO(traceInfoDTO, warning, validationInfo.getValidationData().getWorkflowInstanceId()), HttpStatus.CREATED);
 	}
@@ -174,18 +214,13 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 			String subjApplicationVersion = null;
 			
 			try {
-				validationInfo = validateInput(file, request, true,traceInfoDTO);
+				validationInfo = publicationAndReplace(file, request, true,traceInfoDTO);
 
 				if (validationInfo.getValidationError() != null) {
 					throw validationInfo.getValidationError();
 				}
 
-				log.info("[START] {}() with arguments {}={}, {}={}, {}={}",
-					"replace",
-					"traceId", traceInfoDTO.getTraceID(),
-					"wif", validationInfo.getValidationData().getWorkflowInstanceId(),
-					"idDoc", idDoc
-				);
+				log.info("[START] {}() with arguments {}={}, {}={}, {}={}","replace","traceId", traceInfoDTO.getTraceID(),"wif", validationInfo.getValidationData().getWorkflowInstanceId(),"idDoc", idDoc);
 				
 				subjApplicationId = validationInfo.getJwtToken().getPayload().getSubject_application_id(); 
 				subjApplicationVendor = validationInfo.getJwtToken().getPayload().getSubject_application_vendor();
@@ -249,12 +284,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 		LogTraceInfoDTO logTraceDTO = getLogTraceInfo();
 		String workflowInstanceId = createWorkflowInstanceId(idDoc);
 
-		log.info("[START] {}() with arguments {}={}, {}={}, {}={}",
-			"update",
-			"traceId", logTraceDTO.getTraceID(),
-			"wif", workflowInstanceId,
-			"idDoc", idDoc
-		);
+		log.info("[START] {}() with arguments {}={}, {}={}, {}={}","update","traceId", logTraceDTO.getTraceID(),"wif", workflowInstanceId,"idDoc", idDoc);
 
 		String role = Constants.App.JWT_MISSING_SUBJECT_ROLE;
 		String subjectFiscalCode = Constants.App.JWT_MISSING_SUBJECT;
@@ -266,11 +296,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 		String subjApplicationVendor = null;
 		String subjApplicationVersion = null;
 		try {
-			if (Boolean.TRUE.equals(msCfg.getFromGovway())) {
-				jwtToken = extractAndValidateJWT(request.getHeader(Headers.JWT_GOVWAY_HEADER), msCfg.getFromGovway(), EventTypeEnum.UPDATE);
-			} else {
-				jwtToken = extractAndValidateJWT(request.getHeader(Headers.JWT_HEADER), msCfg.getFromGovway(), EventTypeEnum.UPDATE);
-			}
+			jwtToken = extractAndValidateJWT(request, EventTypeEnum.UPDATE);
 
 			role = jwtToken.getPayload().getSubject_role();
 			locality = jwtToken.getPayload().getLocality();
@@ -347,7 +373,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 		return new ResponseWifDTO(workflowInstanceId, logTraceDTO, warning);
 	}
 
-	private ValidationCreationInputDTO validateInput(final MultipartFile file, final HttpServletRequest request, final boolean isReplace, final LogTraceInfoDTO traceInfoDTO) {
+	private ValidationCreationInputDTO publicationAndReplace(final MultipartFile file, final HttpServletRequest request, final boolean isReplace, final LogTraceInfoDTO traceInfoDTO) {
 
 		final ValidationCreationInputDTO validation = new ValidationCreationInputDTO();
 		ValidationDataDTO validationInfo = new ValidationDataDTO();
@@ -359,12 +385,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 		String transformId = ""; 
 
 		try {
-			final JWTTokenDTO jwtToken;
-			if (Boolean.TRUE.equals(msCfg.getFromGovway())) {
-				jwtToken = extractAndValidateJWT(request.getHeader(Headers.JWT_GOVWAY_HEADER), msCfg.getFromGovway(), isReplace ? EventTypeEnum.REPLACE : EventTypeEnum.PUBLICATION);
-			} else {
-				jwtToken = extractAndValidateJWT(request.getHeader(Headers.JWT_HEADER), msCfg.getFromGovway(), isReplace ? EventTypeEnum.REPLACE : EventTypeEnum.PUBLICATION);
-			}
+			final JWTTokenDTO jwtToken = extractAndValidateJWT(request, isReplace ? EventTypeEnum.REPLACE : EventTypeEnum.PUBLICATION);
 			validation.setJwtToken(jwtToken);
 
 			PublicationCreationReqDTO jsonObj = getAndValidatePublicationReq(request.getParameter("requestBody"), isReplace);
@@ -372,6 +393,11 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 
 			final byte[] bytePDF = getAndValidateFile(file);
 			validation.setFile(bytePDF);
+			
+			AccreditamentoSimulationDTO simulatedResult = accreditamentoSimulationSRV.runSimulation(jsonObj.getIdentificativoDoc(), bytePDF, isReplace ? EventTypeEnum.REPLACE : EventTypeEnum.PUBLICATION);
+			if(simulatedResult!=null) {
+				jsonObj.setWorkflowInstanceId(simulatedResult.getWorkflowInstanceId());
+			}
 			
 			final String cda = extractCDA(bytePDF, jsonObj.getMode());
 			validation.setCda(cda);
@@ -435,12 +461,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 		LogTraceInfoDTO info = getLogTraceInfo();
 		String workflowInstanceId = createWorkflowInstanceId(idDoc);
 
-		log.info("[START] {}() with arguments {}={}, {}={}, {}={}",
-			"delete",
-			"traceId", info.getTraceID(),
-			"wif", workflowInstanceId,
-			"idDoc", idDoc
-		);
+		log.info("[START] {}() with arguments {}={}, {}={}, {}={}","delete","traceId", info.getTraceID(),"wif", workflowInstanceId,"idDoc", idDoc);
 
 		JWTTokenDTO token = null;
 		String role = Constants.App.JWT_MISSING_SUBJECT_ROLE;
@@ -454,7 +475,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 		
 		try {
 			// Extract token
-			token = extractFromReqJWT(request);
+			token = extractAndValidateJWT(request, EventTypeEnum.DELETE); 
 			// Extract subject role
 			role = token.getPayload().getSubject_role();
 			locality = token.getPayload().getLocality();
@@ -588,5 +609,5 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 		}
 		return out;
 	}
-
+	
 }

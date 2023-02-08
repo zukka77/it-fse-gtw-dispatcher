@@ -3,13 +3,9 @@
  */
 package it.finanze.sanita.fse2.ms.gtw.dispatcher.controller.impl;
 
-import static it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants.Headers.JWT_GOVWAY_HEADER;
-import static it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants.Headers.JWT_HEADER;
-
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Base64;
-import java.util.Map;
 
 import javax.annotation.Nullable;
 import javax.servlet.http.HttpServletRequest;
@@ -25,8 +21,8 @@ import brave.Tracer;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.IValidatorClient;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.CDACFG;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants.App;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants.Headers;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.MicroservicesURLCFG;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.AttachmentDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.JWTPayloadDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.JWTTokenDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.ValidationDataDTO;
@@ -48,6 +44,7 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.ConnectionRefusedExce
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.ValidationException;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.IJwtSRV;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.facade.ICdaFacadeSRV;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.FileUtility;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.PDFUtility;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility;
 import lombok.extern.slf4j.Slf4j;
@@ -157,8 +154,7 @@ public abstract class AbstractCTL {
 		
 		return out;
 	}
-
-
+ 
     protected String checkPublicationMandatoryElements(final PublicationCreationReqDTO jsonObj, final boolean isReplace) {
     	String out = null;
 
@@ -182,7 +178,7 @@ public abstract class AbstractCTL {
     				out = "Il campo atti clinici " + attoClinico + " non è consentito";
     			}
     		}
-    	}
+    	} 
     	return out;
     }
 
@@ -198,23 +194,14 @@ public abstract class AbstractCTL {
 		return out;
 	}
 
-	protected JWTTokenDTO extractFromReqJWT(HttpServletRequest req) {
-		// Define header to extract
-		String jwt;
-		boolean govway = Boolean.TRUE.equals(msCfg.getFromGovway());
-		// Check if from govway (it changes what header to consider)
-		if(govway) {
-			jwt = req.getHeader(JWT_GOVWAY_HEADER);
-		}else {
-			jwt = req.getHeader(JWT_HEADER);
-		}
-		// Delegate extract and validate function
-		return extractAndValidateJWT(jwt, govway, EventTypeEnum.DELETE);
+	protected JWTTokenDTO extractAndValidateJWT(final HttpServletRequest request ,final EventTypeEnum eventType) {
+		String extractedToken = Boolean.TRUE.equals(msCfg.getFromGovway()) ? request.getHeader(Headers.JWT_GOVWAY_HEADER) : request.getHeader(Headers.JWT_HEADER);
+		return extractAndValidateJWT(extractedToken,eventType);
 	}
+	
+	protected JWTTokenDTO extractAndValidateJWT(final String jwt,EventTypeEnum eventType) {
 
-	protected JWTTokenDTO extractAndValidateJWT(final String jwt, final boolean isFromGovway, EventTypeEnum eventType) {
-
-		final JWTTokenDTO token = extractJWT(jwt, isFromGovway);
+		final JWTTokenDTO token = extractJWT(jwt);
 		
 		switch (eventType) {
 			case PUBLICATION:
@@ -239,7 +226,7 @@ public abstract class AbstractCTL {
 		return token;
 	}
 
-	private JWTTokenDTO extractJWT(final String jwt, final boolean isFromGovway) {
+	private JWTTokenDTO extractJWT(final String jwt) {
 		JWTTokenDTO jwtToken = null;
 		String errorInstance = ErrorInstanceEnum.MISSING_JWT_FIELD.getInstance();
 		String detail = RestExecutionResultEnum.MANDATORY_ELEMENT_ERROR_TOKEN.getTitle();
@@ -255,7 +242,7 @@ public abstract class AbstractCTL {
 				if (!jwt.startsWith(App.BEARER_PREFIX)) {
 					chunks = jwt.split("\\.");
 
-					if (isFromGovway) {
+					if (Boolean.TRUE.equals(msCfg.getFromGovway())) {
 						payload = new String(Base64.getDecoder().decode(chunks[0]));
 						// Building the object asserts that all required values are present
 						jwtToken = new JWTTokenDTO(JWTPayloadDTO.extractPayload(payload));
@@ -375,16 +362,17 @@ public abstract class AbstractCTL {
 		return out;
 	}
 	
+	
 	protected String extractCDA(final byte[] bytesPDF, final InjectionModeEnum mode) {
 		String out = null;
 		if (InjectionModeEnum.RESOURCE.equals(mode)) {
 			out = PDFUtility.unenvelopeA2(bytesPDF);
 		} else if (InjectionModeEnum.ATTACHMENT.equals(mode)) {
-			out = extractCDAFromAttachments(bytesPDF);
+			out = PDFUtility.extractCDAFromAttachments(bytesPDF, cdaCfg.getCdaAttachmentName());  
 		} else {
 			out = PDFUtility.unenvelopeA2(bytesPDF);
 			if (StringUtility.isNullOrEmpty(out)) {
-				out = extractCDAFromAttachments(bytesPDF);
+				out = PDFUtility.extractCDAFromAttachments(bytesPDF, cdaCfg.getCdaAttachmentName());  
 			}
 		}
 
@@ -436,21 +424,6 @@ public abstract class AbstractCTL {
 		return errorDetail;
 	}
 
-	protected String extractCDAFromAttachments(final byte[] cda) {
-		String out = null;
-		final Map<String, AttachmentDTO> attachments = PDFUtility.extractAttachments(cda);
-		if (!attachments.isEmpty()) {
-			if (attachments.size() == 1) {
-				out = PDFUtility.detectCharsetAndExtract(attachments.values().iterator().next().getContent());
-			} else {
-				final AttachmentDTO attDTO = attachments.get(cdaCfg.getCdaAttachmentName());
-				if (attDTO != null) {
-					out = PDFUtility.detectCharsetAndExtract(attDTO.getContent());
-				}
-			}
-		}
-		return out;
-	}
 
     protected void validateDocumentHash(final String encodedPDF, final JWTTokenDTO jwtToken) {
 
@@ -511,5 +484,43 @@ public abstract class AbstractCTL {
     	}
     	return out;
     }
+    
+    
+    protected PublicationCreationReqDTO getAndValidateValdaPublicationReq(final String jsonREQ) {
+
+    	final PublicationCreationReqDTO out = StringUtility.fromJSONJackson(jsonREQ, PublicationCreationReqDTO.class);
+    	String errorMsg = checkPublicationMandatoryElements(out, false);
+
+    	RestExecutionResultEnum errorType = RestExecutionResultEnum.MANDATORY_ELEMENT_ERROR;
+    	if (errorMsg == null) {
+    		errorType = RestExecutionResultEnum.FORMAT_ELEMENT_ERROR; // Assuming the format is wrong
+    		errorMsg = checkFormatDate(out.getDataInizioPrestazione(), out.getDataFinePrestazione());
+    	}
+
+    	if (errorMsg != null) {
+
+    		String errorInstance = ErrorInstanceEnum.MISSING_MANDATORY_ELEMENT.getInstance();
+    		if (RestExecutionResultEnum.FORMAT_ELEMENT_ERROR.equals(errorType)) {
+    			errorInstance = ErrorInstanceEnum.INVALID_DATE_FORMAT.getInstance();
+    		}
+
+    		final ErrorResponseDTO error = ErrorResponseDTO.builder()
+    				.type(errorType.getType())
+    				.title(errorType.getTitle())
+    				.instance(errorInstance)
+    				.detail(errorMsg).build();
+
+    		throw new ValidationException(error);
+    	}
+
+    	return out;
+    }
+  
+    
+    public static void main(String[] args) {
+    	byte[] bytesPDF = FileUtility.getFileFromInternalResources("WEW809_IN.pdf");
+    	String out = PDFUtility.unenvelopeA2(bytesPDF);
+    	System.out.println("Stop");
+	}
 
 }

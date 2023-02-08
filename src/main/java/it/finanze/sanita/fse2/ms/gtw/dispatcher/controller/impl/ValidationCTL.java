@@ -3,6 +3,18 @@
  */
 package it.finanze.sanita.fse2.ms.gtw.dispatcher.controller.impl;
 
+import java.util.Date;
+
+import javax.servlet.http.HttpServletRequest;
+
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
+
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.controller.IValidationCTL;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.JWTTokenDTO;
@@ -22,16 +34,6 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.CdaUtility;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.CfUtility;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility;
 import lombok.extern.slf4j.Slf4j;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.multipart.MultipartFile;
-
-import javax.servlet.http.HttpServletRequest;
-import java.util.Date;
 
 /**
  * Validation controller.
@@ -69,13 +71,7 @@ public class ValidationCTL extends AbstractCTL implements IValidationCTL {
 		String subjApplicationVersion = null;
 		
 		try {
-			if (Boolean.TRUE.equals(msCfg.getFromGovway())) {
-				jwtToken = extractAndValidateJWT(request.getHeader(Constants.Headers.JWT_GOVWAY_HEADER),
-						msCfg.getFromGovway(), EventTypeEnum.VALIDATION);
-			} else {
-				jwtToken = extractAndValidateJWT(request.getHeader(Constants.Headers.JWT_HEADER),
-						msCfg.getFromGovway(), EventTypeEnum.VALIDATION);
-			}
+			jwtToken = extractAndValidateJWT(request,EventTypeEnum.VALIDATION);
 
 			role = jwtToken.getPayload().getSubject_role();
 			subjectFiscalCode = CfUtility.extractFiscalCodeFromJwtSub(jwtToken.getPayload().getSub());
@@ -85,13 +81,7 @@ public class ValidationCTL extends AbstractCTL implements IValidationCTL {
 			docT = Jsoup.parse(cda);
 			workflowInstanceId = CdaUtility.getWorkflowInstanceId(docT);
 
-
-			log.info("[START] {}() with arguments {}={}, {}={}",
-				"validate",
-				"traceId", traceInfoDTO.getTraceID(),
-				"wif", workflowInstanceId
-			);
-
+			log.info("[START] {}() with arguments {}={}, {}={}","validate","traceId", traceInfoDTO.getTraceID(),"wif", workflowInstanceId);
 
 			validateJWT(jwtToken, cda);
 			
@@ -141,4 +131,5 @@ public class ValidationCTL extends AbstractCTL implements IValidationCTL {
 
 		return new ResponseEntity<>(new ValidationResDTO(traceInfoDTO, workflowInstanceId, warning), HttpStatus.OK);
 	}
+	
 }
