@@ -39,6 +39,7 @@ import com.google.gson.Gson;
 
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.IEdsClient;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.IIniClient;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.AccreditationSimulationCFG;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants.Misc;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.ValidationCFG;
@@ -129,6 +130,9 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 	
 	@Autowired
 	private IAccreditamentoSimulationSRV accreditamentoSimulationSRV;
+	
+	@Autowired
+	private AccreditationSimulationCFG accreditationSimulationCFG;
  
 	
 	@Override
@@ -394,9 +398,11 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 			final byte[] bytePDF = getAndValidateFile(file);
 			validation.setFile(bytePDF);
 			
-			AccreditamentoSimulationDTO simulatedResult = accreditamentoSimulationSRV.runSimulation(jsonObj.getIdentificativoDoc(), bytePDF, isReplace ? EventTypeEnum.REPLACE : EventTypeEnum.PUBLICATION);
-			if(simulatedResult!=null) {
-				jsonObj.setWorkflowInstanceId(simulatedResult.getWorkflowInstanceId());
+			if(accreditationSimulationCFG.isEnableCheck()) {
+				AccreditamentoSimulationDTO simulatedResult = accreditamentoSimulationSRV.runSimulation(jsonObj.getIdentificativoDoc(), bytePDF, isReplace ? EventTypeEnum.REPLACE : EventTypeEnum.PUBLICATION);
+				if(simulatedResult!=null) {
+					jsonObj.setWorkflowInstanceId(simulatedResult.getWorkflowInstanceId());
+				}
 			}
 			
 			final String cda = extractCDA(bytePDF, jsonObj.getMode());
