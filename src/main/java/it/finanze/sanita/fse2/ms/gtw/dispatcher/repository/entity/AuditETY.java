@@ -26,4 +26,6 @@ public class AuditETY {
 	private Object response;
 	
 	private String jwt_issuer;
+	
+	private String httpMethod;
 }

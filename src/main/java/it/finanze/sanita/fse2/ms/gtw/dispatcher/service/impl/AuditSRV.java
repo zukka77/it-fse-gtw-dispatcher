@@ -9,6 +9,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Component;
 
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.BusinessException;
@@ -47,9 +48,18 @@ public class AuditSRV implements IAuditSRV {
 				audit.setRequest(StringUtility.fromJSON(requestBody[0], Object.class));
 				audit.setResponse(body);
 				audit.setJwt_issuer((String)httpServletRequest.getAttribute("JWT_ISSUER"));
+				audit.setHttpMethod(httpServletRequest.getMethod());
 				httpServletRequest.removeAttribute("JWT_ISSUER");
 				auditServiceRepo.save(audit);
-			}
+			} else if(HttpMethod.DELETE.toString().equals(httpServletRequest.getMethod())) {
+				AuditETY audit = new AuditETY();
+				audit.setServizio(httpServletRequest.getRequestURI());
+				audit.setStart_time(new Date());
+				audit.setEnd_time(new Date());
+				audit.setResponse(body);
+				audit.setHttpMethod(httpServletRequest.getMethod());
+				auditServiceRepo.save(audit);
+			} 
 		} catch(Exception ex) {
 			log.error("Errore nel salvataggio dell'audit : ", ex);
 			throw new BusinessException("Errore nel salvataggio dell'audit : ", ex);
