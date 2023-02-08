@@ -49,6 +49,9 @@ public class AccreditamentoSimulationSRV implements IAccreditamentoSimulationSRV
 				simulateTimeout();
 				break;
 			case SKIP_VALIDATION:
+			case CRASH_WF_EDS:
+			case CRASH_INI:
+			case CRASH_EDS:
 				String wii = simulateSkipValidation(pdf);
 				output = new AccreditamentoSimulationDTO(wii);  
 				break;

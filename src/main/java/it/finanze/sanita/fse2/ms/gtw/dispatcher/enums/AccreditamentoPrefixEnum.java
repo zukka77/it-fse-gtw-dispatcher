@@ -9,7 +9,10 @@ import lombok.Getter;
 public enum AccreditamentoPrefixEnum {
 
 	CRASH_TIMEOUT("CRASH_TIMEOUT"),
-	SKIP_VALIDATION("SKIP_VALIDATION"); 
+	SKIP_VALIDATION("SKIP_VALIDATION"),
+	CRASH_WF_EDS("CRASH_WF_EDS"),
+	CRASH_INI("CRASH_INI"),
+	CRASH_EDS("CRASH_EDS");
 	
 	private String prefix;
 	 
