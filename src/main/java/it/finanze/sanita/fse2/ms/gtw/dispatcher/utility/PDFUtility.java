@@ -18,6 +18,8 @@ import org.apache.pdfbox.pdmodel.PDDocumentCatalog;
 import org.apache.pdfbox.pdmodel.PDDocumentNameDictionary;
 import org.apache.pdfbox.pdmodel.PDEmbeddedFilesNameTreeNode;
 import org.apache.pdfbox.pdmodel.common.filespecification.PDComplexFileSpecification;
+import org.jsoup.Jsoup;
+import org.jsoup.parser.Parser;
 
 import com.lowagie.text.pdf.PRStream;
 import com.lowagie.text.pdf.PdfArray;
@@ -73,7 +75,7 @@ public class PDFUtility {
 		}
 	    return out;
 	}
-	
+ 
 	public static String unenvelopeA2(byte[] pdf) {
 		String out = null;
 		String errorMsg = "No CDA found.";
@@ -98,6 +100,8 @@ public class PDFUtility {
 												PRStream cdaPRStream = (PRStream) pdfReader.getPdfObject(cdaIndirect.getNumber());
 												if (cdaPRStream != null) {
 													out = new String(PdfReader.getStreamBytes(cdaPRStream));
+													org.jsoup.nodes.Document doc = Jsoup.parse(out, "", Parser.xmlParser());
+											        out = doc.select("ClinicalDocument").first().toString();
 												} else {
 													errorMsg = "PRStream cdaPRStream [element 1] is null";
 												}
