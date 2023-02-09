@@ -4,20 +4,26 @@
 package it.finanze.sanita.fse2.ms.gtw.dispatcher.utility;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamReader;
+import javax.xml.xpath.XPathExpressionException;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDDocumentCatalog;
 import org.apache.pdfbox.pdmodel.PDDocumentNameDictionary;
 import org.apache.pdfbox.pdmodel.PDEmbeddedFilesNameTreeNode;
 import org.apache.pdfbox.pdmodel.common.filespecification.PDComplexFileSpecification;
+import org.jsoup.Jsoup;
+import org.jsoup.parser.Parser;
+import org.xml.sax.SAXException;
 
 import com.lowagie.text.pdf.PRStream;
 import com.lowagie.text.pdf.PdfArray;
@@ -57,7 +63,7 @@ public class PDFUtility {
 		}
 	    return out;
 	}
-	
+ 
 	public static String unenvelopeA2(byte[] pdf) {
 		String out = null;
 		String errorMsg = "No CDA found.";
@@ -82,6 +88,8 @@ public class PDFUtility {
 												PRStream cdaPRStream = (PRStream) pdfReader.getPdfObject(cdaIndirect.getNumber());
 												if (cdaPRStream != null) {
 													out = new String(PdfReader.getStreamBytes(cdaPRStream));
+													org.jsoup.nodes.Document doc = Jsoup.parse(out, "", Parser.xmlParser());
+											        out = doc.select("ClinicalDocument").first().toString();
 												} else {
 													errorMsg = "PRStream cdaPRStream [element 1] is null";
 												}
