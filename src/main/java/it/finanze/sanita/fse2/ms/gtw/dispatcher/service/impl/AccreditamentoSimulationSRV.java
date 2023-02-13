@@ -83,7 +83,10 @@ public class AccreditamentoSimulationSRV implements IAccreditamentoSimulationSRV
 		Document docT = Jsoup.parse(cda);
 		String templateIdRoot = docT.select("templateid").get(0).attr("root");
 		String workflowInstanceId = CdaUtility.getWorkflowInstanceId(docT);
-		// Key is engine, value is transform
+		// If we skip validation, we won't have transformID and engineID in our
+		// ValidationInfoDTO, so we have to pick them by ourselves
+		// emulating the gtw-validator mechanism.
+		// getKey() returns engineID, getValue() returns transformID
 		Pair<String, String> id = engines.getStructureObjectID(templateIdRoot);
 		final String hashedCDA = StringUtility.encodeSHA256B64(cda);
 		cdaSRV.create(hashedCDA, workflowInstanceId, id.getValue(), id.getKey());
