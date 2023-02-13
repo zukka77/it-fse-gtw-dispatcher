@@ -29,6 +29,7 @@ public enum SubjectOrganizationEnum {
 	REGIONE_SICILIA("190", "Regione Sicilia"),
 	REGIONE_SARDEGNA("200", "Regione Sardegna"),
 	INI("000", "INI"),
+	SISTEMA_TS("970", "Sistema TS"),
 	SASN("001", "SASN"),
 	MDS("999", "MDS");
 

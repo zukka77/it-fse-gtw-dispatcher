@@ -3,11 +3,13 @@
  */
 package it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request;
 
+import java.util.Date;
 import java.util.List;
 
 import javax.validation.constraints.Size;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.AdministrativeReqEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.AttivitaClinicaEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.HealthDataFormatEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.HealthcareFacilityEnum;
@@ -50,6 +52,12 @@ public class PublicationCreationReqDTO extends PublicationMetadataReqDTO {
     @Schema(description = "Priorita")
     private Boolean priorita;
     
+    @Schema(description = "Descrizione")
+    private List<String> descriptions;
+    
+    @Schema(description = "Administrative")
+    private AdministrativeReqEnum administrativeRequest;
+    
     @Builder
     public PublicationCreationReqDTO(
     		String workflowInstanceId,
@@ -76,4 +84,7 @@ public class PublicationCreationReqDTO extends PublicationMetadataReqDTO {
     	this.priorita = priorita;
     }
     
+    public static void main(String[] args) {
+		System.out.println(new Date().getTime());
+	}
 }

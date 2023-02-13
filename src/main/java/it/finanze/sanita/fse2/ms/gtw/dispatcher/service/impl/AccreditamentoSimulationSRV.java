@@ -91,7 +91,6 @@ public class AccreditamentoSimulationSRV implements IAccreditamentoSimulationSRV
 		return workflowInstanceId;
 	}
  
-	//TODO - Chi la deve fare questa query? il validator o la può fare il dispatcher?
 	private org.bson.Document test(String templateIdRoot) {
 		Query query = new Query();
 		query.addCriteria(Criteria.where("template_id_root").is(templateIdRoot));
