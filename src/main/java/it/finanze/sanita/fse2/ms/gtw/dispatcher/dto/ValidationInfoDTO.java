@@ -21,6 +21,8 @@ public class ValidationInfoDTO {
 	
 	private List<String> message;
 	
-	private String transformID; 
+	private String transformID;
+
+	private String engineID;
 
 }
