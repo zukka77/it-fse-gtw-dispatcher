@@ -1,13 +1,5 @@
 package it.finanze.sanita.fse2.ms.gtw.dispatcher.service.impl;
 
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.query.Criteria;
-import org.springframework.data.mongodb.core.query.Query;
-import org.springframework.stereotype.Service;
-
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.CDACFG;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.AccreditamentoSimulationDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.ErrorResponseDTO;
@@ -19,10 +11,16 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.ConnectionRefusedExce
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.ValidationException;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.IAccreditamentoSimulationSRV;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.ICdaSRV;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.IEngineSRV;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.CdaUtility;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.PDFUtility;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.tuple.Pair;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 @Service
 @Slf4j
@@ -32,7 +30,7 @@ public class AccreditamentoSimulationSRV implements IAccreditamentoSimulationSRV
 	private ICdaSRV cdaSRV;
 	
 	@Autowired
-	private MongoTemplate mongoTemplate;
+	private IEngineSRV engines;
 	
 	@Autowired
 	private CDACFG cdaCFG;
@@ -85,15 +83,11 @@ public class AccreditamentoSimulationSRV implements IAccreditamentoSimulationSRV
 		Document docT = Jsoup.parse(cda);
 		String templateIdRoot = docT.select("templateid").get(0).attr("root");
 		String workflowInstanceId = CdaUtility.getWorkflowInstanceId(docT);
-		org.bson.Document doc = test(templateIdRoot);
+		// Key is engine, value is transform
+		Pair<String, String> id = engines.getStructureObjectID(templateIdRoot);
 		final String hashedCDA = StringUtility.encodeSHA256B64(cda);
-		cdaSRV.create(hashedCDA, workflowInstanceId, doc.get("_id").toString());
+		cdaSRV.create(hashedCDA, workflowInstanceId, id.getValue(), id.getKey());
 		return workflowInstanceId;
 	}
- 
-	private org.bson.Document test(String templateIdRoot) {
-		Query query = new Query();
-		query.addCriteria(Criteria.where("template_id_root").is(templateIdRoot));
-		return mongoTemplate.findOne(query, org.bson.Document.class,"transform");
-	}
+
 }

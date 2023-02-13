@@ -24,6 +24,7 @@ public final class Constants {
 		 * Collection where validated documents info is saved
 		 */
 		public static final String AUDIT = "audit";
+		public static final String ENGINES = "engines";
 		
 
 		private Collections() {
