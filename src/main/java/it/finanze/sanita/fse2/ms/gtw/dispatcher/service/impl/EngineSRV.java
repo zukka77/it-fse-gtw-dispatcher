@@ -26,7 +26,7 @@ public class EngineSRV implements IEngineSRV {
 
             if(latest == null) throw new BusinessException("Nessun engine disponibile");
 
-            Optional<EngineMap> map = latest.getRoots().stream().filter(r -> r.getRoot().equals(templateId)).findFirst();
+            Optional<EngineMap> map = latest.getRoots().stream().filter(r -> r.getRoot().contains(templateId)).findFirst();
 
             if(!map.isPresent()) {
                 throw new BusinessException(

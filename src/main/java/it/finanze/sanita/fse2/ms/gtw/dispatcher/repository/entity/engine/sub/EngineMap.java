@@ -5,6 +5,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.mongodb.core.mapping.Field;
 
+import java.util.List;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -20,7 +22,7 @@ public class EngineMap {
     private String oid;
 
     @Field(FIELD_ROOT)
-    private String root;
+    private List<String> root;
 
     @Field(FIELD_URI)
     private String uri;
