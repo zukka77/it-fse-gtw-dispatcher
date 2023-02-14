@@ -52,11 +52,6 @@ public class PublicationCreationReqDTO extends PublicationMetadataReqDTO {
     @Schema(description = "Priorita")
     private Boolean priorita;
     
-    @Schema(description = "Descrizione")
-    private List<String> descriptions;
-    
-    @Schema(description = "Administrative")
-    private AdministrativeReqEnum administrativeRequest;
     
     @Builder
     public PublicationCreationReqDTO(
@@ -74,8 +69,10 @@ public class PublicationCreationReqDTO extends PublicationMetadataReqDTO {
     		String dataFinePrestazione, 
     		String conservazioneANorma,
     		AttivitaClinicaEnum tipoAttivitaClinica,
-    		String identificativoSottomissione) {
-    	super(tipologiaStruttura, attiCliniciRegoleAccesso, tipoDocumentoLivAlto, assettoOrganizzativo, dataInizioPrestazione, dataFinePrestazione, conservazioneANorma, tipoAttivitaClinica, identificativoSottomissione);
+    		String identificativoSottomissione,
+    		List<String> descriptions, AdministrativeReqEnum administrativeRequest) {
+    	super(tipologiaStruttura, attiCliniciRegoleAccesso, tipoDocumentoLivAlto, assettoOrganizzativo, dataInizioPrestazione, dataFinePrestazione, conservazioneANorma, tipoAttivitaClinica, identificativoSottomissione,
+    			descriptions,administrativeRequest);
     	this.workflowInstanceId = workflowInstanceId;
     	this.healthDataFormat = healthDataFormat;
     	this.mode = mode;

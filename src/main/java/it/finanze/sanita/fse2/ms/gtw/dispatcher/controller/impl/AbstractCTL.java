@@ -6,6 +6,7 @@ package it.finanze.sanita.fse2.ms.gtw.dispatcher.controller.impl;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Base64;
+import java.util.List;
 
 import javax.annotation.Nullable;
 import javax.servlet.http.HttpServletRequest;
@@ -44,7 +45,6 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.ConnectionRefusedExce
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.ValidationException;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.IJwtSRV;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.facade.ICdaFacadeSRV;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.FileUtility;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.PDFUtility;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility;
 import lombok.extern.slf4j.Slf4j;
@@ -157,7 +157,6 @@ public abstract class AbstractCTL {
  
     protected String checkPublicationMandatoryElements(final PublicationCreationReqDTO jsonObj, final boolean isReplace) {
     	String out = null;
-
     	if (StringUtility.isNullOrEmpty(jsonObj.getIdentificativoDoc()) && !isReplace) {
     		out = "Il campo identificativo documento deve essere valorizzato.";
     	} else if (StringUtility.isNullOrEmpty(jsonObj.getIdentificativoRep())) {
@@ -172,7 +171,13 @@ public abstract class AbstractCTL {
     		out = "Il campo identificativo sottomissione deve essere valorizzato.";
     	} else if(jsonObj.getTipologiaStruttura()==null) {
     		out = "Il campo tipologia struttura deve essere valorizzato.";
-    	} else if(jsonObj.getAttiCliniciRegoleAccesso()!=null) {
+    	} 
+
+    	if(out==null && jsonObj.getDescriptions()!=null) {
+    		out = validateDescriptions(jsonObj.getDescriptions());
+    	} 
+
+    	if(out==null && jsonObj.getAttiCliniciRegoleAccesso()!=null) {
     		for(String attoClinico : jsonObj.getAttiCliniciRegoleAccesso()) {
     			if(EventCodeEnum.fromValue(attoClinico)==null) {
     				out = "Il campo atti clinici " + attoClinico + " non è consentito";
@@ -182,6 +187,20 @@ public abstract class AbstractCTL {
     	return out;
     }
 
+    private String validateDescriptions(final List<String> descriptions) {
+    	String out = null;
+    	for(String description : descriptions) {
+    		String[] splitDescription = description.split("\\^");
+    		if(splitDescription.length!=3) {
+    			out = "Valorizzare correttamente il campo descriptions rispettando la forma: [CODICE]^[Descrizione]^[OID]";
+    			break;
+    		}
+    		
+    		//TODO - Aggiungere enum quando abbiamo la version completa
+    	}
+    	return out;
+    }
+    
 	protected String checkUpdateMandatoryElements(final PublicationMetadataReqDTO jsonObj) {
 		String out = null;
 		if (jsonObj.getAttiCliniciRegoleAccesso() != null) {
@@ -190,7 +209,11 @@ public abstract class AbstractCTL {
 					out = "Il campo atti clinici " + attoClinico + " non è consentito";
 				}
 			}
-		}
+		} 
+
+		if(out==null && jsonObj.getDescriptions()!=null) {
+    		validateDescriptions(jsonObj.getDescriptions());
+    	}
 		return out;
 	}
 
@@ -516,11 +539,5 @@ public abstract class AbstractCTL {
     	return out;
     }
   
-    
-    public static void main(String[] args) {
-    	byte[] bytesPDF = FileUtility.getFileFromInternalResources("WEW809_IN.pdf");
-    	String out = PDFUtility.unenvelopeA2(bytesPDF);
-    	System.out.println("Stop");
-	}
 
 }

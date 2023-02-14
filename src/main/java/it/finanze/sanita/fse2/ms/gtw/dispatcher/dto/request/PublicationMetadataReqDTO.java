@@ -10,6 +10,7 @@ import javax.validation.constraints.Size;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Schema;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.AbstractDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.AdministrativeReqEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.AttivitaClinicaEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.HealthcareFacilityEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.PracticeSettingCodeEnum;
@@ -29,15 +30,15 @@ public class PublicationMetadataReqDTO extends AbstractDTO {
 	private HealthcareFacilityEnum tipologiaStruttura;
 
 	@Size(min = 0, max = 100)
-    @ArraySchema(schema = @Schema(maxLength = 1000, description = "Regola di accesso"))
+	@ArraySchema(schema = @Schema(maxLength = 1000, description = "Regola di accesso"))
 	private List<String> attiCliniciRegoleAccesso;
-	
+
 	@Schema(description = "Tipo documento alto livello", required = true)
 	private TipoDocAltoLivEnum tipoDocumentoLivAlto;
 
 	@Schema(description = "Assetto organizzativo che ha portato alla creazione del documento", required = true)
 	private PracticeSettingCodeEnum assettoOrganizzativo;
-	 
+
 	@Schema(description = "Data inizio prestazione")
 	@Size(min = 0, max = 100)
 	private String dataInizioPrestazione;
@@ -56,5 +57,11 @@ public class PublicationMetadataReqDTO extends AbstractDTO {
 	@Schema(description = "Identificativo sottomissione",required = true)
 	@Size(min = 0, max = 100)
 	private String identificativoSottomissione;
+
+	@Schema(description = "Descrizione")
+	private List<String> descriptions;
+
+	@Schema(description = "Administrative")
+	private AdministrativeReqEnum administrativeRequest;
 
 }
