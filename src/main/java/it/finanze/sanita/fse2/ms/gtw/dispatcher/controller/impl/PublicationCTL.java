@@ -379,26 +379,32 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 
 			validateDocumentHash(documentSha256, validation.getJwtPayloadToken());
 
-			final ResourceDTO fhirResourcesDTO = documentReferenceSRV.createFhirResources(cda, jsonObj, bytePDF.length, documentSha256, jwtPayloadToken.getPerson_id(), transformId, engineId);
-
-			validation.setFhirResource(fhirResourcesDTO);
-
-			if(!isNullOrEmpty(fhirResourcesDTO.getErrorMessage())) {
-				final ErrorResponseDTO error = ErrorResponseDTO.builder()
-						.type(FHIR_MAPPING_ERROR.getType())
-						.title(FHIR_MAPPING_ERROR.getTitle())
-						.instance(ErrorInstanceEnum.FHIR_RESOURCE_ERROR.getInstance())
-						.detail(fhirResourcesDTO.getErrorMessage()).build();
-
-				throw new ValidationException(error);
-			}
-
+			ResourceDTO fhirMappingResult = callFhirMappingEngine(transformId, engineId, jwtPayloadToken, jsonObj, bytePDF, cda,documentSha256);
+			validation.setFhirResource(fhirMappingResult);
 		} catch (final ValidationException ve) {
 			cdaSRV.consumeHash(validationInfo.getHash());
 			validation.setValidationError(ve);
 		}
 
 		return validation;
+	}
+
+	private ResourceDTO callFhirMappingEngine(String transformId, String engineId,
+			final JWTPayloadDTO jwtPayloadToken, PublicationCreationReqDTO jsonObj, final byte[] bytePDF,
+			final String cda, final String documentSha256) {
+		final ResourceDTO fhirResourcesDTO = documentReferenceSRV.createFhirResources(cda, jsonObj, bytePDF.length, documentSha256, jwtPayloadToken.getPerson_id(), transformId, engineId);
+
+		if(!isNullOrEmpty(fhirResourcesDTO.getErrorMessage())) {
+			final ErrorResponseDTO error = ErrorResponseDTO.builder()
+					.type(FHIR_MAPPING_ERROR.getType())
+					.title(FHIR_MAPPING_ERROR.getTitle())
+					.instance(ErrorInstanceEnum.FHIR_RESOURCE_ERROR.getInstance())
+					.detail(fhirResourcesDTO.getErrorMessage()).build();
+
+			throw new ValidationException(error);
+		}
+		
+		return fhirResourcesDTO;
 	}
 
 	@Override
