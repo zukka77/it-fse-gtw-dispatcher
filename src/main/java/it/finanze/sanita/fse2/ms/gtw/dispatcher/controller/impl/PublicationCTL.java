@@ -56,9 +56,9 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.IniMetadataUpdateReq
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.IniReferenceRequestDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.MergedMetadatiRequestDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.PublicationCreationReqDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.PublicationFatherCreationReqDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.PublicationMetadataReqDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.PublicationUpdateReqDTO;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.ValidationCDAReqDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.EdsResponseDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.ErrorResponseDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.GetMergedMetadatiDTO;
@@ -553,21 +553,21 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 	}
 
 	@Override
-	public ResponseEntity<PublicationResDTO> createAndValidate(PublicationCreationReqDTO requestBody,
+	public ResponseEntity<PublicationResDTO> createAndValidate(PublicationFatherCreationReqDTO requestBody,
 			MultipartFile file, HttpServletRequest request) {
 		final Date startDateOperation = new Date();
 		LogTraceInfoDTO traceInfoDTO = getLogTraceInfo();
 
 		String workflowInstanceId = Constants.App.MISSING_WORKFLOW_PLACEHOLDER;
 		JWTPayloadDTO jwtPayloadToken = null;
-		ValidationCDAReqDTO jsonObj = null;
+		PublicationCreationReqDTO jsonObj = null;
 		String warning = null;
 		Document docT = null;
  
 		try {
 			jwtPayloadToken = extractAndValidateJWT(request,EventTypeEnum.PUBLICATION);
 
-			jsonObj = getAndValidateValidationReq(request.getParameter("requestBody"));
+			jsonObj = getAndValidatePublicationReq(request.getParameter("requestBody"),false);
 			final byte[] bytes = getAndValidateFile(file);
 			final String cda = extractCDA(bytes, jsonObj.getMode());
 			docT = Jsoup.parse(cda);
@@ -577,20 +577,13 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 
 			validateJWT(jwtPayloadToken, cda);
 			
-			warning = validate(cda, jsonObj.getActivity(), workflowInstanceId);
-			String message = null;
-			if (jsonObj.getActivity().equals(ActivityEnum.VERIFICA)) {
-				message = "Attenzione - è stato chiamato l'endpoint di validazione con VERIFICA";
-			}
-
-			kafkaSRV.sendValidationStatus(traceInfoDTO.getTraceID(), workflowInstanceId, EventStatusEnum.SUCCESS,message, jwtPayloadToken);
-
-			String issuer = !StringUtility.isNullOrEmpty(jwtPayloadToken.getIss()) ? jwtPayloadToken.getIss()
-							: Constants.App.JWT_MISSING_ISSUER_PLACEHOLDER;
+			warning = validate(cda, ActivityEnum.VALIDATION, workflowInstanceId);
 			 
+			kafkaSRV.sendValidationStatus(traceInfoDTO.getTraceID(), workflowInstanceId, EventStatusEnum.SUCCESS,null, jwtPayloadToken);
+
 			logger.info(Constants.App.LOG_TYPE_CONTROL,workflowInstanceId, "Validation CDA completed for workflow instance Id " + workflowInstanceId, OperationLogEnum.VAL_CDA2, ResultLogEnum.OK, startDateOperation, CdaUtility.getDocumentType(docT), 
 					jwtPayloadToken);
-			request.setAttribute("JWT_ISSUER", issuer);
+			request.setAttribute("JWT_ISSUER", jwtPayloadToken.getIss());
 		} catch (final ValidationException e) {
 			errorHandlerSRV.validationExceptionHandler(startDateOperation, traceInfoDTO, workflowInstanceId, jwtPayloadToken, e, CdaUtility.getDocumentType(docT));
 		}
@@ -605,7 +598,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 
 		log.info("[EXIT] {}() with arguments {}={}, {}={}","validate","traceId", traceInfoDTO.getTraceID(),"wif", workflowInstanceId);
 
-		log.info("[START] {}() with arguments {}={}, {}={}, {}={}","create","traceId", traceInfoDTO.getTraceID(),"wif", requestBody.getWorkflowInstanceId(),"idDoc", requestBody.getIdentificativoDoc());
+		log.info("[START] {}() with arguments {}={}, {}={}, {}={}","create","traceId", traceInfoDTO.getTraceID(),"wif", workflowInstanceId,"idDoc", requestBody.getIdentificativoDoc());
 
 		ValidationCreationInputDTO validationInfo = new ValidationCreationInputDTO();
 		validationInfo.setValidationData(new ValidationDataDTO(null, false, MISSING_WORKFLOW_PLACEHOLDER, null, null, new Date()));
@@ -645,7 +638,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 			warning = Misc.WARN_EXTRACTION_SELECTION;
 		}
 
-		log.info("[EXIT] {}() with arguments {}={}, {}={}, {}={}","create","traceId", traceInfoDTO.getTraceID(),"wif", requestBody.getWorkflowInstanceId(),"idDoc", requestBody.getIdentificativoDoc());
+		log.info("[EXIT] {}() with arguments {}={}, {}={}, {}={}","create","traceId", traceInfoDTO.getTraceID(),"wif", workflowInstanceId,"idDoc", requestBody.getIdentificativoDoc());
 
 		return new ResponseEntity<>(new PublicationResDTO(traceInfoDTO, warning, validationInfo.getValidationData().getWorkflowInstanceId()), HttpStatus.CREATED);
 	}
