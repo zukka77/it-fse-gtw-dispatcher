@@ -587,14 +587,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 		} catch (final ValidationException e) {
 			errorHandlerSRV.validationExceptionHandler(startDateOperation, traceInfoDTO, workflowInstanceId, jwtPayloadToken, e, CdaUtility.getDocumentType(docT));
 		}
-
-		if (jsonObj != null && jsonObj.getMode() == null) {
-			String schematronWarn = StringUtility.isNullOrEmpty(warning) ? "" : warning;
-			warning = "[" + schematronWarn + "[WARNING_EXTRACT]" + Constants.Misc.WARN_EXTRACTION_SELECTION + "]";
-		}
-
-		warning = StringUtility.isNullOrEmpty(warning) ? null : warning;
-		
+ 
 
 		log.info("[EXIT] {}() with arguments {}={}, {}={}","validate","traceId", traceInfoDTO.getTraceID(),"wif", workflowInstanceId);
 
