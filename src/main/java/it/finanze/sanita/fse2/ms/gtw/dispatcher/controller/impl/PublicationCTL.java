@@ -14,7 +14,6 @@ import static it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventTypeEnum.INI_U
 import static it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventTypeEnum.RIFERIMENTI_INI;
 import static it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.RestExecutionResultEnum.FHIR_MAPPING_ERROR;
 import static it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.RestExecutionResultEnum.INI_EXCEPTION;
-import static it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.RestExecutionResultEnum.OLDER_DAY;
 import static it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.RestExecutionResultEnum.get;
 import static it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.CdaUtility.createWorkflowInstanceId;
 import static it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.CdaUtility.extractFieldCda;
@@ -91,8 +90,8 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.IKafkaSRV;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.facade.ICdaFacadeSRV;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.impl.IniEdsInvocationSRV;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.CdaUtility;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.DateUtility;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.ValidationUtility;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -373,15 +372,8 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 			engineId = validatedDocument.getEngineID();
 			cdaSRV.consumeHash(validationInfo.getHash()); 
 
-			if(DateUtility.getDifferenceDays(validatedDocument.getInsertionDate(), new Date()) > validationCFG.getDaysAllowToPublishAfterValidation()) {
-				final ErrorResponseDTO error = ErrorResponseDTO.builder()
-						.type(OLDER_DAY.getType())
-						.title(OLDER_DAY.getTitle())
-						.instance(ErrorInstanceEnum.OLDER_DAY.getInstance())
-						.detail("Error: cannot publish documents older than " + validationCFG.getDaysAllowToPublishAfterValidation() + " days").build();
-				throw new ValidationException(error); 
-			}
-
+			ValidationUtility.checkDayAfterValidation(validatedDocument.getInsertionDate(), validationCFG.getDaysAllowToPublishAfterValidation());
+			
 			final String documentSha256 = encodeSHA256(bytePDF);
 			validation.setDocumentSha(documentSha256);
 
