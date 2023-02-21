@@ -3,7 +3,6 @@
  */
 package it.finanze.sanita.fse2.ms.gtw.dispatcher.controller.impl;
 
-import static it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants.App.JWT_MISSING_ISSUER_PLACEHOLDER;
 import static it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants.App.MISSING_DOC_TYPE_PLACEHOLDER;
 import static it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants.App.MISSING_WORKFLOW_PLACEHOLDER;
 import static it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventStatusEnum.BLOCKING_ERROR;
@@ -48,7 +47,6 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.controller.IPublicationCTL;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.AccreditamentoSimulationDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.IndexerValueDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.JWTPayloadDTO;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.JWTTokenDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.ResourceDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.ValidationCreationInputDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.ValidationDataDTO;
@@ -60,7 +58,6 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.MergedMetadatiReques
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.PublicationCreationReqDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.PublicationMetadataReqDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.PublicationUpdateReqDTO;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.ValidationCDAReqDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.EdsResponseDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.ErrorResponseDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.GetMergedMetadatiDTO;
@@ -69,7 +66,6 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.IniTraceResponseDTO
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.LogTraceInfoDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.PublicationResDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.ResponseWifDTO;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.ValidationResDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ActivityEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.DestinationTypeEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ErrorInstanceEnum;
@@ -164,11 +160,11 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 				throw validationInfo.getValidationError();
 			}
 
-			subjApplicationId = validationInfo.getJwtToken().getPayload().getSubject_application_id(); 
-			subjApplicationVendor = validationInfo.getJwtToken().getPayload().getSubject_application_vendor();
-			subjApplicationVersion = validationInfo.getJwtToken().getPayload().getSubject_application_version();
+			subjApplicationId = validationInfo.getJwtPayloadToken().getSubject_application_id(); 
+			subjApplicationVendor = validationInfo.getJwtPayloadToken().getSubject_application_vendor();
+			subjApplicationVersion = validationInfo.getJwtPayloadToken().getSubject_application_version();
 
-			iniInvocationSRV.insert(validationInfo.getValidationData().getWorkflowInstanceId(), validationInfo.getFhirResource(), validationInfo.getJwtToken());
+			iniInvocationSRV.insert(validationInfo.getValidationData().getWorkflowInstanceId(), validationInfo.getFhirResource(), validationInfo.getJwtPayloadToken());
 			
 			PriorityTypeEnum priorityType = PriorityTypeEnum.NULL;
 			if (validationInfo.getJsonObj().getPriorita() != null) {
@@ -181,17 +177,17 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 			kafkaValue.setEdsDPOperation(ProcessorOperationEnum.PUBLISH);
 
 			kafkaSRV.notifyChannel(validationInfo.getKafkaKey(), new Gson().toJson(kafkaValue), priorityType, validationInfo.getJsonObj().getTipoDocumentoLivAlto(), DestinationTypeEnum.INDEXER);
-			kafkaSRV.sendPublicationStatus(traceInfoDTO.getTraceID(), validationInfo.getValidationData().getWorkflowInstanceId(), SUCCESS, null, validationInfo.getJsonObj(), validationInfo.getJwtToken() != null ? validationInfo.getJwtToken().getPayload() : null);
+			kafkaSRV.sendPublicationStatus(traceInfoDTO.getTraceID(), validationInfo.getValidationData().getWorkflowInstanceId(), SUCCESS, null, validationInfo.getJsonObj(), validationInfo.getJwtPayloadToken());
 			
-			role = validationInfo.getJwtToken().getPayload().getSubject_role();
-			locality = validationInfo.getJwtToken().getPayload().getLocality();
-			subjectFiscalCode = CfUtility.extractFiscalCodeFromJwtSub(validationInfo.getJwtToken().getPayload().getSub());
-			logger.info(Constants.App.LOG_TYPE_CONTROL,validationInfo.getValidationData().getWorkflowInstanceId(),String.format("Publication CDA completed for workflow instance id %s", validationInfo.getValidationData().getWorkflowInstanceId()), OperationLogEnum.PUB_CDA2, ResultLogEnum.OK, startDateOperation, validationInfo.getJwtToken().getPayload().getIss(), getDocumentType(validationInfo.getDocument()), role, subjectFiscalCode, locality,
+			role = validationInfo.getJwtPayloadToken().getSubject_role();
+			locality = validationInfo.getJwtPayloadToken().getLocality();
+			subjectFiscalCode = CfUtility.extractFiscalCodeFromJwtSub(validationInfo.getJwtPayloadToken().getSub());
+			logger.info(Constants.App.LOG_TYPE_CONTROL,validationInfo.getValidationData().getWorkflowInstanceId(),String.format("Publication CDA completed for workflow instance id %s", validationInfo.getValidationData().getWorkflowInstanceId()), OperationLogEnum.PUB_CDA2, ResultLogEnum.OK, startDateOperation, validationInfo.getJwtPayloadToken().getIss(), getDocumentType(validationInfo.getDocument()), role, subjectFiscalCode, locality,
 					subjApplicationId, subjApplicationVendor,subjApplicationVersion);
 		} catch (ConnectionRefusedException ce) {
-			errorHandlerSRV.connectionRefusedExceptionHandler(startDateOperation, validationInfo.getValidationData(), validationInfo.getJwtToken(), validationInfo.getJsonObj(), traceInfoDTO, ce, true, getDocumentType(validationInfo.getDocument()));
+			errorHandlerSRV.connectionRefusedExceptionHandler(startDateOperation, validationInfo.getValidationData(), validationInfo.getJwtPayloadToken(), validationInfo.getJsonObj(), traceInfoDTO, ce, true, getDocumentType(validationInfo.getDocument()));
 		} catch (final ValidationException e) {
-			errorHandlerSRV.publicationValidationExceptionHandler(startDateOperation, validationInfo.getValidationData(), validationInfo.getJwtToken(), validationInfo.getJsonObj(), traceInfoDTO, e, true, getDocumentType(validationInfo.getDocument()));
+			errorHandlerSRV.publicationValidationExceptionHandler(startDateOperation, validationInfo.getValidationData(), validationInfo.getJwtPayloadToken(), validationInfo.getJsonObj(), traceInfoDTO, e, true, getDocumentType(validationInfo.getDocument()));
 		}
 
 		String warning = null;
@@ -231,11 +227,11 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 
 				log.info("[START] {}() with arguments {}={}, {}={}, {}={}","replace","traceId", traceInfoDTO.getTraceID(),"wif", validationInfo.getValidationData().getWorkflowInstanceId(),"idDoc", idDoc);
 				
-				subjApplicationId = validationInfo.getJwtToken().getPayload().getSubject_application_id(); 
-				subjApplicationVendor = validationInfo.getJwtToken().getPayload().getSubject_application_vendor();
-				subjApplicationVersion = validationInfo.getJwtToken().getPayload().getSubject_application_version();
+				subjApplicationId = validationInfo.getJwtPayloadToken().getSubject_application_id(); 
+				subjApplicationVendor = validationInfo.getJwtPayloadToken().getSubject_application_vendor();
+				subjApplicationVersion = validationInfo.getJwtPayloadToken().getSubject_application_version();
 				
-				IniReferenceRequestDTO iniReq = new IniReferenceRequestDTO(idDoc, validationInfo.getJwtToken().getPayload());
+				IniReferenceRequestDTO iniReq = new IniReferenceRequestDTO(idDoc, validationInfo.getJwtPayloadToken());
 				IniReferenceResponseDTO response = iniClient.reference(iniReq);
 				
 				if(!isNullOrEmpty(response.getErrorMessage())) {
@@ -245,7 +241,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 				
 
 				log.debug("Executing replace of document: {}", idDoc);
-				iniInvocationSRV.replace(validationInfo.getValidationData().getWorkflowInstanceId(), validationInfo.getFhirResource(), validationInfo.getJwtToken(), response.getUuid());
+				iniInvocationSRV.replace(validationInfo.getValidationData().getWorkflowInstanceId(), validationInfo.getFhirResource(), validationInfo.getJwtPayloadToken(), response.getUuid());
 				
 				final IndexerValueDTO kafkaValue = new IndexerValueDTO();
 				kafkaValue.setWorkflowInstanceId(validationInfo.getValidationData().getWorkflowInstanceId());
@@ -253,18 +249,18 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 				kafkaValue.setEdsDPOperation(ProcessorOperationEnum.REPLACE);
 				
 				kafkaSRV.notifyChannel(validationInfo.getKafkaKey(), new Gson().toJson(kafkaValue), PriorityTypeEnum.LOW, validationInfo.getJsonObj().getTipoDocumentoLivAlto(), DestinationTypeEnum.INDEXER);
-				kafkaSRV.sendReplaceStatus(traceInfoDTO.getTraceID(), validationInfo.getValidationData().getWorkflowInstanceId(), SUCCESS, null, validationInfo.getJsonObj(), validationInfo.getJwtToken() != null ? validationInfo.getJwtToken().getPayload() : null);
+				kafkaSRV.sendReplaceStatus(traceInfoDTO.getTraceID(), validationInfo.getValidationData().getWorkflowInstanceId(), SUCCESS, null, validationInfo.getJsonObj(), validationInfo.getJwtPayloadToken());
 
-				role = validationInfo.getJwtToken().getPayload().getSubject_role();
-				locality = validationInfo.getJwtToken().getPayload().getLocality();
-				subjectFiscalCode = CfUtility.extractFiscalCodeFromJwtSub(validationInfo.getJwtToken().getPayload().getSub());
+				role = validationInfo.getJwtPayloadToken().getSubject_role();
+				locality = validationInfo.getJwtPayloadToken().getLocality();
+				subjectFiscalCode = CfUtility.extractFiscalCodeFromJwtSub(validationInfo.getJwtPayloadToken().getSub());
 
-				logger.info(Constants.App.LOG_TYPE_CONTROL,validationInfo.getValidationData().getWorkflowInstanceId(),String.format("Replace CDA completed for workflow instance id %s", validationInfo.getValidationData().getWorkflowInstanceId()), OperationLogEnum.REPLACE_CDA2, ResultLogEnum.OK, startDateOperation, validationInfo.getJwtToken().getPayload().getIss(), getDocumentType(validationInfo.getDocument()), role, subjectFiscalCode, locality,
+				logger.info(Constants.App.LOG_TYPE_CONTROL,validationInfo.getValidationData().getWorkflowInstanceId(),String.format("Replace CDA completed for workflow instance id %s", validationInfo.getValidationData().getWorkflowInstanceId()), OperationLogEnum.REPLACE_CDA2, ResultLogEnum.OK, startDateOperation, validationInfo.getJwtPayloadToken().getIss(), getDocumentType(validationInfo.getDocument()), role, subjectFiscalCode, locality,
 						subjApplicationId, subjApplicationVendor, subjApplicationVersion);
 			} catch (ConnectionRefusedException ce) {
-				errorHandlerSRV.connectionRefusedExceptionHandler(startDateOperation, validationInfo.getValidationData(), validationInfo.getJwtToken(), validationInfo.getJsonObj(), traceInfoDTO, ce, false, getDocumentType(validationInfo.getDocument()));
+				errorHandlerSRV.connectionRefusedExceptionHandler(startDateOperation, validationInfo.getValidationData(), validationInfo.getJwtPayloadToken(), validationInfo.getJsonObj(), traceInfoDTO, ce, false, getDocumentType(validationInfo.getDocument()));
 			} catch (final ValidationException e) {
-				errorHandlerSRV.publicationValidationExceptionHandler(startDateOperation, validationInfo.getValidationData(), validationInfo.getJwtToken(), validationInfo.getJsonObj(), traceInfoDTO, e, false, getDocumentType(validationInfo.getDocument()));
+				errorHandlerSRV.publicationValidationExceptionHandler(startDateOperation, validationInfo.getValidationData(), validationInfo.getJwtPayloadToken(), validationInfo.getJsonObj(), traceInfoDTO, e, false, getDocumentType(validationInfo.getDocument()));
 			}
 	
 			String warning = null;
@@ -288,7 +284,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 	public ResponseWifDTO updateMetadata(final String idDoc, final PublicationMetadataReqDTO jsonObj, final HttpServletRequest request) {
 
 		// Estrazione token
-		JWTTokenDTO jwtToken = null;
+		JWTPayloadDTO jwtPayloadToken = null;
 		final Date startDateOperation = new Date();
 		LogTraceInfoDTO logTraceDTO = getLogTraceInfo();
 		String workflowInstanceId = createWorkflowInstanceId(idDoc);
@@ -305,63 +301,63 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 		String subjApplicationVendor = null;
 		String subjApplicationVersion = null;
 		try {
-			jwtToken = extractAndValidateJWT(request, EventTypeEnum.UPDATE);
+			jwtPayloadToken = extractAndValidateJWT(request, EventTypeEnum.UPDATE);
 
-			role = jwtToken.getPayload().getSubject_role();
-			locality = jwtToken.getPayload().getLocality();
-			subjectFiscalCode = CfUtility.extractFiscalCodeFromJwtSub(jwtToken.getPayload().getSub());
+			role = jwtPayloadToken.getSubject_role();
+			locality = jwtPayloadToken.getLocality();
+			subjectFiscalCode = CfUtility.extractFiscalCodeFromJwtSub(jwtPayloadToken.getSub());
 
 			validateUpdateMetadataReq(jsonObj);
 			
-			subjApplicationId = jwtToken.getPayload().getSubject_application_id(); 
-			subjApplicationVendor = jwtToken.getPayload().getSubject_application_vendor();
-			subjApplicationVersion = jwtToken.getPayload().getSubject_application_version(); 
+			subjApplicationId = jwtPayloadToken.getSubject_application_id(); 
+			subjApplicationVendor = jwtPayloadToken.getSubject_application_vendor();
+			subjApplicationVersion = jwtPayloadToken.getSubject_application_version(); 
 
-			final GetMergedMetadatiDTO metadatiToUpdate = iniClient.metadata(new MergedMetadatiRequestDTO(idDoc,jwtToken.getPayload(), jsonObj));
+			final GetMergedMetadatiDTO metadatiToUpdate = iniClient.metadata(new MergedMetadatiRequestDTO(idDoc,jwtPayloadToken, jsonObj));
 			if(!StringUtility.isNullOrEmpty(metadatiToUpdate.getErrorMessage()) && !metadatiToUpdate.getErrorMessage().contains("Invalid region ip")) {
-				kafkaSRV.sendUpdateStatus(logTraceDTO.getTraceID(), workflowInstanceId, idDoc, BLOCKING_ERROR, jwtToken.getPayload(), metadatiToUpdate.getErrorMessage(), RIFERIMENTI_INI);
+				kafkaSRV.sendUpdateStatus(logTraceDTO.getTraceID(), workflowInstanceId, idDoc, BLOCKING_ERROR, jwtPayloadToken, metadatiToUpdate.getErrorMessage(), RIFERIMENTI_INI);
 				throw new IniException(metadatiToUpdate.getErrorMessage());
 			} else {
 				boolean regimeDiMock = metadatiToUpdate!=null && metadatiToUpdate.getMarshallResponse()==null; 
 				
 				if(regimeDiMock) {
-					kafkaSRV.sendUpdateStatus(logTraceDTO.getTraceID(), workflowInstanceId, idDoc, SUCCESS, jwtToken.getPayload(), "Regime mock", RIFERIMENTI_INI);
+					kafkaSRV.sendUpdateStatus(logTraceDTO.getTraceID(), workflowInstanceId, idDoc, SUCCESS, jwtPayloadToken, "Regime mock", RIFERIMENTI_INI);
 				} else {
-					kafkaSRV.sendUpdateStatus(logTraceDTO.getTraceID(), workflowInstanceId, idDoc, SUCCESS, jwtToken.getPayload(), "Merge metadati effettuato correttamente", RIFERIMENTI_INI);
+					kafkaSRV.sendUpdateStatus(logTraceDTO.getTraceID(), workflowInstanceId, idDoc, SUCCESS, jwtPayloadToken, "Merge metadati effettuato correttamente", RIFERIMENTI_INI);
 				}
 				EdsResponseDTO edsResponse = edsClient.update(new EdsMetadataUpdateReqDTO(idDoc, workflowInstanceId, jsonObj));
 				if(edsResponse.isEsito()) {
-					kafkaSRV.sendUpdateStatus(logTraceDTO.getTraceID(), workflowInstanceId, idDoc, SUCCESS, jwtToken.getPayload(), "Update EDS effettuato correttamente", EDS_UPDATE);
+					kafkaSRV.sendUpdateStatus(logTraceDTO.getTraceID(), workflowInstanceId, idDoc, SUCCESS, jwtPayloadToken, "Update EDS effettuato correttamente", EDS_UPDATE);
 					if(regimeDiMock) {
-						kafkaSRV.sendUpdateStatus(logTraceDTO.getTraceID(), workflowInstanceId, idDoc, SUCCESS, jwtToken.getPayload(), "Regime di mock",
+						kafkaSRV.sendUpdateStatus(logTraceDTO.getTraceID(), workflowInstanceId, idDoc, SUCCESS, jwtPayloadToken, "Regime di mock",
 								INI_UPDATE);
 					} else {
-						IniTraceResponseDTO res = iniClient.update(new IniMetadataUpdateReqDTO(metadatiToUpdate.getMarshallResponse(), jwtToken.getPayload(),metadatiToUpdate.getDocumentType(),
+						IniTraceResponseDTO res = iniClient.update(new IniMetadataUpdateReqDTO(metadatiToUpdate.getMarshallResponse(), jwtPayloadToken,metadatiToUpdate.getDocumentType(),
 								workflowInstanceId));
 						// Check response errors
 						if(!StringUtility.isNullOrEmpty(res.getErrorMessage())) {
 							// Send to indexer
-							kafkaSRV.sendUpdateRequest(workflowInstanceId, new IniMetadataUpdateReqDTO(metadatiToUpdate.getMarshallResponse(), jwtToken.getPayload(), metadatiToUpdate.getDocumentType(),
+							kafkaSRV.sendUpdateRequest(workflowInstanceId, new IniMetadataUpdateReqDTO(metadatiToUpdate.getMarshallResponse(), jwtPayloadToken, metadatiToUpdate.getDocumentType(),
 									workflowInstanceId));
-							kafkaSRV.sendUpdateStatus(logTraceDTO.getTraceID(), workflowInstanceId, idDoc, EventStatusEnum.ASYNC_RETRY, jwtToken.getPayload(), "Transazione presa in carico", INI_UPDATE);
+							kafkaSRV.sendUpdateStatus(logTraceDTO.getTraceID(), workflowInstanceId, idDoc, EventStatusEnum.ASYNC_RETRY, jwtPayloadToken, "Transazione presa in carico", INI_UPDATE);
 							warning = Misc.WARN_ASYNC_TRANSACTION;
 						} else {
-							kafkaSRV.sendUpdateStatus(logTraceDTO.getTraceID(), workflowInstanceId, idDoc, SUCCESS, jwtToken.getPayload(), "Update ini effettuato correttamente", INI_UPDATE);
+							kafkaSRV.sendUpdateStatus(logTraceDTO.getTraceID(), workflowInstanceId, idDoc, SUCCESS, jwtPayloadToken, "Update ini effettuato correttamente", INI_UPDATE);
 						}
 					}  
 				} else {
-					kafkaSRV.sendUpdateStatus(logTraceDTO.getTraceID(), workflowInstanceId, idDoc, BLOCKING_ERROR, jwtToken.getPayload(), "Update EDS fallito", EDS_UPDATE);
+					kafkaSRV.sendUpdateStatus(logTraceDTO.getTraceID(), workflowInstanceId, idDoc, BLOCKING_ERROR, jwtPayloadToken, "Update EDS fallito", EDS_UPDATE);
 					throw new EdsException(edsResponse.getMessageError());
 				}
 
 			}
 
-			logger.info(Constants.App.LOG_TYPE_CONTROL,workflowInstanceId,String.format("Update of CDA metadata completed for document with identifier %s", idDoc), OperationLogEnum.UPDATE_METADATA_CDA2, ResultLogEnum.OK, startDateOperation, jwtToken.getPayload().getIss(), MISSING_DOC_TYPE_PLACEHOLDER, role, subjectFiscalCode, locality,
+			logger.info(Constants.App.LOG_TYPE_CONTROL,workflowInstanceId,String.format("Update of CDA metadata completed for document with identifier %s", idDoc), OperationLogEnum.UPDATE_METADATA_CDA2, ResultLogEnum.OK, startDateOperation, jwtPayloadToken.getIss(), MISSING_DOC_TYPE_PLACEHOLDER, role, subjectFiscalCode, locality,
 					subjApplicationId,subjApplicationVendor,subjApplicationVersion);
 		} catch (MockEnabledException me) {
 			throw me;
 		} catch (Exception e) {
-			final String issuer = jwtToken != null ? jwtToken.getPayload().getIss() : JWT_MISSING_ISSUER_PLACEHOLDER;
+			final String issuer = jwtPayloadToken.getIss();
 			RestExecutionResultEnum errorInstance = RestExecutionResultEnum.GENERIC_ERROR;
 			if (e instanceof ValidationException) {
 				errorInstance = get(((ValidationException) e).getError().getType());
@@ -395,8 +391,8 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 		String engineId = "";
 
 		try {
-			final JWTTokenDTO jwtToken = extractAndValidateJWT(request, isReplace ? EventTypeEnum.REPLACE : EventTypeEnum.PUBLICATION);
-			validation.setJwtToken(jwtToken);
+			final JWTPayloadDTO jwtPayloadToken = extractAndValidateJWT(request, isReplace ? EventTypeEnum.REPLACE : EventTypeEnum.PUBLICATION);
+			validation.setJwtPayloadToken(jwtPayloadToken);
 
 			PublicationCreationReqDTO jsonObj = getAndValidatePublicationReq(request.getParameter("requestBody"), isReplace);
 			validation.setJsonObj(jsonObj);
@@ -414,7 +410,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 			final String cda = extractCDA(bytePDF, jsonObj.getMode());
 			validation.setCda(cda);
 			
-			validateJWT(validation.getJwtToken(), cda);
+			validateJWT(validation.getJwtPayloadToken(), cda);
 			
 			final org.jsoup.nodes.Document docT = Jsoup.parse(cda);
 			final String key = extractFieldCda(docT);
@@ -442,10 +438,9 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 			final String documentSha256 = encodeSHA256(bytePDF);
 			validation.setDocumentSha(documentSha256);
 	
-			validateDocumentHash(documentSha256, validation.getJwtToken());
+			validateDocumentHash(documentSha256, validation.getJwtPayloadToken());
 	
-			final ResourceDTO fhirResourcesDTO = documentReferenceSRV.createFhirResources(cda, jsonObj, bytePDF.length, documentSha256,
-				validation.getJwtToken().getPayload().getPerson_id(), transformId, engineId);
+			final ResourceDTO fhirResourcesDTO = documentReferenceSRV.createFhirResources(cda, jsonObj, bytePDF.length, documentSha256, jwtPayloadToken.getPerson_id(), transformId, engineId);
 	
 			validation.setFhirResource(fhirResourcesDTO);
 			
@@ -476,7 +471,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 
 		log.info("[START] {}() with arguments {}={}, {}={}, {}={}","delete","traceId", info.getTraceID(),"wif", workflowInstanceId,"idDoc", idDoc);
 
-		JWTTokenDTO token = null;
+		JWTPayloadDTO jwtPayloadToken = null;
 		String role = Constants.App.JWT_MISSING_SUBJECT_ROLE;
 		String subjectFiscalCode = Constants.App.JWT_MISSING_SUBJECT;
 		String locality = Constants.App.JWT_MISSING_LOCALITY;
@@ -488,28 +483,28 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 		
 		try {
 			// Extract token
-			token = extractAndValidateJWT(request, EventTypeEnum.DELETE); 
+			jwtPayloadToken = extractAndValidateJWT(request, EventTypeEnum.DELETE); 
 			// Extract subject role
-			role = token.getPayload().getSubject_role();
-			locality = token.getPayload().getLocality();
+			role = jwtPayloadToken.getSubject_role();
+			locality = jwtPayloadToken.getLocality();
 			
-			subjApplicationId = token.getPayload().getSubject_application_id(); 
-			subjApplicationVendor = token.getPayload().getSubject_application_vendor();
-			subjApplicationVersion = token.getPayload().getSubject_application_version();
+			subjApplicationId = jwtPayloadToken.getSubject_application_id(); 
+			subjApplicationVendor = jwtPayloadToken.getSubject_application_vendor();
+			subjApplicationVersion = jwtPayloadToken.getSubject_application_version();
 			
 			
-			subjectFiscalCode = CfUtility.extractFiscalCodeFromJwtSub(token.getPayload().getSub());
+			subjectFiscalCode = CfUtility.extractFiscalCodeFromJwtSub(jwtPayloadToken.getSub());
 
 			// ==============================
 			// [1] Retrieve reference from INI
 			// ==============================
-			IniReferenceResponseDTO iniReference = iniClient.reference(new IniReferenceRequestDTO(idDoc, token.getPayload()));
+			IniReferenceResponseDTO iniReference = iniClient.reference(new IniReferenceRequestDTO(idDoc, jwtPayloadToken));
 			// Exit if necessary
 			if(!isNullOrEmpty(iniReference.getErrorMessage())) {
-				kafkaSRV.sendDeleteStatus(info.getTraceID(), workflowInstanceId, idDoc, iniReference.getErrorMessage(), BLOCKING_ERROR, token.getPayload(), RIFERIMENTI_INI);
+				kafkaSRV.sendDeleteStatus(info.getTraceID(), workflowInstanceId, idDoc, iniReference.getErrorMessage(), BLOCKING_ERROR, jwtPayloadToken, RIFERIMENTI_INI);
 				throw new IniException(iniReference.getErrorMessage());	
 			} else {
-				kafkaSRV.sendDeleteStatus(info.getTraceID(), workflowInstanceId, idDoc, "Riferimenti trovati: " +iniReference.getUuid(), SUCCESS, token.getPayload(), RIFERIMENTI_INI);
+				kafkaSRV.sendDeleteStatus(info.getTraceID(), workflowInstanceId, idDoc, "Riferimenti trovati: " +iniReference.getUuid(), SUCCESS, jwtPayloadToken, RIFERIMENTI_INI);
 			}
 
 			// ==============================
@@ -521,18 +516,18 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 
 			if (!edsResponse.isEsito()) {
 				// Update transaction status
-				kafkaSRV.sendDeleteStatus(info.getTraceID(), workflowInstanceId, idDoc, edsResponse.getMessageError(), BLOCKING_ERROR, token.getPayload(), EDS_DELETE);
+				kafkaSRV.sendDeleteStatus(info.getTraceID(), workflowInstanceId, idDoc, edsResponse.getMessageError(), BLOCKING_ERROR, jwtPayloadToken, EDS_DELETE);
 				throw new EdsException("Error encountered while sending delete information to EDS client");
 			} else {
 				// Update transaction status
-				kafkaSRV.sendDeleteStatus(info.getTraceID(), workflowInstanceId, idDoc, "Delete effettuata su eds", SUCCESS, token.getPayload(), EDS_DELETE);
+				kafkaSRV.sendDeleteStatus(info.getTraceID(), workflowInstanceId, idDoc, "Delete effettuata su eds", SUCCESS, jwtPayloadToken, EDS_DELETE);
 			}
 
 
 			// ==============================
 			// [3] Send delete request to INI
 			// ==============================
-			DeleteRequestDTO deleteRequestDTO = buildRequestForIni(idDoc, iniReference.getUuid(), token,iniReference.getDocumentType(),
+			DeleteRequestDTO deleteRequestDTO = buildRequestForIni(idDoc, iniReference.getUuid(), jwtPayloadToken,iniReference.getDocumentType(),
 					subjApplicationId, subjApplicationVendor, subjApplicationVersion,workflowInstanceId);
 			IniTraceResponseDTO iniResponse = iniClient.delete(deleteRequestDTO);
 
@@ -548,27 +543,27 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 				// Send to indexer
 				kafkaSRV.sendDeleteRequest(workflowInstanceId, deleteRequestDTO);
 				// Update transaction status
-				kafkaSRV.sendDeleteStatus(info.getTraceID(), workflowInstanceId, idDoc, "Transazione presa in carico", EventStatusEnum.ASYNC_RETRY, token.getPayload(),
+				kafkaSRV.sendDeleteStatus(info.getTraceID(), workflowInstanceId, idDoc, "Transazione presa in carico", EventStatusEnum.ASYNC_RETRY, jwtPayloadToken,
 						INI_DELETE);
 				warning = Misc.WARN_ASYNC_TRANSACTION;
 			} else {
 				// Update transaction status
-				kafkaSRV.sendDeleteStatus(info.getTraceID(), workflowInstanceId, idDoc, "Delete effettuata su ini", SUCCESS, token.getPayload(), INI_DELETE);
+				kafkaSRV.sendDeleteStatus(info.getTraceID(), workflowInstanceId, idDoc, "Delete effettuata su ini", SUCCESS, jwtPayloadToken, INI_DELETE);
 			}
 
-			logger.info(Constants.App.LOG_TYPE_CONTROL,workflowInstanceId,String.format("Deletion of CDA completed for document with identifier %s", idDoc), OperationLogEnum.DELETE_CDA2, ResultLogEnum.OK, startOperation, token.getPayload().getIss(), MISSING_DOC_TYPE_PLACEHOLDER, role, subjectFiscalCode, locality,
+			logger.info(Constants.App.LOG_TYPE_CONTROL,workflowInstanceId,String.format("Deletion of CDA completed for document with identifier %s", idDoc), OperationLogEnum.DELETE_CDA2, ResultLogEnum.OK, startOperation, jwtPayloadToken.getIss(), MISSING_DOC_TYPE_PLACEHOLDER, role, subjectFiscalCode, locality,
 					subjApplicationId, subjApplicationVendor,subjApplicationVersion);
 		} catch(MockEnabledException me) {
 			throw me;
 		} catch(IniException inEx) {
-			final String issuer = token != null ? token.getPayload().getIss() : JWT_MISSING_ISSUER_PLACEHOLDER;
+			final String issuer = jwtPayloadToken.getIss();
 
 			logger.error(Constants.App.LOG_TYPE_CONTROL,workflowInstanceId,String.format("Error while delete record from ini %s", idDoc), OperationLogEnum.DELETE_CDA2, ResultLogEnum.KO, startOperation, INI_EXCEPTION.getErrorCategory(), issuer, MISSING_DOC_TYPE_PLACEHOLDER, role, subjectFiscalCode, locality,
 					subjApplicationId, subjApplicationVendor,subjApplicationVersion);
 			throw inEx;
 			
 		} catch (Exception e) {
-			final String issuer = token != null ? token.getPayload().getIss() : JWT_MISSING_ISSUER_PLACEHOLDER;
+			final String issuer = jwtPayloadToken.getIss();
 			RestExecutionResultEnum errorInstance = RestExecutionResultEnum.GENERIC_ERROR;
 			if (e instanceof ValidationException) {
 				errorInstance = get(((ValidationException) e).getError().getType());
@@ -590,26 +585,25 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 		return new ResponseWifDTO(workflowInstanceId, info, warning);
 	}
 	
-	private DeleteRequestDTO buildRequestForIni(final String identificativoDocumento, final String uuid, final JWTTokenDTO jwtTokenDTO,
+	private DeleteRequestDTO buildRequestForIni(final String identificativoDocumento, final String uuid, final JWTPayloadDTO jwtPayloadToken,
 			final String documentType, String applicationId, String applicationVendor, String applicationVersion,
 			final String workflowInstanceId) {
 		DeleteRequestDTO out = null;
 		try {
-			JWTPayloadDTO jwtPayloadDTO = jwtTokenDTO.getPayload();
 			out = DeleteRequestDTO.builder().
-					action_id(jwtPayloadDTO.getAction_id()).
+					action_id(jwtPayloadToken.getAction_id()).
 					idDoc(identificativoDocumento).
 					uuid(uuid).
-					iss(jwtPayloadDTO.getIss()).
-					locality(jwtPayloadDTO.getLocality()).
-					patient_consent(jwtPayloadDTO.getPatient_consent()).
-					person_id(jwtPayloadDTO.getPerson_id()).
-					purpose_of_use(jwtPayloadDTO.getPurpose_of_use()).
-					resource_hl7_type(jwtPayloadDTO.getResource_hl7_type()).
-					sub(jwtPayloadDTO.getSub()).
-					subject_organization_id(jwtPayloadDTO.getSubject_organization_id()).
-					subject_organization(jwtPayloadDTO.getSubject_organization()).
-					subject_role(jwtPayloadDTO.getSubject_role()).
+					iss(jwtPayloadToken.getIss()).
+					locality(jwtPayloadToken.getLocality()).
+					patient_consent(jwtPayloadToken.getPatient_consent()).
+					person_id(jwtPayloadToken.getPerson_id()).
+					purpose_of_use(jwtPayloadToken.getPurpose_of_use()).
+					resource_hl7_type(jwtPayloadToken.getResource_hl7_type()).
+					sub(jwtPayloadToken.getSub()).
+					subject_organization_id(jwtPayloadToken.getSubject_organization_id()).
+					subject_organization(jwtPayloadToken.getSubject_organization()).
+					subject_role(jwtPayloadToken.getSubject_role()).
 					documentType(documentType).
 					subject_application_id(applicationId).
 					subject_application_vendor(applicationVendor).
@@ -630,7 +624,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 		LogTraceInfoDTO traceInfoDTO = getLogTraceInfo();
 
 		String workflowInstanceId = Constants.App.MISSING_WORKFLOW_PLACEHOLDER;
-		JWTTokenDTO jwtToken = null;
+		JWTPayloadDTO jwtPayloadToken = null;
 		PublicationCreationReqDTO jsonObj = null;
 		String warning = null;
 		Document docT = null;
@@ -643,10 +637,10 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 		String subjApplicationVersion = null;
 		
 		try {
-			jwtToken = extractAndValidateJWT(request,EventTypeEnum.PUBLICATION);
+			jwtPayloadToken = extractAndValidateJWT(request,EventTypeEnum.PUBLICATION);
 
-			role = jwtToken.getPayload().getSubject_role();
-			subjectFiscalCode = CfUtility.extractFiscalCodeFromJwtSub(jwtToken.getPayload().getSub());
+			role = jwtPayloadToken.getSubject_role();
+			subjectFiscalCode = CfUtility.extractFiscalCodeFromJwtSub(jwtPayloadToken.getSub());
 			jsonObj = getAndValidatePublicationReq(request.getParameter("requestBody"),false);
 			final byte[] bytes = getAndValidateFile(file);
 			final String cda = extractCDA(bytes, jsonObj.getMode());
@@ -655,28 +649,28 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 
 			log.info("[START] {}() with arguments {}={}, {}={}","validate","traceId", traceInfoDTO.getTraceID(),"wif", workflowInstanceId);
 
-			validateJWT(jwtToken, cda);
+			validateJWT(jwtPayloadToken, cda);
 			
-			subjApplicationId = jwtToken.getPayload().getSubject_application_id(); 
-			subjApplicationVendor = jwtToken.getPayload().getSubject_application_vendor();
-			subjApplicationVersion = jwtToken.getPayload().getSubject_application_version();
+			subjApplicationId = jwtPayloadToken.getSubject_application_id(); 
+			subjApplicationVendor = jwtPayloadToken.getSubject_application_vendor();
+			subjApplicationVersion = jwtPayloadToken.getSubject_application_version();
 			
 			warning = validate(cda, ActivityEnum.VALIDATION, workflowInstanceId);
 
-			kafkaSRV.sendValidationStatus(traceInfoDTO.getTraceID(), workflowInstanceId, EventStatusEnum.SUCCESS,null, jwtToken != null ? jwtToken.getPayload() : null);
+			kafkaSRV.sendValidationStatus(traceInfoDTO.getTraceID(), workflowInstanceId, EventStatusEnum.SUCCESS,null, jwtPayloadToken);
 
-			String issuer = (jwtToken != null && jwtToken.getPayload() != null
-					&& !StringUtility.isNullOrEmpty(jwtToken.getPayload().getIss())) ? jwtToken.getPayload().getIss()
+			String issuer = (jwtPayloadToken != null
+					&& !StringUtility.isNullOrEmpty(jwtPayloadToken.getIss())) ? jwtPayloadToken.getIss()
 							: Constants.App.JWT_MISSING_ISSUER_PLACEHOLDER;
-			String locality = (jwtToken != null && jwtToken.getPayload() != null
-					&& !StringUtility.isNullOrEmpty(jwtToken.getPayload().getLocality())) ? jwtToken.getPayload().getLocality()
+			String locality = (jwtPayloadToken != null
+					&& !StringUtility.isNullOrEmpty(jwtPayloadToken.getLocality())) ? jwtPayloadToken.getLocality()
 							: Constants.App.JWT_MISSING_LOCALITY;
 
 			logger.info(Constants.App.LOG_TYPE_CONTROL,workflowInstanceId, "Validation CDA completed for workflow instance Id " + workflowInstanceId, OperationLogEnum.VAL_CDA2, ResultLogEnum.OK, startDateOperation, issuer, CdaUtility.getDocumentType(docT), role, subjectFiscalCode, locality,
 					subjApplicationId,subjApplicationVendor,subjApplicationVersion);
 			request.setAttribute("JWT_ISSUER", issuer);
 		} catch (final ValidationException e) {
-			errorHandlerSRV.validationExceptionHandler(startDateOperation, traceInfoDTO, workflowInstanceId, jwtToken,
+			errorHandlerSRV.validationExceptionHandler(startDateOperation, traceInfoDTO, workflowInstanceId, jwtPayloadToken,
 					e, CdaUtility.getDocumentType(docT));
 		}
 
@@ -707,11 +701,11 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 				throw validationInfo.getValidationError();
 			}
 
-			subjApplicationId = validationInfo.getJwtToken().getPayload().getSubject_application_id(); 
-			subjApplicationVendor = validationInfo.getJwtToken().getPayload().getSubject_application_vendor();
-			subjApplicationVersion = validationInfo.getJwtToken().getPayload().getSubject_application_version();
+			subjApplicationId = validationInfo.getJwtPayloadToken().getSubject_application_id(); 
+			subjApplicationVendor = validationInfo.getJwtPayloadToken().getSubject_application_vendor();
+			subjApplicationVersion = validationInfo.getJwtPayloadToken().getSubject_application_version();
 
-			iniInvocationSRV.insert(validationInfo.getValidationData().getWorkflowInstanceId(), validationInfo.getFhirResource(), validationInfo.getJwtToken());
+			iniInvocationSRV.insert(validationInfo.getValidationData().getWorkflowInstanceId(), validationInfo.getFhirResource(), validationInfo.getJwtPayloadToken());
 			
 			PriorityTypeEnum priorityType = PriorityTypeEnum.NULL;
 			if (validationInfo.getJsonObj().getPriorita() != null) {
@@ -724,17 +718,17 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 			kafkaValue.setEdsDPOperation(ProcessorOperationEnum.PUBLISH);
 
 			kafkaSRV.notifyChannel(validationInfo.getKafkaKey(), new Gson().toJson(kafkaValue), priorityType, validationInfo.getJsonObj().getTipoDocumentoLivAlto(), DestinationTypeEnum.INDEXER);
-			kafkaSRV.sendPublicationStatus(traceInfoDTO.getTraceID(), validationInfo.getValidationData().getWorkflowInstanceId(), SUCCESS, null, validationInfo.getJsonObj(), validationInfo.getJwtToken() != null ? validationInfo.getJwtToken().getPayload() : null);
+			kafkaSRV.sendPublicationStatus(traceInfoDTO.getTraceID(), validationInfo.getValidationData().getWorkflowInstanceId(), SUCCESS, null, validationInfo.getJsonObj(), validationInfo.getJwtPayloadToken());
 			
-			role = validationInfo.getJwtToken().getPayload().getSubject_role();
-			locality = validationInfo.getJwtToken().getPayload().getLocality();
-			subjectFiscalCode = CfUtility.extractFiscalCodeFromJwtSub(validationInfo.getJwtToken().getPayload().getSub());
-			logger.info(Constants.App.LOG_TYPE_CONTROL,validationInfo.getValidationData().getWorkflowInstanceId(),String.format("Publication CDA completed for workflow instance id %s", validationInfo.getValidationData().getWorkflowInstanceId()), OperationLogEnum.PUB_CDA2, ResultLogEnum.OK, startDateOperation, validationInfo.getJwtToken().getPayload().getIss(), getDocumentType(validationInfo.getDocument()), role, subjectFiscalCode, locality,
+			role = validationInfo.getJwtPayloadToken().getSubject_role();
+			locality = validationInfo.getJwtPayloadToken().getLocality();
+			subjectFiscalCode = CfUtility.extractFiscalCodeFromJwtSub(validationInfo.getJwtPayloadToken().getSub());
+			logger.info(Constants.App.LOG_TYPE_CONTROL,validationInfo.getValidationData().getWorkflowInstanceId(),String.format("Publication CDA completed for workflow instance id %s", validationInfo.getValidationData().getWorkflowInstanceId()), OperationLogEnum.PUB_CDA2, ResultLogEnum.OK, startDateOperation, validationInfo.getJwtPayloadToken().getIss(), getDocumentType(validationInfo.getDocument()), role, subjectFiscalCode, locality,
 					subjApplicationId, subjApplicationVendor,subjApplicationVersion);
 		} catch (ConnectionRefusedException ce) {
-			errorHandlerSRV.connectionRefusedExceptionHandler(startDateOperation, validationInfo.getValidationData(), validationInfo.getJwtToken(), validationInfo.getJsonObj(), traceInfoDTO, ce, true, getDocumentType(validationInfo.getDocument()));
+			errorHandlerSRV.connectionRefusedExceptionHandler(startDateOperation, validationInfo.getValidationData(), validationInfo.getJwtPayloadToken(), validationInfo.getJsonObj(), traceInfoDTO, ce, true, getDocumentType(validationInfo.getDocument()));
 		} catch (final ValidationException e) {
-			errorHandlerSRV.publicationValidationExceptionHandler(startDateOperation, validationInfo.getValidationData(), validationInfo.getJwtToken(), validationInfo.getJsonObj(), traceInfoDTO, e, true, getDocumentType(validationInfo.getDocument()));
+			errorHandlerSRV.publicationValidationExceptionHandler(startDateOperation, validationInfo.getValidationData(), validationInfo.getJwtPayloadToken(), validationInfo.getJsonObj(), traceInfoDTO, e, true, getDocumentType(validationInfo.getDocument()));
 		}
 
 		if (validationInfo.getJsonObj().getMode() == null) {

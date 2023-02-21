@@ -217,12 +217,12 @@ public abstract class AbstractCTL {
 		return out;
 	}
 
-	protected JWTTokenDTO extractAndValidateJWT(final HttpServletRequest request ,final EventTypeEnum eventType) {
+	protected JWTPayloadDTO extractAndValidateJWT(final HttpServletRequest request ,final EventTypeEnum eventType) {
 		String extractedToken = Boolean.TRUE.equals(msCfg.getFromGovway()) ? request.getHeader(Headers.JWT_GOVWAY_HEADER) : request.getHeader(Headers.JWT_HEADER);
 		return extractAndValidateJWT(extractedToken,eventType);
 	}
 	
-	protected JWTTokenDTO extractAndValidateJWT(final String jwt,EventTypeEnum eventType) {
+	protected JWTPayloadDTO extractAndValidateJWT(final String jwt,EventTypeEnum eventType) {
 
 		final JWTTokenDTO token = extractJWT(jwt);
 		
@@ -246,7 +246,7 @@ public abstract class AbstractCTL {
 				throw new IllegalStateException("Unexpected value: " + eventType);
 		}
 
-		return token;
+		return token.getPayload();
 	}
 
 	private JWTTokenDTO extractJWT(final String jwt) {
@@ -305,13 +305,13 @@ public abstract class AbstractCTL {
 		return jwtToken;
 	}
 	
-	protected void validateJWT(final JWTTokenDTO jwtToken, final String cda) {
+	protected void validateJWT(final JWTPayloadDTO jwtPayloadToken, final String cda) {
 		Document docT = Jsoup.parse(cda);
-		validateResourceHl7Type(jwtToken, docT);
-		validatePersonId(jwtToken, docT);
+		validateResourceHl7Type(jwtPayloadToken, docT);
+		validatePersonId(jwtPayloadToken, docT);
 	}
 
-	private void validateResourceHl7Type(JWTTokenDTO jwtToken, Document docT) {
+	private void validateResourceHl7Type(JWTPayloadDTO jwtPayloadToken, Document docT) {
 		Elements element = docT.select("code");
 		if (element.isEmpty()) {
 			String message = "JWT payload: non è stato possibile verificare la tipologia del CDA";
@@ -321,13 +321,13 @@ public abstract class AbstractCTL {
 		String code = element.get(0).attr("code");
 		String codeSystem = element.get(0).attr("codeSystem");
 		String hl7Type = "('" + code + "^^" + codeSystem + "')";
-		if(!hl7Type.equals(jwtToken.getPayload().getResource_hl7_type())) {
+		if(!hl7Type.equals(jwtPayloadToken.getResource_hl7_type())) {
 			String message = "JWT payload: Tipologia documento diversa dalla tipologia di CDA (code - codesystem)";
 			throwInvalidTokenError(ErrorInstanceEnum.DOCUMENT_TYPE_MISMATCH, message);
 		}
 	}
 	
-	private void validatePersonId(JWTTokenDTO jwtToken, Document docT) {
+	private void validatePersonId(JWTPayloadDTO jwtPayloadToken, Document docT) {
 		Elements element = docT.select("patientRole > id");
 		if (element.isEmpty()) {
 			String message = "JWT payload: non è stato possibile verificare il codice fiscale del paziente presente nel CDA";
@@ -335,7 +335,7 @@ public abstract class AbstractCTL {
 		}
 		
 		String patientRoleCF = element.get(0).attr("extension");
-		String[] chunks = jwtToken.getPayload().getPerson_id().split("\\^");
+		String[] chunks = jwtPayloadToken.getPerson_id().split("\\^");
 		if(!chunks[0].equals(patientRoleCF)) { 
 			String message = "JWT payload: Person id presente nel JWT differente dal codice fiscale del paziente previsto sul CDA";
 			throwInvalidTokenError(ErrorInstanceEnum.PERSON_ID_MISMATCH, message);
@@ -448,9 +448,9 @@ public abstract class AbstractCTL {
 	}
 
 
-    protected void validateDocumentHash(final String encodedPDF, final JWTTokenDTO jwtToken) {
+    protected void validateDocumentHash(final String encodedPDF, final JWTPayloadDTO jwtPayloadToken) {
 
-		if (!encodedPDF.equals(jwtToken.getPayload().getAttachment_hash())) {
+		if (!encodedPDF.equals(jwtPayloadToken.getAttachment_hash())) {
 
 			final ErrorResponseDTO error = ErrorResponseDTO.builder()
 					.title(RestExecutionResultEnum.DOCUMENT_HASH_VALIDATION_ERROR.getTitle())

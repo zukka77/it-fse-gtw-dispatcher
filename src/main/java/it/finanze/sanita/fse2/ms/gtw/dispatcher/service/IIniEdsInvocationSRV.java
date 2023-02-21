@@ -3,15 +3,13 @@
  */
 package it.finanze.sanita.fse2.ms.gtw.dispatcher.service;
 
-import java.io.Serializable;
-
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.JWTPayloadDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.ResourceDTO;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.JWTTokenDTO;
 
-public interface IIniEdsInvocationSRV extends Serializable {
+public interface IIniEdsInvocationSRV {
 	
-	Boolean insert(String workflowInstanceId, ResourceDTO fhirResourceDTO, JWTTokenDTO jwtToken);
+	Boolean insert(String workflowInstanceId, ResourceDTO fhirResourceDTO, JWTPayloadDTO jwtPayloadToken);
 
-	Boolean replace(String workflowInstanceId, ResourceDTO fhirResourceDTO, JWTTokenDTO jwtToken, final String identificativoDocumento);
+	Boolean replace(String workflowInstanceId, ResourceDTO fhirResourceDTO, JWTPayloadDTO jwtPayloadToken, String identificativoDocumento);
 
 }

@@ -28,7 +28,6 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.impl.FhirMappingClient;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.FhirResourceDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.JWTPayloadDTO;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.JWTTokenDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.ResourceDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.PublicationCreationReqDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.client.TransformResDTO;
@@ -84,9 +83,7 @@ class DocumentReferenceTest extends AbstractTest {
 		final String payload = new String(Base64.getDecoder().decode(chunks[1]));
 
 		// Building the object asserts that all required values are present
-		JWTTokenDTO jwtToken = new JWTTokenDTO(JWTPayloadDTO.extractPayload(payload));
-
-		Boolean insert = iniEdsInvocationSRV.insert(workflowInstanceId, resourceDTO, jwtToken);
+		Boolean insert = iniEdsInvocationSRV.insert(workflowInstanceId, resourceDTO, JWTPayloadDTO.extractPayload(payload));
 		assertTrue(insert);
 	}
 	

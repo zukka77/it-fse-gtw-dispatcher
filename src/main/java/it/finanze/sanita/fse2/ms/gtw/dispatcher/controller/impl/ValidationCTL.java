@@ -17,6 +17,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.controller.IValidationCTL;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.JWTPayloadDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.JWTTokenDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.ValidationCDAReqDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.LogTraceInfoDTO;
@@ -58,7 +59,7 @@ public class ValidationCTL extends AbstractCTL implements IValidationCTL {
 		LogTraceInfoDTO traceInfoDTO = getLogTraceInfo();
 
 		String workflowInstanceId = Constants.App.MISSING_WORKFLOW_PLACEHOLDER;
-		JWTTokenDTO jwtToken = null;
+		JWTPayloadDTO jwtPayloadToken = null;
 		ValidationCDAReqDTO jsonObj = null;
 		String warning = null;
 		Document docT = null;
@@ -71,10 +72,10 @@ public class ValidationCTL extends AbstractCTL implements IValidationCTL {
 		String subjApplicationVersion = null;
 		
 		try {
-			jwtToken = extractAndValidateJWT(request,EventTypeEnum.VALIDATION);
+			jwtPayloadToken = extractAndValidateJWT(request,EventTypeEnum.VALIDATION);
 
-			role = jwtToken.getPayload().getSubject_role();
-			subjectFiscalCode = CfUtility.extractFiscalCodeFromJwtSub(jwtToken.getPayload().getSub());
+			role = jwtPayloadToken.getSubject_role();
+			subjectFiscalCode = CfUtility.extractFiscalCodeFromJwtSub(jwtPayloadToken.getSub());
 			jsonObj = getAndValidateValidationReq(request.getParameter("requestBody"));
 			final byte[] bytes = getAndValidateFile(file);
 			final String cda = extractCDA(bytes, jsonObj.getMode());
@@ -83,11 +84,11 @@ public class ValidationCTL extends AbstractCTL implements IValidationCTL {
 
 			log.info("[START] {}() with arguments {}={}, {}={}","validate","traceId", traceInfoDTO.getTraceID(),"wif", workflowInstanceId);
 
-			validateJWT(jwtToken, cda);
+			validateJWT(jwtPayloadToken, cda);
 			
-			subjApplicationId = jwtToken.getPayload().getSubject_application_id(); 
-			subjApplicationVendor = jwtToken.getPayload().getSubject_application_vendor();
-			subjApplicationVersion = jwtToken.getPayload().getSubject_application_version();
+			subjApplicationId = jwtPayloadToken.getSubject_application_id(); 
+			subjApplicationVendor = jwtPayloadToken.getSubject_application_vendor();
+			subjApplicationVersion = jwtPayloadToken.getSubject_application_version();
 			
 			warning = validate(cda, jsonObj.getActivity(), workflowInstanceId);
 			String message = null;
@@ -95,21 +96,20 @@ public class ValidationCTL extends AbstractCTL implements IValidationCTL {
 				message = "Attenzione - è stato chiamato l'endpoint di validazione con VERIFICA";
 			}
 
-			kafkaSRV.sendValidationStatus(traceInfoDTO.getTraceID(), workflowInstanceId, EventStatusEnum.SUCCESS,message, jwtToken != null ? jwtToken.getPayload() : null);
+			kafkaSRV.sendValidationStatus(traceInfoDTO.getTraceID(), workflowInstanceId, EventStatusEnum.SUCCESS,message, jwtPayloadToken);
 
-			String issuer = (jwtToken != null && jwtToken.getPayload() != null
-					&& !StringUtility.isNullOrEmpty(jwtToken.getPayload().getIss())) ? jwtToken.getPayload().getIss()
+			String issuer = (jwtPayloadToken != null
+					&& !StringUtility.isNullOrEmpty(jwtPayloadToken.getIss())) ? jwtPayloadToken.getIss()
 							: Constants.App.JWT_MISSING_ISSUER_PLACEHOLDER;
-			String locality = (jwtToken != null && jwtToken.getPayload() != null
-					&& !StringUtility.isNullOrEmpty(jwtToken.getPayload().getLocality())) ? jwtToken.getPayload().getLocality()
+			String locality = (jwtPayloadToken != null
+					&& !StringUtility.isNullOrEmpty(jwtPayloadToken.getLocality())) ? jwtPayloadToken.getLocality()
 							: Constants.App.JWT_MISSING_LOCALITY;
 
 			logger.info(Constants.App.LOG_TYPE_CONTROL,workflowInstanceId, "Validation CDA completed for workflow instance Id " + workflowInstanceId, OperationLogEnum.VAL_CDA2, ResultLogEnum.OK, startDateOperation, issuer, CdaUtility.getDocumentType(docT), role, subjectFiscalCode, locality,
 					subjApplicationId,subjApplicationVendor,subjApplicationVersion);
 			request.setAttribute("JWT_ISSUER", issuer);
 		} catch (final ValidationException e) {
-			errorHandlerSRV.validationExceptionHandler(startDateOperation, traceInfoDTO, workflowInstanceId, jwtToken,
-					e, CdaUtility.getDocumentType(docT));
+			errorHandlerSRV.validationExceptionHandler(startDateOperation, traceInfoDTO, workflowInstanceId, jwtPayloadToken, e, CdaUtility.getDocumentType(docT));
 		}
 
 		if (jsonObj != null && jsonObj.getMode() == null) {

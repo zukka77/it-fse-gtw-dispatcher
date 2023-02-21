@@ -9,7 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.JWTTokenDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.JWTPayloadDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.ValidationDataDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.PublicationCreationReqDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.LogTraceInfoDTO;
@@ -42,7 +42,7 @@ public class ErrorHandlerSRV implements IErrorHandlerSRV {
     private LoggerHelper logger;
 
     @Override
-    public void connectionRefusedExceptionHandler(Date startDateOperation, ValidationDataDTO validationInfo, JWTTokenDTO jwtToken, 
+    public void connectionRefusedExceptionHandler(Date startDateOperation, ValidationDataDTO validationInfo, JWTPayloadDTO jwtPayloadToken, 
         PublicationCreationReqDTO jsonObj, LogTraceInfoDTO traceInfoDTO, ConnectionRefusedException ex,
         boolean isPublication, final String documentType) {
         if (jsonObj == null) {
@@ -57,18 +57,18 @@ public class ErrorHandlerSRV implements IErrorHandlerSRV {
 
         kafkaSRV.sendPublicationStatus(
                 traceInfoDTO.getTraceID(), validationInfo.getWorkflowInstanceId(), errorEventStatus,
-                errorMessage, jsonObj, jwtToken != null ? jwtToken.getPayload() : null);
+                errorMessage, jsonObj, jwtPayloadToken);
 
         final RestExecutionResultEnum errorType = RestExecutionResultEnum.get(capturedErrorType);
 
-        String issuer = (jwtToken != null && jwtToken.getPayload() != null && !StringUtility.isNullOrEmpty(jwtToken.getPayload().getIss())) ? jwtToken.getPayload().getIss() : "ISSUER_UNDEFINED";
-        String role = (jwtToken!=null && jwtToken.getPayload().getSubject_role()!=null && !StringUtility.isNullOrEmpty(jwtToken.getPayload().getSubject_role())) ? jwtToken.getPayload().getSubject_role() : Constants.App.JWT_MISSING_SUBJECT_ROLE;
-        String subjectFiscalCode = (jwtToken != null ? CfUtility.extractFiscalCodeFromJwtSub(jwtToken.getPayload().getSub()) : Constants.App.JWT_MISSING_SUBJECT);
-        String locality = (jwtToken!=null && jwtToken.getPayload().getLocality()!=null && !StringUtility.isNullOrEmpty(jwtToken.getPayload().getLocality())) ? jwtToken.getPayload().getLocality() : Constants.App.JWT_MISSING_LOCALITY;
+        String issuer = (jwtPayloadToken != null && !StringUtility.isNullOrEmpty(jwtPayloadToken.getIss())) ? jwtPayloadToken.getIss() : "ISSUER_UNDEFINED";
+        String role = (jwtPayloadToken.getSubject_role()!=null && !StringUtility.isNullOrEmpty(jwtPayloadToken.getSubject_role())) ? jwtPayloadToken.getSubject_role() : Constants.App.JWT_MISSING_SUBJECT_ROLE;
+        String subjectFiscalCode = CfUtility.extractFiscalCodeFromJwtSub(jwtPayloadToken.getSub());
+        String locality = (jwtPayloadToken.getLocality()!=null && !StringUtility.isNullOrEmpty(jwtPayloadToken.getLocality())) ? jwtPayloadToken.getLocality() : Constants.App.JWT_MISSING_LOCALITY;
         
-        String subjectApplicationId = (jwtToken != null && jwtToken.getPayload() != null && !StringUtility.isNullOrEmpty(jwtToken.getPayload().getSubject_application_id())) ? jwtToken.getPayload().getSubject_application_id() : "SUBJECT APP ID UNDEFINED";
-        String subjectApplicationVendor = (jwtToken != null && jwtToken.getPayload() != null && !StringUtility.isNullOrEmpty(jwtToken.getPayload().getSubject_application_vendor())) ? jwtToken.getPayload().getSubject_application_vendor() : "SUBJECT APP VENDOR UNDEFINED";
-        String subjectApplicationVersion = (jwtToken != null && jwtToken.getPayload() != null && !StringUtility.isNullOrEmpty(jwtToken.getPayload().getSubject_application_version())) ? jwtToken.getPayload().getSubject_application_version() : "SUBJECT APP VERSION UNDEFINED";
+        String subjectApplicationId = (jwtPayloadToken != null && !StringUtility.isNullOrEmpty(jwtPayloadToken.getSubject_application_id())) ? jwtPayloadToken.getSubject_application_id() : "SUBJECT APP ID UNDEFINED";
+        String subjectApplicationVendor = (jwtPayloadToken != null && !StringUtility.isNullOrEmpty(jwtPayloadToken.getSubject_application_vendor())) ? jwtPayloadToken.getSubject_application_vendor() : "SUBJECT APP VENDOR UNDEFINED";
+        String subjectApplicationVersion = (jwtPayloadToken != null && !StringUtility.isNullOrEmpty(jwtPayloadToken.getSubject_application_version())) ? jwtPayloadToken.getSubject_application_version() : "SUBJECT APP VERSION UNDEFINED";
         
         if(isPublication) {
         	logger.error(Constants.App.LOG_TYPE_CONTROL,validationInfo.getWorkflowInstanceId(),errorMessage + " " + validationInfo.getWorkflowInstanceId(), OperationLogEnum.PUB_CDA2, ResultLogEnum.KO, startDateOperation, errorType.getErrorCategory(), issuer, documentType, role, subjectFiscalCode, locality,
@@ -81,7 +81,7 @@ public class ErrorHandlerSRV implements IErrorHandlerSRV {
     }
 
     @Override
-    public void publicationValidationExceptionHandler(Date startDateOperation, ValidationDataDTO validationInfo, JWTTokenDTO jwtToken, 
+    public void publicationValidationExceptionHandler(Date startDateOperation, ValidationDataDTO validationInfo, JWTPayloadDTO jwtPayloadToken, 
         PublicationCreationReqDTO jsonObj, LogTraceInfoDTO traceInfoDTO, ValidationException e, boolean isPublication, final String documentType) {
         if (jsonObj == null) {
             cdaSRV.consumeHash(validationInfo.getHash());
@@ -101,23 +101,23 @@ public class ErrorHandlerSRV implements IErrorHandlerSRV {
 
         if(isPublication) {
         	kafkaSRV.sendPublicationStatus(traceInfoDTO.getTraceID(), validationInfo.getWorkflowInstanceId(), errorEventStatus,
-        			errorMessage, jsonObj, jwtToken != null ? jwtToken.getPayload() : null);
+        			errorMessage, jsonObj, jwtPayloadToken);
         } else {
         	kafkaSRV.sendReplaceStatus(traceInfoDTO.getTraceID(), validationInfo.getWorkflowInstanceId(), errorEventStatus,
-        			errorMessage, jsonObj, jwtToken != null ? jwtToken.getPayload() : null);
+        			errorMessage, jsonObj, jwtPayloadToken);
         }
         
 
         final RestExecutionResultEnum errorType = RestExecutionResultEnum.get(capturedErrorType);
 
-        String issuer = (jwtToken != null && jwtToken.getPayload() != null && !StringUtility.isNullOrEmpty(jwtToken.getPayload().getIss())) ? jwtToken.getPayload().getIss() : "ISSUER_UNDEFINED";
-        String role = (jwtToken!=null && jwtToken.getPayload().getSubject_role()!=null && !StringUtility.isNullOrEmpty(jwtToken.getPayload().getSubject_role())) ? jwtToken.getPayload().getSubject_role() : Constants.App.JWT_MISSING_SUBJECT_ROLE;
-        String subjectFiscalCode = (jwtToken != null ? CfUtility.extractFiscalCodeFromJwtSub(jwtToken.getPayload().getSub()) : Constants.App.JWT_MISSING_SUBJECT);
-        String locality = (jwtToken!=null && jwtToken.getPayload().getLocality()!=null && !StringUtility.isNullOrEmpty(jwtToken.getPayload().getLocality())) ? jwtToken.getPayload().getLocality() : Constants.App.JWT_MISSING_LOCALITY;
+        String issuer = (jwtPayloadToken != null && !StringUtility.isNullOrEmpty(jwtPayloadToken.getIss())) ? jwtPayloadToken.getIss() : "ISSUER_UNDEFINED";
+        String role = (jwtPayloadToken.getSubject_role()!=null && !StringUtility.isNullOrEmpty(jwtPayloadToken.getSubject_role())) ? jwtPayloadToken.getSubject_role() : Constants.App.JWT_MISSING_SUBJECT_ROLE;
+        String subjectFiscalCode = CfUtility.extractFiscalCodeFromJwtSub(jwtPayloadToken.getSub());
+        String locality = (jwtPayloadToken.getLocality()!=null && !StringUtility.isNullOrEmpty(jwtPayloadToken.getLocality())) ? jwtPayloadToken.getLocality() : Constants.App.JWT_MISSING_LOCALITY;
         
-        String subjectApplicationId = (jwtToken != null && jwtToken.getPayload() != null && !StringUtility.isNullOrEmpty(jwtToken.getPayload().getSubject_application_id())) ? jwtToken.getPayload().getSubject_application_id() : "SUBJECT APP ID UNDEFINED";
-        String subjectApplicationVendor = (jwtToken != null && jwtToken.getPayload() != null && !StringUtility.isNullOrEmpty(jwtToken.getPayload().getSubject_application_vendor())) ? jwtToken.getPayload().getSubject_application_vendor() : "SUBJECT APP VENDOR UNDEFINED";
-        String subjectApplicationVersion = (jwtToken != null && jwtToken.getPayload() != null && !StringUtility.isNullOrEmpty(jwtToken.getPayload().getSubject_application_version())) ? jwtToken.getPayload().getSubject_application_version() : "SUBJECT APP VERSION UNDEFINED";
+        String subjectApplicationId = (jwtPayloadToken != null && !StringUtility.isNullOrEmpty(jwtPayloadToken.getSubject_application_id())) ? jwtPayloadToken.getSubject_application_id() : "SUBJECT APP ID UNDEFINED";
+        String subjectApplicationVendor = (jwtPayloadToken != null && !StringUtility.isNullOrEmpty(jwtPayloadToken.getSubject_application_vendor())) ? jwtPayloadToken.getSubject_application_vendor() : "SUBJECT APP VENDOR UNDEFINED";
+        String subjectApplicationVersion = (jwtPayloadToken != null && !StringUtility.isNullOrEmpty(jwtPayloadToken.getSubject_application_version())) ? jwtPayloadToken.getSubject_application_version() : "SUBJECT APP VERSION UNDEFINED";
        
         if(isPublication) {
         	logger.error(Constants.App.LOG_TYPE_CONTROL,validationInfo.getWorkflowInstanceId(),errorMessage + " " + validationInfo.getWorkflowInstanceId(), OperationLogEnum.PUB_CDA2, ResultLogEnum.KO, startDateOperation, errorType.getErrorCategory(), issuer, documentType, role, subjectFiscalCode, locality,
@@ -130,7 +130,7 @@ public class ErrorHandlerSRV implements IErrorHandlerSRV {
     }
 
     @Override
-    public void validationExceptionHandler(Date startDateOperation, LogTraceInfoDTO traceInfoDTO, String workflowInstanceId, JWTTokenDTO jwtToken, 
+    public void validationExceptionHandler(Date startDateOperation, LogTraceInfoDTO traceInfoDTO, String workflowInstanceId, JWTPayloadDTO jwtPayloadToken, 
         ValidationException e, final String documentType) {
         
         String errorMessage = e.getMessage();
@@ -145,16 +145,16 @@ public class ErrorHandlerSRV implements IErrorHandlerSRV {
         }
 
         final RestExecutionResultEnum validationResult = RestExecutionResultEnum.get(capturedErrorType);
-        kafkaSRV.sendValidationStatus(traceInfoDTO.getTraceID(), workflowInstanceId, errorEventStatus, errorMessage, jwtToken != null ? jwtToken.getPayload() : null);
+        kafkaSRV.sendValidationStatus(traceInfoDTO.getTraceID(), workflowInstanceId, errorEventStatus, errorMessage, jwtPayloadToken);
 
-        String issuer = (jwtToken !=null && jwtToken.getPayload()!=null && !StringUtility.isNullOrEmpty(jwtToken.getPayload().getIss())) ? jwtToken.getPayload().getIss() : Constants.App.JWT_MISSING_ISSUER_PLACEHOLDER;
-        String role = (jwtToken!=null && jwtToken.getPayload().getSubject_role()!=null && !StringUtility.isNullOrEmpty(jwtToken.getPayload().getSubject_role())) ? jwtToken.getPayload().getSubject_role() : Constants.App.JWT_MISSING_SUBJECT_ROLE;
-        String subjectFiscalCode = (jwtToken != null ? CfUtility.extractFiscalCodeFromJwtSub(jwtToken.getPayload().getSub()) : Constants.App.JWT_MISSING_SUBJECT);
-        String locality = (jwtToken!=null && jwtToken.getPayload().getLocality()!=null && !StringUtility.isNullOrEmpty(jwtToken.getPayload().getLocality())) ? jwtToken.getPayload().getLocality() : Constants.App.JWT_MISSING_LOCALITY;
+        String issuer = (jwtPayloadToken!=null && !StringUtility.isNullOrEmpty(jwtPayloadToken.getIss())) ? jwtPayloadToken.getIss() : Constants.App.JWT_MISSING_ISSUER_PLACEHOLDER;
+        String role = (jwtPayloadToken.getSubject_role()!=null && !StringUtility.isNullOrEmpty(jwtPayloadToken.getSubject_role())) ? jwtPayloadToken.getSubject_role() : Constants.App.JWT_MISSING_SUBJECT_ROLE;
+        String subjectFiscalCode = CfUtility.extractFiscalCodeFromJwtSub(jwtPayloadToken.getSub());
+        String locality = (jwtPayloadToken.getLocality()!=null && !StringUtility.isNullOrEmpty(jwtPayloadToken.getLocality())) ? jwtPayloadToken.getLocality() : Constants.App.JWT_MISSING_LOCALITY;
         
-        String subjectApplicationId = (jwtToken != null && jwtToken.getPayload() != null && !StringUtility.isNullOrEmpty(jwtToken.getPayload().getSubject_application_id())) ? jwtToken.getPayload().getSubject_application_id() : "SUBJECT APP ID UNDEFINED";
-        String subjectApplicationVendor = (jwtToken != null && jwtToken.getPayload() != null && !StringUtility.isNullOrEmpty(jwtToken.getPayload().getSubject_application_vendor())) ? jwtToken.getPayload().getSubject_application_vendor() : "SUBJECT APP VENDOR UNDEFINED";
-        String subjectApplicationVersion = (jwtToken != null && jwtToken.getPayload() != null && !StringUtility.isNullOrEmpty(jwtToken.getPayload().getSubject_application_version())) ? jwtToken.getPayload().getSubject_application_version() : "SUBJECT APP VERSION UNDEFINED";
+        String subjectApplicationId = (jwtPayloadToken != null && !StringUtility.isNullOrEmpty(jwtPayloadToken.getSubject_application_id())) ? jwtPayloadToken.getSubject_application_id() : "SUBJECT APP ID UNDEFINED";
+        String subjectApplicationVendor = (jwtPayloadToken != null && !StringUtility.isNullOrEmpty(jwtPayloadToken.getSubject_application_vendor())) ? jwtPayloadToken.getSubject_application_vendor() : "SUBJECT APP VENDOR UNDEFINED";
+        String subjectApplicationVersion = (jwtPayloadToken != null && !StringUtility.isNullOrEmpty(jwtPayloadToken.getSubject_application_version())) ? jwtPayloadToken.getSubject_application_version() : "SUBJECT APP VERSION UNDEFINED";
        
         if (RestExecutionResultEnum.VOCABULARY_ERROR != RestExecutionResultEnum.get(capturedErrorType)) {
         	logger.error(Constants.App.LOG_TYPE_CONTROL,workflowInstanceId,e.getError().getDetail() + " " + workflowInstanceId, OperationLogEnum.VAL_CDA2, ResultLogEnum.KO, startDateOperation, validationResult.getErrorCategory(), issuer, documentType, role, subjectFiscalCode, locality,
