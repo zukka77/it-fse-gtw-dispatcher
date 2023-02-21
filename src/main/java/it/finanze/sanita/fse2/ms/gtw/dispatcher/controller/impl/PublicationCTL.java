@@ -29,6 +29,7 @@ import java.util.Objects;
 import javax.servlet.http.HttpServletRequest;
 
 import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -59,6 +60,7 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.MergedMetadatiReques
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.PublicationCreationReqDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.PublicationMetadataReqDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.PublicationUpdateReqDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.ValidationCDAReqDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.EdsResponseDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.ErrorResponseDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.GetMergedMetadatiDTO;
@@ -67,6 +69,8 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.IniTraceResponseDTO
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.LogTraceInfoDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.PublicationResDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.ResponseWifDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.ValidationResDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ActivityEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.DestinationTypeEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ErrorInstanceEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventStatusEnum;
@@ -89,6 +93,7 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.IErrorHandlerSRV;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.IKafkaSRV;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.facade.ICdaFacadeSRV;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.impl.IniEdsInvocationSRV;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.CdaUtility;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.CfUtility;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.DateUtility;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility;
@@ -617,5 +622,127 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 		}
 		return out;
 	}
-	
+
+	@Override
+	public ResponseEntity<PublicationResDTO> createAndValidate(PublicationCreationReqDTO requestBody,
+			MultipartFile file, HttpServletRequest request) {
+		final Date startDateOperation = new Date();
+		LogTraceInfoDTO traceInfoDTO = getLogTraceInfo();
+
+		String workflowInstanceId = Constants.App.MISSING_WORKFLOW_PLACEHOLDER;
+		JWTTokenDTO jwtToken = null;
+		PublicationCreationReqDTO jsonObj = null;
+		String warning = null;
+		Document docT = null;
+
+		String role = Constants.App.JWT_MISSING_SUBJECT_ROLE;
+		String subjectFiscalCode = Constants.App.JWT_MISSING_SUBJECT;
+
+		String subjApplicationId = null;
+		String subjApplicationVendor = null;
+		String subjApplicationVersion = null;
+		
+		try {
+			jwtToken = extractAndValidateJWT(request,EventTypeEnum.PUBLICATION);
+
+			role = jwtToken.getPayload().getSubject_role();
+			subjectFiscalCode = CfUtility.extractFiscalCodeFromJwtSub(jwtToken.getPayload().getSub());
+			jsonObj = getAndValidatePublicationReq(request.getParameter("requestBody"),false);
+			final byte[] bytes = getAndValidateFile(file);
+			final String cda = extractCDA(bytes, jsonObj.getMode());
+			docT = Jsoup.parse(cda);
+			workflowInstanceId = CdaUtility.getWorkflowInstanceId(docT);
+
+			log.info("[START] {}() with arguments {}={}, {}={}","validate","traceId", traceInfoDTO.getTraceID(),"wif", workflowInstanceId);
+
+			validateJWT(jwtToken, cda);
+			
+			subjApplicationId = jwtToken.getPayload().getSubject_application_id(); 
+			subjApplicationVendor = jwtToken.getPayload().getSubject_application_vendor();
+			subjApplicationVersion = jwtToken.getPayload().getSubject_application_version();
+			
+			warning = validate(cda, ActivityEnum.VALIDATION, workflowInstanceId);
+
+			kafkaSRV.sendValidationStatus(traceInfoDTO.getTraceID(), workflowInstanceId, EventStatusEnum.SUCCESS,null, jwtToken != null ? jwtToken.getPayload() : null);
+
+			String issuer = (jwtToken != null && jwtToken.getPayload() != null
+					&& !StringUtility.isNullOrEmpty(jwtToken.getPayload().getIss())) ? jwtToken.getPayload().getIss()
+							: Constants.App.JWT_MISSING_ISSUER_PLACEHOLDER;
+			String locality = (jwtToken != null && jwtToken.getPayload() != null
+					&& !StringUtility.isNullOrEmpty(jwtToken.getPayload().getLocality())) ? jwtToken.getPayload().getLocality()
+							: Constants.App.JWT_MISSING_LOCALITY;
+
+			logger.info(Constants.App.LOG_TYPE_CONTROL,workflowInstanceId, "Validation CDA completed for workflow instance Id " + workflowInstanceId, OperationLogEnum.VAL_CDA2, ResultLogEnum.OK, startDateOperation, issuer, CdaUtility.getDocumentType(docT), role, subjectFiscalCode, locality,
+					subjApplicationId,subjApplicationVendor,subjApplicationVersion);
+			request.setAttribute("JWT_ISSUER", issuer);
+		} catch (final ValidationException e) {
+			errorHandlerSRV.validationExceptionHandler(startDateOperation, traceInfoDTO, workflowInstanceId, jwtToken,
+					e, CdaUtility.getDocumentType(docT));
+		}
+
+		if (jsonObj != null && jsonObj.getMode() == null) {
+			String schematronWarn = StringUtility.isNullOrEmpty(warning) ? "" : warning;
+			warning = "[" + schematronWarn + "[WARNING_EXTRACT]" + Constants.Misc.WARN_EXTRACTION_SELECTION + "]";
+		}
+
+		warning = StringUtility.isNullOrEmpty(warning) ? null : warning;
+
+		log.info("[EXIT] {}() with arguments {}={}, {}={}",
+			"validate",
+			"traceId", traceInfoDTO.getTraceID(),
+			"wif", workflowInstanceId
+			);
+
+		log.info("[START] {}() with arguments {}={}, {}={}, {}={}","create","traceId", traceInfoDTO.getTraceID(),"wif", requestBody.getWorkflowInstanceId(),"idDoc", requestBody.getIdentificativoDoc());
+
+		ValidationCreationInputDTO validationInfo = new ValidationCreationInputDTO();
+		validationInfo.setValidationData(new ValidationDataDTO(null, false, MISSING_WORKFLOW_PLACEHOLDER, null, null, new Date()));
+
+		String locality = Constants.App.JWT_MISSING_LOCALITY;
+		
+		try {
+			validationInfo = publicationAndReplace(file, request, false,traceInfoDTO);
+
+			if (validationInfo.getValidationError() != null) {
+				throw validationInfo.getValidationError();
+			}
+
+			subjApplicationId = validationInfo.getJwtToken().getPayload().getSubject_application_id(); 
+			subjApplicationVendor = validationInfo.getJwtToken().getPayload().getSubject_application_vendor();
+			subjApplicationVersion = validationInfo.getJwtToken().getPayload().getSubject_application_version();
+
+			iniInvocationSRV.insert(validationInfo.getValidationData().getWorkflowInstanceId(), validationInfo.getFhirResource(), validationInfo.getJwtToken());
+			
+			PriorityTypeEnum priorityType = PriorityTypeEnum.NULL;
+			if (validationInfo.getJsonObj().getPriorita() != null) {
+				priorityType = Boolean.TRUE.equals(validationInfo.getJsonObj().getPriorita()) ? PriorityTypeEnum.HIGH : PriorityTypeEnum.LOW;
+			}
+
+			final IndexerValueDTO kafkaValue = new IndexerValueDTO();
+			kafkaValue.setWorkflowInstanceId(validationInfo.getValidationData().getWorkflowInstanceId());
+			kafkaValue.setIdDoc(validationInfo.getJsonObj().getIdentificativoDoc());
+			kafkaValue.setEdsDPOperation(ProcessorOperationEnum.PUBLISH);
+
+			kafkaSRV.notifyChannel(validationInfo.getKafkaKey(), new Gson().toJson(kafkaValue), priorityType, validationInfo.getJsonObj().getTipoDocumentoLivAlto(), DestinationTypeEnum.INDEXER);
+			kafkaSRV.sendPublicationStatus(traceInfoDTO.getTraceID(), validationInfo.getValidationData().getWorkflowInstanceId(), SUCCESS, null, validationInfo.getJsonObj(), validationInfo.getJwtToken() != null ? validationInfo.getJwtToken().getPayload() : null);
+			
+			role = validationInfo.getJwtToken().getPayload().getSubject_role();
+			locality = validationInfo.getJwtToken().getPayload().getLocality();
+			subjectFiscalCode = CfUtility.extractFiscalCodeFromJwtSub(validationInfo.getJwtToken().getPayload().getSub());
+			logger.info(Constants.App.LOG_TYPE_CONTROL,validationInfo.getValidationData().getWorkflowInstanceId(),String.format("Publication CDA completed for workflow instance id %s", validationInfo.getValidationData().getWorkflowInstanceId()), OperationLogEnum.PUB_CDA2, ResultLogEnum.OK, startDateOperation, validationInfo.getJwtToken().getPayload().getIss(), getDocumentType(validationInfo.getDocument()), role, subjectFiscalCode, locality,
+					subjApplicationId, subjApplicationVendor,subjApplicationVersion);
+		} catch (ConnectionRefusedException ce) {
+			errorHandlerSRV.connectionRefusedExceptionHandler(startDateOperation, validationInfo.getValidationData(), validationInfo.getJwtToken(), validationInfo.getJsonObj(), traceInfoDTO, ce, true, getDocumentType(validationInfo.getDocument()));
+		} catch (final ValidationException e) {
+			errorHandlerSRV.publicationValidationExceptionHandler(startDateOperation, validationInfo.getValidationData(), validationInfo.getJwtToken(), validationInfo.getJsonObj(), traceInfoDTO, e, true, getDocumentType(validationInfo.getDocument()));
+		}
+
+		if (validationInfo.getJsonObj().getMode() == null) {
+			warning = Misc.WARN_EXTRACTION_SELECTION;
+		}
+
+		log.info("[EXIT] {}() with arguments {}={}, {}={}, {}={}","create","traceId", traceInfoDTO.getTraceID(),"wif", requestBody.getWorkflowInstanceId(),"idDoc", requestBody.getIdentificativoDoc());
+		
+		return new ResponseEntity<>(new PublicationResDTO(traceInfoDTO, warning, validationInfo.getValidationData().getWorkflowInstanceId()), HttpStatus.CREATED);
+	}
 }
