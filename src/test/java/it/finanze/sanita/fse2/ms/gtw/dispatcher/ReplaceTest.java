@@ -289,21 +289,20 @@ class ReplaceTest extends AbstractTest {
 	 }
 		
 	 PublicationCreationReqDTO buildCreationDTO() {
-	 	PublicationCreationReqDTO output = PublicationCreationReqDTO.builder().
-	 			assettoOrganizzativo(PracticeSettingCodeEnum.AD_PSC001).
-	 			conservazioneANorma("Conservazione sostitutiva").
-	 			dataFinePrestazione(""+new Date().getTime()).
-	 			dataInizioPrestazione(""+new Date().getTime()).
-	 			healthDataFormat(HealthDataFormatEnum.CDA).
-	 			identificativoRep("Identificativo rep").
-	 			identificativoSottomissione("Identificativo Sottomissione").
-	 			mode(InjectionModeEnum.ATTACHMENT).
-	 			attiCliniciRegoleAccesso(java.util.Arrays.asList(EventCodeEnum._94503_0.getCode())).
-	 			tipoAttivitaClinica(AttivitaClinicaEnum.CON).
-	 			tipoDocumentoLivAlto(TipoDocAltoLivEnum.WOR).
-	 			tipologiaStruttura(HealthcareFacilityEnum.Ospedale).
-	 			build();
-	 	return output;
+		 PublicationCreationReqDTO out = new PublicationCreationReqDTO();
+		 out.setAssettoOrganizzativo(PracticeSettingCodeEnum.AD_PSC001);
+		 out.setConservazioneANorma("Conservazione sostitutiva");
+		 out.setDataFinePrestazione(""+new Date().getTime());
+		 out.setDataInizioPrestazione(""+new Date().getTime());
+		 out.setHealthDataFormat(HealthDataFormatEnum.CDA);
+		 out.setIdentificativoRep("Identificativo rep");
+		 out.setIdentificativoSottomissione("Identificativo Sottomissione");
+		 out.setMode(InjectionModeEnum.ATTACHMENT);
+		 out.setAttiCliniciRegoleAccesso(java.util.Arrays.asList(EventCodeEnum._94503_0.getCode()));
+		 out.setTipoAttivitaClinica(AttivitaClinicaEnum.CON);
+		 out.setTipoDocumentoLivAlto(TipoDocAltoLivEnum.WOR);
+		 out.setTipologiaStruttura(HealthcareFacilityEnum.Ospedale);
+		 return out;
 	 } 
 	 
 	void mockIniClient(final HttpStatus status, boolean esito) {
