@@ -18,6 +18,7 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.JWTPayloadDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.LogDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ILogEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ResultLogEnum;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.CfUtility;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility;
 import lombok.extern.slf4j.Slf4j;
  
@@ -46,25 +47,23 @@ public class LoggerHelper {
 	/* 
 	 * Implements structured logs, at all logging levels
 	 */
-	public void trace(String logType,String workflowInstanceId, String message, ILogEnum operation, ResultLogEnum result, Date startDateOperation, 
-			String issuer, String role, String subjectFiscalCode, String locality,
-			String applicationId, String applicationVendor, String applicationVersion) {
+	public void trace(String logType,String workflowInstanceId, String message, ILogEnum operation, ResultLogEnum result, Date startDateOperation, JWTPayloadDTO jwtPayloadDTO) {
 
 		LogDTO logDTO = LogDTO.builder().
-				op_issuer(issuer).
-				op_locality(locality).
+				op_issuer(jwtPayloadDTO.getIss()).
+				op_locality(jwtPayloadDTO.getLocality()).
 				message(message).
 				operation(operation.getCode()).
 				op_result(result.getCode()).
 				op_timestamp_start(dateFormat.format(startDateOperation)).
 				op_timestamp_end(dateFormat.format(new Date())).
-				op_role(role).
-				op_fiscal_code(subjectFiscalCode).
+				op_role(jwtPayloadDTO.getSubject_role()).
+				op_fiscal_code(CfUtility.extractFiscalCodeFromJwtSub(jwtPayloadDTO.getSub())).
 				gateway_name(getGatewayName()).
 				microservice_name(msName).
-				op_application_id(applicationId).
-				op_application_vendor(applicationVendor).
-				op_application_version(applicationVersion).
+				op_application_id(jwtPayloadDTO.getSubject_application_id()).
+				op_application_vendor(jwtPayloadDTO.getSubject_application_vendor()).
+				op_application_version(jwtPayloadDTO.getSubject_application_version()).
 				log_type(logType).
 				workflow_instance_id(workflowInstanceId).
 				build();
@@ -77,25 +76,23 @@ public class LoggerHelper {
 		}
 	}
 
-	public void debug(String logType,String workflowInstanceId, String message,  ILogEnum operation, ResultLogEnum result, Date startDateOperation, 
-				String issuer, String role, String subject, String locality,
-				String applicationId, String applicationVendor, String applicationVersion) {
+	public void debug(String logType,String workflowInstanceId, String message,  ILogEnum operation, ResultLogEnum result, Date startDateOperation,JWTPayloadDTO jwtPayloadDTO) {
 		
 		LogDTO logDTO = LogDTO.builder().
-				op_issuer(issuer).
-				op_locality(locality).
+				op_issuer(jwtPayloadDTO.getIss()).
+				op_locality(jwtPayloadDTO.getLocality()).
 				message(message).
 				operation(operation.getCode()).
 				op_result(result.getCode()).
 				op_timestamp_start(dateFormat.format(startDateOperation)).
 				op_timestamp_end(dateFormat.format(new Date())).
-				op_role(role).
-				op_fiscal_code(subject).
+				op_role(jwtPayloadDTO.getSubject_role()).
+				op_fiscal_code(CfUtility.extractFiscalCodeFromJwtSub(jwtPayloadDTO.getSub())).
 				gateway_name(getGatewayName()).
 				microservice_name(msName).
-				op_application_id(applicationId).
-				op_application_vendor(applicationVendor).
-				op_application_version(applicationVersion).
+				op_application_id(jwtPayloadDTO.getSubject_application_id()).
+				op_application_vendor(jwtPayloadDTO.getSubject_application_vendor()).
+				op_application_version(jwtPayloadDTO.getSubject_application_version()).
 				log_type(logType).
 				workflow_instance_id(workflowInstanceId).
 				build();
@@ -107,11 +104,11 @@ public class LoggerHelper {
 		}
 	} 
 	 
-	public void info(String logType,String workflowInstanceId, String message, ILogEnum operation, ResultLogEnum result, Date startDateOperation, String issuer, 
-			String documentType, String subject, JWTPayloadDTO jwtPayloadDTO) {
+	public void info(String logType,String workflowInstanceId, String message, ILogEnum operation, ResultLogEnum result, Date startDateOperation,  
+			String documentType, JWTPayloadDTO jwtPayloadDTO) {
 
 		LogDTO logDTO = LogDTO.builder().
-				op_issuer(issuer).
+				op_issuer(jwtPayloadDTO.getIss()).
 				op_locality(jwtPayloadDTO.getLocality()).
 				message(message).
 				operation(operation.getCode()).
@@ -120,7 +117,7 @@ public class LoggerHelper {
 				op_timestamp_end(dateFormat.format(new Date())).
 				op_document_type(documentType).
 				op_role(jwtPayloadDTO.getSubject_role()).
-				op_fiscal_code(subject).
+				op_fiscal_code(CfUtility.extractFiscalCodeFromJwtSub(jwtPayloadDTO.getSub())).
 				gateway_name(getGatewayName()).
 				microservice_name(msName).
 				op_application_id(jwtPayloadDTO.getSubject_application_id()).
@@ -138,25 +135,23 @@ public class LoggerHelper {
 		}
 	} 
 	
-	public void warn(String logType,String workflowInstanceId, String message, ILogEnum operation, ResultLogEnum result, Date startDateOperation, 
-			String issuer, String role, String subject, String locality,
-			String applicationId, String applicationVendor, String applicationVersion) {
+	public void warn(String logType,String workflowInstanceId, String message, ILogEnum operation, ResultLogEnum result, Date startDateOperation,JWTPayloadDTO jwtPayloadToken) {
 		
 		LogDTO logDTO = LogDTO.builder().
-				op_issuer(issuer).
-				op_locality(locality).
+				op_issuer(jwtPayloadToken.getIss()).
+				op_locality(jwtPayloadToken.getLocality()).
 				message(message).
 				operation(operation.getCode()).
 				op_result(result.getCode()).
 				op_timestamp_start(dateFormat.format(startDateOperation)).
 				op_timestamp_end(dateFormat.format(new Date())).
-				op_role(role).
-				op_fiscal_code(subject).
+				op_role(jwtPayloadToken.getSubject_role()).
+				op_fiscal_code(CfUtility.extractFiscalCodeFromJwtSub(jwtPayloadToken.getSub())).
 				gateway_name(getGatewayName()).
 				microservice_name(msName).
-				op_application_id(applicationId).
-				op_application_vendor(applicationVendor).
-				op_application_version(applicationVersion).
+				op_application_id(jwtPayloadToken.getSubject_application_id()).
+				op_application_vendor(jwtPayloadToken.getSubject_application_vendor()).
+				op_application_version(jwtPayloadToken.getSubject_application_version()).
 				log_type(logType).
 				workflow_instance_id(workflowInstanceId).
 				build();
@@ -170,11 +165,10 @@ public class LoggerHelper {
 	} 
 	
 	public void error(String logType,String workflowInstanceId, String message, ILogEnum operation, ResultLogEnum result, Date startDateOperation,
-			   ILogEnum error, String issuer, String documentType, String role, String subject,
-			   JWTPayloadDTO jwtPayloadToken) {
+			   ILogEnum error,  String documentType, JWTPayloadDTO jwtPayloadToken) {
 		
 		LogDTO logDTO = LogDTO.builder().
-				op_issuer(issuer).
+				op_issuer(jwtPayloadToken.getIss()).
 				op_locality(jwtPayloadToken.getLocality()).
 				message(message).
 				operation(operation.getCode()).
@@ -184,8 +178,8 @@ public class LoggerHelper {
 				op_error(error.getCode()).
 				op_error_description(error.getDescription()).
 				op_document_type(documentType).
-				op_role(role).
-				op_fiscal_code(subject).
+				op_role(jwtPayloadToken.getSubject_role()).
+				op_fiscal_code(CfUtility.extractFiscalCodeFromJwtSub(jwtPayloadToken.getSub())).
 				gateway_name(getGatewayName()).
 				microservice_name(msName).
 				op_application_id(jwtPayloadToken.getSubject_application_id()).

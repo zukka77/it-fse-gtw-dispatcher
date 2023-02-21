@@ -31,7 +31,6 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.logging.LoggerHelper;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.IErrorHandlerSRV;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.IKafkaSRV;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.CdaUtility;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.CfUtility;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility;
 import lombok.extern.slf4j.Slf4j;
 
@@ -62,12 +61,9 @@ public class ValidationCTL extends AbstractCTL implements IValidationCTL {
 		String warning = null;
 		Document docT = null;
  
-		String subjectFiscalCode = Constants.App.JWT_MISSING_SUBJECT;
-		
 		try {
 			jwtPayloadToken = extractAndValidateJWT(request,EventTypeEnum.VALIDATION);
 
-			subjectFiscalCode = CfUtility.extractFiscalCodeFromJwtSub(jwtPayloadToken.getSub());
 			jsonObj = getAndValidateValidationReq(request.getParameter("requestBody"));
 			final byte[] bytes = getAndValidateFile(file);
 			final String cda = extractCDA(bytes, jsonObj.getMode());
@@ -86,12 +82,9 @@ public class ValidationCTL extends AbstractCTL implements IValidationCTL {
 
 			kafkaSRV.sendValidationStatus(traceInfoDTO.getTraceID(), workflowInstanceId, EventStatusEnum.SUCCESS,message, jwtPayloadToken);
 
-			String issuer = !StringUtility.isNullOrEmpty(jwtPayloadToken.getIss()) ? jwtPayloadToken.getIss()
-							: Constants.App.JWT_MISSING_ISSUER_PLACEHOLDER;
-			 
-			logger.info(Constants.App.LOG_TYPE_CONTROL,workflowInstanceId, "Validation CDA completed for workflow instance Id " + workflowInstanceId, OperationLogEnum.VAL_CDA2, ResultLogEnum.OK, startDateOperation, issuer, CdaUtility.getDocumentType(docT), subjectFiscalCode,
+			logger.info(Constants.App.LOG_TYPE_CONTROL,workflowInstanceId, "Validation CDA completed for workflow instance Id " + workflowInstanceId, OperationLogEnum.VAL_CDA2, ResultLogEnum.OK, startDateOperation, CdaUtility.getDocumentType(docT), 
 					jwtPayloadToken);
-			request.setAttribute("JWT_ISSUER", issuer);
+			request.setAttribute("JWT_ISSUER", jwtPayloadToken.getIss());
 		} catch (final ValidationException e) {
 			errorHandlerSRV.validationExceptionHandler(startDateOperation, traceInfoDTO, workflowInstanceId, jwtPayloadToken, e, CdaUtility.getDocumentType(docT));
 		}

@@ -26,7 +26,6 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.logging.LoggerHelper;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.ICdaSRV;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.IErrorHandlerSRV;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.IKafkaSRV;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.CfUtility;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility;
 
 @Service
@@ -55,21 +54,16 @@ public class ErrorHandlerSRV implements IErrorHandlerSRV {
         
         EventStatusEnum errorEventStatus = RestExecutionResultEnum.GENERIC_TIMEOUT.getEventStatusEnum();
 
-        kafkaSRV.sendPublicationStatus(
-                traceInfoDTO.getTraceID(), validationInfo.getWorkflowInstanceId(), errorEventStatus,
+        kafkaSRV.sendPublicationStatus(traceInfoDTO.getTraceID(), validationInfo.getWorkflowInstanceId(), errorEventStatus,
                 errorMessage, jsonObj, jwtPayloadToken);
 
         final RestExecutionResultEnum errorType = RestExecutionResultEnum.get(capturedErrorType);
 
-        String issuer = (jwtPayloadToken != null && !StringUtility.isNullOrEmpty(jwtPayloadToken.getIss())) ? jwtPayloadToken.getIss() : "ISSUER_UNDEFINED";
-        String role = (jwtPayloadToken.getSubject_role()!=null && !StringUtility.isNullOrEmpty(jwtPayloadToken.getSubject_role())) ? jwtPayloadToken.getSubject_role() : Constants.App.JWT_MISSING_SUBJECT_ROLE;
-        String subjectFiscalCode = CfUtility.extractFiscalCodeFromJwtSub(jwtPayloadToken.getSub());
-  
         if(isPublication) {
-        	logger.error(Constants.App.LOG_TYPE_CONTROL,validationInfo.getWorkflowInstanceId(),errorMessage + " " + validationInfo.getWorkflowInstanceId(), OperationLogEnum.PUB_CDA2, ResultLogEnum.KO, startDateOperation, errorType.getErrorCategory(), issuer, documentType, role, subjectFiscalCode,
+        	logger.error(Constants.App.LOG_TYPE_CONTROL,validationInfo.getWorkflowInstanceId(),errorMessage + " " + validationInfo.getWorkflowInstanceId(), OperationLogEnum.PUB_CDA2, ResultLogEnum.KO, startDateOperation, errorType.getErrorCategory(),  documentType, 
         			jwtPayloadToken);
         } else {
-        	logger.error(Constants.App.LOG_TYPE_CONTROL,validationInfo.getWorkflowInstanceId(),errorMessage + " " + validationInfo.getWorkflowInstanceId(), OperationLogEnum.REPLACE_CDA2, ResultLogEnum.KO, startDateOperation, errorType.getErrorCategory(), issuer, documentType, role, subjectFiscalCode,
+        	logger.error(Constants.App.LOG_TYPE_CONTROL,validationInfo.getWorkflowInstanceId(),errorMessage + " " + validationInfo.getWorkflowInstanceId(), OperationLogEnum.REPLACE_CDA2, ResultLogEnum.KO, startDateOperation, errorType.getErrorCategory(),documentType,
         			jwtPayloadToken);
         }
         throw new ValidationPublicationErrorException(errorType, StringUtility.sanitizeMessage(errorType.getTitle()), errorInstance);
@@ -105,15 +99,12 @@ public class ErrorHandlerSRV implements IErrorHandlerSRV {
 
         final RestExecutionResultEnum errorType = RestExecutionResultEnum.get(capturedErrorType);
 
-        String issuer = (jwtPayloadToken != null && !StringUtility.isNullOrEmpty(jwtPayloadToken.getIss())) ? jwtPayloadToken.getIss() : "ISSUER_UNDEFINED";
-        String role = (jwtPayloadToken.getSubject_role()!=null && !StringUtility.isNullOrEmpty(jwtPayloadToken.getSubject_role())) ? jwtPayloadToken.getSubject_role() : Constants.App.JWT_MISSING_SUBJECT_ROLE;
-        String subjectFiscalCode = CfUtility.extractFiscalCodeFromJwtSub(jwtPayloadToken.getSub());
       
         if(isPublication) {
-        	logger.error(Constants.App.LOG_TYPE_CONTROL,validationInfo.getWorkflowInstanceId(),errorMessage + " " + validationInfo.getWorkflowInstanceId(), OperationLogEnum.PUB_CDA2, ResultLogEnum.KO, startDateOperation, errorType.getErrorCategory(), issuer, documentType, role, subjectFiscalCode,
+        	logger.error(Constants.App.LOG_TYPE_CONTROL,validationInfo.getWorkflowInstanceId(),errorMessage + " " + validationInfo.getWorkflowInstanceId(), OperationLogEnum.PUB_CDA2, ResultLogEnum.KO, startDateOperation, errorType.getErrorCategory(), documentType,
         			jwtPayloadToken);
         } else {
-        	logger.error(Constants.App.LOG_TYPE_CONTROL,validationInfo.getWorkflowInstanceId(),errorMessage + " " + validationInfo.getWorkflowInstanceId(), OperationLogEnum.REPLACE_CDA2, ResultLogEnum.KO, startDateOperation, errorType.getErrorCategory(), issuer, documentType, role, subjectFiscalCode,
+        	logger.error(Constants.App.LOG_TYPE_CONTROL,validationInfo.getWorkflowInstanceId(),errorMessage + " " + validationInfo.getWorkflowInstanceId(), OperationLogEnum.REPLACE_CDA2, ResultLogEnum.KO, startDateOperation, errorType.getErrorCategory(), documentType, 
         			jwtPayloadToken);
         }
         throw new ValidationPublicationErrorException(errorType,StringUtility.sanitizeMessage(errorMessage), errorInstance);
@@ -137,12 +128,8 @@ public class ErrorHandlerSRV implements IErrorHandlerSRV {
         final RestExecutionResultEnum validationResult = RestExecutionResultEnum.get(capturedErrorType);
         kafkaSRV.sendValidationStatus(traceInfoDTO.getTraceID(), workflowInstanceId, errorEventStatus, errorMessage, jwtPayloadToken);
 
-        String issuer = (jwtPayloadToken!=null && !StringUtility.isNullOrEmpty(jwtPayloadToken.getIss())) ? jwtPayloadToken.getIss() : Constants.App.JWT_MISSING_ISSUER_PLACEHOLDER;
-        String role = (jwtPayloadToken.getSubject_role()!=null && !StringUtility.isNullOrEmpty(jwtPayloadToken.getSubject_role())) ? jwtPayloadToken.getSubject_role() : Constants.App.JWT_MISSING_SUBJECT_ROLE;
-        String subjectFiscalCode = CfUtility.extractFiscalCodeFromJwtSub(jwtPayloadToken.getSub());
-        
         if (RestExecutionResultEnum.VOCABULARY_ERROR != RestExecutionResultEnum.get(capturedErrorType)) {
-        	logger.error(Constants.App.LOG_TYPE_CONTROL,workflowInstanceId,e.getError().getDetail() + " " + workflowInstanceId, OperationLogEnum.VAL_CDA2, ResultLogEnum.KO, startDateOperation, validationResult.getErrorCategory(), issuer, documentType, role, subjectFiscalCode,
+        	logger.error(Constants.App.LOG_TYPE_CONTROL,workflowInstanceId,e.getError().getDetail() + " " + workflowInstanceId, OperationLogEnum.VAL_CDA2, ResultLogEnum.KO, startDateOperation, validationResult.getErrorCategory(),  documentType, 
         			jwtPayloadToken);
         }
         throw new ValidationErrorException(validationResult, StringUtility.sanitizeMessage(e.getError().getDetail()), workflowInstanceId, errorInstance);
