@@ -609,6 +609,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 			errorHandlerSRV.publicationValidationExceptionHandler(startDateOperation, validationResult.getValidationData(), validationResult.getJwtPayloadToken(), validationResult.getJsonObj(), traceInfoDTO, e, true, getDocumentType(validationResult.getDocument()));
 		}
 
+		warning = StringUtility.isNullOrEmpty(warning) ? null : warning; 
 		return new ResponseEntity<>(new PublicationResDTO(traceInfoDTO, warning, validationResult.getValidationData().getWorkflowInstanceId()), HttpStatus.CREATED);
 	}
 }
