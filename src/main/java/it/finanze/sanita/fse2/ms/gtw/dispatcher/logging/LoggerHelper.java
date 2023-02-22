@@ -48,7 +48,9 @@ public class LoggerHelper {
 	 * Implements structured logs, at all logging levels
 	 */
 	public void trace(String logType,String workflowInstanceId, String message, ILogEnum operation, ResultLogEnum result, Date startDateOperation, JWTPayloadDTO jwtPayloadDTO) {
-
+		if(jwtPayloadDTO==null) {
+			jwtPayloadDTO = new JWTPayloadDTO(); 
+		}
 		LogDTO logDTO = LogDTO.builder().
 				op_issuer(jwtPayloadDTO.getIss()).
 				op_locality(jwtPayloadDTO.getLocality()).
@@ -77,7 +79,9 @@ public class LoggerHelper {
 	}
 
 	public void debug(String logType,String workflowInstanceId, String message,  ILogEnum operation, ResultLogEnum result, Date startDateOperation,JWTPayloadDTO jwtPayloadDTO) {
-		
+		if(jwtPayloadDTO==null) {
+			jwtPayloadDTO = new JWTPayloadDTO(); 
+		}
 		LogDTO logDTO = LogDTO.builder().
 				op_issuer(jwtPayloadDTO.getIss()).
 				op_locality(jwtPayloadDTO.getLocality()).
@@ -106,7 +110,9 @@ public class LoggerHelper {
 	 
 	public void info(String logType,String workflowInstanceId, String message, ILogEnum operation, ResultLogEnum result, Date startDateOperation,  
 			String documentType, JWTPayloadDTO jwtPayloadDTO) {
-
+		if(jwtPayloadDTO==null) {
+			jwtPayloadDTO = new JWTPayloadDTO(); 
+		}
 		LogDTO logDTO = LogDTO.builder().
 				op_issuer(jwtPayloadDTO.getIss()).
 				op_locality(jwtPayloadDTO.getLocality()).
@@ -136,7 +142,9 @@ public class LoggerHelper {
 	} 
 	
 	public void warn(String logType,String workflowInstanceId, String message, ILogEnum operation, ResultLogEnum result, Date startDateOperation,JWTPayloadDTO jwtPayloadToken) {
-		
+		if(jwtPayloadToken==null) {
+			jwtPayloadToken = new JWTPayloadDTO(); 
+		}
 		LogDTO logDTO = LogDTO.builder().
 				op_issuer(jwtPayloadToken.getIss()).
 				op_locality(jwtPayloadToken.getLocality()).
@@ -167,6 +175,9 @@ public class LoggerHelper {
 	public void error(String logType,String workflowInstanceId, String message, ILogEnum operation, ResultLogEnum result, Date startDateOperation,
 			   ILogEnum error,  String documentType, JWTPayloadDTO jwtPayloadToken) {
 		
+		if(jwtPayloadToken==null) {
+			jwtPayloadToken = new JWTPayloadDTO(); 
+		}
 		LogDTO logDTO = LogDTO.builder().
 				op_issuer(jwtPayloadToken.getIss()).
 				op_locality(jwtPayloadToken.getLocality()).

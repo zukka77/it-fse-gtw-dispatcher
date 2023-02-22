@@ -30,5 +30,4 @@ public class ValidationCreationInputDTO {
 
     private ResourceDTO fhirResource;
 
-    private ValidationException validationError;
 }
