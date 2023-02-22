@@ -129,7 +129,7 @@ public interface IPublicationCTL {
 			@ApiResponse(responseCode = "504", description = "Endpoint request timed-out", content = @Content(mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE, schema = @Schema(implementation = ErrorResponseDTO.class)))})
 	ResponseWifDTO delete(@Size(min = 1, max = 256)@PathVariable(value = "idDoc", required = true) String idDoc, HttpServletRequest request);
 	
-	@PostMapping(value = "/validateAndCreate", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
+	@PostMapping(value = "/documents/validateAndCreate", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
 	@Operation(summary = "Pubblicazione creazione documenti", description = "Pubblica con l'intento di generare nuove risorse FHIR.")
 	@SecurityRequirements({
 		@SecurityRequirement(name = "bearerAuth"),
