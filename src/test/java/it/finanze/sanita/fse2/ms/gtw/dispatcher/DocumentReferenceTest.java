@@ -91,22 +91,20 @@ class DocumentReferenceTest extends AbstractTest {
 	}
 	
 	private PublicationCreationReqDTO buildPublicationReqDTO(String workflowInstanceId) {
-		PublicationCreationReqDTO output = PublicationCreationReqDTO.builder().
-				assettoOrganizzativo(PracticeSettingCodeEnum.AD_PSC001).
-				conservazioneANorma("Conservazione").
-				dataFinePrestazione(""+new Date().getTime()).
-				dataInizioPrestazione(""+new Date().getTime()).
-				healthDataFormat(HealthDataFormatEnum.CDA).
-				identificativoDoc("Identificativo doc").
-				identificativoRep("Identificativo rep").
-				identificativoSottomissione("identificativo sottomissione").
-				mode(InjectionModeEnum.ATTACHMENT).
-				attiCliniciRegoleAccesso(Arrays.asList(EventCodeEnum._94503_0.getCode())).
-				tipoAttivitaClinica(AttivitaClinicaEnum.CON).
-				tipoDocumentoLivAlto(TipoDocAltoLivEnum.PRE).
-				tipologiaStruttura(HealthcareFacilityEnum.Ospedale).
-				workflowInstanceId(workflowInstanceId).
-				build();
+		PublicationCreationReqDTO output = new PublicationCreationReqDTO();
+		output.setAssettoOrganizzativo(PracticeSettingCodeEnum.AD_PSC001);
+		output.setConservazioneANorma("Conservazione");
+		output.setDataFinePrestazione(""+new Date().getTime());
+		output.setHealthDataFormat(HealthDataFormatEnum.CDA);
+		output.setIdentificativoDoc("Identificativo doc");
+		output.setIdentificativoRep("Identificativo rep");
+		output.setIdentificativoSottomissione("identificativo sottomissione");
+		output.setMode(InjectionModeEnum.ATTACHMENT);
+		output.setAttiCliniciRegoleAccesso(Arrays.asList(EventCodeEnum._94503_0.getCode()));
+		output.setTipoAttivitaClinica(AttivitaClinicaEnum.CON);
+		output.setTipoDocumentoLivAlto(TipoDocAltoLivEnum.PRE);
+		output.setTipologiaStruttura(HealthcareFacilityEnum.Ospedale);
+		output.setWorkflowInstanceId(workflowInstanceId);
 		return output;
 	}
 

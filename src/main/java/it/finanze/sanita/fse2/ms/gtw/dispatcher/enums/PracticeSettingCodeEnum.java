@@ -11,7 +11,7 @@ public enum PracticeSettingCodeEnum {
 	AD_PSC002("AD_PSC002","Day Hospital"),
 	AD_PSC003("AD_PSC003","Anatomia e Istologia Patologica"),
 	AD_PSC005("AD_PSC005","Angiologia"),
-	AD_PSC006("AD_PSC006","Cardiochirurgia Padiatrica"),
+	AD_PSC006("AD_PSC006","Cardiochirurgia Pediatrica"),
 	AD_PSC007("AD_PSC007","Cardiochirurgia"),
 	AD_PSC008("AD_PSC008","Cardiologia"),
 	AD_PSC009("AD_PSC009","Chirurgia Generale"),

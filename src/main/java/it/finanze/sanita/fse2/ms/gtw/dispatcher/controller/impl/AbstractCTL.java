@@ -9,7 +9,10 @@ import static it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants.Headers.
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Base64;
+import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.annotation.Nullable;
 import javax.servlet.http.HttpServletRequest;
@@ -37,12 +40,14 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.ValidationCDAReqDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.ErrorResponseDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.LogTraceInfoDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ActivityEnum;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.DescriptionEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ErrorInstanceEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventCodeEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventTypeEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.InjectionModeEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.RawValidationEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.RestExecutionResultEnum;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.SubjectOrganizationEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.BusinessException;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.ConnectionRefusedException;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.ValidationException;
@@ -176,15 +181,56 @@ public abstract class AbstractCTL {
     		out = "Il campo identificativo sottomissione deve essere valorizzato.";
     	} else if(jsonObj.getTipologiaStruttura()==null) {
     		out = "Il campo tipologia struttura deve essere valorizzato.";
-    	} else if(jsonObj.getAttiCliniciRegoleAccesso()!=null) {
+    	} 
+
+    	if(out==null && jsonObj.getDescriptions()!=null) {
+    		out = validateDescriptions(jsonObj.getDescriptions());
+    	} 
+
+    	if(out==null && jsonObj.getAttiCliniciRegoleAccesso()!=null) {
     		for(String attoClinico : jsonObj.getAttiCliniciRegoleAccesso()) {
     			if(EventCodeEnum.fromValue(attoClinico)==null) {
     				out = "Il campo atti clinici " + attoClinico + " non è consentito";
     			}
     		}
+    	} 
+    	
+    	return out;
+    }
+    
+    private String validateDescriptions(final List<String> descriptions) {
+    	String out = null;
+    	for(String description : descriptions) {
+    		String[] splitDescription = description.split("\\^");
+    		if(splitDescription.length!=3) {
+    			out = "Valorizzare correttamente il campo descriptions rispettando la forma: [CODICE]^[Descrizione]^[OID]";
+    			break;
+    		}
+    		
+    		if(!checkDescription(splitDescription[3])) {
+    			out = "Valorizzare correttamente il campo descriptions rispettando i valori di riferimento per gli OID";
+    		}
     	}
     	return out;
     }
+
+	private boolean checkDescription(final String oid) {
+		boolean output = false;
+		for(DescriptionEnum desc : DescriptionEnum.values()) {
+			String sanitizedEnumVaue = Pattern.quote(desc.getOid());
+			sanitizedEnumVaue = sanitizedEnumVaue.replace("COD_REGIONE", "(.*)");
+			Pattern pattern = Pattern.compile(sanitizedEnumVaue);
+			Matcher matcher = pattern.matcher(oid);
+			if(matcher.matches()) {
+				String region = matcher.group(1);
+				if(StringUtility.isNullOrEmpty(region) || SubjectOrganizationEnum.getCode(region)!=null) {
+					output = true;
+					break;
+				}
+			}
+		}
+		return output;
+	}
 
 	protected String checkUpdateMandatoryElements(final PublicationMetadataReqDTO jsonObj) {
 		String out = null;

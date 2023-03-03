@@ -8,6 +8,7 @@ import java.util.List;
 import javax.validation.constraints.Size;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.AdministrativeReqEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.AttivitaClinicaEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.HealthDataFormatEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.HealthcareFacilityEnum;
@@ -60,8 +61,10 @@ public class PublicationUpdateReqDTO extends PublicationMetadataReqDTO {
     		String dataFinePrestazione, 
     		String conservazioneANorma,
     		AttivitaClinicaEnum tipoAttivitaClinica,
-    		String identificativoSottomissione) {
-    	super(tipologiaStruttura, attiCliniciRegoleAccesso, tipoDocumentoLivAlto, assettoOrganizzativo, dataInizioPrestazione, dataFinePrestazione, conservazioneANorma, tipoAttivitaClinica, identificativoSottomissione);
+    		String identificativoSottomissione,
+    		List<String> descriptions, AdministrativeReqEnum administrativeRequest) {
+    	super(tipologiaStruttura, attiCliniciRegoleAccesso, tipoDocumentoLivAlto, assettoOrganizzativo, dataInizioPrestazione, dataFinePrestazione, conservazioneANorma, tipoAttivitaClinica, identificativoSottomissione,
+    			descriptions, administrativeRequest);
     	this.healthDataFormat = healthDataFormat;
     	this.mode = mode;
     	this.identificativoRep = identificativoRep;

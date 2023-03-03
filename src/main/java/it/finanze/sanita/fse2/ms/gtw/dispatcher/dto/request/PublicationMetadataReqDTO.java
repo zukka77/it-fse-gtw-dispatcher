@@ -10,6 +10,7 @@ import javax.validation.constraints.Size;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Schema;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.AbstractDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.AdministrativeReqEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.AttivitaClinicaEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.HealthcareFacilityEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.PracticeSettingCodeEnum;
@@ -56,5 +57,12 @@ public class PublicationMetadataReqDTO extends AbstractDTO {
 	@Schema(description = "Identificativo sottomissione",required = true)
 	@Size(min = 0, max = 100)
 	private String identificativoSottomissione;
+	
+	@Size(min = 0, max = 100)
+    @ArraySchema(schema = @Schema(maxLength = 1000, description = "Descriptions"))
+	private List<String> descriptions;
+
+	@Schema(description = "Administrative")
+	private AdministrativeReqEnum administrativeRequest;
 
 }
