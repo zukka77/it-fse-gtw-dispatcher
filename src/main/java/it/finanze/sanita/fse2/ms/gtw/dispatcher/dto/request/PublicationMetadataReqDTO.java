@@ -57,6 +57,13 @@ public class PublicationMetadataReqDTO extends AbstractDTO {
 	@Schema(description = "Identificativo sottomissione",required = true)
 	@Size(min = 0, max = 100)
 	private String identificativoSottomissione;
+	
+	@Size(min = 0, max = 100)
+    @ArraySchema(schema = @Schema(maxLength = 1000, description = "Descriptions"))
+	private List<String> descriptions;
+
+	@Schema(description = "Administrative")
+	private AdministrativeReqEnum administrativeRequest;
 
 	@Schema(description = "Descrizione")
 	private List<String> descriptions;

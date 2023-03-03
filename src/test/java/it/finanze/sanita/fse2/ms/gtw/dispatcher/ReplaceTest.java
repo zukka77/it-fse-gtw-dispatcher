@@ -169,7 +169,7 @@ class ReplaceTest extends AbstractTest {
 	 		() ->  callReplace(idDocument, notPdfFile, null, false), "Not providing a valid file should throw a bad request exception");
 
 	 	final byte[] pdfAttachment = FileUtility.getFileFromInternalResources("Files/attachment/" + filename);
-	 	PublicationCreationReqDTO rBody = PublicationCreationReqDTO.builder().build();
+	 	PublicationCreationReqDTO rBody = new PublicationCreationReqDTO();
 	 	assertThrows(HttpClientErrorException.BadRequest.class, 
 	 		() ->  callReplace(idDocument, pdfAttachment, rBody, true), "Not providing a valid request body should throw a bad request exception");
 	

@@ -7,6 +7,7 @@ import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -188,9 +189,10 @@ public abstract class AbstractCTL {
     			}
     		}
     	} 
+    	
     	return out;
     }
-
+    
     private String validateDescriptions(final List<String> descriptions) {
     	String out = null;
     	for(String description : descriptions) {
@@ -224,7 +226,6 @@ public abstract class AbstractCTL {
 		}
 		return output;
 	}
-    
 	protected String checkUpdateMandatoryElements(final PublicationMetadataReqDTO jsonObj) {
 		String out = null;
 		if (jsonObj.getAttiCliniciRegoleAccesso() != null) {
