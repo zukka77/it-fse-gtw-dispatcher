@@ -64,11 +64,6 @@ public class PublicationMetadataReqDTO extends AbstractDTO {
 
 	@Schema(description = "Administrative")
 	private AdministrativeReqEnum administrativeRequest;
-
-	@Schema(description = "Descrizione")
-	private List<String> descriptions;
-
-	@Schema(description = "Administrative")
-	private AdministrativeReqEnum administrativeRequest;
+ 
 
 }
