@@ -245,7 +245,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 
 
 	@Override
-	public ResponseWifDTO updateMetadata(final String idDoc, final PublicationMetadataReqDTO jsonObj, final HttpServletRequest request) {
+	public ResponseWifDTO updateMetadata(final String idDoc, final PublicationMetadataReqDTO requestBody, final HttpServletRequest request) {
 
 		// Estrazione token
 		JWTPayloadDTO jwtPayloadToken = null;
@@ -258,23 +258,24 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 		String warning = null;
 
 		try {
+			request.setAttribute("UPDATE_REQ", requestBody);
 			jwtPayloadToken = extractAndValidateJWT(request, EventTypeEnum.UPDATE);
 
-			validateUpdateMetadataReq(jsonObj);
+			validateUpdateMetadataReq(requestBody);
 
-			final GetMergedMetadatiDTO metadatiToUpdate = iniClient.metadata(new MergedMetadatiRequestDTO(idDoc,jwtPayloadToken, jsonObj));
+			final GetMergedMetadatiDTO metadatiToUpdate = iniClient.metadata(new MergedMetadatiRequestDTO(idDoc,jwtPayloadToken, requestBody));
 			if(!StringUtility.isNullOrEmpty(metadatiToUpdate.getErrorMessage()) && !metadatiToUpdate.getErrorMessage().contains("Invalid region ip")) {
 				kafkaSRV.sendUpdateStatus(logTraceDTO.getTraceID(), workflowInstanceId, idDoc, BLOCKING_ERROR, jwtPayloadToken, metadatiToUpdate.getErrorMessage(), RIFERIMENTI_INI);
 				throw new IniException(metadatiToUpdate.getErrorMessage());
 			} else {
-				boolean regimeDiMock = metadatiToUpdate!=null && metadatiToUpdate.getMarshallResponse()==null; 
+				boolean regimeDiMock = metadatiToUpdate.getMarshallResponse()==null; 
 
 				if(regimeDiMock) {
 					kafkaSRV.sendUpdateStatus(logTraceDTO.getTraceID(), workflowInstanceId, idDoc, SUCCESS, jwtPayloadToken, "Regime mock", RIFERIMENTI_INI);
 				} else {
 					kafkaSRV.sendUpdateStatus(logTraceDTO.getTraceID(), workflowInstanceId, idDoc, SUCCESS, jwtPayloadToken, "Merge metadati effettuato correttamente", RIFERIMENTI_INI);
 				}
-				EdsResponseDTO edsResponse = edsClient.update(new EdsMetadataUpdateReqDTO(idDoc, workflowInstanceId, jsonObj));
+				EdsResponseDTO edsResponse = edsClient.update(new EdsMetadataUpdateReqDTO(idDoc, workflowInstanceId, requestBody));
 				if(edsResponse.isEsito()) {
 					kafkaSRV.sendUpdateStatus(logTraceDTO.getTraceID(), workflowInstanceId, idDoc, SUCCESS, jwtPayloadToken, "Update EDS effettuato correttamente", EDS_UPDATE);
 					if(regimeDiMock) {
@@ -305,6 +306,8 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 					jwtPayloadToken);
 		} catch (MockEnabledException me) {
 			throw me;
+		} catch (final ValidationException e) {
+			errorHandlerSRV.updateValidationExceptionHandler(startDateOperation, logTraceDTO, workflowInstanceId, jwtPayloadToken,e,null, idDoc);
 		} catch (Exception e) {
 			RestExecutionResultEnum errorInstance = RestExecutionResultEnum.GENERIC_ERROR;
 			if (e instanceof ValidationException) {
@@ -318,7 +321,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 
 		log.info("[EXIT] {}() with arguments {}={}, {}={}, {}={}","update",
 				"traceId", logTraceDTO.getTraceID(),"wif", workflowInstanceId,"idDoc", idDoc);
-
+		
 		return new ResponseWifDTO(workflowInstanceId, logTraceDTO, warning);
 	}
 

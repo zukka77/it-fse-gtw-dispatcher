@@ -3,6 +3,7 @@
  */
 package it.finanze.sanita.fse2.ms.gtw.dispatcher.service.impl;
 
+import java.io.InputStream;
 import java.util.Date;
 
 import javax.servlet.http.HttpServletRequest;
@@ -12,6 +13,9 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Component;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.PublicationMetadataReqDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.BusinessException;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.repository.entity.AuditETY;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.repository.mongo.IAuditRepo;
@@ -38,9 +42,18 @@ public class AuditSRV implements IAuditSRV {
 	@Override
 	public void saveAuditReqRes(HttpServletRequest httpServletRequest,Object body) {
 		try {
-			String[] requestBody = httpServletRequest.getParameterMap().get("requestBody");
- 
-			if(requestBody!=null) {
+ 			String[] requestBody = httpServletRequest.getParameterMap().get("requestBody");
+			
+ 			if(httpServletRequest.getAttribute("UPDATE_REQ")!=null) {
+ 				AuditETY audit = new AuditETY();
+				audit.setServizio(httpServletRequest.getRequestURI());
+				audit.setStart_time(new Date());
+				audit.setEnd_time(new Date());
+				audit.setRequest(httpServletRequest.getAttribute("UPDATE_REQ"));
+				audit.setResponse(body);
+				audit.setHttpMethod(httpServletRequest.getMethod());
+				auditServiceRepo.save(audit);
+ 			} else if(requestBody!=null) {
 				AuditETY audit = new AuditETY();
 				audit.setServizio(httpServletRequest.getRequestURI());
 				audit.setStart_time((Date)httpServletRequest.getAttribute("START_TIME"));

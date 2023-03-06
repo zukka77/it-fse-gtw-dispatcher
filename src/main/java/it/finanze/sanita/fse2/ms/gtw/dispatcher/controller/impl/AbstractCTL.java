@@ -7,7 +7,6 @@ import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.List;
-import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -235,9 +234,13 @@ public abstract class AbstractCTL {
 				}
 			}
 		} 
-
-		if(out==null && jsonObj.getDescriptions()!=null) {
-    		validateDescriptions(jsonObj.getDescriptions());
+		
+		if(out==null) {
+			out = checkFormatDate(jsonObj.getDataInizioPrestazione(), jsonObj.getDataFinePrestazione());
+			
+			if(out==null && jsonObj.getDescriptions()!=null) {
+				validateDescriptions(jsonObj.getDescriptions());
+			}
     	}
 		return out;
 	}

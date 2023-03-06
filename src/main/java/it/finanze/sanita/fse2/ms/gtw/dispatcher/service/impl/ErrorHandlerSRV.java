@@ -15,6 +15,7 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.PublicationCreationR
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.LogTraceInfoDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ErrorInstanceEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventStatusEnum;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventTypeEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.OperationLogEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.RestExecutionResultEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ResultLogEnum;
@@ -133,6 +134,26 @@ public class ErrorHandlerSRV implements IErrorHandlerSRV {
         			jwtPayloadToken);
         }
         throw new ValidationErrorException(validationResult, StringUtility.sanitizeMessage(e.getError().getDetail()), workflowInstanceId, errorInstance);
+    }
+    
+    @Override
+    public void updateValidationExceptionHandler(Date startDateOperation, LogTraceInfoDTO traceInfoDTO, String workflowInstanceId, JWTPayloadDTO jwtPayloadToken, 
+    		ValidationException e, final String documentType,final String idDoc) {
+
+    	String errorMessage = e.getMessage();
+    	String capturedErrorType = RestExecutionResultEnum.GENERIC_ERROR.getType();
+    	String errorInstance = ErrorInstanceEnum.NO_INFO.getInstance();
+    	if (e.getError() != null) {
+    		errorMessage = e.getError().getDetail();
+    		capturedErrorType = e.getError().getType();
+    		errorInstance = e.getError().getInstance();
+    	}
+
+    	final RestExecutionResultEnum validationResult = RestExecutionResultEnum.get(capturedErrorType);
+    	kafkaSRV.sendUpdateStatus(traceInfoDTO.getTraceID(), workflowInstanceId, idDoc, EventStatusEnum.BLOCKING_ERROR, jwtPayloadToken, errorMessage, EventTypeEnum.UPDATE);
+    	logger.error(Constants.App.LOG_TYPE_CONTROL,workflowInstanceId,e.getError().getDetail() + " " + workflowInstanceId, OperationLogEnum.UPDATE_METADATA_CDA2, ResultLogEnum.KO, startDateOperation, validationResult.getErrorCategory(),  documentType, 
+    			jwtPayloadToken);
+    	throw new ValidationErrorException(validationResult, StringUtility.sanitizeMessage(e.getError().getDetail()), workflowInstanceId, errorInstance);
     }
 
 }
