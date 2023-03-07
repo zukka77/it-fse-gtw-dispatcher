@@ -227,7 +227,12 @@ public abstract class AbstractCTL {
 	}
 	protected String checkUpdateMandatoryElements(final PublicationMetadataReqDTO jsonObj) {
 		String out = null;
-		if (jsonObj.getAttiCliniciRegoleAccesso() != null) {
+		
+		if (jsonObj.getTipoDocumentoLivAlto()==null) {
+    		out = "Il campo tipo documento liv alto deve essere valorizzato.";
+    	} 
+		
+		if (out==null && jsonObj.getAttiCliniciRegoleAccesso() != null) {
 			for (String attoClinico : jsonObj.getAttiCliniciRegoleAccesso()) {
 				if (EventCodeEnum.fromValue(attoClinico)==null) {
 					out = "Il campo atti clinici " + attoClinico + " non è consentito";
