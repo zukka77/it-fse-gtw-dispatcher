@@ -13,11 +13,17 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.BusinessException;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.ValidationException;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.regex.Pattern;
+
 import static it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility.*;
 import static it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility.encodeSHA256Hex;
+import static org.apache.commons.lang3.StringUtils.isWhitespace;
 
 @Slf4j
 public final class CdaUtility {
+
+	private static final String MASTER_ID_SEPARATOR = "^";
+	private static final Pattern MASTER_ID_PTT = Pattern.compile("^\\w+\\^\\w+$");
 	
 	private static final String WIF_SUFFIX = "^^^^urn:ihe:iti:xdw:2013:workflowInstanceId";
 	private static final String WIF_SEPARATOR = ".";
@@ -89,4 +95,33 @@ public final class CdaUtility {
 
 		return out;
 	}
+
+	/**
+	 * Evaluate an identifier and validate it
+	 *
+	 * @param id The master identifier
+	 * @return {@code true} if the identifier is well-formed
+	 */
+	public static boolean isValidMasterId(String id) {
+		boolean valid = false;
+		// Check argument consistency
+		if (id != null && !id.isEmpty() && !isWhitespace(id)) {
+			// If it contains separator, it must match expected shape
+			if (id.contains(MASTER_ID_SEPARATOR)) {
+				// Check for <text><separator><text> (e.g abc^dfg)
+				if(MASTER_ID_PTT.matcher(id).matches()) {
+					// It's required at least another word after separator
+					// No need to fear IndexOutOfBoundsException
+					String param = id.substring(id.indexOf(MASTER_ID_SEPARATOR) + 1);
+					// Check for emptiness
+					valid = !param.isEmpty() && !isWhitespace(param);
+				}
+			} else {
+				valid = true;
+			}
+		}
+		// Return value
+		return valid;
+	}
+
 }
