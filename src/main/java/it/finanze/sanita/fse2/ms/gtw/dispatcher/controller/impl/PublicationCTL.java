@@ -38,6 +38,7 @@ import java.util.Date;
 import java.util.Objects;
 
 import static it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants.App.*;
+import static it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ErrorInstanceEnum.INVALID_ID_ERROR;
 import static it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventStatusEnum.BLOCKING_ERROR;
 import static it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventStatusEnum.SUCCESS;
 import static it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventTypeEnum.*;
@@ -172,6 +173,15 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 			String subjApplicationId = null;
 			String subjApplicationVendor = null;
 			String subjApplicationVersion = null;
+
+			if(!isValidMasterId(idDoc)) throw new ValidationException(
+				ErrorResponseDTO.builder()
+					.title(INVALID_ID_DOC.getTitle())
+					.type(INVALID_ID_DOC.getType())
+					.instance(INVALID_ID_ERROR.getInstance())
+					.detail(INVALID_ID_ERROR.getDescription())
+					.build()
+			);
 			
 			try {
 				validationInfo = validateInput(file, request, true,traceInfoDTO);
@@ -265,6 +275,16 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 		String subjApplicationId = null;
 		String subjApplicationVendor = null;
 		String subjApplicationVersion = null;
+
+		if(!isValidMasterId(idDoc)) throw new ValidationException(
+			ErrorResponseDTO.builder()
+				.title(INVALID_ID_DOC.getTitle())
+				.type(INVALID_ID_DOC.getType())
+				.instance(INVALID_ID_ERROR.getInstance())
+				.detail(INVALID_ID_ERROR.getDescription())
+				.build()
+		);
+
 		try {
 			if (Boolean.TRUE.equals(msCfg.getFromGovway())) {
 				jwtToken = extractAndValidateJWT(request.getHeader(Headers.JWT_GOVWAY_HEADER), msCfg.getFromGovway(), EventTypeEnum.UPDATE);
@@ -451,6 +471,15 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 		String subjApplicationId = null;
 		String subjApplicationVendor = null;
 		String subjApplicationVersion = null;
+
+		if(!isValidMasterId(idDoc)) throw new ValidationException(
+			ErrorResponseDTO.builder()
+				.title(INVALID_ID_DOC.getTitle())
+				.type(INVALID_ID_DOC.getType())
+				.instance(INVALID_ID_ERROR.getInstance())
+				.detail(INVALID_ID_ERROR.getDescription())
+				.build()
+		);
 		
 		try {
 			// Extract token
