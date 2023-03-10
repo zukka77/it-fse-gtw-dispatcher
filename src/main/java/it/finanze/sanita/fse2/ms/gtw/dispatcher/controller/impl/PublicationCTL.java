@@ -109,10 +109,6 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 
 			if (validationInfo.getValidationError() != null) throw validationInfo.getValidationError();
 
-			String idDoc = validationInfo.getJsonObj().getIdentificativoDoc();
-
-			if(!isValidMasterId(idDoc)) throw new ValidationException(createMasterIdError());
-
 			subjApplicationId = validationInfo.getJwtToken().getPayload().getSubject_application_id(); 
 			subjApplicationVendor = validationInfo.getJwtToken().getPayload().getSubject_application_vendor();
 			subjApplicationVersion = validationInfo.getJwtToken().getPayload().getSubject_application_version();
@@ -380,6 +376,10 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 
 			PublicationCreationReqDTO jsonObj = getAndValidatePublicationReq(request.getParameter("requestBody"), isReplace);
 			validation.setJsonObj(jsonObj);
+
+			String idDoc = jsonObj.getIdentificativoDoc();
+
+			if(!isValidMasterId(idDoc)) throw new ValidationException(createMasterIdError());
 
 			final byte[] bytePDF = getAndValidateFile(file);
 			validation.setFile(bytePDF);
