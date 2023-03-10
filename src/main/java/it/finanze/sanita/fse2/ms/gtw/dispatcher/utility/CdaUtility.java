@@ -14,6 +14,8 @@ import org.jsoup.nodes.Document;
 
 import java.util.regex.Pattern;
 
+import static it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ErrorInstanceEnum.INVALID_ID_ERROR;
+import static it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.RestExecutionResultEnum.INVALID_ID_DOC;
 import static it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility.*;
 import static org.apache.commons.lang3.StringUtils.isWhitespace;
 
@@ -120,6 +122,15 @@ public final class CdaUtility {
 		}
 		// Return value
 		return valid;
+	}
+
+	public static ErrorResponseDTO createMasterIdError() {
+		return ErrorResponseDTO.builder()
+			.title(INVALID_ID_DOC.getTitle())
+			.type(INVALID_ID_DOC.getType())
+			.instance(INVALID_ID_ERROR.getInstance())
+			.detail(INVALID_ID_ERROR.getDescription())
+			.build();
 	}
 
 }

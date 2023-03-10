@@ -38,7 +38,6 @@ import java.util.Date;
 import java.util.Objects;
 
 import static it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants.App.*;
-import static it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ErrorInstanceEnum.INVALID_ID_ERROR;
 import static it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventStatusEnum.BLOCKING_ERROR;
 import static it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventStatusEnum.SUCCESS;
 import static it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventTypeEnum.*;
@@ -104,12 +103,15 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 		String subjApplicationId = null;
 		String subjApplicationVendor = null;
 		String subjApplicationVersion = null;
+
 		try {
 			validationInfo = validateInput(file, request, false,traceInfoDTO);
 
-			if (validationInfo.getValidationError() != null) {
-				throw validationInfo.getValidationError();
-			}
+			if (validationInfo.getValidationError() != null) throw validationInfo.getValidationError();
+
+			String idDoc = validationInfo.getJsonObj().getIdentificativoDoc();
+
+			if(!isValidMasterId(idDoc)) throw new ValidationException(createMasterIdError());
 
 			subjApplicationId = validationInfo.getJwtToken().getPayload().getSubject_application_id(); 
 			subjApplicationVendor = validationInfo.getJwtToken().getPayload().getSubject_application_vendor();
@@ -174,21 +176,18 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 			String subjApplicationVendor = null;
 			String subjApplicationVersion = null;
 
-			if(!isValidMasterId(idDoc)) throw new ValidationException(
-				ErrorResponseDTO.builder()
-					.title(INVALID_ID_DOC.getTitle())
-					.type(INVALID_ID_DOC.getType())
-					.instance(INVALID_ID_ERROR.getInstance())
-					.detail(INVALID_ID_ERROR.getDescription())
-					.build()
-			);
-			
+			if(!isValidMasterId(idDoc)) throw new ValidationException(createMasterIdError());
+
 			try {
 				validationInfo = validateInput(file, request, true,traceInfoDTO);
 
 				if (validationInfo.getValidationError() != null) {
 					throw validationInfo.getValidationError();
 				}
+
+				String toReplaceIdDoc = validationInfo.getJsonObj().getIdentificativoDoc();
+
+				if(!isValidMasterId(toReplaceIdDoc)) throw new ValidationException(createMasterIdError());
 
 				log.info("[START] {}() with arguments {}={}, {}={}, {}={}",
 					"replace",
@@ -271,19 +270,11 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 		String locality = Constants.App.JWT_MISSING_LOCALITY;
 		String warning = null;
 
-
 		String subjApplicationId = null;
 		String subjApplicationVendor = null;
 		String subjApplicationVersion = null;
 
-		if(!isValidMasterId(idDoc)) throw new ValidationException(
-			ErrorResponseDTO.builder()
-				.title(INVALID_ID_DOC.getTitle())
-				.type(INVALID_ID_DOC.getType())
-				.instance(INVALID_ID_ERROR.getInstance())
-				.detail(INVALID_ID_ERROR.getDescription())
-				.build()
-		);
+		if(!isValidMasterId(idDoc)) throw new ValidationException(createMasterIdError());
 
 		try {
 			if (Boolean.TRUE.equals(msCfg.getFromGovway())) {
@@ -472,15 +463,8 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 		String subjApplicationVendor = null;
 		String subjApplicationVersion = null;
 
-		if(!isValidMasterId(idDoc)) throw new ValidationException(
-			ErrorResponseDTO.builder()
-				.title(INVALID_ID_DOC.getTitle())
-				.type(INVALID_ID_DOC.getType())
-				.instance(INVALID_ID_ERROR.getInstance())
-				.detail(INVALID_ID_ERROR.getDescription())
-				.build()
-		);
-		
+		if(!isValidMasterId(idDoc)) throw new ValidationException(createMasterIdError());
+
 		try {
 			// Extract token
 			token = extractFromReqJWT(request);
