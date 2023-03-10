@@ -176,7 +176,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 			String subjApplicationVendor = null;
 			String subjApplicationVersion = null;
 
-			if(!isValidMasterId(idDoc)) throw new ValidationException(createMasterIdError());
+			if(!isValidMasterId(idDoc)) throw new ValidationException(createReqMasterIdError());
 
 			try {
 				validationInfo = validateInput(file, request, true,traceInfoDTO);
