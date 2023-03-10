@@ -3,8 +3,6 @@
  */
 package it.finanze.sanita.fse2.ms.gtw.dispatcher.utility;
 
-import org.jsoup.nodes.Document;
-
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.ErrorResponseDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.DocumentTypeEnum;
@@ -12,18 +10,18 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.RestExecutionResultEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.BusinessException;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.ValidationException;
 import lombok.extern.slf4j.Slf4j;
+import org.jsoup.nodes.Document;
 
 import java.util.regex.Pattern;
 
 import static it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility.*;
-import static it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility.encodeSHA256Hex;
 import static org.apache.commons.lang3.StringUtils.isWhitespace;
 
 @Slf4j
 public final class CdaUtility {
 
 	private static final String MASTER_ID_SEPARATOR = "^";
-	private static final Pattern MASTER_ID_PTT = Pattern.compile("^\\w+\\^\\w+$");
+	private static final Pattern MASTER_ID_PTT = Pattern.compile("^[\\w.]+\\^[\\w.]+$");
 	
 	private static final String WIF_SUFFIX = "^^^^urn:ihe:iti:xdw:2013:workflowInstanceId";
 	private static final String WIF_SEPARATOR = ".";
