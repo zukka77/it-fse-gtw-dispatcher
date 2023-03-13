@@ -583,7 +583,8 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 			//Chiamo ms validator per la validazione
 			warning = validate(validationResult.getCda(), ActivityEnum.VALIDATION, workflowInstanceId);
 
-			kafkaSRV.sendValidationStatus(traceInfoDTO.getTraceID(), workflowInstanceId, EventStatusEnum.SUCCESS,null, validationResult.getJwtPayloadToken());
+			kafkaSRV.sendValidationStatus(traceInfoDTO.getTraceID(), workflowInstanceId, EventStatusEnum.SUCCESS,null, validationResult.getJwtPayloadToken(),
+					EventTypeEnum.VALIDATION_FOR_PUBLICATION);
 
 			logger.info(Constants.App.LOG_TYPE_CONTROL,workflowInstanceId, "Validation CDA completed for workflow instance Id " + workflowInstanceId, OperationLogEnum.VAL_CDA2, ResultLogEnum.OK, startDateOperationValidation, CdaUtility.getDocumentType(docT),validationResult.getJwtPayloadToken());
 			request.setAttribute("JWT_ISSUER", validationResult.getJwtPayloadToken().getIss());
@@ -632,7 +633,8 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 			//Chiamo ms validator per la validazione
 			warning = validate(validationResult.getCda(), ActivityEnum.VALIDATION, workflowInstanceId);
 
-			kafkaSRV.sendValidationStatus(traceInfoDTO.getTraceID(), workflowInstanceId, EventStatusEnum.SUCCESS,null, validationResult.getJwtPayloadToken());
+			kafkaSRV.sendValidationStatus(traceInfoDTO.getTraceID(), workflowInstanceId, EventStatusEnum.SUCCESS,null, validationResult.getJwtPayloadToken(),
+					EventTypeEnum.VALIDATION_FOR_REPLACE);
 
 			logger.info(Constants.App.LOG_TYPE_CONTROL,workflowInstanceId, "Validation CDA completed for workflow instance Id " + workflowInstanceId, OperationLogEnum.VAL_CDA2, ResultLogEnum.OK, startDateValidationOperation, CdaUtility.getDocumentType(docT),validationResult.getJwtPayloadToken());
 			request.setAttribute("JWT_ISSUER", validationResult.getJwtPayloadToken().getIss());
