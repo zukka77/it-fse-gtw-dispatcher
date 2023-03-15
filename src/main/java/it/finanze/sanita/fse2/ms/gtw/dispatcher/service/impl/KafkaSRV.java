@@ -108,6 +108,12 @@ public class KafkaSRV implements IKafkaSRV {
 									 final JWTPayloadDTO jwtClaimDTO) {
 		sendStatusMessage(traceId,workflowInstanceId, EventTypeEnum.VALIDATION, eventStatus, message, null, jwtClaimDTO, null);
 	}
+	
+	@Override
+	public void sendValidationStatus(final String traceId,final String workflowInstanceId, final EventStatusEnum eventStatus, final String message,
+									 final JWTPayloadDTO jwtClaimDTO, EventTypeEnum eventTypeEnum) {
+		sendStatusMessage(traceId,workflowInstanceId, eventTypeEnum, eventStatus, message, null, jwtClaimDTO, null);
+	}
 
 	@Override
 	public void sendPublicationStatus(final String traceId,final String workflowInstanceId, final EventStatusEnum eventStatus, final String message,

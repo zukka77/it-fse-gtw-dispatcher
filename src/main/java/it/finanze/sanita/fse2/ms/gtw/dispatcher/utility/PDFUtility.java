@@ -38,7 +38,23 @@ public class PDFUtility {
 	
 	private PDFUtility() {}
 	
-	public static Map<String, AttachmentDTO> extractAttachments(byte[] bytePDF) {
+	public static String extractCDAFromAttachments(final byte[] cda, final String cdaAttachmentName) {
+		String out = null;
+		final Map<String, AttachmentDTO> attachments = extractAttachments(cda);
+		if (!attachments.isEmpty()) {
+			if (attachments.size() == 1) {
+				out = PDFUtility.detectCharsetAndExtract(attachments.values().iterator().next().getContent());
+			} else {
+				final AttachmentDTO attDTO = attachments.get(cdaAttachmentName);
+				if (attDTO != null) {
+					out = PDFUtility.detectCharsetAndExtract(attDTO.getContent());
+				}
+			}
+		}
+		return out;
+	}
+	
+	private static Map<String, AttachmentDTO> extractAttachments(byte[] bytePDF) {
 		Map<String, AttachmentDTO> out = new HashMap<>();
 		
 		try (PDDocument pd = PDDocument.load(bytePDF)) {

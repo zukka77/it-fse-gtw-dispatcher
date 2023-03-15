@@ -127,7 +127,7 @@ class PublicationTest extends AbstractTest {
 		assertFalse(cdaFacadeSRV.retrieveValidationInfo(hash, wii).isCdaValidated(), "If the hash is not present on Mongo, the result should be false.");
 
 		log.info("Inserting a key on MongoDB");
-		cdaFacadeSRV.create(hash, wii, "");
+		cdaFacadeSRV.create(hash, wii, "", "");
 		assertTrue(cdaFacadeSRV.retrieveValidationInfo(hash, wii).isCdaValidated(), "If the hash is present on Mongo, the result should be true");
 		
 		assertFalse(cdaFacadeSRV.retrieveValidationInfo(unmatchingHash, wii).isCdaValidated(), "If the hash present on Mongo is different from expected one, the result should be false");
@@ -280,7 +280,7 @@ class PublicationTest extends AbstractTest {
 		ValidationCDAReqDTO validationRB = validateDataPreparation();
 		
 		// Mocking validator
-		ValidationInfoDTO info = new ValidationInfoDTO(RawValidationEnum.OK, new ArrayList<>(), "");
+		ValidationInfoDTO info = new ValidationInfoDTO(RawValidationEnum.OK, new ArrayList<>(), "", "");
 		given(validatorClient.validate(anyString(),anyString())).willReturn(info);
 
 		ResponseEntity<ValidationResDTO> response = callPlainValidation(jwtToken, file, validationRB);
@@ -361,7 +361,7 @@ class PublicationTest extends AbstractTest {
 
 		byte[] pdfAttachment = FileUtility.getFileFromInternalResources("Files/attachment/LAB_OK.pdf");
 
-		ValidationInfoDTO info = new ValidationInfoDTO(RawValidationEnum.OK, new ArrayList<>(), "wfid");
+		ValidationInfoDTO info = new ValidationInfoDTO(RawValidationEnum.OK, new ArrayList<>(), "wfid", "");
 		given(validatorClient.validate(anyString(),anyString())).willReturn(info);
 
 		// Validation will insert hash in DB
@@ -401,7 +401,7 @@ class PublicationTest extends AbstractTest {
 		final ValidationCDAReqDTO validationRB = validateDataPreparation();
 			
 		// Mocking validator
-		final ValidationInfoDTO info = new ValidationInfoDTO(RawValidationEnum.OK, new ArrayList<>(), "");
+		final ValidationInfoDTO info = new ValidationInfoDTO(RawValidationEnum.OK, new ArrayList<>(), "", "");
 		given(validatorClient.validate(anyString(),anyString())).willReturn(info);
 
 		final ResponseEntity<ValidationResDTO> validationResponse = callPlainValidation(jwtToken, file, validationRB);
@@ -425,7 +425,7 @@ class PublicationTest extends AbstractTest {
 		final ValidationCDAReqDTO validationRB = validateDataPreparation();
 
 		// Mocking validator
-		final ValidationInfoDTO info = new ValidationInfoDTO(RawValidationEnum.OK, new ArrayList<>(), "");
+		final ValidationInfoDTO info = new ValidationInfoDTO(RawValidationEnum.OK, new ArrayList<>(), "", "");
 		given(validatorClient.validate(anyString(),anyString())).willReturn(info);
 
 		final ResponseEntity<ValidationResDTO> validationResponse = callPlainValidation(jwtToken, file, validationRB);

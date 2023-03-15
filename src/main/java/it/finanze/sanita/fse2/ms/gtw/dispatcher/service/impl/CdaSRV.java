@@ -30,9 +30,9 @@ public class CdaSRV implements ICdaSRV {
 	private IValidatedDocumentsRepo cdaRepo;
 	
 	@Override
-	public void create(final String hashedCDA, final String wii, String transfID) {
+	public void create(final String hashedCDA, final String wii, String transfID, String engineID) {
 		try {
-			cdaRepo.create(ValidatedDocumentsETY.setContent(hashedCDA, wii, transfID));
+			cdaRepo.create(ValidatedDocumentsETY.setContent(hashedCDA, wii, transfID, engineID));
 		} catch(Exception ex) {
 			log.error("Error creating cda :" ,ex);
 			throw new BusinessException("Error creating cda :" ,ex);

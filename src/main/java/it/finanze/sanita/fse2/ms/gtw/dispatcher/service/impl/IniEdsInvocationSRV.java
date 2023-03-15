@@ -10,8 +10,8 @@ import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.JWTPayloadDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.ResourceDTO;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.JWTTokenDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.BusinessException;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.repository.entity.IniEdsInvocationETY;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.repository.mongo.IIniEdsInvocationRepo;
@@ -22,21 +22,17 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 @Slf4j
 public class IniEdsInvocationSRV implements IIniEdsInvocationSRV {
-
-	/**
-	 * Serial version uid.
-	 */
-	private static final long serialVersionUID = -8304667907412125924L;
+ 
 
 	@Autowired
 	private IIniEdsInvocationRepo iniInvocationRepo;
 	
 	@Override
-	public Boolean insert(final String workflowInstanceId, final ResourceDTO fhirResourceDTO, final JWTTokenDTO jwtToken) {
+	public Boolean insert(final String workflowInstanceId, final ResourceDTO fhirResourceDTO, final JWTPayloadDTO jwtPayloadToken) {
 		Boolean output = false;
 		try {
 			IniEdsInvocationETY etyToSave = buildETY(workflowInstanceId, fhirResourceDTO.getBundleJson(), fhirResourceDTO.getSubmissionSetEntryJson(),
-					fhirResourceDTO.getDocumentEntryJson(), StringUtility.toJSON(jwtToken), null);
+					fhirResourceDTO.getDocumentEntryJson(), StringUtility.toJSON(jwtPayloadToken), null);
 			etyToSave = iniInvocationRepo.insert(etyToSave);
 			output = !StringUtility.isNullOrEmpty(etyToSave.getId());
 		} catch(Exception ex) {
@@ -59,7 +55,7 @@ public class IniEdsInvocationSRV implements IIniEdsInvocationSRV {
 		List<Document> metadata = new ArrayList<>();
 		Document submissionSetEntryDoc = new Document("submissionSetEntry" ,Document.parse(submissionSetEntryJson));
 		Document documentEntryDoc = new Document("documentEntry" ,Document.parse(documentEntryJson));
-		Document tokenEntry = new Document("tokenEntry", Document.parse(tokenEntryJson));
+		Document tokenEntry = new Document("tokenEntry", new Document("payload",Document.parse(tokenEntryJson)));
 		
 		metadata.add(submissionSetEntryDoc);
 		metadata.add(documentEntryDoc);
@@ -70,11 +66,11 @@ public class IniEdsInvocationSRV implements IIniEdsInvocationSRV {
 	}
 
 	@Override
-	public Boolean replace(String workflowInstanceId, ResourceDTO fhirResourceDTO, JWTTokenDTO jwtToken, final String identificativoDocumento) {
+	public Boolean replace(String workflowInstanceId, ResourceDTO fhirResourceDTO, JWTPayloadDTO jwtPayloadToken, final String identificativoDocumento) {
 		Boolean output = false;
 		try {
 			IniEdsInvocationETY etyToSave = buildETY(workflowInstanceId, fhirResourceDTO.getBundleJson(), fhirResourceDTO.getSubmissionSetEntryJson(),
-					fhirResourceDTO.getDocumentEntryJson(), StringUtility.toJSON(jwtToken), identificativoDocumento);
+					fhirResourceDTO.getDocumentEntryJson(), StringUtility.toJSON(jwtPayloadToken), identificativoDocumento);
 			etyToSave = iniInvocationRepo.insert(etyToSave);
 			output = !StringUtility.isNullOrEmpty(etyToSave.getId());
 		} catch(Exception ex) {
