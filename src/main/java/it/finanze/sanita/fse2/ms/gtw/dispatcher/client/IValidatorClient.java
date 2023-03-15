@@ -9,6 +9,6 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.ValidationInfoDTO;
  * Interface of Validator Client.
  */
 public interface IValidatorClient {
-
-	ValidationInfoDTO validate(String cda, String workflowInstanceId);
+	String SYSTEM_TYPE_HEADER = "X-System-Type";
+	ValidationInfoDTO validate(String cda, String workflowInstanceId, String system);
 }

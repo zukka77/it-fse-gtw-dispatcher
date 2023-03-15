@@ -3,13 +3,6 @@
  */
 package it.finanze.sanita.fse2.ms.gtw.dispatcher.client.impl;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.stereotype.Component;
-import org.springframework.web.client.ResourceAccessException;
-import org.springframework.web.client.RestTemplate;
-
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.IValidatorClient;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.impl.base.AbstractClient;
@@ -19,6 +12,14 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.client.ValidationReq
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.client.ValidationResDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.ConnectionRefusedException;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.stereotype.Component;
+import org.springframework.web.client.ResourceAccessException;
+import org.springframework.web.client.RestTemplate;
+
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 /**
  * Production implemention of Validator Client.
@@ -26,7 +27,6 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Component
 public class ValidatorClient extends AbstractClient implements IValidatorClient {
-
 
 	@Autowired
     private RestTemplate restTemplate;
@@ -36,11 +36,13 @@ public class ValidatorClient extends AbstractClient implements IValidatorClient 
 
     @Override
     @CircuitBreaker(name = "validationCDA")
-    public ValidationInfoDTO validate(final String cda, final String workflowInstanceId) {
+    public ValidationInfoDTO validate(final String cda, final String workflowInstanceId, final String system) {
         log.debug("Validator Client - Calling Validator to execute validation of CDA");
         ValidationInfoDTO out = null;
         HttpHeaders headers = new HttpHeaders();
         headers.set("Content-Type", "application/json");
+
+        if(isNotBlank(SYSTEM_TYPE_HEADER)) headers.set(SYSTEM_TYPE_HEADER, system);
         
         ValidationRequestDTO req = new ValidationRequestDTO();
         req.setCda(cda);
