@@ -2,6 +2,39 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 package it.finanze.sanita.fse2.ms.gtw.dispatcher.controller.impl;
+import static it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ErrorInstanceEnum.INVALID_ID_ERROR;
+import static it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants.App.MISSING_DOC_TYPE_PLACEHOLDER;
+import static it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants.App.MISSING_WORKFLOW_PLACEHOLDER;
+import static it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventStatusEnum.BLOCKING_ERROR;
+import static it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventStatusEnum.SUCCESS;
+import static it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventTypeEnum.EDS_DELETE;
+import static it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventTypeEnum.EDS_UPDATE;
+import static it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventTypeEnum.INI_DELETE;
+import static it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventTypeEnum.INI_UPDATE;
+import static it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventTypeEnum.RIFERIMENTI_INI;
+import static it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.RestExecutionResultEnum.FHIR_MAPPING_ERROR;
+import static it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.RestExecutionResultEnum.INI_EXCEPTION;
+import static it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.RestExecutionResultEnum.INVALID_ID_DOC;
+import static it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.RestExecutionResultEnum.get;
+import static it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.CdaUtility.createWorkflowInstanceId;
+import static it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.CdaUtility.extractFieldCda;
+import static it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.CdaUtility.getDocumentType;
+import static it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility.encodeSHA256;
+import static it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility.isNullOrEmpty;
+
+import java.util.Date;
+import java.util.Objects;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.validation.constraints.Size;
+
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.google.gson.Gson;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.IEdsClient;
@@ -153,6 +186,15 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 		ValidationCreationInputDTO validationInfo = new ValidationCreationInputDTO();
 		validationInfo.setValidationData(new ValidationDataDTO(null, false, MISSING_WORKFLOW_PLACEHOLDER, null, null, new Date()));
 
+		if(!CdaUtility.isValidMasterId(idDoc)) throw new ValidationException(
+				ErrorResponseDTO.builder()
+				.title(RestExecutionResultEnum.INVALID_ID_DOC.getTitle())
+				.type(RestExecutionResultEnum.INVALID_ID_DOC.getType())
+				.instance(ErrorInstanceEnum.INVALID_ID_ERROR.getInstance())
+				.detail(ErrorInstanceEnum.INVALID_ID_ERROR.getDescription())
+				.build()
+				);
+
 		try {
 			validationInfo = publicationAndReplace(file, request, true,traceInfoDTO);
  
@@ -212,6 +254,15 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 		log.info("[START] {}() with arguments {}={}, {}={}, {}={}","update","traceId", logTraceDTO.getTraceID(),"wif", workflowInstanceId,"idDoc", idDoc);
 
 		String warning = null;
+
+		if(!CdaUtility.isValidMasterId(idDoc)) throw new ValidationException(
+				ErrorResponseDTO.builder()
+				.title(RestExecutionResultEnum.INVALID_ID_DOC.getTitle())
+				.type(RestExecutionResultEnum.INVALID_ID_DOC.getType())
+				.instance(ErrorInstanceEnum.INVALID_ID_ERROR.getInstance())
+				.detail(ErrorInstanceEnum.INVALID_ID_ERROR.getDescription())
+				.build()
+				);
 
 		try {
 			request.setAttribute("UPDATE_REQ", requestBody);
@@ -395,6 +446,15 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 		String subjApplicationId = null;
 		String subjApplicationVendor = null;
 		String subjApplicationVersion = null;
+
+		if(!CdaUtility.isValidMasterId(idDoc)) throw new ValidationException(
+				ErrorResponseDTO.builder()
+				.title(RestExecutionResultEnum.INVALID_ID_DOC.getTitle())
+				.type(RestExecutionResultEnum.INVALID_ID_DOC.getType())
+				.instance(ErrorInstanceEnum.INVALID_ID_ERROR.getInstance())
+				.detail(ErrorInstanceEnum.INVALID_ID_ERROR.getDescription())
+				.build()
+				);
 
 		try {
 			// Extract token

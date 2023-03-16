@@ -21,6 +21,7 @@ public enum RestExecutionResultEnum {
 	FORMAT_ELEMENT_ERROR("/msg/invalid-format", "Formato campo non valido.", ErrorLogEnum.KO_INVALID_DATA,EventStatusEnum.BLOCKING_ERROR),
 	MANDATORY_ELEMENT_ERROR_TOKEN("/msg/mandatory-element-token", "Token JWT non valido.", ErrorLogEnum.KO_INVALID_DATA,EventStatusEnum.BLOCKING_ERROR),
 	INVALID_TOKEN_FIELD("/msg/jwt-validation", "Campo token JWT non valido.", ErrorLogEnum.KO_INVALID_DATA,EventStatusEnum.BLOCKING_ERROR),
+	INVALID_ID_DOC("/msg/id-doc", "Campo id documento non valido", ErrorLogEnum.KO_INVALID_DATA, EventStatusEnum.BLOCKING_ERROR),
 	FHIR_MAPPING_ERROR("/msg/fhir-mapping-type", "Mapping fhir fallito.", ErrorLogEnum.KO_FHIR,EventStatusEnum.BLOCKING_ERROR),
 	FHIR_MAPPING_TIMEOUT("/msg/fhir-mapping-timeout", "Mapping fhir timeout.", ErrorLogEnum.KO_FHIR,EventStatusEnum.BLOCKING_ERROR),
 	GENERIC_TIMEOUT("/msg/generic-timeout", "Generic timeout.", ErrorLogEnum.KO_TIMEOUT,EventStatusEnum.NON_BLOCKING_ERROR),
