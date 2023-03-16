@@ -93,8 +93,10 @@ public class ValidationCTL extends AbstractCTL implements IValidationCTL {
 			String schematronWarn = StringUtility.isNullOrEmpty(warning) ? "" : warning;
 			warning = "[" + schematronWarn + "[WARNING_EXTRACT]" + Constants.Misc.WARN_EXTRACTION_SELECTION + "]";
 		}
-
 		warning = StringUtility.isNullOrEmpty(warning) ? null : warning;
+		if(warning != null && warning.length() > 99997) {
+			warning = warning.substring(0, 99997) + "...";
+		}
 		if (jsonObj != null && ActivityEnum.VALIDATION.equals(jsonObj.getActivity())) {
 			return new ResponseEntity<>(new ValidationResDTO(traceInfoDTO, workflowInstanceId, warning),
 					HttpStatus.CREATED);
