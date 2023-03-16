@@ -2,7 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 package it.finanze.sanita.fse2.ms.gtw.dispatcher.controller.impl;
-
+import static it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ErrorInstanceEnum.INVALID_ID_ERROR;
 import static it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants.App.MISSING_DOC_TYPE_PLACEHOLDER;
 import static it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants.App.MISSING_WORKFLOW_PLACEHOLDER;
 import static it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventStatusEnum.BLOCKING_ERROR;
@@ -14,6 +14,7 @@ import static it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventTypeEnum.INI_U
 import static it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventTypeEnum.RIFERIMENTI_INI;
 import static it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.RestExecutionResultEnum.FHIR_MAPPING_ERROR;
 import static it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.RestExecutionResultEnum.INI_EXCEPTION;
+import static it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.RestExecutionResultEnum.INVALID_ID_DOC;
 import static it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.RestExecutionResultEnum.get;
 import static it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.CdaUtility.createWorkflowInstanceId;
 import static it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.CdaUtility.extractFieldCda;
@@ -201,7 +202,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 			String subjApplicationVendor = null;
 			String subjApplicationVersion = null;
 
-			if(!isValidMasterId(idDoc)) throw new ValidationException(
+			if(!CdaUtility.isValidMasterId(idDoc)) throw new ValidationException(
 				ErrorResponseDTO.builder()
 					.title(INVALID_ID_DOC.getTitle())
 					.type(INVALID_ID_DOC.getType())
@@ -275,7 +276,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 		String subjApplicationVendor = null;
 		String subjApplicationVersion = null;
 
-		if(!isValidMasterId(idDoc)) throw new ValidationException(
+		if(!CdaUtility.isValidMasterId(idDoc)) throw new ValidationException(
 			ErrorResponseDTO.builder()
 				.title(INVALID_ID_DOC.getTitle())
 				.type(INVALID_ID_DOC.getType())
@@ -464,7 +465,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 		String subjApplicationVendor = null;
 		String subjApplicationVersion = null;
 
-		if(!isValidMasterId(idDoc)) throw new ValidationException(
+		if(!CdaUtility.isValidMasterId(idDoc)) throw new ValidationException(
 			ErrorResponseDTO.builder()
 				.title(INVALID_ID_DOC.getTitle())
 				.type(INVALID_ID_DOC.getType())
