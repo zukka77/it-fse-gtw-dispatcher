@@ -129,7 +129,7 @@ public interface IPublicationCTL {
 			@ApiResponse(responseCode = "504", description = "Endpoint request timed-out", content = @Content(mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE, schema = @Schema(implementation = ErrorResponseDTO.class)))})
 	ResponseWifDTO delete(@Size(min = 1, max = 256)@PathVariable(value = "idDoc", required = true) String idDoc, HttpServletRequest request);
 	
-	@PostMapping(value = "/documents/validateAndCreate", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
+	@PostMapping(value = "/documents/validate-and-create", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
 	@Operation(summary = "Pubblicazione creazione documenti", description = "Pubblica con l'intento di generare nuove risorse FHIR.")
 	@SecurityRequirements({
 		@SecurityRequirement(name = "bearerAuth"),
@@ -152,7 +152,7 @@ public interface IPublicationCTL {
 	@ApiParam(value = "auth token")
 	ResponseEntity<PublicationResDTO> validateAndCreate(@RequestBody(required = false) PublicationFatherCreationReqDTO requestBody, @RequestPart("file") MultipartFile file, HttpServletRequest request);
 
-	@PutMapping(value = "/documents/validateAndReplace/{idDoc}", produces = { MediaType.APPLICATION_JSON_VALUE }, consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
+	@PutMapping(value = "/documents/validate-and-replace/{idDoc}", produces = { MediaType.APPLICATION_JSON_VALUE }, consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
 	@ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = PublicationResDTO.class)))
 	@Operation(summary = "Pubblicazione replace documenti", description = "Sostituisce il documento identificato da oid fornito in input.")
 	@SecurityRequirements({
