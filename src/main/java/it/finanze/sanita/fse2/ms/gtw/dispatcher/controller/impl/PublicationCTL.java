@@ -198,19 +198,15 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 		ValidationCreationInputDTO validationInfo = new ValidationCreationInputDTO();
 		validationInfo.setValidationData(new ValidationDataDTO(null, false, MISSING_WORKFLOW_PLACEHOLDER, null, null, new Date()));
 
-			String subjApplicationId = null;
-			String subjApplicationVendor = null;
-			String subjApplicationVersion = null;
-
-			if(!CdaUtility.isValidMasterId(idDoc)) throw new ValidationException(
+		if(!CdaUtility.isValidMasterId(idDoc)) throw new ValidationException(
 				ErrorResponseDTO.builder()
-					.title(INVALID_ID_DOC.getTitle())
-					.type(INVALID_ID_DOC.getType())
-					.instance(INVALID_ID_ERROR.getInstance())
-					.detail(INVALID_ID_ERROR.getDescription())
-					.build()
-			);
-			
+				.title(RestExecutionResultEnum.INVALID_ID_DOC.getTitle())
+				.type(RestExecutionResultEnum.INVALID_ID_DOC.getType())
+				.instance(ErrorInstanceEnum.INVALID_ID_ERROR.getInstance())
+				.detail(ErrorInstanceEnum.INVALID_ID_ERROR.getDescription())
+				.build()
+				);
+
 		try {
 			validationInfo = publicationAndReplace(file, request, true,traceInfoDTO);
  
@@ -271,19 +267,14 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 
 		String warning = null;
 
-
-		String subjApplicationId = null;
-		String subjApplicationVendor = null;
-		String subjApplicationVersion = null;
-
 		if(!CdaUtility.isValidMasterId(idDoc)) throw new ValidationException(
-			ErrorResponseDTO.builder()
-				.title(INVALID_ID_DOC.getTitle())
-				.type(INVALID_ID_DOC.getType())
-				.instance(INVALID_ID_ERROR.getInstance())
-				.detail(INVALID_ID_ERROR.getDescription())
+				ErrorResponseDTO.builder()
+				.title(RestExecutionResultEnum.INVALID_ID_DOC.getTitle())
+				.type(RestExecutionResultEnum.INVALID_ID_DOC.getType())
+				.instance(ErrorInstanceEnum.INVALID_ID_ERROR.getInstance())
+				.detail(ErrorInstanceEnum.INVALID_ID_ERROR.getDescription())
 				.build()
-		);
+				);
 
 		try {
 			request.setAttribute("UPDATE_REQ", requestBody);
@@ -466,14 +457,14 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 		String subjApplicationVersion = null;
 
 		if(!CdaUtility.isValidMasterId(idDoc)) throw new ValidationException(
-			ErrorResponseDTO.builder()
-				.title(INVALID_ID_DOC.getTitle())
-				.type(INVALID_ID_DOC.getType())
-				.instance(INVALID_ID_ERROR.getInstance())
-				.detail(INVALID_ID_ERROR.getDescription())
+				ErrorResponseDTO.builder()
+				.title(RestExecutionResultEnum.INVALID_ID_DOC.getTitle())
+				.type(RestExecutionResultEnum.INVALID_ID_DOC.getType())
+				.instance(ErrorInstanceEnum.INVALID_ID_ERROR.getInstance())
+				.detail(ErrorInstanceEnum.INVALID_ID_ERROR.getDescription())
 				.build()
-		);
-		
+				);
+
 		try {
 			// Extract token
 			jwtPayloadToken = extractAndValidateJWT(request, EventTypeEnum.DELETE); 
