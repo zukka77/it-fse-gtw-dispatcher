@@ -91,7 +91,7 @@ public class ValidationCTL extends AbstractCTL implements IValidationCTL {
 			warning = "[" + schematronWarn + "[WARNING_EXTRACT]" + Constants.Misc.WARN_EXTRACTION_SELECTION + "]";
 		}
 		warning = StringUtility.isNullOrEmpty(warning) ? null : warning;
-		if(warning != null && warning.length() > 99997) {
+		if(warning != null && warning.length() >= Constants.App.MAX_SIZE_WARNING) {
 			warning = warning.substring(0, 99997) + "...";
 		}
 		if (jsonObj != null && ActivityEnum.VALIDATION.equals(jsonObj.getActivity())) {

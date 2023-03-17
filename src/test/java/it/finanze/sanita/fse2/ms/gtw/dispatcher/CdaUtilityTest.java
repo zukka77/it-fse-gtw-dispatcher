@@ -42,5 +42,6 @@ class CdaUtilityTest {
         assertFalse(isValidMasterId("  ^^  ^^"));
         assertTrue(isValidMasterId("ab^cd"));
         assertTrue(isValidMasterId("abcd"));
+        assertTrue(isValidMasterId("2.16.840.4^UAT_GTW_ID162"));
     }
 }
