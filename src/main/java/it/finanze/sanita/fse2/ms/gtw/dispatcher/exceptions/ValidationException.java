@@ -17,10 +17,11 @@ public class ValidationException extends RuntimeException {
 	private static final long serialVersionUID = 1253566999469948023L;
 	
 	@Getter
-	private ErrorResponseDTO error;
+	private final ErrorResponseDTO error;
 
-	public ValidationException(final ErrorResponseDTO inError) {
-		error = inError;
+	public ValidationException(final ErrorResponseDTO error) {
+		super(error.getDetail());
+		this.error = error;
 	}
 	
 }

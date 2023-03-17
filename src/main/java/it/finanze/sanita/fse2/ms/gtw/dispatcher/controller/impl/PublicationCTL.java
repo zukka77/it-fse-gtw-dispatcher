@@ -95,6 +95,14 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.CdaUtility;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.ValidationUtility;
 import lombok.extern.slf4j.Slf4j;
+import static it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants.App.*;
+import static it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventStatusEnum.BLOCKING_ERROR;
+import static it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventStatusEnum.SUCCESS;
+import static it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventTypeEnum.*;
+import static it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.RestExecutionResultEnum.*;
+import static it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.CdaUtility.*;
+import static it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility.encodeSHA256;
+import static it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility.isNullOrEmpty;
 
 /**
  *  Publication controller.
@@ -198,16 +206,8 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 		ValidationCreationInputDTO validationInfo = new ValidationCreationInputDTO();
 		validationInfo.setValidationData(new ValidationDataDTO(null, false, MISSING_WORKFLOW_PLACEHOLDER, null, null, new Date()));
 
-		if(!CdaUtility.isValidMasterId(idDoc)) throw new ValidationException(
-				ErrorResponseDTO.builder()
-				.title(RestExecutionResultEnum.INVALID_ID_DOC.getTitle())
-				.type(RestExecutionResultEnum.INVALID_ID_DOC.getType())
-				.instance(ErrorInstanceEnum.INVALID_ID_ERROR.getInstance())
-				.detail(ErrorInstanceEnum.INVALID_ID_ERROR.getDescription())
-				.build()
-				);
-
 		try {
+			if(!isValidMasterId(idDoc)) throw new ValidationException(createReqMasterIdError());
 			validationInfo = publicationAndReplace(file, request, true,traceInfoDTO);
  
 			log.info("[START] {}() with arguments {}={}, {}={}, {}={}","replace","traceId", traceInfoDTO.getTraceID(),"wif", validationInfo.getValidationData().getWorkflowInstanceId(),"idDoc", idDoc);
@@ -266,15 +266,8 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 		log.info("[START] {}() with arguments {}={}, {}={}, {}={}","update","traceId", logTraceDTO.getTraceID(),"wif", workflowInstanceId,"idDoc", idDoc);
 
 		String warning = null;
-
-		if(!CdaUtility.isValidMasterId(idDoc)) throw new ValidationException(
-				ErrorResponseDTO.builder()
-				.title(RestExecutionResultEnum.INVALID_ID_DOC.getTitle())
-				.type(RestExecutionResultEnum.INVALID_ID_DOC.getType())
-				.instance(ErrorInstanceEnum.INVALID_ID_ERROR.getInstance())
-				.detail(ErrorInstanceEnum.INVALID_ID_ERROR.getDescription())
-				.build()
-				);
+ 
+		if(!isValidMasterId(idDoc)) throw new ValidationException(createMasterIdError());
 
 		try {
 			request.setAttribute("UPDATE_REQ", requestBody);
@@ -371,6 +364,10 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 			PublicationCreationReqDTO jsonObj = getAndValidatePublicationReq(request.getParameter("requestBody"), isReplace);
 			validation.setJsonObj(jsonObj);
 
+			String idDoc = jsonObj.getIdentificativoDoc();
+
+			if(!isValidMasterId(idDoc)) throw new ValidationException(createMasterIdError());
+
 			final byte[] bytePDF = getAndValidateFile(file);
 			validation.setFile(bytePDF);
 
@@ -456,14 +453,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 		String subjApplicationVendor = null;
 		String subjApplicationVersion = null;
 
-		if(!CdaUtility.isValidMasterId(idDoc)) throw new ValidationException(
-				ErrorResponseDTO.builder()
-				.title(RestExecutionResultEnum.INVALID_ID_DOC.getTitle())
-				.type(RestExecutionResultEnum.INVALID_ID_DOC.getType())
-				.instance(ErrorInstanceEnum.INVALID_ID_ERROR.getInstance())
-				.detail(ErrorInstanceEnum.INVALID_ID_ERROR.getDescription())
-				.build()
-				);
+		if(!isValidMasterId(idDoc)) throw new ValidationException(createMasterIdError());
 
 		try {
 			// Extract token
