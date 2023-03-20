@@ -191,30 +191,31 @@ public abstract class AbstractCTL {
     			break;
     		}
     		
-    		if(!checkDescription(splitDescription[3])) {
+    		if(!checkDescription(splitDescription[2])) {
     			out = "Valorizzare correttamente il campo descriptions rispettando i valori di riferimento per gli OID";
     		}
     	}
     	return out;
     }
 
-	private boolean checkDescription(final String oid) {
-		boolean output = false;
-		for(DescriptionEnum desc : DescriptionEnum.values()) {
-			String sanitizedEnumVaue = Pattern.quote(desc.getOid());
-			sanitizedEnumVaue = sanitizedEnumVaue.replace("COD_REGIONE", "(.*)");
-			Pattern pattern = Pattern.compile(sanitizedEnumVaue);
-			Matcher matcher = pattern.matcher(oid);
-			if(matcher.matches()) {
-				String region = matcher.group(1);
-				if(StringUtility.isNullOrEmpty(region) || SubjectOrganizationEnum.getCode(region)!=null) {
-					output = true;
-					break;
-				}
-			}
-		}
-		return output;
-	}
+    private boolean checkDescription(final String oid) {
+    	boolean output = false;
+    	for(DescriptionEnum desc : DescriptionEnum.values()) {
+    		String sanitizedEnumVaue = Pattern.quote(desc.getOid());
+    		sanitizedEnumVaue = sanitizedEnumVaue.replace("COD_REGIONE", "(.*)");
+    		Pattern pattern = Pattern.compile(sanitizedEnumVaue);
+    		Matcher matcher = pattern.matcher(oid);
+    		if(matcher.matches()) {
+    			String region = matcher.groupCount()>0 ? matcher.group(1) : null;
+    			if(StringUtility.isNullOrEmpty(region) || SubjectOrganizationEnum.getCode(region)!=null) {
+    				output = true;
+    				break;
+    			}
+    		}
+    	}
+    	return output;
+    }
+    
 	protected String checkUpdateMandatoryElements(final PublicationMetadataReqDTO jsonObj) {
 		String out = null;
 		

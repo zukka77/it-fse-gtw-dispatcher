@@ -92,7 +92,7 @@ public class ValidationCTL extends AbstractCTL implements IValidationCTL {
 		}
 		warning = StringUtility.isNullOrEmpty(warning) ? null : warning;
 		if(warning != null && warning.length() >= Constants.App.MAX_SIZE_WARNING) {
-			warning = warning.substring(0, 99997) + "...";
+			warning = warning.substring(0, Constants.App.MAX_SIZE_WARNING-3) + "...";
 		}
 		if (jsonObj != null && ActivityEnum.VALIDATION.equals(jsonObj.getActivity())) {
 			return new ResponseEntity<>(new ValidationResDTO(traceInfoDTO, workflowInstanceId, warning),
