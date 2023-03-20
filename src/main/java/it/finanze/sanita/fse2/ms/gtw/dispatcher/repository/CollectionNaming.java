@@ -40,6 +40,13 @@ public class CollectionNaming {
     	} 
     	return Constants.Collections.AUDIT; 
     }
-    
+
+    @Bean("engineBean")
+    public String getEngineCollection() {
+        if (profileUtility.isTestProfile()) {
+            return Constants.Profile.TEST_PREFIX + Constants.Collections.ENGINES;
+        }
+        return Constants.Collections.ENGINES;
+    }
     
 }

@@ -28,7 +28,6 @@ import com.google.gson.Gson;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.routes.IniClientRoutes;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.CDACFG;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.AttachmentDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.JWTHeaderDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.JWTPayloadDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.PublicationCreationReqDTO;
@@ -227,17 +226,7 @@ public abstract class AbstractTest {
 		String out = null;
 		out = PDFUtility.unenvelopeA2(bytesPDF);
 		if (StringUtility.isNullOrEmpty(out)) {
-			final Map<String, AttachmentDTO> attachments = PDFUtility.extractAttachments(bytesPDF);
-			if (!attachments.isEmpty()) {
-				if (attachments.size() == 1) {
-					out = new String(attachments.values().iterator().next().getContent());
-				} else {
-					final AttachmentDTO attDTO = attachments.get(cdaCfg.getCdaAttachmentName());
-					if (attDTO != null) {
-						out = new String(attDTO.getContent());
-					}
-				}
-			}
+			out = PDFUtility.extractCDAFromAttachments(bytesPDF,cdaCfg.getCdaAttachmentName());
 		}
 		return out;
 	}

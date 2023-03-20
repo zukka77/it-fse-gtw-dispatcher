@@ -142,7 +142,6 @@ public enum EventCodeEnum {
 	J07CA13("J07CA13","diphtheria-haemophilus influenzae B-pertussis-tetanus-hepatitis B-meningococcus A + C"),
 	J07XA("J07XA","Parasitic vaccines"),
 	J07XA01("J07XA01","malaria vaccines");
-
 	@Getter
 	private String code;
 

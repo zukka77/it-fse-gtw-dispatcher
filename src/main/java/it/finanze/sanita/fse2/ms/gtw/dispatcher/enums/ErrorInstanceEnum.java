@@ -24,10 +24,13 @@ public enum ErrorInstanceEnum {
 	MISSING_JWT_FIELD("/jwt-mandatory-field-missing", "Mandatory field in JWT is missing"),
 	JWT_MALFORMED_FIELD("/jwt-mandatory-field-malformed", "Malformed JWT field"),
 	FHIR_RESOURCE_ERROR("/fhir-resource", "Error creating fhir resource"),
+	INVALID_ID_ERROR("/invalid-id", "L'identificativo documento non è valido"),
+	INVALID_REQ_ID_ERROR("/invalid-req-id", "L'identificativo documento fornito in richiesta non è valido"),
 	NON_PDF_FILE("/multipart-file", "File type must be a PDF document"),
 	EMPTY_FILE("/empty-multipart-file", "File type must not be empty"),
 	OLDER_DAY("/msg/max-day-limit-exceed", "Cannot publish documents older"),
-	EDS_DOCUMENT_MISSING("/msg/eds-document-missing", "Document cannot be found on the Server FHIR");
+	EDS_DOCUMENT_MISSING("/msg/eds-document-missing", "Document cannot be found on the Server FHIR"),
+	SIMULATION_EXCEPTION("/msg/simulation-error", "Simulation error");
 	
 	private String instance;
 	private String description;

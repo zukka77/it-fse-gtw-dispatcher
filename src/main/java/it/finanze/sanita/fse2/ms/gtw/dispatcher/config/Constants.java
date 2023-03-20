@@ -24,6 +24,7 @@ public final class Constants {
 		 * Collection where validated documents info is saved
 		 */
 		public static final String AUDIT = "audit";
+		public static final String ENGINES = "engines";
 		
 
 		private Collections() {
@@ -88,7 +89,9 @@ public final class Constants {
 		
 		public static final String LOG_TYPE_KPI = "kpi-structured-log";
 		public static final String LOG_TYPE_CONTROL = "control-structured-log";
-
+		public static final int MAX_SIZE_WARNING = 200000;
+		
+		
 		private App() {
 			//This method is intentionally left blank.
 		}

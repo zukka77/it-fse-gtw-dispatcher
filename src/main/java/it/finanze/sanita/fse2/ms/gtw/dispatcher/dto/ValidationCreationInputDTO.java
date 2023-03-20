@@ -14,7 +14,7 @@ public class ValidationCreationInputDTO {
     
     private ValidationDataDTO validationData;
 
-    private JWTTokenDTO jwtToken;
+    private JWTPayloadDTO jwtPayloadToken;
 
     private String cda;
 
@@ -30,5 +30,4 @@ public class ValidationCreationInputDTO {
 
     private ResourceDTO fhirResource;
 
-    private ValidationException validationError;
 }

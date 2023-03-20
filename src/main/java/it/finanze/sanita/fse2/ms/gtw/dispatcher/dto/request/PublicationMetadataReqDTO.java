@@ -30,15 +30,15 @@ public class PublicationMetadataReqDTO extends AbstractDTO {
 	private HealthcareFacilityEnum tipologiaStruttura;
 
 	@Size(min = 0, max = 100)
-    @ArraySchema(schema = @Schema(maxLength = 1000, description = "Regola di accesso"))
+	@ArraySchema(schema = @Schema(maxLength = 1000, description = "Regola di accesso"))
 	private List<String> attiCliniciRegoleAccesso;
-	
+
 	@Schema(description = "Tipo documento alto livello", required = true)
 	private TipoDocAltoLivEnum tipoDocumentoLivAlto;
 
 	@Schema(description = "Assetto organizzativo che ha portato alla creazione del documento", required = true)
 	private PracticeSettingCodeEnum assettoOrganizzativo;
-	 
+
 	@Schema(description = "Data inizio prestazione")
 	@Size(min = 0, max = 100)
 	private String dataInizioPrestazione;
@@ -64,5 +64,6 @@ public class PublicationMetadataReqDTO extends AbstractDTO {
 
 	@Schema(description = "Administrative")
 	private AdministrativeReqEnum administrativeRequest;
+ 
 
 }

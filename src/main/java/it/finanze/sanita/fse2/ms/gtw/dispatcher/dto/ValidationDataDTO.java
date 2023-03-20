@@ -20,7 +20,8 @@ public class ValidationDataDTO {
 
     private String workflowInstanceId; 
     
-    private String transformID; 
+    private String transformID;
+    private String engineID;
     
     private Date insertionDate; 
     

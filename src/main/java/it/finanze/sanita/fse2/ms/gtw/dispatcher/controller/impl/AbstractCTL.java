@@ -3,14 +3,10 @@
  */
 package it.finanze.sanita.fse2.ms.gtw.dispatcher.controller.impl;
 
-import static it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants.Headers.JWT_GOVWAY_HEADER;
-import static it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants.Headers.JWT_HEADER;
-
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.List;
-import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -28,8 +24,8 @@ import brave.Tracer;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.IValidatorClient;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.CDACFG;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants.App;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants.Headers;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.MicroservicesURLCFG;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.AttachmentDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.JWTPayloadDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.JWTTokenDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.ValidationDataDTO;
@@ -162,11 +158,9 @@ public abstract class AbstractCTL {
 		
 		return out;
 	}
-
-
+ 
     protected String checkPublicationMandatoryElements(final PublicationCreationReqDTO jsonObj, final boolean isReplace) {
     	String out = null;
-
     	if (StringUtility.isNullOrEmpty(jsonObj.getIdentificativoDoc()) && !isReplace) {
     		out = "Il campo identificativo documento deve essere valorizzato.";
     	} else if (StringUtility.isNullOrEmpty(jsonObj.getIdentificativoRep())) {
@@ -207,60 +201,64 @@ public abstract class AbstractCTL {
     			break;
     		}
     		
-    		if(!checkDescription(splitDescription[3])) {
+    		if(!checkDescription(splitDescription[2])) {
     			out = "Valorizzare correttamente il campo descriptions rispettando i valori di riferimento per gli OID";
     		}
     	}
     	return out;
     }
 
-	private boolean checkDescription(final String oid) {
-		boolean output = false;
-		for(DescriptionEnum desc : DescriptionEnum.values()) {
-			String sanitizedEnumVaue = Pattern.quote(desc.getOid());
-			sanitizedEnumVaue = sanitizedEnumVaue.replace("COD_REGIONE", "(.*)");
-			Pattern pattern = Pattern.compile(sanitizedEnumVaue);
-			Matcher matcher = pattern.matcher(oid);
-			if(matcher.matches()) {
-				String region = matcher.group(1);
-				if(StringUtility.isNullOrEmpty(region) || SubjectOrganizationEnum.getCode(region)!=null) {
-					output = true;
-					break;
-				}
-			}
-		}
-		return output;
-	}
-
+    private boolean checkDescription(final String oid) {
+    	boolean output = false;
+    	for(DescriptionEnum desc : DescriptionEnum.values()) {
+    		String sanitizedEnumVaue = Pattern.quote(desc.getOid());
+    		sanitizedEnumVaue = sanitizedEnumVaue.replace("COD_REGIONE", "(.*)");
+    		Pattern pattern = Pattern.compile(sanitizedEnumVaue);
+    		Matcher matcher = pattern.matcher(oid);
+    		if(matcher.matches()) {
+    			String region = matcher.groupCount()>0 ? matcher.group(1) : null;
+    			if(StringUtility.isNullOrEmpty(region) || SubjectOrganizationEnum.getCode(region)!=null) {
+    				output = true;
+    				break;
+    			}
+    		}
+    	}
+    	return output;
+    }
+    
 	protected String checkUpdateMandatoryElements(final PublicationMetadataReqDTO jsonObj) {
 		String out = null;
-		if (jsonObj.getAttiCliniciRegoleAccesso() != null) {
+		
+		if (jsonObj.getTipoDocumentoLivAlto()==null) {
+    		out = "Il campo tipo documento liv alto deve essere valorizzato.";
+    	} 
+		
+		if (out==null && jsonObj.getAttiCliniciRegoleAccesso() != null) {
 			for (String attoClinico : jsonObj.getAttiCliniciRegoleAccesso()) {
 				if (EventCodeEnum.fromValue(attoClinico)==null) {
 					out = "Il campo atti clinici " + attoClinico + " non è consentito";
 				}
 			}
-		}
+		} 
+		
+		if(out==null) {
+			out = checkFormatDate(jsonObj.getDataInizioPrestazione(), jsonObj.getDataFinePrestazione());
+			
+			if(out==null && jsonObj.getDescriptions()!=null) {
+				validateDescriptions(jsonObj.getDescriptions());
+			}
+    	}
 		return out;
 	}
 
-	protected JWTTokenDTO extractFromReqJWT(HttpServletRequest req) {
-		// Define header to extract
-		String jwt;
-		boolean govway = Boolean.TRUE.equals(msCfg.getFromGovway());
-		// Check if from govway (it changes what header to consider)
-		if(govway) {
-			jwt = req.getHeader(JWT_GOVWAY_HEADER);
-		}else {
-			jwt = req.getHeader(JWT_HEADER);
-		}
-		// Delegate extract and validate function
-		return extractAndValidateJWT(jwt, govway, EventTypeEnum.DELETE);
+	protected JWTPayloadDTO extractAndValidateJWT(final HttpServletRequest request ,final EventTypeEnum eventType) {
+		String extractedToken = Boolean.TRUE.equals(msCfg.getFromGovway()) ? request.getHeader(Headers.JWT_GOVWAY_HEADER) : request.getHeader(Headers.JWT_HEADER);
+		return extractAndValidateJWT(extractedToken,eventType);
 	}
+	
+	protected JWTPayloadDTO extractAndValidateJWT(final String jwt,EventTypeEnum eventType) {
 
-	protected JWTTokenDTO extractAndValidateJWT(final String jwt, final boolean isFromGovway, EventTypeEnum eventType) {
-
-		final JWTTokenDTO token = extractJWT(jwt, isFromGovway);
+		final JWTTokenDTO token = extractJWT(jwt);
 		
 		switch (eventType) {
 			case PUBLICATION:
@@ -282,10 +280,10 @@ public abstract class AbstractCTL {
 				throw new IllegalStateException("Unexpected value: " + eventType);
 		}
 
-		return token;
+		return token.getPayload();
 	}
 
-	private JWTTokenDTO extractJWT(final String jwt, final boolean isFromGovway) {
+	private JWTTokenDTO extractJWT(final String jwt) {
 		JWTTokenDTO jwtToken = null;
 		String errorInstance = ErrorInstanceEnum.MISSING_JWT_FIELD.getInstance();
 		String detail = RestExecutionResultEnum.MANDATORY_ELEMENT_ERROR_TOKEN.getTitle();
@@ -301,7 +299,7 @@ public abstract class AbstractCTL {
 				if (!jwt.startsWith(App.BEARER_PREFIX)) {
 					chunks = jwt.split("\\.");
 
-					if (isFromGovway) {
+					if (Boolean.TRUE.equals(msCfg.getFromGovway())) {
 						payload = new String(Base64.getDecoder().decode(chunks[0]));
 						// Building the object asserts that all required values are present
 						jwtToken = new JWTTokenDTO(JWTPayloadDTO.extractPayload(payload));
@@ -341,13 +339,13 @@ public abstract class AbstractCTL {
 		return jwtToken;
 	}
 	
-	protected void validateJWT(final JWTTokenDTO jwtToken, final String cda) {
+	protected void validateJWT(final JWTPayloadDTO jwtPayloadToken, final String cda) {
 		Document docT = Jsoup.parse(cda);
-		validateResourceHl7Type(jwtToken, docT);
-		validatePersonId(jwtToken, docT);
+		validateResourceHl7Type(jwtPayloadToken, docT);
+		validatePersonId(jwtPayloadToken, docT);
 	}
 
-	private void validateResourceHl7Type(JWTTokenDTO jwtToken, Document docT) {
+	private void validateResourceHl7Type(JWTPayloadDTO jwtPayloadToken, Document docT) {
 		Elements element = docT.select("code");
 		if (element.isEmpty()) {
 			String message = "JWT payload: non è stato possibile verificare la tipologia del CDA";
@@ -357,13 +355,13 @@ public abstract class AbstractCTL {
 		String code = element.get(0).attr("code");
 		String codeSystem = element.get(0).attr("codeSystem");
 		String hl7Type = "('" + code + "^^" + codeSystem + "')";
-		if(!hl7Type.equals(jwtToken.getPayload().getResource_hl7_type())) {
+		if(!hl7Type.equals(jwtPayloadToken.getResource_hl7_type())) {
 			String message = "JWT payload: Tipologia documento diversa dalla tipologia di CDA (code - codesystem)";
 			throwInvalidTokenError(ErrorInstanceEnum.DOCUMENT_TYPE_MISMATCH, message);
 		}
 	}
 	
-	private void validatePersonId(JWTTokenDTO jwtToken, Document docT) {
+	private void validatePersonId(JWTPayloadDTO jwtPayloadToken, Document docT) {
 		Elements element = docT.select("patientRole > id");
 		if (element.isEmpty()) {
 			String message = "JWT payload: non è stato possibile verificare il codice fiscale del paziente presente nel CDA";
@@ -371,7 +369,7 @@ public abstract class AbstractCTL {
 		}
 		
 		String patientRoleCF = element.get(0).attr("extension");
-		String[] chunks = jwtToken.getPayload().getPerson_id().split("\\^");
+		String[] chunks = jwtPayloadToken.getPerson_id().split("\\^");
 		if(!chunks[0].equals(patientRoleCF)) { 
 			String message = "JWT payload: Person id presente nel JWT differente dal codice fiscale del paziente previsto sul CDA";
 			throwInvalidTokenError(ErrorInstanceEnum.PERSON_ID_MISMATCH, message);
@@ -421,16 +419,17 @@ public abstract class AbstractCTL {
 		return out;
 	}
 	
+	
 	protected String extractCDA(final byte[] bytesPDF, final InjectionModeEnum mode) {
 		String out = null;
 		if (InjectionModeEnum.RESOURCE.equals(mode)) {
 			out = PDFUtility.unenvelopeA2(bytesPDF);
 		} else if (InjectionModeEnum.ATTACHMENT.equals(mode)) {
-			out = extractCDAFromAttachments(bytesPDF);
+			out = PDFUtility.extractCDAFromAttachments(bytesPDF, cdaCfg.getCdaAttachmentName());  
 		} else {
 			out = PDFUtility.unenvelopeA2(bytesPDF);
 			if (StringUtility.isNullOrEmpty(out)) {
-				out = extractCDAFromAttachments(bytesPDF);
+				out = PDFUtility.extractCDAFromAttachments(bytesPDF, cdaCfg.getCdaAttachmentName());  
 			}
 		}
 
@@ -449,23 +448,23 @@ public abstract class AbstractCTL {
 	protected String validate(final String cda, final ActivityEnum activity, final String workflowInstanceId) {
 		String errorDetail = "";
 		try {
-			final ValidationInfoDTO rawValidationRes = validatorClient.validate(cda,workflowInstanceId);
+			final ValidationInfoDTO rawValRes = validatorClient.validate(cda,workflowInstanceId);
 
 			if (ActivityEnum.VALIDATION.equals(activity)
-					&& Arrays.asList(RawValidationEnum.OK, RawValidationEnum.SEMANTIC_WARNING).contains(rawValidationRes.getResult())) {
+					&& Arrays.asList(RawValidationEnum.OK, RawValidationEnum.SEMANTIC_WARNING).contains(rawValRes.getResult())) {
 				final String hashedCDA = StringUtility.encodeSHA256B64(cda);
-				cdaFacadeSRV.create(hashedCDA, workflowInstanceId, rawValidationRes.getTransformID());
+				cdaFacadeSRV.create(hashedCDA, workflowInstanceId, rawValRes.getTransformID(), rawValRes.getEngineID());
 			}
 
-			if (!RawValidationEnum.OK.equals(rawValidationRes.getResult())) {
-				final RestExecutionResultEnum result = RestExecutionResultEnum.fromRawResult(rawValidationRes.getResult());
+			if (!RawValidationEnum.OK.equals(rawValRes.getResult())) {
+				final RestExecutionResultEnum result = RestExecutionResultEnum.fromRawResult(rawValRes.getResult());
 				errorDetail = result.getTitle();
-				if (!CollectionUtils.isEmpty(rawValidationRes.getMessage())) {
-					errorDetail = String.join(",", rawValidationRes.getMessage());
+				if (!CollectionUtils.isEmpty(rawValRes.getMessage())) {
+					errorDetail = String.join(",", rawValRes.getMessage());
 				}
 				
 				
-				if(!RawValidationEnum.SEMANTIC_WARNING.equals(rawValidationRes.getResult())){
+				if(!RawValidationEnum.SEMANTIC_WARNING.equals(rawValRes.getResult())){
 					final ErrorResponseDTO error = ErrorResponseDTO.builder()
 							.type(result.getType()).title(result.getTitle())
 							.instance("/validation/error").detail(errorDetail).build();
@@ -482,25 +481,10 @@ public abstract class AbstractCTL {
 		return errorDetail;
 	}
 
-	protected String extractCDAFromAttachments(final byte[] cda) {
-		String out = null;
-		final Map<String, AttachmentDTO> attachments = PDFUtility.extractAttachments(cda);
-		if (!attachments.isEmpty()) {
-			if (attachments.size() == 1) {
-				out = PDFUtility.detectCharsetAndExtract(attachments.values().iterator().next().getContent());
-			} else {
-				final AttachmentDTO attDTO = attachments.get(cdaCfg.getCdaAttachmentName());
-				if (attDTO != null) {
-					out = PDFUtility.detectCharsetAndExtract(attDTO.getContent());
-				}
-			}
-		}
-		return out;
-	}
 
-    protected void validateDocumentHash(final String encodedPDF, final JWTTokenDTO jwtToken) {
+    protected void validateDocumentHash(final String encodedPDF, final JWTPayloadDTO jwtPayloadToken) {
 
-		if (!encodedPDF.equals(jwtToken.getPayload().getAttachment_hash())) {
+		if (!encodedPDF.equals(jwtPayloadToken.getAttachment_hash())) {
 
 			final ErrorResponseDTO error = ErrorResponseDTO.builder()
 					.title(RestExecutionResultEnum.DOCUMENT_HASH_VALIDATION_ERROR.getTitle())
@@ -557,5 +541,37 @@ public abstract class AbstractCTL {
     	}
     	return out;
     }
+    
+    
+    protected PublicationCreationReqDTO getAndValidateValdaPublicationReq(final String jsonREQ) {
+
+    	final PublicationCreationReqDTO out = StringUtility.fromJSONJackson(jsonREQ, PublicationCreationReqDTO.class);
+    	String errorMsg = checkPublicationMandatoryElements(out, false);
+
+    	RestExecutionResultEnum errorType = RestExecutionResultEnum.MANDATORY_ELEMENT_ERROR;
+    	if (errorMsg == null) {
+    		errorType = RestExecutionResultEnum.FORMAT_ELEMENT_ERROR; // Assuming the format is wrong
+    		errorMsg = checkFormatDate(out.getDataInizioPrestazione(), out.getDataFinePrestazione());
+    	}
+
+    	if (errorMsg != null) {
+
+    		String errorInstance = ErrorInstanceEnum.MISSING_MANDATORY_ELEMENT.getInstance();
+    		if (RestExecutionResultEnum.FORMAT_ELEMENT_ERROR.equals(errorType)) {
+    			errorInstance = ErrorInstanceEnum.INVALID_DATE_FORMAT.getInstance();
+    		}
+
+    		final ErrorResponseDTO error = ErrorResponseDTO.builder()
+    				.type(errorType.getType())
+    				.title(errorType.getTitle())
+    				.instance(errorInstance)
+    				.detail(errorMsg).build();
+
+    		throw new ValidationException(error);
+    	}
+
+    	return out;
+    }
+  
 
 }
