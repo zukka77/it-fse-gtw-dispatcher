@@ -48,4 +48,7 @@ public class StatusCheckDTO {
 	@Size(min = 0, max = 100)
 	private String expiringDate;
 	
+	@Size(min = 0, max = 100)
+	private String extra;
+	
 }
