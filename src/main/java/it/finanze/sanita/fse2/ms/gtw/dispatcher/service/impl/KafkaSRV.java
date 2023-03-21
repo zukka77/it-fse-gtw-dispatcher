@@ -18,6 +18,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.kafka.KafkaProducerPropertiesCFG;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.kafka.KafkaTopicCFG;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.JWTPayloadDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.KafkaStatusManagerDTO;
@@ -54,16 +55,26 @@ public class KafkaSRV implements IKafkaSRV {
 	@Autowired
 	@Qualifier("txkafkatemplate")
 	private KafkaTemplate<String, String> txKafkaTemplate;
+	
+	/**
+	 * Not transactional producer.
+	 */
+	@Autowired
+	@Qualifier("notxkafkatemplate")
+	protected KafkaTemplate<String, String> notxKafkaTemplate;
 
 	@Autowired
 	private PriorityUtility priorityUtility;
+	
+	@Autowired
+	private KafkaProducerPropertiesCFG kafkaProducerCFG;
 
 	@Override
 	public RecordMetadata sendMessage(String topic, String key, String value, boolean trans) {
 		RecordMetadata out = null;
 		ProducerRecord<String, String> producerRecord = new ProducerRecord<>(topic, key, value);
 		try {
-			out = kafkaSend(producerRecord);
+			out = kafkaSend(producerRecord,trans);
 		} catch (Exception e) {
 			log.error("Send failed.", e);
 			throw new BusinessException(e);
@@ -72,22 +83,32 @@ public class KafkaSRV implements IKafkaSRV {
 	}
 
 	@SuppressWarnings("unchecked")
-	private RecordMetadata kafkaSend(ProducerRecord<String, String> producerRecord) {
-		Object result = txKafkaTemplate.executeInTransaction(t -> {
-			try {
-				return t.send(producerRecord).get();
-			} catch(InterruptedException e) {
-				log.error("InterruptedException caught. Interrupting thread...");					
-				Thread.currentThread().interrupt(); 
-				throw new BusinessException(e); 
-			}
-			catch (Exception e) {
-				throw new BusinessException(e);
-			}
-		});
+	private RecordMetadata kafkaSend(ProducerRecord<String, String> producerRecord, boolean trans) {
+		RecordMetadata out = null;
+		Object result = null;
 
-		SendResult<String,String> sendResult = (SendResult<String, String>) result;
-		return sendResult.getRecordMetadata();	
+		if (trans) {
+			result = txKafkaTemplate.executeInTransaction(t -> {
+				try {
+					return t.send(producerRecord).get();
+				} catch (InterruptedException e) {
+					log.error("InterruptedException caught. Interrupting thread...");
+					Thread.currentThread().interrupt();
+					throw new BusinessException(e);
+				} catch (Exception e) {
+					throw new BusinessException(e);
+				}
+			});
+		} else {
+			notxKafkaTemplate.send(producerRecord);
+		}
+
+		if (result != null) {
+			SendResult<String, String> sendResult = (SendResult<String, String>) result;
+			out = sendResult.getRecordMetadata();
+			log.debug("Message sent successfully");
+		}
+		return out;	
 	}
 
 	
@@ -96,7 +117,14 @@ public class KafkaSRV implements IKafkaSRV {
 		log.debug("Destination: {}", destinationType.name());
 		try {
 			String destTopic = priorityUtility.computeTopic(priorityFromRequest, destinationType, documentType);
-			sendMessage(destTopic, key, kafkaValue,true);
+			
+			if(StringUtility.isNullOrEmpty(kafkaProducerCFG.getTransactionalId())) {
+				log.info("PRODUCER NON TRANSAZIONALE");
+				sendMessage(destTopic, key, kafkaValue,false);
+			} else {
+				log.info("PRODUCER TRANSAZIONALE");
+				sendMessage(destTopic, key, kafkaValue,true);
+			}
 		} catch (Exception e) {
 			log.error("Error sending kafka message", e);
 			throw new BusinessException(e);
@@ -184,7 +212,14 @@ public class KafkaSRV implements IKafkaSRV {
 
 	private void sendIndexerRetryMessage(final String workflowInstanceId, final String json,
 			final String topic) {
-		sendMessage(topic, workflowInstanceId, json, true);
+		
+		if(StringUtility.isNullOrEmpty(kafkaProducerCFG.getTransactionalId())) {
+			log.info("PRODUCER NON TRANSAZIONALE");
+			sendMessage(topic, workflowInstanceId, json, false);
+		} else {
+			log.info("PRODUCER TRANSAZIONALE");
+			sendMessage(topic, workflowInstanceId, json, true);
+		}
 	}
 
 	private void sendStatusMessage(final String traceId,final String workflowInstanceId, final EventTypeEnum eventType,
@@ -206,7 +241,13 @@ public class KafkaSRV implements IKafkaSRV {
 					build();
 
 			String json = StringUtility.toJSONJackson(statusManagerMessage);
-			sendMessage(kafkaTopicCFG.getStatusManagerTopic(), workflowInstanceId, json, true);
+			if(StringUtility.isNullOrEmpty(kafkaProducerCFG.getTransactionalId())) {
+				log.info("PRODUCER NON TRANSAZIONALE");
+				sendMessage(kafkaTopicCFG.getStatusManagerTopic(), workflowInstanceId, json, false);
+			} else {
+				log.info("PRODUCER TRANSAZIONALE");
+				sendMessage(kafkaTopicCFG.getStatusManagerTopic(), workflowInstanceId, json, true);
+			}
 		} catch(Exception ex) {
 			log.error("Error while send status message : " , ex);
 			throw new BusinessException(ex);
