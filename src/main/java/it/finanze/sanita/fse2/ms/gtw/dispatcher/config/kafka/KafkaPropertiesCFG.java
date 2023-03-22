@@ -3,16 +3,23 @@
  */
 package it.finanze.sanita.fse2.ms.gtw.dispatcher.config.kafka;
 
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
+import java.util.Properties;
 
+import org.apache.kafka.clients.admin.AdminClient;
+import org.apache.kafka.clients.admin.AdminClientConfig;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.ProfileUtility;
 import lombok.Data;
 
 /**
  *	Kafka properties configuration.
  */
 @Data
-@Component
+@Configuration
 public class KafkaPropertiesCFG {
   
 
@@ -64,4 +71,21 @@ public class KafkaPropertiesCFG {
 	 */
 	@Value("${kafka.properties.request.timeout.ms}")
 	private String kafkaRequestTimeoutMS;
+
+	@Autowired
+	private ProfileUtility profileUtility;
+
+	@Bean
+	public AdminClient client() {
+		Properties configProperties = new Properties();
+    	configProperties.put(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, producerBootstrapServers);
+    	if(!profileUtility.isDevOrDockerProfile() && !profileUtility.isTestProfile()) {
+    		configProperties.put("security.protocol", protocol);
+    		configProperties.put("sasl.mechanism", mechanism);
+    		configProperties.put("sasl.jaas.config", configJaas);
+    		configProperties.put("ssl.truststore.location", trustoreLocation);  
+    		configProperties.put("ssl.truststore.password", String.valueOf(trustorePassword)); 
+		}
+		return AdminClient.create(configProperties);
+	}
 }
