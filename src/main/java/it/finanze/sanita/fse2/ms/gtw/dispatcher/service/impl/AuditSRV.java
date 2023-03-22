@@ -128,8 +128,8 @@ public class AuditSRV implements IAuditSRV {
 
 	private boolean skipSwagger(String uri) {
 		boolean skip = false;
-		// Skip check if uri is null
-		if(uri != null) {
+		// Skip check if uri is null or swagger not enabled
+		if(uri != null && swagger.isEnabled()) {
 			// Swagger page
 			String ui = swagger.getPath();
 			// Generative API
