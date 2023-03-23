@@ -16,6 +16,7 @@ import org.springframework.boot.actuate.autoconfigure.endpoint.web.WebEndpointPr
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Component;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import javax.servlet.http.HttpServletRequest;
 import java.net.URLDecoder;
@@ -109,6 +110,8 @@ public class AuditSRV implements IAuditSRV {
 			Set<String> ep = endpoints.getExposure().getInclude();
 			// Retrieve mapping
 			Map<String, String> mapping = endpoints.getPathMapping();
+			// Retrieve base path
+			String base = endpoints.getBasePath();
 			// Iterate
 			Iterator<String> iterator = ep.iterator();
 			// Until we find match
@@ -118,9 +121,11 @@ public class AuditSRV implements IAuditSRV {
 				// Retrieve associated mapping
 				// because it may have been re-defined (e.g live -> status ...)
 				// If it wasn't overwritten, it will return null therefore we are using the default mapping value
-				String path = mapping.getOrDefault(endpoint, endpoint);
+				String mapper = mapping.getOrDefault(endpoint, endpoint);
+				// Create path
+				String path = UriComponentsBuilder.newInstance().pathSegment(base, mapper).toUriString();
 				// If path match, exit loop
-				if (uri.contains(path)) skip = true;
+				if (uri.startsWith(path)) skip = true;
 			}
 		}
 		return skip;
