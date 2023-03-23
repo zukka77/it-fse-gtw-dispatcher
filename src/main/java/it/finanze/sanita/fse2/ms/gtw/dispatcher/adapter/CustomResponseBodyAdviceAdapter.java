@@ -3,6 +3,7 @@
  */
 package it.finanze.sanita.fse2.ms.gtw.dispatcher.adapter;
 
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.audit.AuditManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.core.MethodParameter;
@@ -16,7 +17,6 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
 
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.BusinessException;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.IAuditSRV;
 import lombok.extern.slf4j.Slf4j;
 
 @ControllerAdvice
@@ -25,7 +25,7 @@ import lombok.extern.slf4j.Slf4j;
 public class CustomResponseBodyAdviceAdapter implements ResponseBodyAdvice<Object> {
 
 	@Autowired
-	private IAuditSRV auditSRV;
+	private AuditManager manager;
 
 	@Override
 	public boolean supports(MethodParameter methodParameter, Class<? extends HttpMessageConverter<?>> aClass) { 
@@ -37,7 +37,7 @@ public class CustomResponseBodyAdviceAdapter implements ResponseBodyAdvice<Objec
 			Class<? extends HttpMessageConverter<?>> aClass, ServerHttpRequest serverHttpRequest, ServerHttpResponse serverHttpResponse) { 
 		if (serverHttpRequest instanceof ServletServerHttpRequest && serverHttpResponse instanceof ServletServerHttpResponse) {
 			try {
-				auditSRV.saveAuditReqRes(((ServletServerHttpRequest) serverHttpRequest).getServletRequest(), o);
+				manager.process(((ServletServerHttpRequest) serverHttpRequest).getServletRequest(), o);
 			} catch(Exception ex) {
 				log.error("Errore nel before body write ", ex);
 				throw new BusinessException("Errore nel before body write " + ex);
