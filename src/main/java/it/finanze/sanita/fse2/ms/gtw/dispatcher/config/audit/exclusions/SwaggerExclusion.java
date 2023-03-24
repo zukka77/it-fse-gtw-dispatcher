@@ -27,7 +27,7 @@ public class SwaggerExclusion implements AuditExclusion {
             // Generative API
             String docs = api.getApiDocs().getPath();
             // Retrieve swagger-ui exposed endpoints
-            skip = uri.contains(ui) || uri.contains(docs);
+            skip = uri.startsWith(ui) || uri.startsWith(docs);
         }
         return skip;
     }
