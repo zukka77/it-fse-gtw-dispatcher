@@ -4,5 +4,5 @@ import javax.servlet.http.HttpServletRequest;
 
 @FunctionalInterface
 public interface AuditExclusion {
-    boolean test(String uri, HttpServletRequest req);
+    boolean verify(String uri, HttpServletRequest req);
 }

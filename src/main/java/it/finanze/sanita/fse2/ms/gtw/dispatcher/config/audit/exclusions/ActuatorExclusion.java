@@ -18,7 +18,7 @@ public class ActuatorExclusion implements AuditExclusion {
     private WebEndpointProperties endpoints;
 
     @Override
-    public boolean test(String uri, HttpServletRequest req) {
+    public boolean verify(String uri, HttpServletRequest req) {
         boolean skip = false;
         // Skip check if uri is null
         if(uri != null) {

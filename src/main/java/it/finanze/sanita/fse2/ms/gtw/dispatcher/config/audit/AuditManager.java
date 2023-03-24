@@ -31,7 +31,7 @@ public class AuditManager {
         // Decoded request url
         String uri = uri(req);
         // If the request must be skipped
-        boolean excluded = exclusions.stream().anyMatch(rule -> rule.test(uri, req));
+        boolean excluded = exclusions.stream().anyMatch(rule -> rule.verify(uri, req));
         // Match with appropriate filter
         if(!excluded) {
             Optional<AuditFilter> filter = filters.stream().filter(f -> f.match(req)).findFirst();

@@ -18,7 +18,7 @@ public class SwaggerExclusion implements AuditExclusion {
     private SpringDocConfigProperties api;
 
     @Override
-    public boolean test(String uri, HttpServletRequest req) {
+    public boolean verify(String uri, HttpServletRequest req) {
         boolean skip = false;
         // Skip check if uri is null or swagger not enabled
         if(uri != null && swagger.isEnabled()) {
