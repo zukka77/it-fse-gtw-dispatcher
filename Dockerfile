@@ -8,7 +8,7 @@ ARG RUNTIME=./runtime
 ENV AB_JOLOKIA_OFF=true
 ENV WORKBENCH_MAX_METASPACE_SIZE=1024
 
-ENV JAVA_OPTIONS="-XX:TieredStopAtLevel=1 -noverify -Xms512m -Xmx1024m -XX:MaxMetaspaceSize=1024m -XX:MetaspaceSize=1024m"
+ENV JAVA_OPTIONS="-XX:TieredStopAtLevel=1 -noverify -Xms512m -Xmx1024m"
 
 COPY ${JAR_FILE} /deployments/
 COPY ${RUNTIME} /deployments/
