@@ -57,6 +57,22 @@ public class StatusCheckClient implements IStatusCheckClient {
 		return out; 
 	}
 
+	@Override
+	public TransactionInspectResDTO callSearchEventByIdDocumento(final String idDocumento) {
+		String url = urlCFG.getStatusCheckClientHost() + "/v1/search/event/" + idDocumento;
+		TransactionInspectResDTO out = null;
+		try {	
+			out = restTemplate.getForEntity(url, TransactionInspectResDTO.class).getBody();
+		} catch (HttpStatusCodeException e1) {
+			errorHandler(e1);
+		} catch (Exception e) {
+			log.error("Errore durante l'invocazione dell' API call search event by traceid.", e);
+			throw new BusinessException("Errore durante l'invocazione dell' API call search event by traceid.", e);
+		}
+		return out; 
+	}
+
+	
 	private void errorHandler(final HttpStatusCodeException e1) {
 		String msg = null;
 		

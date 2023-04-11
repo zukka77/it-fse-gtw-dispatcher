@@ -7,4 +7,6 @@ public interface IStatusCheckClient {
 	TransactionInspectResDTO callSearchEventByTraceId(String traceId);
 	
 	TransactionInspectResDTO callSearchEventByWorkflowInstanceId(String workflowInstanceId);
+	
+	TransactionInspectResDTO callSearchEventByIdDocumento(String idDocumento);
 }

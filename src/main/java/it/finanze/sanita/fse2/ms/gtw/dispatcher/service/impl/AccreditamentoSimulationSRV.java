@@ -1,14 +1,12 @@
 package it.finanze.sanita.fse2.ms.gtw.dispatcher.service.impl;
 
-import java.util.Arrays;
-import java.util.List;
-
 import org.apache.commons.lang3.tuple.Pair;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.IStatusCheckClient;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.CDACFG;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.AccreditamentoSimulationDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.ErrorResponseDTO;
@@ -39,14 +37,23 @@ public class AccreditamentoSimulationSRV implements IAccreditamentoSimulationSRV
 
 	@Autowired
 	private CDACFG cdaCFG;
+	
+	@Autowired
+	private IStatusCheckClient statusCheckClient;
 
 	@Override
 	public AccreditamentoSimulationDTO runSimulation(final String idDocumento, final byte[] pdf, final EventTypeEnum eventType) {
 		AccreditamentoSimulationDTO output = null;
+		
+		if(EventTypeEnum.REPLACE.equals(eventType)) {
+			statusCheckClient.callSearchEventByIdDocumento(idDocumento);
+		}
+		
 		AccreditamentoPrefixEnum prefixEnum = AccreditamentoPrefixEnum.getStartWith(idDocumento);
 		if(prefixEnum!=null) {
 			checkIdDocumento(idDocumento, prefixEnum);
 
+			
 			switch (prefixEnum) {
 			case CRASH_TIMEOUT:
 				simulateTimeout();
