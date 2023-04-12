@@ -28,8 +28,6 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.servlet.http.HttpServletRequest;
 import java.util.Date;
 
-import static it.finanze.sanita.fse2.ms.gtw.dispatcher.client.IValidatorClient.SYSTEM_TYPE_HEADER;
-
 /**
  * Validation controller.
  */
