@@ -435,10 +435,10 @@ public abstract class AbstractCTL {
 		return out;
 	}
 
-	protected String validate(final String cda, final ActivityEnum activity, final String workflowInstanceId, final String system) {
+	protected String validate(final String cda, final ActivityEnum activity, final String workflowInstanceId, final String issuer) {
 		String errorDetail = "";
 		try {
-			final ValidationInfoDTO rawValRes = validatorClient.validate(cda,workflowInstanceId, system);
+			final ValidationInfoDTO rawValRes = validatorClient.validate(cda,workflowInstanceId, jwtSRV.getSystemByIssuer(issuer));
 
 			if (ActivityEnum.VALIDATION.equals(activity)
 					&& Arrays.asList(RawValidationEnum.OK, RawValidationEnum.SEMANTIC_WARNING).contains(rawValRes.getResult())) {

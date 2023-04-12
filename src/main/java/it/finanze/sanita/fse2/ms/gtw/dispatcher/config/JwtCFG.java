@@ -15,4 +15,7 @@ public class JwtCFG {
 	@Value("${jwt.claims-required}")
 	private boolean claimsRequired;
 
+	@Value("${jwt.ts.issuer}")
+	private String tsIssuer;
+
 }

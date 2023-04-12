@@ -2,40 +2,6 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 package it.finanze.sanita.fse2.ms.gtw.dispatcher.controller.impl;
-import static it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants.App.MISSING_DOC_TYPE_PLACEHOLDER;
-import static it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants.App.MISSING_WORKFLOW_PLACEHOLDER;
-import static it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventStatusEnum.BLOCKING_ERROR;
-import static it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventStatusEnum.SUCCESS;
-import static it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventTypeEnum.EDS_DELETE;
-import static it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventTypeEnum.EDS_UPDATE;
-import static it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventTypeEnum.INI_DELETE;
-import static it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventTypeEnum.INI_UPDATE;
-import static it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventTypeEnum.RIFERIMENTI_INI;
-import static it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.RestExecutionResultEnum.FHIR_MAPPING_ERROR;
-import static it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.RestExecutionResultEnum.INI_EXCEPTION;
-import static it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.RestExecutionResultEnum.get;
-import static it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.CdaUtility.createMasterIdError;
-import static it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.CdaUtility.createReqMasterIdError;
-import static it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.CdaUtility.createWorkflowInstanceId;
-import static it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.CdaUtility.extractFieldCda;
-import static it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.CdaUtility.getDocumentType;
-import static it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.CdaUtility.isValidMasterId;
-import static it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility.encodeSHA256;
-import static it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility.isNullOrEmpty;
-
-import java.util.Date;
-import java.util.Objects;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.validation.constraints.Size;
-
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.multipart.MultipartFile;
 
 import com.google.gson.Gson;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.IEdsClient;
@@ -74,10 +40,8 @@ import javax.validation.constraints.Size;
 import java.util.Date;
 import java.util.Objects;
 
-import static it.finanze.sanita.fse2.ms.gtw.dispatcher.client.IValidatorClient.SYSTEM_TYPE_HEADER;
 import static it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants.App.MISSING_DOC_TYPE_PLACEHOLDER;
 import static it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants.App.MISSING_WORKFLOW_PLACEHOLDER;
-import static it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants.App.*;
 import static it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventStatusEnum.BLOCKING_ERROR;
 import static it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventStatusEnum.SUCCESS;
 import static it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventTypeEnum.*;
@@ -367,11 +331,9 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 
 			final org.jsoup.nodes.Document docT = Jsoup.parse(cda);
 			final String key = extractFieldCda(docT);
-			final String system = request.getHeader(SYSTEM_TYPE_HEADER);
 
 			validation.setDocument(docT);
 			validation.setKafkaKey(key);
-			validation.setSystem(system);
 		} catch (final ValidationException ve) {
 			cdaSRV.consumeHash(validationInfo.getHash());
 //			validation.setValidationError(ve);
@@ -583,8 +545,10 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 			docT = Jsoup.parse(validationResult.getCda());
 			workflowInstanceId = CdaUtility.getWorkflowInstanceId(docT);
 
+			String issuer = validationResult.getJwtPayloadToken().getIss();
+
 			//Chiamo ms validator per la validazione
-			warning = validate(validationResult.getCda(), ActivityEnum.VALIDATION, workflowInstanceId, validationResult.getSystem());
+			warning = validate(validationResult.getCda(), ActivityEnum.VALIDATION, workflowInstanceId, issuer);
 
 			kafkaSRV.sendValidationStatus(traceInfoDTO.getTraceID(), workflowInstanceId, EventStatusEnum.SUCCESS,null, validationResult.getJwtPayloadToken(),
 					EventTypeEnum.VALIDATION_FOR_PUBLICATION);
@@ -633,8 +597,11 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 			docT = Jsoup.parse(validationResult.getCda());
 			workflowInstanceId = CdaUtility.getWorkflowInstanceId(docT);
 
+			// Get JWT
+			String issuer = validationResult.getJwtPayloadToken().getIss();
+
 			//Chiamo ms validator per la validazione
-			warning = validate(validationResult.getCda(), ActivityEnum.VALIDATION, workflowInstanceId, validationResult.getSystem());
+			warning = validate(validationResult.getCda(), ActivityEnum.VALIDATION, workflowInstanceId, issuer);
 
 			kafkaSRV.sendValidationStatus(traceInfoDTO.getTraceID(), workflowInstanceId, EventStatusEnum.SUCCESS,null, validationResult.getJwtPayloadToken(),
 					EventTypeEnum.VALIDATION_FOR_REPLACE);

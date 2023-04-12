@@ -27,7 +27,4 @@ public class ValidationCreationInputDTO {
     private String documentSha;
 
     private ResourceDTO fhirResource;
-
-    private String system;
-
 }

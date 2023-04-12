@@ -56,7 +56,6 @@ public class ValidationCTL extends AbstractCTL implements IValidationCTL {
 		ValidationCDAReqDTO jsonObj = null;
 		String warning = null;
 		Document docT = null;
- 		String system = request.getHeader(SYSTEM_TYPE_HEADER);
 
 		try {
 			jwtPayloadToken = extractAndValidateJWT(request,EventTypeEnum.VALIDATION);
@@ -70,8 +69,10 @@ public class ValidationCTL extends AbstractCTL implements IValidationCTL {
 			log.info("[START] {}() with arguments {}={}, {}={}","validate","traceId", traceInfoDTO.getTraceID(),"wif", workflowInstanceId);
 
 			validateJWT(jwtPayloadToken, cda);
-			
-			warning = validate(cda, jsonObj.getActivity(), workflowInstanceId, system);
+
+			String issuer = jwtPayloadToken.getIss();
+
+			warning = validate(cda, jsonObj.getActivity(), workflowInstanceId, issuer);
 			String message = null;
 			if (jsonObj.getActivity().equals(ActivityEnum.VERIFICA)) {
 				message = "Attenzione - è stato chiamato l'endpoint di validazione con VERIFICA";
@@ -96,12 +97,12 @@ public class ValidationCTL extends AbstractCTL implements IValidationCTL {
 		}
 		if (jsonObj != null && ActivityEnum.VALIDATION.equals(jsonObj.getActivity())) {
 			return new ResponseEntity<>(new ValidationResDTO(traceInfoDTO, workflowInstanceId, warning),
-					HttpStatus.CREATED);
+				HttpStatus.CREATED);
 		}
 
 		log.info("[EXIT] {}() with arguments {}={}, {}={}","validate","traceId", traceInfoDTO.getTraceID(),"wif", workflowInstanceId);
 
 		return new ResponseEntity<>(new ValidationResDTO(traceInfoDTO, workflowInstanceId, warning), HttpStatus.OK);
 	}
-	
+
 }

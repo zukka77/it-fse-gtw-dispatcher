@@ -10,6 +10,7 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.MicroservicesURLCFG;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.ValidationInfoDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.client.ValidationRequestDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.client.ValidationResDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.SystemTypeEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.ConnectionRefusedException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,8 +19,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
-
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 /**
  * Production implemention of Validator Client.
@@ -36,13 +35,15 @@ public class ValidatorClient extends AbstractClient implements IValidatorClient 
 
     @Override
     @CircuitBreaker(name = "validationCDA")
-    public ValidationInfoDTO validate(final String cda, final String workflowInstanceId, final String system) {
+    public ValidationInfoDTO validate(final String cda, final String workflowInstanceId, final SystemTypeEnum system) {
         log.debug("Validator Client - Calling Validator to execute validation of CDA");
         ValidationInfoDTO out = null;
         HttpHeaders headers = new HttpHeaders();
         headers.set("Content-Type", "application/json");
 
-        if(isNotBlank(SYSTEM_TYPE_HEADER)) headers.set(SYSTEM_TYPE_HEADER, system);
+        if(system != null && system != SystemTypeEnum.NONE) {
+            headers.set(SYSTEM_TYPE_HEADER, system.value());
+        }
         
         ValidationRequestDTO req = new ValidationRequestDTO();
         req.setCda(cda);
