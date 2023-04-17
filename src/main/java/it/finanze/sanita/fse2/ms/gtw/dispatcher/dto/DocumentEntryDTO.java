@@ -31,11 +31,13 @@ public class DocumentEntryDTO {
 	private String author;
 	private String representedOrganizationName;
 	private String representedOrganizationCode;
+	private String administrativeRequest;
 	private String uniqueId;
 	private List<String> referenceIdList;
 	private String healthcareFacilityTypeCode;
 	private String healthcareFacilityTypeCodeName;
 	private List<String> eventCodeList;
+	private List<String> description;
 	private String repositoryUniqueId;
 	private String classCode;
 	private String classCodeName;

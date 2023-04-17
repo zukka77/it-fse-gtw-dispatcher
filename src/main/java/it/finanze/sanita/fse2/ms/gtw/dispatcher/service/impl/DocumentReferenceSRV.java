@@ -3,26 +3,12 @@
  */
 package it.finanze.sanita.fse2.ms.gtw.dispatcher.service.impl;
 
-import java.text.SimpleDateFormat;
-import java.util.Arrays;
-import java.util.Base64;
-import java.util.Date;
-
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Element;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
-
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.impl.FhirMappingClient;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.DocumentEntryDTO;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.DocumentReferenceDTO;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.FhirResourceDTO;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.ResourceDTO;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.SubmissionSetEntryDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.*;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.PublicationCreationReqDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.client.TransformResDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.AdministrativeReqEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.AttivitaClinicaEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.LowLevelDocEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.BusinessException;
@@ -30,6 +16,14 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.ConnectionRefusedExce
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.IDocumentReferenceSRV;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility;
 import lombok.extern.slf4j.Slf4j;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Element;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
+
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 @Service
 @Slf4j
@@ -177,7 +171,19 @@ public class DocumentReferenceSRV implements IDocumentReferenceSRV {
 		if (patientIdElement != null) {
 			documentEntryDTO.setPatientId(patientIdElement.attr(EXTENSION_ATTRIBUTE));
 		}
-		
+
+		AdministrativeReqEnum req = requestBody.getAdministrativeRequest();
+
+		if(req != null) {
+			documentEntryDTO.setAdministrativeRequest(req.getCode());
+		}
+
+		List<String> description = requestBody.getDescriptions();
+
+		if(description != null) {
+			documentEntryDTO.setDescription(new ArrayList<>(description));
+		}
+
 		final Element confidentialityElement = docCDA.select("ClinicalDocument > confidentialityCode").first();
 		if (confidentialityElement != null) {
 			documentEntryDTO.setConfidentialityCode(confidentialityElement.attr("code"));
@@ -257,6 +263,12 @@ public class DocumentReferenceSRV implements IDocumentReferenceSRV {
 			de.setHash(hash);
 			de.setStatus("approved");
 			de.setLanguageCode("it-IT");
+			if(requestBody.getDescriptions() != null) {
+				de.setDescription(requestBody.getDescriptions());
+			}
+			if(requestBody.getAdministrativeRequest() != null) {
+				de.setAdministrativeRequest(requestBody.getAdministrativeRequest().getCode());
+			}
 			de.setHealthcareFacilityTypeCode(requestBody.getTipologiaStruttura().getCode());
 			de.setHealthcareFacilityTypeCodeName(requestBody.getTipologiaStruttura().getCode());
 			if (!CollectionUtils.isEmpty(requestBody.getAttiCliniciRegoleAccesso())) {
