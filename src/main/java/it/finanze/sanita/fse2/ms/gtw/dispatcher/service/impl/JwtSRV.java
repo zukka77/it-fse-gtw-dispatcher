@@ -3,23 +3,17 @@
  */
 package it.finanze.sanita.fse2.ms.gtw.dispatcher.service.impl;
 
-import org.apache.commons.lang3.ObjectUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.JwtCFG;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.JWTPayloadDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.ErrorResponseDTO;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ActionEnum;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ErrorInstanceEnum;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.PurposeOfUseEnum;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.RestExecutionResultEnum;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.RoleEnum;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.SubjectOrganizationEnum;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.*;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.ValidationException;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.IJwtSRV;
+import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 @Service
 public class JwtSRV extends AbstractService implements IJwtSRV {
@@ -215,7 +209,7 @@ public class JwtSRV extends AbstractService implements IJwtSRV {
 		if (chunks.length == 0) return false;
 		if (chunks.length == 1) return utilitySrv.isValidCf(chunks[0]);
 		
-		final String[] chunkedInfo = chunks[1].split("&amp;");
+		final String[] chunkedInfo = chunks[1].split("&");
 		if (chunkedInfo.length > 1 && Constants.OIDS.OID_MEF.equals(chunkedInfo[1])) {
 			return utilitySrv.isValidCf(chunks[0]);
 		}
@@ -229,7 +223,7 @@ public class JwtSRV extends AbstractService implements IJwtSRV {
 //		if (rawOid != null) {
 //			final String[] chunks = rawOid.split("\\^\\^\\^");
 //			if (chunks.length > 1) {
-//				final String[] chunkedInfo = chunks[1].split("&amp;");
+//				final String[] chunkedInfo = chunks[1].split("&");
 //				if (chunkedInfo.length > 1 && Constants.OIDS.OID_MEF.equals(chunkedInfo[1])) {
 //						out = utilitySrv.isValidCf(chunks[0]);
 //				} else {
