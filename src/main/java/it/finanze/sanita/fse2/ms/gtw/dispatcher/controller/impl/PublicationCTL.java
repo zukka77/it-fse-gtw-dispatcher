@@ -163,8 +163,8 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 			errorHandlerSRV.publicationValidationExceptionHandler(startDateOperation, validationInfo.getValidationData(), validationInfo.getJwtPayloadToken(), validationInfo.getJsonObj(), traceInfoDTO, e, true, getDocumentType(validationInfo.getDocument()));
 		}
 
-		String warning = null;
-
+		String warning = StringUtility.isNullOrEmpty(validationInfo.getSignWarning()) ? null : validationInfo.getSignWarning();
+		
 		if (validationInfo.getJsonObj().getMode() == null) {
 			warning = Misc.WARN_EXTRACTION_SELECTION;
 		}
@@ -238,7 +238,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 			errorHandlerSRV.publicationValidationExceptionHandler(startDateOperation, validationInfo.getValidationData(), validationInfo.getJwtPayloadToken(), validationInfo.getJsonObj(), traceInfoDTO, e, false, getDocumentType(validationInfo.getDocument()));
 		}
 
-		String warning = null;
+		String warning = StringUtility.isNullOrEmpty(validationInfo.getSignWarning()) ? null : validationInfo.getSignWarning();
 
 		if (validationInfo.getJsonObj().getMode() == null) {
 			warning = Misc.WARN_EXTRACTION_SELECTION;
@@ -378,7 +378,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 				}
 			}
 			
-			signSRV.checkPades(bytePDF,eventTypeEnum);
+			validation.setSignWarning(signSRV.checkPades(bytePDF,eventTypeEnum));
 
 			final String cda = extractCDA(bytePDF, jsonObj.getMode());
 			validation.setCda(cda);
@@ -600,8 +600,10 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 			docT = Jsoup.parse(validationResult.getCda());
 			workflowInstanceId = CdaUtility.getWorkflowInstanceId(docT);
 
+			warning = StringUtility.isNullOrEmpty(validationResult.getSignWarning()) ? null : validationResult.getSignWarning();   
+			
 			//Chiamo ms validator per la validazione
-			warning = validate(validationResult.getCda(), ActivityEnum.VALIDATION, workflowInstanceId);
+			warning += validate(validationResult.getCda(), ActivityEnum.VALIDATION, workflowInstanceId);
 
 			kafkaSRV.sendValidationStatus(traceInfoDTO.getTraceID(), workflowInstanceId, EventStatusEnum.SUCCESS,null, validationResult.getJwtPayloadToken(),
 					EventTypeEnum.VALIDATION_FOR_PUBLICATION);
@@ -650,6 +652,8 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 			docT = Jsoup.parse(validationResult.getCda());
 			workflowInstanceId = CdaUtility.getWorkflowInstanceId(docT);
 
+			warning = StringUtility.isNullOrEmpty(validationResult.getSignWarning()) ? null : validationResult.getSignWarning();
+			
 			//Chiamo ms validator per la validazione
 			warning = validate(validationResult.getCda(), ActivityEnum.VALIDATION, workflowInstanceId);
 

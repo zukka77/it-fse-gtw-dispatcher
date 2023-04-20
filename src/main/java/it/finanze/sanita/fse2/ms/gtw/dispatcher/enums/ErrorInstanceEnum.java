@@ -31,8 +31,7 @@ public enum ErrorInstanceEnum {
 	OLDER_DAY("/msg/max-day-limit-exceed", "Cannot publish documents older"),
 	EDS_DOCUMENT_MISSING("/msg/eds-document-missing", "Document cannot be found on the Server FHIR"),
 	SIMULATION_EXCEPTION("/msg/simulation-error", "Simulation error"),
-	EMPTY_SIGN_EXCEPTION("/msg/sign-not-found", "Sign not found on pdf"),
-	WRONG_SIGN_EXCEPTION("/msg/sign-not-valid", "Sign not valid on pdf");
+	SIGN_EXCEPTION("/msg/sign-error", "Sign not found on pdf");
 	
 	private String instance;
 	private String description;

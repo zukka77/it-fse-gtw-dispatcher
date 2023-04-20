@@ -35,8 +35,7 @@ public enum RestExecutionResultEnum {
 	EDS_EXCEPTION("/msg/eds-error", "Eds error.", ErrorLogEnum.KO_GENERIC,EventStatusEnum.BLOCKING_ERROR),
 	OLDER_DAY("/msg/max-day-limit-exceed", "Error: document exceeded the maximum period to be published.", ErrorLogEnum.KO_PUB,EventStatusEnum.BLOCKING_ERROR),
 	SIMULATION_EXCEPTION("/msg/simulation-error", "Simulation Error.", ErrorLogEnum.KO_GENERIC,EventStatusEnum.BLOCKING_ERROR),
-	EMPTY_SIGN_EXCEPTION("/msg/sign-not-found", "Sign error", ErrorLogEnum.KO_GENERIC,EventStatusEnum.BLOCKING_ERROR),
-	WRONG_SIGN_EXCEPTION("/msg/sign-not-valid", "Sign error", ErrorLogEnum.KO_GENERIC,EventStatusEnum.BLOCKING_ERROR);
+	SIGN_EXCEPTION("/msg/sign-error", "Sign error", ErrorLogEnum.KO_GENERIC,EventStatusEnum.BLOCKING_ERROR);
 
 
 	private String type;

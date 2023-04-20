@@ -12,6 +12,7 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventTypeEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.ValidationException;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.ISignSRV;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.SignerUtility;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility;
 
 @Service
 public class SignSRV implements ISignSRV{
@@ -20,40 +21,33 @@ public class SignSRV implements ISignSRV{
 	private SignCFG signCFG;
 
 	@Override
-	public void checkPades(final byte[] pdf,final EventTypeEnum eventTypeEnum) {
-
+	public String checkPades(final byte[] pdf,final EventTypeEnum eventTypeEnum) {
+		String out = "";
+		
 		if(CheckValidationSignEnum.DISABLED.equals(signCFG.getSignValidationType())){
-			return;
+			return out;
 		}
-
-		if(CheckValidationSignEnum.PARTIAL.equals(signCFG.getSignValidationType()) && (EventTypeEnum.VALIDATION_FOR_PUBLICATION.equals(eventTypeEnum) || 
-				EventTypeEnum.VALIDATION_FOR_REPLACE.equals(eventTypeEnum))) {
-			return;
-		}
-
-
+ 
 		boolean checkIsSigned = SignerUtility.isSigned(pdf);
 		if(!checkIsSigned) {
-			ErrorResponseDTO error = ErrorResponseDTO.builder()
-					.type(ErrorInstanceEnum.EMPTY_SIGN_EXCEPTION.getInstance())
-					.detail(ErrorInstanceEnum.EMPTY_SIGN_EXCEPTION.getDescription())
-					.instance(ErrorInstanceEnum.EMPTY_SIGN_EXCEPTION.getInstance())
-					.title(ErrorInstanceEnum.EMPTY_SIGN_EXCEPTION.getDescription())
-					.build();
-			throw new ValidationException(error);
+			out = "Il pdf non risulta firmato";
 		}
 
 		SignatureValidationDTO esitoSign = SignerUtility.validate(pdf);
-		if(Boolean.FALSE.equals(esitoSign.getStatus())) {
+		if(StringUtility.isNullOrEmpty(out) && Boolean.FALSE.equals(esitoSign.getStatus())) {
+			out = "La firma del pdf non risulta valida";
+		}
+		
+		if(!StringUtility.isNullOrEmpty(out) && CheckValidationSignEnum.ERROR.equals(signCFG.getSignValidationType())) {
 			ErrorResponseDTO error = ErrorResponseDTO.builder()
-					.type(ErrorInstanceEnum.EMPTY_SIGN_EXCEPTION.getInstance())
-					.detail(ErrorInstanceEnum.WRONG_SIGN_EXCEPTION.getDescription())
-					.instance(ErrorInstanceEnum.WRONG_SIGN_EXCEPTION.getInstance())
-					.title(ErrorInstanceEnum.WRONG_SIGN_EXCEPTION.getInstance()).build();
+					.type(ErrorInstanceEnum.SIGN_EXCEPTION.getInstance())
+					.detail(out)
+					.instance(ErrorInstanceEnum.SIGN_EXCEPTION.getInstance())
+					.title(ErrorInstanceEnum.SIGN_EXCEPTION.getInstance()).build();
 			throw new ValidationException(error);
 		}
-
-
+		
+		return out;
 	}
 
 }

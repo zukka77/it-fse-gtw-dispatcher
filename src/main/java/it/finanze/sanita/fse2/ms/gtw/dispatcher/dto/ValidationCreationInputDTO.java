@@ -6,7 +6,6 @@ package it.finanze.sanita.fse2.ms.gtw.dispatcher.dto;
 import org.jsoup.nodes.Document;
 
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.PublicationCreationReqDTO;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.ValidationException;
 import lombok.Data;
 
 @Data
@@ -29,5 +28,7 @@ public class ValidationCreationInputDTO {
     private String documentSha;
 
     private ResourceDTO fhirResource;
+    
+    private String signWarning;
 
 }
