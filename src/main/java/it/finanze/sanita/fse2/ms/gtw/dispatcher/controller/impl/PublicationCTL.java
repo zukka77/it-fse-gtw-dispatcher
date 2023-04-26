@@ -43,7 +43,6 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.IEdsClient;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.IIniClient;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.AccreditationSimulationCFG;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.SignCFG;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants.Misc;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.ValidationCFG;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.controller.IPublicationCTL;
@@ -424,7 +423,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 	private ResourceDTO callFhirMappingEngine(String transformId, String engineId,
 			final JWTPayloadDTO jwtPayloadToken, PublicationCreationReqDTO jsonObj, final byte[] bytePDF,
 			final String cda, final String documentSha256) {
-		final ResourceDTO fhirResourcesDTO = documentReferenceSRV.createFhirResources(cda, jsonObj, bytePDF.length, documentSha256, jwtPayloadToken.getPerson_id(), transformId, engineId);
+		final ResourceDTO fhirResourcesDTO = documentReferenceSRV.createFhirResources(cda,jwtPayloadToken.getSubject_role(), jsonObj, bytePDF.length, documentSha256,transformId, engineId);
 
 		if(!isNullOrEmpty(fhirResourcesDTO.getErrorMessage())) {
 			final ErrorResponseDTO error = ErrorResponseDTO.builder()
