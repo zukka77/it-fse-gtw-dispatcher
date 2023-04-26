@@ -12,8 +12,6 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.ValidationException;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.nodes.Document;
 
-import java.util.regex.Pattern;
-
 import static it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ErrorInstanceEnum.INVALID_ID_ERROR;
 import static it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ErrorInstanceEnum.INVALID_REQ_ID_ERROR;
 import static it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.RestExecutionResultEnum.INVALID_ID_DOC;
@@ -24,8 +22,7 @@ import static org.apache.commons.lang3.StringUtils.isWhitespace;
 public final class CdaUtility {
 
 	private static final String MASTER_ID_SEPARATOR = "^";
-	private static final Pattern MASTER_ID_PTT = Pattern.compile("^[\\w.]+\\^[\\w.]+$");
-	
+
 	private static final String WIF_SUFFIX = "^^^^urn:ihe:iti:xdw:2013:workflowInstanceId";
 	private static final String WIF_SEPARATOR = ".";
 	/**
@@ -104,25 +101,14 @@ public final class CdaUtility {
 	 * @return {@code true} if the identifier is well-formed
 	 */
 	public static boolean isValidMasterId(String id) {
-		boolean valid = false;
-		// Check argument consistency
-		if (id != null && !id.isEmpty() && !isWhitespace(id)) {
-			// If it contains separator, it must match expected shape
-			if (id.contains(MASTER_ID_SEPARATOR)) {
-				// Check for <text><separator><text> (e.g abc^dfg)
-				if(MASTER_ID_PTT.matcher(id).matches()) {
-					// It's required at least another word after separator
-					// No need to fear IndexOutOfBoundsException
-					String param = id.substring(id.indexOf(MASTER_ID_SEPARATOR) + 1);
-					// Check for emptiness
-					valid = !param.isEmpty() && !isWhitespace(param);
-				}
-			} else {
-				valid = true;
-			}
-		}
-		// Return value
-		return valid;
+		if (StringUtility.isNullOrEmpty(id)) return false;
+		if (isWhitespace(id)) return false;
+		if (!id.contains(MASTER_ID_SEPARATOR)) return true;
+
+		String[] values = id.split("\\"+MASTER_ID_SEPARATOR);
+		if (values.length != 2) return false;
+
+		return !values[0].isEmpty() && !values[1].isEmpty();
 	}
 
 	public static ErrorResponseDTO createMasterIdError() {
