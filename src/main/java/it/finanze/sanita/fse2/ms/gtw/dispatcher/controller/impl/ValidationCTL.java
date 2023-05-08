@@ -81,9 +81,9 @@ public class ValidationCTL extends AbstractCTL implements IValidationCTL {
 			}
 
 			kafkaSRV.sendValidationStatus(traceInfoDTO.getTraceID(), workflowInstanceId, EventStatusEnum.SUCCESS,message, jwtPayloadToken);
-
+			String typeIdExtension = docT.select("typeId").get(0).attr("extension");
 			logger.info(Constants.App.LOG_TYPE_CONTROL,workflowInstanceId, "Validation CDA completed for workflow instance Id " + workflowInstanceId, OperationLogEnum.VAL_CDA2, ResultLogEnum.OK, startDateOperation, CdaUtility.getDocumentType(docT), 
-					jwtPayloadToken);
+					jwtPayloadToken,typeIdExtension);
 			request.setAttribute("JWT_ISSUER", jwtPayloadToken.getIss());
 		} catch (final ValidationException e) {
 			errorHandlerSRV.validationExceptionHandler(startDateOperation, traceInfoDTO, workflowInstanceId, jwtPayloadToken, e, CdaUtility.getDocumentType(docT));
