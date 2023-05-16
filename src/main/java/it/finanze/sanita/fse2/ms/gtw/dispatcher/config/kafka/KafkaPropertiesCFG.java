@@ -66,11 +66,6 @@ public class KafkaPropertiesCFG {
 	@Value("${kafka.enablessl}")
 	private boolean enableSSL;
 	
-	/**
-	 * Retry indexer topic update
-	 */
-	@Value("${kafka.properties.request.timeout.ms}")
-	private String kafkaRequestTimeoutMS;
 
 	@Autowired
 	private ProfileUtility profileUtility;

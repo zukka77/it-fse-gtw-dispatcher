@@ -3,22 +3,18 @@
  */
 package it.finanze.sanita.fse2.ms.gtw.dispatcher.service.impl;
 
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.*;
 import org.apache.commons.lang3.ObjectUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.JWTPayloadDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.ErrorResponseDTO;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ActionEnum;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ErrorInstanceEnum;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.PurposeOfUseEnum;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.RestExecutionResultEnum;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.RoleEnum;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.SubjectOrganizationEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.ValidationException;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.IJwtSRV;
+
+import static org.apache.commons.lang3.StringUtils.*;
 
 @Service
 public class JwtSRV extends AbstractService implements IJwtSRV {
@@ -37,6 +33,15 @@ public class JwtSRV extends AbstractService implements IJwtSRV {
 		checkNull(payload.getSubject_application_version(), "subject_application_version");
 		validateActionCoherence(payload, ActionEnum.CREATE);
 		validatePurposeOfUseCoherence(payload, PurposeOfUseEnum.TREATMENT);
+	}
+
+	@Override
+	public SystemTypeEnum getSystemByIssuer(String issuer) {
+		SystemTypeEnum system = SystemTypeEnum.NONE;
+		if(isNotBlank(issuer) && issuer.equals(jwtCFG.getTsIssuer())) {
+			system = SystemTypeEnum.TS;
+		}
+		return system;
 	}
 
 	@Override
@@ -167,7 +172,7 @@ public class JwtSRV extends AbstractService implements IJwtSRV {
 	}
 
 	private void checkNull(String value, String fieldName) {
-		if (StringUtils.isEmpty(value)) {
+		if (isEmpty(value)) {
 			ErrorResponseDTO error = ErrorResponseDTO.builder()
 					.type(RestExecutionResultEnum.INVALID_TOKEN_FIELD.getType())
 					.title(RestExecutionResultEnum.INVALID_TOKEN_FIELD.getTitle())

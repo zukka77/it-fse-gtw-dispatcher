@@ -12,4 +12,8 @@ public class SignCFG {
 
 	@Value("${sign.choose-validation-type}")
 	private CheckValidationSignEnum signValidationType;
+	
+	@Value("${jwt.ts.issuer}")
+	private String tsIssuer;
+
 }

@@ -3,10 +3,9 @@
  */
 package it.finanze.sanita.fse2.ms.gtw.dispatcher.dto;
 
-import org.jsoup.nodes.Document;
-
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.PublicationCreationReqDTO;
 import lombok.Data;
+import org.jsoup.nodes.Document;
 
 @Data
 public class ValidationCreationInputDTO {

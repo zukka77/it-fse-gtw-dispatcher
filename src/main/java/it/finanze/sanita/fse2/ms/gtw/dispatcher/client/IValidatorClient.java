@@ -4,11 +4,12 @@
 package it.finanze.sanita.fse2.ms.gtw.dispatcher.client;
 
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.ValidationInfoDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.SystemTypeEnum;
 
 /**
  * Interface of Validator Client.
  */
 public interface IValidatorClient {
-
-	ValidationInfoDTO validate(String cda, String workflowInstanceId);
+	String SYSTEM_TYPE_HEADER = "X-System-Type";
+	ValidationInfoDTO validate(String cda, String workflowInstanceId, SystemTypeEnum system);
 }

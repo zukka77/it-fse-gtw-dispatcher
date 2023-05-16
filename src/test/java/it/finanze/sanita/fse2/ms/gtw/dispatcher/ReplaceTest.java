@@ -117,7 +117,7 @@ class ReplaceTest extends AbstractTest {
 	 	mockValidation(pdfAttachment);
 	 	
 	 	ValidationInfoDTO info = new ValidationInfoDTO(RawValidationEnum.OK, new ArrayList<>(), "", "");
-	 	given(validatorClient.validate(anyString(), anyString())).willReturn(info);
+	 	given(validatorClient.validate(anyString(), anyString(), any())).willReturn(info);
 	 	
 	 	callValidation(ActivityEnum.VALIDATION, HealthDataFormatEnum.CDA, InjectionModeEnum.ATTACHMENT, pdfAttachment, true, false, true);
 		
@@ -144,7 +144,7 @@ class ReplaceTest extends AbstractTest {
 
 	 void mockValidation(byte[] pdfAttachment) {
 	 	ValidationInfoDTO info = new ValidationInfoDTO(RawValidationEnum.OK, new ArrayList<>(), "", "");
-	 	given(validatorClient.validate(anyString(), anyString())).willReturn(info);
+	 	given(validatorClient.validate(anyString(), anyString(), any())).willReturn(info);
 	 }
 
 	 @ParameterizedTest

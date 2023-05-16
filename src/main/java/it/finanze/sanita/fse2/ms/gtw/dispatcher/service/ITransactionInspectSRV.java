@@ -7,5 +7,7 @@ public interface ITransactionInspectSRV {
 	TransactionInspectResDTO callSearchEventByWorkflowInstanceId(String workflowInstanceId);
 
 	TransactionInspectResDTO callSearchEventByTraceId(String traceId);
+	
+	TransactionInspectResDTO callSearchEventByIdDocumento(String idDocumento);
 
 }

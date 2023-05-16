@@ -18,6 +18,15 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ErrorInstanceEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.RestExecutionResultEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.ConnectionRefusedException;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.ValidationException;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.IValidatorClient;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.impl.base.AbstractClient;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.MicroservicesURLCFG;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.ValidationInfoDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.client.ValidationRequestDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.client.ValidationResDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.SystemTypeEnum;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.ConnectionRefusedException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
@@ -34,7 +43,6 @@ import org.springframework.web.client.RestTemplate;
 @Component
 public class ValidatorClient extends AbstractClient implements IValidatorClient {
 
-
 	@Autowired
     private RestTemplate restTemplate;
 	
@@ -43,11 +51,15 @@ public class ValidatorClient extends AbstractClient implements IValidatorClient 
 
     @Override
     @CircuitBreaker(name = "validationCDA")
-    public ValidationInfoDTO validate(final String cda, final String workflowInstanceId) {
+    public ValidationInfoDTO validate(final String cda, final String workflowInstanceId, final SystemTypeEnum system) {
         log.debug("Validator Client - Calling Validator to execute validation of CDA");
         ValidationInfoDTO out = null;
         HttpHeaders headers = new HttpHeaders();
         headers.set("Content-Type", "application/json");
+
+        if(system != null && system != SystemTypeEnum.NONE) {
+            headers.set(SYSTEM_TYPE_HEADER, system.value());
+        }
         
         ValidationRequestDTO req = new ValidationRequestDTO();
         req.setCda(cda);

@@ -24,4 +24,8 @@ public class TransactionInspectSRV implements ITransactionInspectSRV {
 		return statusCheckClient.callSearchEventByTraceId(traceId);
 	}
 
+	@Override
+	public TransactionInspectResDTO callSearchEventByIdDocumento(final String idDocumento) {
+		return statusCheckClient.callSearchEventByTraceId(idDocumento);
+	}
 }
