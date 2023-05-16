@@ -73,7 +73,7 @@ public class AuditSRV implements IAuditSRV {
 					audit.setServizio(service);
 					audit.setStart_time((Date)req.getAttribute("START_TIME"));
 					audit.setEnd_time(new Date());
-					audit.setRequest(StringUtility.fromJSON(requestBody[0], Object.class));
+					audit.setRequest(StringUtility.fromJSONJackson(requestBody[0], Object.class));
 					audit.setResponse(body);
 					audit.setJwt_issuer((String)req.getAttribute("JWT_ISSUER"));
 					audit.setHttpMethod(req.getMethod());
