@@ -10,6 +10,7 @@ public enum RestExecutionResultEnum {
 
 	OK("00", "Pubblicazione effettuata correttamente.", null,EventStatusEnum.SUCCESS),
 	MINING_CDA_ERROR("/msg/cda-element", "Errore in fase di estrazione del CDA.", ErrorLogEnum.KO_PUB,EventStatusEnum.BLOCKING_ERROR), 
+	VALIDATOR_ERROR("/msg/validator", "Errore di validazione", ErrorLogEnum.KO_VAL, EventStatusEnum.BLOCKING_ERROR),
 	SYNTAX_ERROR("/msg/syntax", "Errore di sintassi.", ErrorLogEnum.KO_VAL,EventStatusEnum.BLOCKING_ERROR),
 	SEMANTIC_ERROR("/msg/semantic", "Errore semantico.", ErrorLogEnum.KO_VAL,EventStatusEnum.BLOCKING_ERROR),
 	VOCABULARY_ERROR("/msg/vocabulary", "Errore vocabolario.", ErrorLogEnum.KO_VAL,EventStatusEnum.BLOCKING_ERROR),
@@ -33,7 +34,8 @@ public enum RestExecutionResultEnum {
 	INI_EXCEPTION("/msg/ini-error", "Ini error.", ErrorLogEnum.KO_GENERIC,EventStatusEnum.BLOCKING_ERROR),
 	EDS_EXCEPTION("/msg/eds-error", "Eds error.", ErrorLogEnum.KO_GENERIC,EventStatusEnum.BLOCKING_ERROR),
 	OLDER_DAY("/msg/max-day-limit-exceed", "Error: document exceeded the maximum period to be published.", ErrorLogEnum.KO_PUB,EventStatusEnum.BLOCKING_ERROR),
-	SIMULATION_EXCEPTION("/msg/simulation-error", "Simulation Error.", ErrorLogEnum.KO_GENERIC,EventStatusEnum.BLOCKING_ERROR);
+	SIMULATION_EXCEPTION("/msg/simulation-error", "Simulation Error.", ErrorLogEnum.KO_GENERIC,EventStatusEnum.BLOCKING_ERROR),
+	SIGN_EXCEPTION("/msg/sign-error", "Sign error", ErrorLogEnum.KO_GENERIC,EventStatusEnum.BLOCKING_ERROR);
 
 
 	private String type;

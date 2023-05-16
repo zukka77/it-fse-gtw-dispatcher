@@ -109,7 +109,7 @@ public class LoggerHelper {
 	} 
 	 
 	public void info(String logType,String workflowInstanceId, String message, ILogEnum operation, ResultLogEnum result, Date startDateOperation,  
-			String documentType, JWTPayloadDTO jwtPayloadDTO) {
+			String documentType, JWTPayloadDTO jwtPayloadDTO, String typeIdExtension) {
 		if(jwtPayloadDTO==null) {
 			jwtPayloadDTO = new JWTPayloadDTO(); 
 		}
@@ -131,6 +131,7 @@ public class LoggerHelper {
 				op_application_version(jwtPayloadDTO.getSubject_application_version()).
 				log_type(logType).
 				workflow_instance_id(workflowInstanceId).
+				typeIdExtension(typeIdExtension).
 				build();
 		
 		final String logMessage = StringUtility.toJSON(logDTO);

@@ -435,10 +435,10 @@ public abstract class AbstractCTL {
 		return out;
 	}
 
-	protected String validate(final String cda, final ActivityEnum activity, final String workflowInstanceId) {
+	protected String validate(final String cda, final ActivityEnum activity, final String workflowInstanceId, final String issuer) {
 		String errorDetail = "";
 		try {
-			final ValidationInfoDTO rawValRes = validatorClient.validate(cda,workflowInstanceId);
+			final ValidationInfoDTO rawValRes = validatorClient.validate(cda,workflowInstanceId, jwtSRV.getSystemByIssuer(issuer));
 
 			if (ActivityEnum.VALIDATION.equals(activity)
 					&& Arrays.asList(RawValidationEnum.OK, RawValidationEnum.SEMANTIC_WARNING).contains(rawValRes.getResult())) {
@@ -466,7 +466,7 @@ public abstract class AbstractCTL {
 			throw valE;
 		} catch (final Exception ex) {
 			log.error("Error while validate: ", ex);
-			throw new BusinessException("Error while validate: ", ex);
+			throw new BusinessException("Errore in validazione: " + ex.getMessage());
 		}
 		return errorDetail;
 	}

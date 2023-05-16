@@ -30,7 +30,8 @@ public enum ErrorInstanceEnum {
 	EMPTY_FILE("/empty-multipart-file", "File type must not be empty"),
 	OLDER_DAY("/msg/max-day-limit-exceed", "Cannot publish documents older"),
 	EDS_DOCUMENT_MISSING("/msg/eds-document-missing", "Document cannot be found on the Server FHIR"),
-	SIMULATION_EXCEPTION("/msg/simulation-error", "Simulation error");
+	SIMULATION_EXCEPTION("/msg/simulation-error", "Simulation error"),
+	SIGN_EXCEPTION("/msg/sign-error", "Sign not found on pdf");
 	
 	private String instance;
 	private String description;

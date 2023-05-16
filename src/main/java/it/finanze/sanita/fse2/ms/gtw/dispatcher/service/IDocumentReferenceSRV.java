@@ -10,7 +10,8 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.PublicationCreationR
 
 public interface IDocumentReferenceSRV extends Serializable{
 
-	ResourceDTO createFhirResources(String cda, PublicationCreationReqDTO requestBody, Integer size, String hash,
-                                    String sourcePatientId, String transformId, String engineId);
+	ResourceDTO createFhirResources(final String cda, 
+			   String authorRole,PublicationCreationReqDTO requestBody,
+										   Integer size, String hash, String transformId, String engineId);
 
 }

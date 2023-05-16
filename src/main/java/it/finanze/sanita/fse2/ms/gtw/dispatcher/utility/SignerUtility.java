@@ -1,7 +1,6 @@
 package it.finanze.sanita.fse2.ms.gtw.dispatcher.utility;
 
 import java.io.ByteArrayInputStream;
-import java.io.File;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.List;
@@ -27,7 +26,7 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.BusinessException;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class SignerHelper {
+public class SignerUtility {
 
 	/******************************************************
 	*	VALIDATE PADES SIGNATURE
@@ -87,13 +86,13 @@ public class SignerHelper {
         return output;
 	}
      
-	public static boolean isSigned(File file) {
+	public static boolean isSigned(byte[] pdf) {
 		boolean hasAnySignature = false;
-		try(PDDocument document = PDDocument.load(file);) {
+		try(PDDocument document = PDDocument.load(pdf);) {
 			hasAnySignature = !document.getSignatureDictionaries().isEmpty();
 		} catch (Exception e) {
-			log.error("Error while searching signature for file with name " + file.getName(), e);
-			throw new BusinessException("Error while searching signature for file with name " + file.getName(), e);
+			log.error("Error while searching signature for file with name", e);
+			throw new BusinessException("Error while searching signature for file with name", e);
 		}
 
 		return hasAnySignature;
