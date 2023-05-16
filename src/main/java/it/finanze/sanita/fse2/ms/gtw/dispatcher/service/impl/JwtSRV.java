@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.JwtCFG;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.JWTPayloadDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.ErrorResponseDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.ValidationException;
@@ -22,6 +23,8 @@ public class JwtSRV extends AbstractService implements IJwtSRV {
 	@Autowired
 	private UtilitySRV utilitySrv;
 
+	@Autowired
+	private JwtCFG jwtCFG;
 
 	@Override
 	public void validatePayloadForValidation(JWTPayloadDTO payload) {
