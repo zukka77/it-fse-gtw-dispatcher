@@ -21,6 +21,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.multipart.support.MissingServletRequestPartException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 /**
@@ -259,7 +260,7 @@ public class ControllerExceptionHandler extends ResponseEntityExceptionHandler {
 
 	private LogTraceInfoDTO getLogTraceInfo() {
 		return new LogTraceInfoDTO(
-				tracer.currentSpan().context().spanIdString(), 
+				tracer.currentSpan().context().spanIdString(),
 				tracer.currentSpan().context().traceIdString());
 	}
 
@@ -303,4 +304,16 @@ public class ControllerExceptionHandler extends ResponseEntityExceptionHandler {
 		return new ResponseEntity<>(out, headers, status);
 	}
 
+	@Override
+	protected ResponseEntity<Object> handleMissingServletRequestPart(MissingServletRequestPartException ex, HttpHeaders h, HttpStatus s, WebRequest r) {
+		log.error("" , ex);
+		Integer status = 400;
+
+		ErrorResponseDTO out = new ErrorResponseDTO(getLogTraceInfo(), RestExecutionResultEnum.GENERIC_ERROR.getType(), RestExecutionResultEnum.GENERIC_ERROR.getTitle(), ex.getMessage(), status, ErrorInstanceEnum.NO_INFO.getInstance());
+
+		HttpHeaders headers = new HttpHeaders();
+		headers.setContentType(MediaType.APPLICATION_PROBLEM_JSON);
+
+		return new ResponseEntity<>(out, headers, status);
+	}
 }
