@@ -235,7 +235,7 @@ public abstract class AbstractCTL {
 			out = checkFormatDate(jsonObj.getDataInizioPrestazione(), jsonObj.getDataFinePrestazione());
 			
 			if(out==null && jsonObj.getDescriptions()!=null) {
-				validateDescriptions(jsonObj.getDescriptions());
+				out = validateDescriptions(jsonObj.getDescriptions());
 			}
     	}
 		return out;
