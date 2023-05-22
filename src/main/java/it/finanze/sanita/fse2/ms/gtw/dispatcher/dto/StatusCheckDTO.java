@@ -1,9 +1,9 @@
 package it.finanze.sanita.fse2.ms.gtw.dispatcher.dto;
 
-import javax.validation.constraints.Size;
-
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import javax.validation.constraints.Size;
 
 @Data
 @NoArgsConstructor
@@ -48,7 +48,7 @@ public class StatusCheckDTO {
 	@Size(min = 0, max = 100)
 	private String expiringDate;
 	
-	@Size(min = 0, max = 100)
+	@Size(min = 0, max = 10000)
 	private String extra;
 	
 }
