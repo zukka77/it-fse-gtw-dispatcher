@@ -25,6 +25,7 @@ public enum ErrorInstanceEnum {
 	JWT_MALFORMED_FIELD("/jwt-mandatory-field-malformed", "Malformed JWT field"),
 	FHIR_RESOURCE_ERROR("/fhir-resource", "Error creating fhir resource"),
 	INVALID_ID_ERROR("/invalid-id", "L'identificativo documento non è valido"),
+	INVALID_ID_WII("/invalid-id", "Il wii non è valido"),
 	RECORD_NOT_FOUND("/record-not-found", "Record not found"),
 	INVALID_REQ_ID_ERROR("/invalid-req-id", "L'identificativo documento fornito in richiesta non è valido"),
 	NON_PDF_FILE("/multipart-file", "File type must be a PDF document"),
