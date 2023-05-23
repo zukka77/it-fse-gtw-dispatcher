@@ -30,6 +30,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
+import org.jsoup.nodes.Entities;
 import org.jsoup.parser.Parser;
 import org.jsoup.select.Elements;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -441,7 +442,12 @@ public abstract class AbstractCTL {
 		Document doc = Jsoup.parse(cda, "", Parser.xmlParser());
 		Element authenticator = doc.selectFirst("LegalAuthenticator");
 		if(authenticator != null) {
-			authenticator.remove();
+			authenticator.forEach(e -> {
+				// Reset attributes
+				e.attributes().forEach(a -> a.setValue("PLACEHOLDER"));
+				// Reset values on node without children and with text
+				if(e.children().isEmpty() && !e.text().isEmpty()) e.text("PLACEHOLDER");
+			});
 		} else {
 			log.warn("Unable to calculate cda-hash correctly because LegalAuthenticator doesn't exists");
 		}
