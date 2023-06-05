@@ -15,6 +15,8 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.logging.LoggerHelper;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.IErrorHandlerSRV;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.IKafkaSRV;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.CdaUtility;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.PDFUtility;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.SignerUtility;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Jsoup;
@@ -60,6 +62,7 @@ public class ValidationCTL extends AbstractCTL implements IValidationCTL {
 
 			jsonObj = getAndValidateValidationReq(request.getParameter("requestBody"));
 			final byte[] bytes = getAndValidateFile(file);
+			warning = SignerUtility.isSigned(bytes) ? "[SIGN_WARN - Attenzione il documento risulta firmato in validazione]" : "";
 			final String cda = extractCDA(bytes, jsonObj.getMode());
 			docT = Jsoup.parse(cda);
 			workflowInstanceId = CdaUtility.getWorkflowInstanceId(docT);
@@ -70,7 +73,7 @@ public class ValidationCTL extends AbstractCTL implements IValidationCTL {
 
 			String issuer = jwtPayloadToken.getIss();
 
-			warning = validate(cda, jsonObj.getActivity(), workflowInstanceId, issuer);
+			warning += validate(cda, jsonObj.getActivity(), workflowInstanceId, issuer);
 			String message = null;
 			if (jsonObj.getActivity().equals(ActivityEnum.VERIFICA)) {
 				message = "Attenzione - è stato chiamato l'endpoint di validazione con VERIFICA";
