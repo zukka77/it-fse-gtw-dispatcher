@@ -29,6 +29,9 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.nodes.Entities;
+import org.jsoup.parser.Parser;
 import org.jsoup.select.Elements;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.CollectionUtils;
@@ -435,6 +438,22 @@ public abstract class AbstractCTL {
 		return out;
 	}
 
+	protected String cdaWithoutLegalAuthenticator(final String cda) {
+		Document doc = Jsoup.parse(cda, "", Parser.xmlParser());
+		Element authenticator = doc.selectFirst("LegalAuthenticator");
+		if(authenticator != null) {
+			authenticator.forEach(e -> {
+				// Reset attributes
+				e.attributes().forEach(a -> a.setValue("PLACEHOLDER"));
+				// Reset values on node without children and with text
+				if(e.children().isEmpty() && !e.text().isEmpty()) e.text("PLACEHOLDER");
+			});
+		} else {
+			log.warn("Unable to calculate cda-hash correctly because LegalAuthenticator doesn't exists");
+		}
+		return doc.toString();
+	}
+
 	protected String validate(final String cda, final ActivityEnum activity, final String workflowInstanceId, final String issuer) {
 		String errorDetail = "";
 		try {
@@ -442,7 +461,8 @@ public abstract class AbstractCTL {
 
 			if (ActivityEnum.VALIDATION.equals(activity)
 					&& Arrays.asList(RawValidationEnum.OK, RawValidationEnum.SEMANTIC_WARNING).contains(rawValRes.getResult())) {
-				final String hashedCDA = StringUtility.encodeSHA256B64(cda);
+
+				final String hashedCDA = StringUtility.encodeSHA256B64(cdaWithoutLegalAuthenticator(cda));
 				cdaFacadeSRV.create(hashedCDA, workflowInstanceId, rawValRes.getTransformID(), rawValRes.getEngineID());
 			}
 
@@ -495,7 +515,7 @@ public abstract class AbstractCTL {
 	 * @throws ValidationException If the hash does not exists or is associated with a different {@code wii}
 	 */
     protected ValidationDataDTO getValidationInfo(final String cda, @Nullable final String wii) {
-		final String hashedCDA = StringUtility.encodeSHA256B64(cda);
+		final String hashedCDA = StringUtility.encodeSHA256B64(cdaWithoutLegalAuthenticator(cda));
 
 		ValidationDataDTO validationInfo = cdaFacadeSRV.retrieveValidationInfo(hashedCDA, wii);
 		if (!validationInfo.isCdaValidated()) {
