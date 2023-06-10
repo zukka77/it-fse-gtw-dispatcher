@@ -28,6 +28,4 @@ public class ValidationCreationInputDTO {
 
     private ResourceDTO fhirResource;
     
-    private String signWarning;
-
 }
