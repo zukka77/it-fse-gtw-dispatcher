@@ -30,9 +30,7 @@ public class SignSRV implements ISignSRV{
 			out = "La firma del pdf non risulta valida";
 		}
 		
-		if(EventTypeEnum.VALIDATION.equals(eventTypeEnum)) {
-			return out; 
-		} else if(!StringUtility.isNullOrEmpty(out)) {
+		if(!StringUtility.isNullOrEmpty(out)) {
 			ErrorResponseDTO error = ErrorResponseDTO.builder()
 					.type(ErrorInstanceEnum.SIGN_EXCEPTION.getInstance())
 					.detail(out)

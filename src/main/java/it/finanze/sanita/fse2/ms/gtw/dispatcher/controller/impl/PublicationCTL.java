@@ -79,6 +79,7 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.PriorityTypeEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ProcessorOperationEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.RestExecutionResultEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ResultLogEnum;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.SystemTypeEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.BusinessException;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.ConnectionRefusedException;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.EdsException;
@@ -90,6 +91,7 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.logging.LoggerHelper;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.IAccreditamentoSimulationSRV;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.IDocumentReferenceSRV;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.IErrorHandlerSRV;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.IJwtSRV;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.IKafkaSRV;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.ISignSRV;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.facade.ICdaFacadeSRV;
@@ -141,6 +143,9 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 	
 	@Autowired
 	private ISignSRV signSRV;
+	
+	@Autowired
+	private IJwtSRV jwtSRV;
 
 
 	@Override
@@ -163,7 +168,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 			errorHandlerSRV.publicationValidationExceptionHandler(startDateOperation, validationInfo.getValidationData(), validationInfo.getJwtPayloadToken(), validationInfo.getJsonObj(), traceInfoDTO, e, true, getDocumentType(validationInfo.getDocument()));
 		}
 
-		String warning = StringUtility.isNullOrEmpty(validationInfo.getSignWarning()) ? null : validationInfo.getSignWarning();
+		String warning = "";
 		
 		if (validationInfo.getJsonObj().getMode() == null) {
 			warning = Misc.WARN_EXTRACTION_SELECTION;
@@ -238,7 +243,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 			errorHandlerSRV.publicationValidationExceptionHandler(startDateOperation, validationInfo.getValidationData(), validationInfo.getJwtPayloadToken(), validationInfo.getJsonObj(), traceInfoDTO, e, false, getDocumentType(validationInfo.getDocument()));
 		}
 
-		String warning = StringUtility.isNullOrEmpty(validationInfo.getSignWarning()) ? null : validationInfo.getSignWarning();
+		String warning = "";
 
 		if (validationInfo.getJsonObj().getMode() == null) {
 			warning = Misc.WARN_EXTRACTION_SELECTION;
@@ -385,7 +390,9 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 				}
 			}
 			
-			validation.setSignWarning(signSRV.checkPades(bytePDF,eventTypeEnum));
+			if(!SystemTypeEnum.TS.equals(jwtSRV.getSystemByIssuer(jwtPayloadToken.getIss()))){
+				signSRV.checkPades(bytePDF,eventTypeEnum);
+			}
 
 			final String cda = extractCDA(bytePDF, jsonObj.getMode());
 			validation.setCda(cda);
@@ -603,15 +610,13 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 		ValidationCreationInputDTO validationResult = new ValidationCreationInputDTO();
 		try {
 			//Valido request e jwt come se fosse una pubblicazione
-			validationResult = publicationAndReplaceValidation(file, request, false, null, traceInfoDTO,EventTypeEnum.VALIDATION_FOR_REPLACE);
+			validationResult = publicationAndReplaceValidation(file, request, false, null, traceInfoDTO,EventTypeEnum.VALIDATION_FOR_PUBLICATION);
 			docT = Jsoup.parse(validationResult.getCda());
 			workflowInstanceId = CdaUtility.getWorkflowInstanceId(docT);
 
-			warning = StringUtility.isNullOrEmpty(validationResult.getSignWarning()) ? null : validationResult.getSignWarning();   
-			
 			//Chiamo ms validator per la validazione
 			String issuer = validationResult.getJwtPayloadToken().getIss();
-			warning += validate(validationResult.getCda(), ActivityEnum.VALIDATION, workflowInstanceId,issuer);
+			warning = validate(validationResult.getCda(), ActivityEnum.VALIDATION, workflowInstanceId,issuer);
 
 
 			kafkaSRV.sendValidationStatus(traceInfoDTO.getTraceID(), workflowInstanceId, EventStatusEnum.SUCCESS,null, validationResult.getJwtPayloadToken(),
@@ -662,8 +667,6 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 			docT = Jsoup.parse(validationResult.getCda());
 			workflowInstanceId = CdaUtility.getWorkflowInstanceId(docT);
 
-			warning = StringUtility.isNullOrEmpty(validationResult.getSignWarning()) ? null : validationResult.getSignWarning();
-			
 			// Get JWT
 			String issuer = validationResult.getJwtPayloadToken().getIss();
 
