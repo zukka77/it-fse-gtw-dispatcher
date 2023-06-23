@@ -1,5 +1,13 @@
 /*
  * SPDX-License-Identifier: AGPL-3.0-or-later
+ * 
+ * Copyright (C) 2023 Ministero della Salute
+ * 
+ * This program is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Affero General Public License along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 package it.finanze.sanita.fse2.ms.gtw.dispatcher;
 
@@ -25,6 +33,7 @@ import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -79,6 +88,7 @@ class UtilityTest extends AbstractTest{
         final String fiscalCode11 = "RSSMRA72H26";
         final String fiscalCodeEni = "ENI1234567891234";
         final String fiscalCodeStp = "STP1234567891234";
+        final String fiscalCodeEmpty = "";
         final String fiscalCodeNull = null;
         
         assertEquals(CfUtility.CF_OK_16, CfUtility.validaCF(fiscalCode16));
@@ -86,6 +96,7 @@ class UtilityTest extends AbstractTest{
         assertNotEquals(CfUtility.CF_OK_11, CfUtility.validaCF(fiscalCode11));
         assertEquals(CfUtility.CF_ENI_OK, CfUtility.validaCF(fiscalCodeEni));
         assertEquals(CfUtility.CF_STP_OK, CfUtility.validaCF(fiscalCodeStp));
+        assertEquals(CfUtility.CF_NON_CORRETTO, CfUtility.validaCF(fiscalCodeEmpty));
         assertEquals(CfUtility.CF_NON_CORRETTO, CfUtility.validaCF(fiscalCodeNull));
         
         final String fiscalCodeShort = "RSSMRA72H26F941";
@@ -217,6 +228,4 @@ class UtilityTest extends AbstractTest{
         final String decodedCda = PDFUtility.detectCharsetAndExtract(filebytes);
         assertTrue(decodedCda.contains("<?xml"), "The bytes should have been decoded correctly");
     }
-
-    
 }

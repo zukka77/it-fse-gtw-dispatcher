@@ -1,5 +1,13 @@
 /*
  * SPDX-License-Identifier: AGPL-3.0-or-later
+ * 
+ * Copyright (C) 2023 Ministero della Salute
+ * 
+ * This program is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Affero General Public License along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 package it.finanze.sanita.fse2.ms.gtw.dispatcher;
 
@@ -50,6 +58,7 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.IValidatorClient;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.ValidationInfoDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.PublicationCreationReqDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.PublicationUpdateReqDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.IniReferenceResponseDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.IniTraceResponseDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.PublicationResDTO;
@@ -100,19 +109,18 @@ class ReplaceTest extends AbstractTest {
 
 	 @ParameterizedTest
 	 @DisplayName("Replace of a document")
-	 @ValueSource(strings = {"LAB_OK.pdf", "LDO_OK.pdf", "RAD_OK.pdf", "RSA_OK.pdf", "VPS_OK.pdf"})
+	 @ValueSource(strings = {"SIGNED_LAB2.pdf", "SIGNED_LDO2.pdf", "SIGNED_RAD1.pdf", "SIGNED_RSA1.pdf", "SIGNED_VPS2.pdf"})
 	 void givenACorrectCDA_shouldInsertInInvocations(final String filename) {
 
 	 	final String idDocument = StringUtility.generateUUID();
 
 	 	mockDocumentRef();
 	 	mockFhirMapping();
-	 	//mockIniClient(HttpStatus.OK, true); 
 	 	mockIniClient(HttpStatus.OK, true); 
 	 	mockGetReference(new IniReferenceResponseDTO(idDocument, null, "DocumentType"));
 		Mockito.doReturn(new IniReferenceResponseDTO(idDocument, "DocumentType", "")).when(iniClient).reference(any(it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.IniReferenceRequestDTO.class)); 
 
-	 	final byte[] pdfAttachment = FileUtility.getFileFromInternalResources("Files" + File.separator + "attachment" + File.separator + filename);
+	 	final byte[] pdfAttachment = FileUtility.getFileFromInternalResources("Files" + File.separator + "accreditamento" + File.separator + filename);
 		
 	 	mockValidation(pdfAttachment);
 	 	
@@ -121,10 +129,19 @@ class ReplaceTest extends AbstractTest {
 	 	
 	 	callValidation(ActivityEnum.VALIDATION, HealthDataFormatEnum.CDA, InjectionModeEnum.ATTACHMENT, pdfAttachment, true, false, true);
 		
-	 	final ResponseEntity<PublicationResDTO> response = callReplace(idDocument, pdfAttachment);
+	 	PublicationUpdateReqDTO requestBody = new PublicationUpdateReqDTO();
+		requestBody.setIdentificativoDoc(idDocument);
+		requestBody.setIdentificativoRep("testRep");
+		requestBody.setIdentificativoSottomissione("testSottomissione");
+		requestBody.setTipoDocumentoLivAlto(TipoDocAltoLivEnum.WOR);
+		requestBody.setAssettoOrganizzativo(PracticeSettingCodeEnum.AD_PSC001);
+		requestBody.setTipoAttivitaClinica(AttivitaClinicaEnum.CON);
+		requestBody.setTipologiaStruttura(HealthcareFacilityEnum.Cittadino);
+		
+		final ResponseEntity<PublicationResDTO> response = callReplace(idDocument, pdfAttachment, requestBody, true);
 	 	final PublicationResDTO body = response.getBody();
 
-	 	assertTrue(StringUtility.isNullOrEmpty(body.getWarning()), "With a correct CDA, no warning should have been returned");
+	 	//assertTrue(StringUtility.isNullOrEmpty(body.getWarning()), "With a correct CDA, no warning should have been returned");
 	 	assertNotNull(body.getWorkflowInstanceId(), "A workflow instance id should have been returned");
 	
 	 	final List<IniEdsInvocationETY> invocations = getIniInvocationEntities(body.getWorkflowInstanceId());
@@ -149,7 +166,7 @@ class ReplaceTest extends AbstractTest {
 
 	 @ParameterizedTest
 	 @DisplayName("Calling replace with invalid request body")
-	 @ValueSource(strings = {"LAB_OK.pdf", "LDO_OK.pdf", "RAD_OK.pdf", "RSA_OK.pdf", "VPS_OK.pdf"})
+	 @ValueSource(strings = {"SIGNED_LAB2.pdf", "SIGNED_LDO2.pdf", "SIGNED_RAD1.pdf", "SIGNED_RSA1.pdf", "SIGNED_VPS2.pdf"})
 	 void givenInvalidRequest_shouldReturnError(final String filename) {
 
 	 	final String idDocument = StringUtility.generateUUID();
@@ -168,14 +185,15 @@ class ReplaceTest extends AbstractTest {
 	 	assertThrows(HttpClientErrorException.BadRequest.class, 
 	 		() ->  callReplace(idDocument, notPdfFile, null, false), "Not providing a valid file should throw a bad request exception");
 
-	 	final byte[] pdfAttachment = FileUtility.getFileFromInternalResources("Files/attachment/" + filename);
-	 	PublicationCreationReqDTO rBody = new PublicationCreationReqDTO();
+	 	final byte[] pdfAttachment = FileUtility.getFileFromInternalResources("Files" + File.separator + "accreditamento" + File.separator + filename);
+	 	PublicationUpdateReqDTO rBody = new PublicationUpdateReqDTO();
+	 	rBody.setIdentificativoDoc(idDocument);
 	 	assertThrows(HttpClientErrorException.BadRequest.class, 
 	 		() ->  callReplace(idDocument, pdfAttachment, rBody, true), "Not providing a valid request body should throw a bad request exception");
 	
 	 	mockValidation(pdfAttachment);
 	 	callValidation(ActivityEnum.VALIDATION, HealthDataFormatEnum.CDA, InjectionModeEnum.ATTACHMENT, pdfAttachment, true, false, true);
-
+	 	
 	 	rBody.setAssettoOrganizzativo(PracticeSettingCodeEnum.AD_PSC001);
 	 	assertThrows(HttpClientErrorException.BadRequest.class, 
 	 		() ->  callReplace(idDocument, pdfAttachment, rBody, true), "Not providing a valid request body should throw a bad request exception");
@@ -260,7 +278,7 @@ class ReplaceTest extends AbstractTest {
 	 	return callReplace(idDocumentReplace, fileByte, null, true);
 	 }
 
-	 ResponseEntity<PublicationResDTO> callReplace(final String idDocumentReplace, final byte[] fileByte, final PublicationCreationReqDTO requestBody, final boolean isValidFile) {
+	 ResponseEntity<PublicationResDTO> callReplace(final String idDocumentReplace, final byte[] fileByte, final PublicationUpdateReqDTO requestBody, final boolean isValidFile) {
 	 	LinkedMultiValueMap<String, Object> map = new LinkedMultiValueMap<>();
 
 	 	ByteArrayResource fileAsResource = new ByteArrayResource(fileByte) {

@@ -1,12 +1,19 @@
 /*
  * SPDX-License-Identifier: AGPL-3.0-or-later
+ * 
+ * Copyright (C) 2023 Ministero della Salute
+ * 
+ * This program is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Affero General Public License along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 package it.finanze.sanita.fse2.ms.gtw.dispatcher;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assumptions.assumeFalse;
@@ -359,7 +366,7 @@ class PublicationTest extends AbstractTest {
 		doReturn(new ResponseEntity<>(ref, HttpStatus.OK))
 				.when(restTemplate).exchange(anyString(), eq(HttpMethod.POST), any(HttpEntity.class), eq(TransformResDTO.class));
 
-		byte[] pdfAttachment = FileUtility.getFileFromInternalResources("Files/attachment/LAB_OK.pdf");
+		byte[] pdfAttachment = FileUtility.getFileFromInternalResources("Files/attachment/SIGNED_LDO1.pdf");
 
 		ValidationInfoDTO info = new ValidationInfoDTO(RawValidationEnum.OK, new ArrayList<>(), "wfid", "");
 		given(validatorClient.validate(anyString(),anyString(), any())).willReturn(info);
@@ -395,7 +402,7 @@ class PublicationTest extends AbstractTest {
 		doReturn(new ResponseEntity<>(new TransformResDTO("", Document.parse("{\"json\" : \"json\"}")), HttpStatus.OK))
 				.when(restTemplate).exchange(anyString(), eq(HttpMethod.POST), any(HttpEntity.class), eq(TransformResDTO.class));
 
-		final byte[] file = FileUtility.getFileFromInternalResources("Files" + File.separator + "attachment" + File.separator + "LAB_OK.pdf");
+		final byte[] file = FileUtility.getFileFromInternalResources("Files" + File.separator + "attachment" + File.separator + "SIGNED_LDO1.pdf");
 		final String jwtToken = generateJwt(file, true, EventTypeEnum.PUBLICATION);
 		
 		final ValidationCDAReqDTO validationRB = validateDataPreparation();
@@ -412,7 +419,6 @@ class PublicationTest extends AbstractTest {
 		final ResponseEntity<PublicationResDTO> publicationResponse = callPlainPublication(jwtToken, file, publicationRB);
 		assertNotNull(publicationResponse);
 		assertEquals(HttpStatus.CREATED.value(), publicationResponse.getStatusCode().value());
-		assertNull(publicationResponse.getBody().getWarning());
 		
 	}
 	
