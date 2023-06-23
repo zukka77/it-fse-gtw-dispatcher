@@ -18,6 +18,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 
 import java.util.Collections;
+import java.util.Date;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -181,6 +182,8 @@ class UpdateTest extends AbstractTest {
 
 		ObjectMapper objectMapper = new ObjectMapper();
 		PublicationMetadataReqDTO document = new Gson().fromJson(TEST_REQUEST_BODY, PublicationMetadataReqDTO.class);
+		document.setDataInizioPrestazione(""+new Date().getTime());
+		document.setDataFinePrestazione(""+new Date().getTime());
 		if (validationException) {
 			document.setAttiCliniciRegoleAccesso(Collections.singletonList("invalid value"));
 		}

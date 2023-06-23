@@ -15,8 +15,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
 import java.io.File;
@@ -28,6 +28,10 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.Map;
 
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.parser.Parser;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
@@ -149,7 +153,7 @@ class ValidationTest extends AbstractTest {
     	assertEquals(RestExecutionResultEnum.MINING_CDA_ERROR, result.values().iterator().next());
     	
 		String cda = extractCDA(pdfAttachment);
-		String hashedCda = StringUtility.encodeSHA256B64(cda);
+		String hashedCda = StringUtility.encodeSHA256B64(cdaWithoutLegalAuthenticator(cda));
 
     	result = callValidation(ActivityEnum.VALIDATION, HealthDataFormatEnum.CDA, InjectionModeEnum.RESOURCE, pdfAttachment, true, false, true);
     	assertEquals(RestExecutionResultEnum.MINING_CDA_ERROR, result.values().iterator().next());
@@ -162,31 +166,42 @@ class ValidationTest extends AbstractTest {
     }
     
     @Test
-    @DisplayName("Pre Publish Test Second") 
+    @DisplayName("Pre Publish Test Second")
     void prePublishTestSecond() {
     	
-    	byte[] pdfAttachment = FileUtility.getFileFromInternalResources("Files" + File.separator + 
+    	byte[] pdfAttachment = FileUtility.getFileFromInternalResources("Files" + File.separator +
     			"attachment" + File.separator + "pdf_msg_SATLED_LED_Lettera_di_Dimissione.pdf");
     	byte[] pdfResource = FileUtility.getFileFromInternalResources("Files/resource/cert1.pdf");
-
 		String cda = extractCDA(pdfResource);
-		String hashedCda = StringUtility.encodeSHA256B64(cda);
-
+		String hashedCda = StringUtility.encodeSHA256B64(cdaWithoutLegalAuthenticator(cda));
 		Map<String, RestExecutionResultEnum> result = callValidation(ActivityEnum.VALIDATION, HealthDataFormatEnum.CDA, InjectionModeEnum.RESOURCE, pdfResource, true, false, true);
     	assertEquals(RestExecutionResultEnum.OK, result.values().iterator().next());
     	assertNotNull(cdaSRV.get(hashedCda), "La transazione non deve essere presente.");
-
     	result = callValidation(ActivityEnum.VALIDATION, HealthDataFormatEnum.CDA, InjectionModeEnum.ATTACHMENT, pdfResource, true, false, true);
     	assertEquals(RestExecutionResultEnum.MINING_CDA_ERROR, result.values().iterator().next());
-
 		cda = extractCDA(pdfAttachment);
-		hashedCda = StringUtility.encodeSHA256B64(cda);
+		hashedCda = StringUtility.encodeSHA256B64(cdaWithoutLegalAuthenticator(cda));
 		
     	result = callValidation(ActivityEnum.VALIDATION, HealthDataFormatEnum.CDA, null, pdfAttachment, true, false, true);
     	assertEquals(RestExecutionResultEnum.OK, result.values().iterator().next());
     	assertNotNull(cdaSRV.get(hashedCda), "La transazione non deve essere presente.");
-
     }
+    
+    protected String cdaWithoutLegalAuthenticator(final String cda) {
+		Document doc = Jsoup.parse(cda, "", Parser.xmlParser());
+		Element authenticator = doc.selectFirst("LegalAuthenticator");
+		if(authenticator != null) {
+			authenticator.forEach(e -> {
+				// Reset attributes
+				e.attributes().forEach(a -> a.setValue("PLACEHOLDER"));
+				// Reset values on node without children and with text
+				if(e.children().isEmpty() && !e.text().isEmpty()) e.text("PLACEHOLDER");
+			});
+		} else {
+			log.warn("Unable to calculate cda-hash correctly because LegalAuthenticator doesn't exists");
+		}
+		return doc.toString();
+	}
     
     @Test
     @DisplayName("Pre Publish Test - Null Cases")
@@ -197,7 +212,7 @@ class ValidationTest extends AbstractTest {
     	byte[] pdfResource = FileUtility.getFileFromInternalResources("Files/resource/cert1.pdf");
     	
 		String cda = extractCDA(pdfResource);
-		String hashedCda = StringUtility.encodeSHA256B64(cda);
+		String hashedCda = StringUtility.encodeSHA256B64(cdaWithoutLegalAuthenticator(cda));
 
 		Map<String, RestExecutionResultEnum> result = callValidation(ActivityEnum.VALIDATION, HealthDataFormatEnum.CDA, null, pdfResource, true, false, true);
     	assertEquals(RestExecutionResultEnum.OK, result.values().iterator().next());

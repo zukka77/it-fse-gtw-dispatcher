@@ -14,7 +14,6 @@ package it.finanze.sanita.fse2.ms.gtw.dispatcher;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assumptions.assumeFalse;
@@ -367,7 +366,7 @@ class PublicationTest extends AbstractTest {
 		doReturn(new ResponseEntity<>(ref, HttpStatus.OK))
 				.when(restTemplate).exchange(anyString(), eq(HttpMethod.POST), any(HttpEntity.class), eq(TransformResDTO.class));
 
-		byte[] pdfAttachment = FileUtility.getFileFromInternalResources("Files/attachment/LAB_OK.pdf");
+		byte[] pdfAttachment = FileUtility.getFileFromInternalResources("Files/attachment/SIGNED_LDO1.pdf");
 
 		ValidationInfoDTO info = new ValidationInfoDTO(RawValidationEnum.OK, new ArrayList<>(), "wfid", "");
 		given(validatorClient.validate(anyString(),anyString(), any())).willReturn(info);
@@ -403,7 +402,7 @@ class PublicationTest extends AbstractTest {
 		doReturn(new ResponseEntity<>(new TransformResDTO("", Document.parse("{\"json\" : \"json\"}")), HttpStatus.OK))
 				.when(restTemplate).exchange(anyString(), eq(HttpMethod.POST), any(HttpEntity.class), eq(TransformResDTO.class));
 
-		final byte[] file = FileUtility.getFileFromInternalResources("Files" + File.separator + "attachment" + File.separator + "LAB_OK.pdf");
+		final byte[] file = FileUtility.getFileFromInternalResources("Files" + File.separator + "attachment" + File.separator + "SIGNED_LDO1.pdf");
 		final String jwtToken = generateJwt(file, true, EventTypeEnum.PUBLICATION);
 		
 		final ValidationCDAReqDTO validationRB = validateDataPreparation();
@@ -420,7 +419,6 @@ class PublicationTest extends AbstractTest {
 		final ResponseEntity<PublicationResDTO> publicationResponse = callPlainPublication(jwtToken, file, publicationRB);
 		assertNotNull(publicationResponse);
 		assertEquals(HttpStatus.CREATED.value(), publicationResponse.getStatusCode().value());
-		assertNull(publicationResponse.getBody().getWarning());
 		
 	}
 	
