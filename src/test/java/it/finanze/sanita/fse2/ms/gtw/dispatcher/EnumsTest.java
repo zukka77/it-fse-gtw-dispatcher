@@ -20,7 +20,10 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.AccreditamentoPrefixEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ActivityEnum;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.DescriptionEnum;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ErrorInstanceEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventCodeEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventStatusEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventTypeEnum;
@@ -35,6 +38,7 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ResultLogEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.RoleEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.SignVerificationModeEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.SubjectOrganizationEnum;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.SystemTypeEnum;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles(Constants.Profile.TEST)
@@ -81,6 +85,7 @@ class EnumsTest {
     void testSignVerificationModeEnums() {
         String code = "T";
         assertEquals(code, SignVerificationModeEnum.TODAY.getCode());
+        assertEquals(SignVerificationModeEnum.TODAY, SignVerificationModeEnum.get(code));
     }
 
     @Test
@@ -170,4 +175,37 @@ class EnumsTest {
         rawResult = RawValidationEnum.SYNTAX_ERROR;
         assertEquals(rawResult.getDescription() + ".", RestExecutionResultEnum.fromRawResult(rawResult).getTitle());
     }
+    
+    @Test
+    @DisplayName("AccreditamentoPrefixEnum test")
+    void testAccreditamentoPrefixEnum() {
+        String prefix = "CRASH_TIMEOUT";
+        assertEquals(prefix, AccreditamentoPrefixEnum.CRASH_TIMEOUT.getPrefix());
+        assertEquals(AccreditamentoPrefixEnum.CRASH_TIMEOUT, AccreditamentoPrefixEnum.get(prefix));
+        assertEquals(AccreditamentoPrefixEnum.CRASH_TIMEOUT, AccreditamentoPrefixEnum.getStartWith(prefix));
+    }
+    
+    @Test
+    @DisplayName("DescriptionEnum test")
+    void testDescriptionEnum() {
+        String oid = "2.16.840.1.113883.2.9.6.1.5";
+        assertEquals(oid, DescriptionEnum.DESC_OID1.getOid());
+    }
+    
+    @Test
+    @DisplayName("ErrorInstanceEnum test")
+    void testErrorInstanceEnum() {
+        String instance = "";
+        assertEquals(instance, ErrorInstanceEnum.NO_INFO.getInstance());
+        assertEquals(ErrorInstanceEnum.NO_INFO, ErrorInstanceEnum.get(instance));
+    }
+    
+    @Test
+    @DisplayName("SystemTypeEnum test")
+    void testSystemTypeEnum() {
+        String name = "TS";
+        assertEquals(name, SystemTypeEnum.TS.value());
+    }
+    
+    
 }
