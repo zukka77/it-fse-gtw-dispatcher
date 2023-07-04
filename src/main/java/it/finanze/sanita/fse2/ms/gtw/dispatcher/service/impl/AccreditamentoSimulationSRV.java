@@ -14,6 +14,8 @@ package it.finanze.sanita.fse2.ms.gtw.dispatcher.service.impl;
 import org.apache.commons.lang3.tuple.Pair;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.parser.Parser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -111,9 +113,24 @@ public class AccreditamentoSimulationSRV implements IAccreditamentoSimulationSRV
 		// emulating the gtw-validator mechanism.
 		// getKey() returns engineID, getValue() returns transformID
 		Pair<String, String> id = engines.getStructureObjectID(templateIdRoot);
-		final String hashedCDA = StringUtility.encodeSHA256B64(cda);
-		cdaSRV.create(hashedCDA, workflowInstanceId, id.getValue(), id.getKey());
+		final String hashedCDA = StringUtility.encodeSHA256B64(cdaWithoutLegalAuthenticator(cda));
+		cdaSRV.create(hashedCDA, workflowInstanceId,id.getValue() , id.getKey());
 		return workflowInstanceId;
 	}
 
+	private String cdaWithoutLegalAuthenticator(final String cda) {
+		Document doc = Jsoup.parse(cda, "", Parser.xmlParser());
+		Element authenticator = doc.selectFirst("LegalAuthenticator");
+		if(authenticator != null) {
+			authenticator.forEach(e -> {
+				// Reset attributes
+				e.attributes().forEach(a -> a.setValue("PLACEHOLDER"));
+				// Reset values on node without children and with text
+				if(e.children().isEmpty() && !e.text().isEmpty()) e.text("PLACEHOLDER");
+			});
+		} else {
+			log.warn("Unable to calculate cda-hash correctly because LegalAuthenticator doesn't exists");
+		}
+		return doc.toString();
+	}
 }
