@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>it.finanze.sanita.fse2</groupId>
 	<artifactId>gtw-dispatcher-ms</artifactId>
@@ -136,8 +137,18 @@
 		<dependency>
 			<groupId>org.mongodb</groupId>
 			<artifactId>mongodb-driver-sync</artifactId>
+			<version>4.8.2</version>
 		</dependency>
-
+		<dependency>
+			<groupId>org.mongodb</groupId>
+			<artifactId>mongodb-driver-core</artifactId>
+			<version>4.8.2</version>
+		</dependency>
+		<dependency>
+			<groupId>org.mongodb</groupId>
+			<artifactId>bson</artifactId>
+			<version>4.8.2</version>
+		</dependency>
 		<!-- KAFKA -->
 		<dependency>
 			<groupId>org.springframework.kafka</groupId>
@@ -154,8 +165,8 @@
 			<groupId>com.google.code.gson</groupId>
 			<artifactId>gson</artifactId>
 		</dependency>
- 
- 		<!-- TRACING -->
+
+		<!-- TRACING -->
 		<dependency>
 			<groupId>org.springframework.cloud</groupId>
 			<artifactId>spring-cloud-starter-sleuth</artifactId>
@@ -267,21 +278,27 @@
 						</goals>
 						<configuration>
 							<target>
-								<taskdef resource="net/sf/antcontrib/antcontrib.properties" />
+								<taskdef
+									resource="net/sf/antcontrib/antcontrib.properties" />
 								<if>
 									<available file="infrastructure" />
 									<then>
 										<!-- copy common resources of server runtime to project build directory -->
-										<copy todir="${container.output.runtime}" overwrite="true" failonerror="false">
+										<copy todir="${container.output.runtime}"
+											overwrite="true" failonerror="false">
 											<fileset dir="${config.infra}/runtime" includes="**" />
 										</copy>
 										<!-- copy common resources of server runtime to project build directory -->
-										<copy todir="${container.output}" overwrite="true" failonerror="false">
-											<fileset dir="${project.basedir}" includes="Dockerfile" />
+										<copy todir="${container.output}" overwrite="true"
+											failonerror="false">
+											<fileset dir="${project.basedir}"
+												includes="Dockerfile" />
 										</copy>
 										<!-- copy common resources of server runtime to project build directory -->
-										<copy todir="${container.output}" overwrite="true" failonerror="false">
-											<fileset dir="${project.basedir}/target" includes="${project.artifactId}.jar" />
+										<copy todir="${container.output}" overwrite="true"
+											failonerror="false">
+											<fileset dir="${project.basedir}/target"
+												includes="${project.artifactId}.jar" />
 										</copy>
 									</then>
 								</if>
