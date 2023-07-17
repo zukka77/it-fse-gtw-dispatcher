@@ -83,6 +83,7 @@ public class PDFUtility {
 		}
 	    return out;
 	}
+	
  
 	public static String unenvelopeA2(byte[] pdf) {
 		String out = null;
@@ -107,7 +108,7 @@ public class PDFUtility {
 											if (cdaIndirect != null) {
 												PRStream cdaPRStream = (PRStream) pdfReader.getPdfObject(cdaIndirect.getNumber());
 												if (cdaPRStream != null) {
-													out = new String(PdfReader.getStreamBytes(cdaPRStream));
+													out = new String(PdfReader.getStreamBytes(cdaPRStream), StandardCharsets.UTF_8);
 													org.jsoup.nodes.Document doc = Jsoup.parse(out, "", Parser.xmlParser());
 											        out = doc.select("ClinicalDocument").first().toString();
 												} else {
