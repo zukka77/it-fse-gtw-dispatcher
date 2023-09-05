@@ -26,9 +26,8 @@ import org.springframework.test.context.ActiveProfiles;
 
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.SignatureValidationDTO;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.SignVerificationModeEnum;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.helper.SignerHelper;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.FileUtility;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.SignerUtility;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
@@ -47,8 +46,8 @@ class SignTest {
 			fos.write(fileByte);
 		}
 
-        assertTrue(SignerHelper.isSigned(file), "The file should result as signed");
-        SignatureValidationDTO result = SignerHelper.validate(fileByte, SignVerificationModeEnum.SIGNING_DAY);
+        assertTrue(SignerUtility.isSigned(fileByte), "The file should result as signed");
+        SignatureValidationDTO result = SignerUtility.validate(fileByte);
 
         assertEquals(1, result.getNumSignatures(), "The file should be signed once");
         assertTrue(result.getStatus(), "The file should be valid");
@@ -66,8 +65,8 @@ class SignTest {
 			fos.write(fileByte);
 		}
 
-        assertFalse(SignerHelper.isSigned(file), "The file should result as not signed");
-        SignatureValidationDTO result = SignerHelper.validate(fileByte, SignVerificationModeEnum.SIGNING_DAY);
+        assertFalse(SignerUtility.isSigned(fileByte), "The file should result as not signed");
+        SignatureValidationDTO result = SignerUtility.validate(fileByte);
 
         assertEquals(0, result.getNumSignatures(), "The file should be not signed");
         assertFalse(result.getStatus(), "The file should be invalid");

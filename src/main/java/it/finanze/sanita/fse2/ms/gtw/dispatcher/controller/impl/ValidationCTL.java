@@ -70,8 +70,8 @@ public class ValidationCTL extends AbstractCTL implements IValidationCTL {
 
 			jsonObj = getAndValidateValidationReq(request.getParameter("requestBody"));
 			final byte[] bytes = getAndValidateFile(file);
-			warning = SignerUtility.isSigned(bytes) ? "[SIGN_WARN - Attenzione il documento risulta firmato in validazione]" : "";
 			final String cda = extractCDA(bytes, jsonObj.getMode());
+			warning = SignerUtility.isSigned(bytes) ? "[SIGN_WARN - Attenzione il documento risulta firmato in validazione]" : "";
 			docT = Jsoup.parse(cda);
 			workflowInstanceId = CdaUtility.getWorkflowInstanceId(docT);
 
