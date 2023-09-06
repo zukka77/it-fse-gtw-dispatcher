@@ -11,14 +11,6 @@
  */
 package it.finanze.sanita.fse2.ms.gtw.dispatcher.client.impl;
 
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EdsStrategyEnum;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Component;
-import org.springframework.web.client.HttpStatusCodeException;
-import org.springframework.web.client.ResourceAccessException;
-import org.springframework.web.client.RestTemplate;
-
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.IConfigClient;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.impl.base.AbstractClient;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.response.WhoIsResponseDTO;
@@ -27,6 +19,12 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.MicroservicesURLCFG;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.BusinessException;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.ProfileUtility;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Component;
+import org.springframework.web.client.HttpStatusCodeException;
+import org.springframework.web.client.ResourceAccessException;
+import org.springframework.web.client.RestTemplate;
 
 /**
  * Implementation of gtw-config Client.
@@ -84,8 +82,14 @@ public class ConfigClient extends AbstractClient implements IConfigClient {
     }
 
     @Override
-    public EdsStrategyEnum getStrategyEds() {
-        return EdsStrategyEnum.NO_EDS;
+    public String getEDSStrategy() {
+        String output = ""; //TODO - Set with default strategy
+
+        if(isReachable()) {
+            String endpoint = msUrlCFG.getConfigHost() + "/v1/config-items/props?type=GENERIC&props=eds-strategy";
+            output = restTemplate.getForObject(endpoint,String.class);
+        }
+        return output;
     }
 
     private boolean isReachable() {

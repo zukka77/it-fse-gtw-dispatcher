@@ -37,7 +37,7 @@ import java.util.Objects;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.constraints.Size;
 
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.EdsStrategyCFG;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.*;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -97,12 +97,6 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.MockEnabledException;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.NoRecordFoundException;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.ValidationException;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.logging.LoggerHelper;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.IAccreditamentoSimulationSRV;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.IDocumentReferenceSRV;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.IErrorHandlerSRV;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.IJwtSRV;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.IKafkaSRV;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.ISignSRV;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.facade.ICdaFacadeSRV;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.impl.IniEdsInvocationSRV;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.CdaUtility;
@@ -142,7 +136,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 	private IEdsClient edsClient;
 
 	@Autowired
-	private EdsStrategyCFG edsStrategy;
+	private IConfigSRV edsStrategy;
 
 	@Autowired
 	private ValidationCFG validationCFG;

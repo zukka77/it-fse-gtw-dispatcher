@@ -11,14 +11,12 @@
  */
 package it.finanze.sanita.fse2.ms.gtw.dispatcher.client;
 
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EdsStrategyEnum;
-
 /**
  * Interface of gtw-config Client.
  */
 public interface IConfigClient {
 	
 	String getGatewayName();
-	EdsStrategyEnum getStrategyEds();
+	String getEDSStrategy();
 
 }
