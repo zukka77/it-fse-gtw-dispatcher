@@ -37,6 +37,7 @@ import java.util.Objects;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.constraints.Size;
 
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.EdsStrategyCFG;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -139,6 +140,9 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 
 	@Autowired
 	private IEdsClient edsClient;
+
+	@Autowired
+	private EdsStrategyCFG edsStrategy;
 
 	@Autowired
 	private ValidationCFG validationCFG;
@@ -298,29 +302,31 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 				} else {
 					kafkaSRV.sendUpdateStatus(logTraceDTO.getTraceID(), workflowInstanceId, idDoc, SUCCESS, jwtPayloadToken, "Merge metadati effettuato correttamente", RIFERIMENTI_INI);
 				}
-				EdsResponseDTO edsResponse = edsClient.update(new EdsMetadataUpdateReqDTO(idDoc, workflowInstanceId, requestBody));
-				if(edsResponse.isEsito()) {
-					kafkaSRV.sendUpdateStatus(logTraceDTO.getTraceID(), workflowInstanceId, idDoc, SUCCESS, jwtPayloadToken, "Update EDS effettuato correttamente", EDS_UPDATE);
-					if(regimeDiMock) {
-						kafkaSRV.sendUpdateStatus(logTraceDTO.getTraceID(), workflowInstanceId, idDoc, SUCCESS, jwtPayloadToken, "Regime di mock",
+				if(edsStrategy.isNoFhirEds()) {
+					EdsResponseDTO edsResponse = edsClient.update(new EdsMetadataUpdateReqDTO(idDoc, workflowInstanceId, requestBody));
+					if (edsResponse.isEsito()) {
+						kafkaSRV.sendUpdateStatus(logTraceDTO.getTraceID(), workflowInstanceId, idDoc, SUCCESS, jwtPayloadToken, "Update EDS effettuato correttamente", EDS_UPDATE);
+						if (regimeDiMock) {
+							kafkaSRV.sendUpdateStatus(logTraceDTO.getTraceID(), workflowInstanceId, idDoc, SUCCESS, jwtPayloadToken, "Regime di mock",
 								INI_UPDATE);
-					} else {
-						IniTraceResponseDTO res = iniClient.update(new IniMetadataUpdateReqDTO(metadatiToUpdate.getMarshallResponse(), jwtPayloadToken,metadatiToUpdate.getDocumentType(),
-								workflowInstanceId));
-						// Check response errors
-						if(!StringUtility.isNullOrEmpty(res.getErrorMessage())) {
-							// Send to indexer
-							kafkaSRV.sendUpdateRequest(workflowInstanceId, new IniMetadataUpdateReqDTO(metadatiToUpdate.getMarshallResponse(), jwtPayloadToken, metadatiToUpdate.getDocumentType(),
-									workflowInstanceId));
-							kafkaSRV.sendUpdateStatus(logTraceDTO.getTraceID(), workflowInstanceId, idDoc, EventStatusEnum.ASYNC_RETRY, jwtPayloadToken, "Transazione presa in carico", INI_UPDATE);
-							warning = Misc.WARN_ASYNC_TRANSACTION;
 						} else {
-							kafkaSRV.sendUpdateStatus(logTraceDTO.getTraceID(), workflowInstanceId, idDoc, SUCCESS, jwtPayloadToken, "Update ini effettuato correttamente", INI_UPDATE);
+							IniTraceResponseDTO res = iniClient.update(new IniMetadataUpdateReqDTO(metadatiToUpdate.getMarshallResponse(), jwtPayloadToken, metadatiToUpdate.getDocumentType(),
+								workflowInstanceId));
+							// Check response errors
+							if (!StringUtility.isNullOrEmpty(res.getErrorMessage())) {
+								// Send to indexer
+								kafkaSRV.sendUpdateRequest(workflowInstanceId, new IniMetadataUpdateReqDTO(metadatiToUpdate.getMarshallResponse(), jwtPayloadToken, metadatiToUpdate.getDocumentType(),
+									workflowInstanceId));
+								kafkaSRV.sendUpdateStatus(logTraceDTO.getTraceID(), workflowInstanceId, idDoc, EventStatusEnum.ASYNC_RETRY, jwtPayloadToken, "Transazione presa in carico", INI_UPDATE);
+								warning = Misc.WARN_ASYNC_TRANSACTION;
+							} else {
+								kafkaSRV.sendUpdateStatus(logTraceDTO.getTraceID(), workflowInstanceId, idDoc, SUCCESS, jwtPayloadToken, "Update ini effettuato correttamente", INI_UPDATE);
+							}
 						}
-					}  
-				} else {
-					kafkaSRV.sendUpdateStatus(logTraceDTO.getTraceID(), workflowInstanceId, idDoc, BLOCKING_ERROR, jwtPayloadToken, "Update EDS fallito", EDS_UPDATE);
-					throw new EdsException(edsResponse.getMessageError());
+					} else {
+						kafkaSRV.sendUpdateStatus(logTraceDTO.getTraceID(), workflowInstanceId, idDoc, BLOCKING_ERROR, jwtPayloadToken, "Update EDS fallito", EDS_UPDATE);
+						throw new EdsException(edsResponse.getMessageError());
+					}
 				}
 
 			}
@@ -500,20 +506,28 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 				kafkaSRV.sendDeleteStatus(info.getTraceID(), workflowInstanceId, idDoc, "Riferimenti trovati: " +iniReference.getUuid(), SUCCESS, jwtPayloadToken, RIFERIMENTI_INI);
 			}
 
-			// ==============================
-			// [2] Send delete request to EDS
-			// ==============================
-			EdsResponseDTO edsResponse = edsClient.delete(idDoc);
-			// Exit if necessary
-			Objects.requireNonNull(edsResponse, "PublicationCTL returned an error - edsResponse is null!");
+			EdsResponseDTO edsResponse = new EdsResponseDTO(
+				true,
+				"EDS Mock",
+				"EDS Mock"
+			);
 
-			if (!edsResponse.isEsito()) {
-				// Update transaction status
-				kafkaSRV.sendDeleteStatus(info.getTraceID(), workflowInstanceId, idDoc, edsResponse.getMessageError(), BLOCKING_ERROR, jwtPayloadToken, EDS_DELETE);
-				throw new EdsException("Error encountered while sending delete information to EDS client");
-			} else {
-				// Update transaction status
-				kafkaSRV.sendDeleteStatus(info.getTraceID(), workflowInstanceId, idDoc, "Delete effettuata su eds", SUCCESS, jwtPayloadToken, EDS_DELETE);
+			if(edsStrategy.isNoFhirEds()) {
+				// ==============================
+				// [2] Send delete request to EDS
+				// ==============================
+				edsResponse = edsClient.delete(idDoc);
+				// Exit if necessary
+				Objects.requireNonNull(edsResponse, "PublicationCTL returned an error - edsResponse is null!");
+
+				if (!edsResponse.isEsito()) {
+					// Update transaction status
+					kafkaSRV.sendDeleteStatus(info.getTraceID(), workflowInstanceId, idDoc, edsResponse.getMessageError(), BLOCKING_ERROR, jwtPayloadToken, EDS_DELETE);
+					throw new EdsException("Error encountered while sending delete information to EDS client");
+				} else {
+					// Update transaction status
+					kafkaSRV.sendDeleteStatus(info.getTraceID(), workflowInstanceId, idDoc, "Delete effettuata su eds", SUCCESS, jwtPayloadToken, EDS_DELETE);
+				}
 			}
 
 

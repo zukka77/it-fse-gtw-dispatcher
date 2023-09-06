@@ -11,6 +11,7 @@
  */
 package it.finanze.sanita.fse2.ms.gtw.dispatcher.client.impl;
 
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EdsStrategyEnum;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
@@ -80,6 +81,11 @@ public class ConfigClient extends AbstractClient implements IConfigClient {
             throw e;
         }
         return gatewayName;
+    }
+
+    @Override
+    public EdsStrategyEnum getStrategyEds() {
+        return EdsStrategyEnum.NO_EDS;
     }
 
     private boolean isReachable() {
