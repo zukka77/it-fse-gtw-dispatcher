@@ -12,22 +12,24 @@
 package it.finanze.sanita.fse2.ms.gtw.dispatcher.repository.mongo.impl;
 
 
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.BusinessException;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.repository.entity.engine.EngineETY;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.repository.mongo.IEngineRepo;
-import lombok.extern.slf4j.Slf4j;
+import static it.finanze.sanita.fse2.ms.gtw.dispatcher.repository.entity.engine.EngineETY.FIELD_AVAILABLE;
+import static it.finanze.sanita.fse2.ms.gtw.dispatcher.repository.entity.engine.EngineETY.FIELD_LAST_SYNC;
+import static org.springframework.data.domain.Sort.Direction.DESC;
+import static org.springframework.data.mongodb.core.aggregation.Aggregation.limit;
+import static org.springframework.data.mongodb.core.aggregation.Aggregation.match;
+import static org.springframework.data.mongodb.core.aggregation.Aggregation.sort;
+import static org.springframework.data.mongodb.core.query.Criteria.where;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.aggregation.TypedAggregation;
 import org.springframework.stereotype.Repository;
 
-import static it.finanze.sanita.fse2.ms.gtw.dispatcher.repository.entity.engine.EngineETY.*;
-import static org.springframework.data.domain.Sort.Direction.DESC;
-import static org.springframework.data.mongodb.core.aggregation.Aggregation.*;
-import static org.springframework.data.mongodb.core.query.Criteria.where;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.BusinessException;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.repository.entity.engine.EngineETY;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.repository.mongo.IEngineRepo;
 
 @Repository
-@Slf4j
 public class EngineRepo implements IEngineRepo {
 
 	@Autowired
