@@ -11,22 +11,10 @@
  */
 package it.finanze.sanita.fse2.ms.gtw.dispatcher.controller.impl;
 
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.controller.IValidationCTL;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.JWTPayloadDTO;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.ValidationCDAReqDTO;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.LogTraceInfoDTO;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.ValidationResDTO;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.*;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.ValidationException;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.logging.LoggerHelper;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.IErrorHandlerSRV;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.IKafkaSRV;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.CdaUtility;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.PDFUtility;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.SignerUtility;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility;
-import lombok.extern.slf4j.Slf4j;
+import java.util.Date;
+
+import javax.servlet.http.HttpServletRequest;
+
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,8 +23,25 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.servlet.http.HttpServletRequest;
-import java.util.Date;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.controller.IValidationCTL;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.JWTPayloadDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.ValidationCDAReqDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.LogTraceInfoDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.ValidationResDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ActivityEnum;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventStatusEnum;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventTypeEnum;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.OperationLogEnum;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ResultLogEnum;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.ValidationException;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.logging.LoggerHelper;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.IErrorHandlerSRV;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.IKafkaSRV;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.CdaUtility;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.SignerUtility;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Validation controller.

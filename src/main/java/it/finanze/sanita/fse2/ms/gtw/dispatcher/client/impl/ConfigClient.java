@@ -16,6 +16,7 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.impl.base.AbstractClient;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.response.WhoIsResponseDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.MicroservicesURLCFG;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EdsStrategyEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.BusinessException;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.ProfileUtility;
 import lombok.extern.slf4j.Slf4j;
@@ -83,8 +84,7 @@ public class ConfigClient extends AbstractClient implements IConfigClient {
 
     @Override
     public String getEDSStrategy() {
-        String output = ""; //TODO - Set with default strategy
-
+        String output = EdsStrategyEnum.NO_EDS.name(); 
         if(isReachable()) {
             String endpoint = msUrlCFG.getConfigHost() + "/v1/config-items/props?type=GENERIC&props=eds-strategy";
             output = restTemplate.getForObject(endpoint,String.class);

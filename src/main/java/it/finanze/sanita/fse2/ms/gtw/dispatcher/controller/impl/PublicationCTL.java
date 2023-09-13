@@ -416,7 +416,6 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 			validation.setKafkaKey(key);
 		} catch (final ValidationException | NoRecordFoundException ve) {
 			cdaSRV.consumeHash(validationInfo.getHash());
-//			validation.setValidationError(ve);
 			throw ve;
 		}  
 
@@ -502,11 +501,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 				kafkaSRV.sendDeleteStatus(info.getTraceID(), workflowInstanceId, idDoc, "Riferimenti trovati: " +iniReference.getUuid(), SUCCESS, jwtPayloadToken, RIFERIMENTI_INI);
 			}
 
-			EdsResponseDTO edsResponse = new EdsResponseDTO(
-				true,
-				"EDS Mock",
-				"EDS Mock"
-			);
+			EdsResponseDTO edsResponse = new EdsResponseDTO(true,"EDS Mock","EDS Mock");
 
 			if(edsStrategy.isNoFhirEds()) {
 				// ==============================
@@ -554,8 +549,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 				kafkaSRV.sendDeleteStatus(info.getTraceID(), workflowInstanceId, idDoc, "Delete effettuata su ini", SUCCESS, jwtPayloadToken, INI_DELETE);
 			}
 
-			logger.info(Constants.App.LOG_TYPE_CONTROL,workflowInstanceId,String.format("Deletion of CDA completed for document with identifier %s", idDoc), OperationLogEnum.DELETE_CDA2, ResultLogEnum.OK, startOperation, MISSING_DOC_TYPE_PLACEHOLDER, 
-					jwtPayloadToken,null);
+			logger.info(Constants.App.LOG_TYPE_CONTROL,workflowInstanceId,String.format("Deletion of CDA completed for document with identifier %s", idDoc), OperationLogEnum.DELETE_CDA2, ResultLogEnum.OK, startOperation, MISSING_DOC_TYPE_PLACEHOLDER, jwtPayloadToken,null);
 		} catch(MockEnabledException me) {
 			throw me;
 		} catch(IniException inEx) {
@@ -574,14 +568,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 			throw e;
 		}
 
-		log.info("[EXIT] {}() with arguments {}={}, {}={}, {}={}",
-				"delete",
-				"traceId", info.getTraceID(),
-				"wif", workflowInstanceId,
-				"idDoc", idDoc
-				);
-
-
+		log.info("[EXIT] {}() with arguments {}={}, {}={}, {}={}", "delete", "traceId", info.getTraceID(), "wif", workflowInstanceId, "idDoc", idDoc);
 		return new ResponseWifDTO(workflowInstanceId, info, warning);
 	}
 
