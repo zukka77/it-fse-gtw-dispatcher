@@ -27,4 +27,9 @@ public class IniMetadataUpdateReqDTO {
     
     private String workflow_instance_id;
     
+    private String administrative_request;
+    
+    // TODO: Aggiungere campo author institution
+    // private String author_institution;
+    
 }

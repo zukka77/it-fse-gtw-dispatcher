@@ -231,7 +231,7 @@ public class DocumentReferenceSRV implements IDocumentReferenceSRV {
 			} else {
 				de.setAuthorInstitution("AUTHOR_INSTITUTION_NOT_PRESENT");
 			}
-			
+
 			final Element authorElement = docCDA.select("ClinicalDocument > author > assignedAuthor > id").first();
 			if (authorElement != null) {
 				de.setAuthor(authorElement.attr(EXTENSION_ATTRIBUTE));
