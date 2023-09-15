@@ -480,7 +480,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 			// ==============================
 			// [1] Retrieve reference from INI
 			// ==============================
-			IniReferenceResponseDTO iniReference = iniClient.reference(new IniReferenceRequestDTO(idDoc, jwtPayloadToken));
+			IniReferenceResponseDTO iniReference = iniClient.referenceAuthor(new IniReferenceRequestDTO(idDoc, jwtPayloadToken));
 			// Exit if necessary
 			if(!isNullOrEmpty(iniReference.getErrorMessage())) {
 				kafkaSRV.sendDeleteStatus(info.getTraceID(), workflowInstanceId, idDoc, iniReference.getErrorMessage(), BLOCKING_ERROR, jwtPayloadToken, RIFERIMENTI_INI);
@@ -633,7 +633,6 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 		warning = StringUtility.isNullOrEmpty(warning) ? null : warning; 
 		return new ResponseEntity<>(new PublicationResDTO(traceInfoDTO, warning, validationResult.getValidationData().getWorkflowInstanceId()), HttpStatus.CREATED);
 	}
-	
 	 
 	@Override
 	public ResponseEntity<PublicationResDTO> validateAndReplace(@Size(min = 1, max = 256) String idDoc,

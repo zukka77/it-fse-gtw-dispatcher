@@ -26,6 +26,8 @@ public interface IIniClient {
 
 	IniReferenceResponseDTO reference(it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.IniReferenceRequestDTO iniReferenceRequestDTO);
 	
+	IniReferenceResponseDTO referenceAuthor(it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.IniReferenceRequestDTO iniReferenceRequestDTO);
+	
 	GetMergedMetadatiDTO metadata(MergedMetadatiRequestDTO iniReq);
 
 }

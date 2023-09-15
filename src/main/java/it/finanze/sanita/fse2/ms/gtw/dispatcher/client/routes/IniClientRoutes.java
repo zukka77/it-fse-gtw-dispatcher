@@ -17,6 +17,7 @@ import static it.finanze.sanita.fse2.ms.gtw.dispatcher.client.routes.base.Client
 import static it.finanze.sanita.fse2.ms.gtw.dispatcher.client.routes.base.ClientRoutes.Ini.IDENTIFIER_MS;
 import static it.finanze.sanita.fse2.ms.gtw.dispatcher.client.routes.base.ClientRoutes.Ini.METADATA_PATH;
 import static it.finanze.sanita.fse2.ms.gtw.dispatcher.client.routes.base.ClientRoutes.Ini.REFERENCE_PATH;
+import static it.finanze.sanita.fse2.ms.gtw.dispatcher.client.routes.base.ClientRoutes.Ini.REFERENCE_AUTHOR_PATH;
 import static it.finanze.sanita.fse2.ms.gtw.dispatcher.client.routes.base.ClientRoutes.Ini.UPDATE_PATH;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,6 +54,10 @@ public final class IniClientRoutes {
 
     public String references(String id) {
         return base().pathSegment(API_VERSION, REFERENCE_PATH, id).build().toUriString();
+    }
+    
+    public String referencesAuthor(String id) {
+        return base().pathSegment(API_VERSION, REFERENCE_AUTHOR_PATH, id).build().toUriString();
     }
 
     public String metadata() {
