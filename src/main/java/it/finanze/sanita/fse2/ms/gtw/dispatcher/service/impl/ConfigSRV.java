@@ -1,18 +1,17 @@
 package it.finanze.sanita.fse2.ms.gtw.dispatcher.service.impl;
 
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.IConfigClient;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EdsStrategyEnum;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.IConfigSRV;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility;
+import java.util.Date;
 
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.event.ApplicationStartedEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
-import java.util.Date;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.IConfigClient;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EdsStrategyEnum;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.IConfigSRV;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility;
 
 @Service
 public class ConfigSRV implements IConfigSRV {
@@ -50,18 +49,10 @@ public class ConfigSRV implements IConfigSRV {
 		return edsStrategy;
 	}
 
-	@Override
-	public boolean isNoFhirEds() {
-		// Trigger refresh if necessary
-		String out = getEdsStrategy();
-		// Evaluate
-		return StringUtils.isNotBlank(out) && EdsStrategyEnum.NO_FHIR_EDS.name().equalsIgnoreCase(out);
-	}
 
-	//Se la strategy è null si setta come default no_eds (quindi non verranno emesse loggate)
 	@Override
 	public boolean isNoEds() {
 		String out = getEdsStrategy();
-		return StringUtility.isNullOrEmpty(out) || EdsStrategyEnum.NO_EDS.name().equalsIgnoreCase(out);
+		return !StringUtility.isNullOrEmpty(out) && EdsStrategyEnum.NO_EDS.name().equalsIgnoreCase(out);
 	}
 }

@@ -27,7 +27,6 @@ import static org.springframework.data.mongodb.core.aggregation.Aggregation.*;
 import static org.springframework.data.mongodb.core.query.Criteria.where;
 
 @Repository
-@Slf4j
 public class EngineRepo implements IEngineRepo {
 
 	@Autowired

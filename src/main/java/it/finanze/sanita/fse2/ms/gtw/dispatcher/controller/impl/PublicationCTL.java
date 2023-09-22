@@ -14,8 +14,6 @@ import static it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants.App.MISS
 import static it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants.App.MISSING_WORKFLOW_PLACEHOLDER;
 import static it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventStatusEnum.BLOCKING_ERROR;
 import static it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventStatusEnum.SUCCESS;
-import static it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventTypeEnum.EDS_DELETE;
-import static it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventTypeEnum.EDS_UPDATE;
 import static it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventTypeEnum.INI_DELETE;
 import static it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventTypeEnum.INI_UPDATE;
 import static it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventTypeEnum.RIFERIMENTI_INI;
@@ -32,12 +30,10 @@ import static it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility.enc
 import static it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility.isNullOrEmpty;
 
 import java.util.Date;
-import java.util.Objects;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.constraints.Size;
 
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.*;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,7 +44,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.google.gson.Gson;
 
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.IEdsClient;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.IIniClient;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.AccreditationSimulationCFG;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants;
@@ -62,7 +57,6 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.ResourceDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.ValidationCreationInputDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.ValidationDataDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.DeleteRequestDTO;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.EdsMetadataUpdateReqDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.IniMetadataUpdateReqDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.IniReferenceRequestDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.MergedMetadatiRequestDTO;
@@ -91,12 +85,17 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ResultLogEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.SystemTypeEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.BusinessException;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.ConnectionRefusedException;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.EdsException;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.IniException;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.MockEnabledException;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.NoRecordFoundException;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.ValidationException;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.logging.LoggerHelper;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.IAccreditamentoSimulationSRV;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.IDocumentReferenceSRV;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.IErrorHandlerSRV;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.IJwtSRV;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.IKafkaSRV;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.ISignSRV;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.facade.ICdaFacadeSRV;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.impl.IniEdsInvocationSRV;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.CdaUtility;
@@ -131,12 +130,6 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 
 	@Autowired
 	private IIniClient iniClient;
-
-	@Autowired
-	private IEdsClient edsClient;
-
-	@Autowired
-	private IConfigSRV edsStrategy;
 
 	@Autowired
 	private ValidationCFG validationCFG;
@@ -295,17 +288,6 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 					kafkaSRV.sendUpdateStatus(logTraceDTO.getTraceID(), wif, idDoc, SUCCESS, jwtPayloadToken, "Regime mock", RIFERIMENTI_INI);
 				} else {
 					kafkaSRV.sendUpdateStatus(logTraceDTO.getTraceID(), wif, idDoc, SUCCESS, jwtPayloadToken, "Merge metadati effettuato correttamente", RIFERIMENTI_INI);
-				}
-
-				// Omit if strategy is no-eds
-				if(edsStrategy.isNoFhirEds()) {
-					EdsResponseDTO edsResponse = edsClient.update(new EdsMetadataUpdateReqDTO(idDoc, wif, requestBody));
-					if (edsResponse.isEsito()) {
-						kafkaSRV.sendUpdateStatus(logTraceDTO.getTraceID(), wif, idDoc, SUCCESS, jwtPayloadToken, "Update EDS effettuato correttamente", EDS_UPDATE);
-					} else {
-						kafkaSRV.sendUpdateStatus(logTraceDTO.getTraceID(), wif, idDoc, BLOCKING_ERROR, jwtPayloadToken, "Update EDS fallito", EDS_UPDATE);
-						throw new EdsException(edsResponse.getMessageError());
-					}
 				}
 
 				// Keep going independently of the strategy
@@ -502,26 +484,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 			}
 
 			EdsResponseDTO edsResponse = new EdsResponseDTO(true,"EDS Mock","EDS Mock");
-
-			if(edsStrategy.isNoFhirEds()) {
-				// ==============================
-				// [2] Send delete request to EDS
-				// ==============================
-				edsResponse = edsClient.delete(idDoc);
-				// Exit if necessary
-				Objects.requireNonNull(edsResponse, "PublicationCTL returned an error - edsResponse is null!");
-
-				if (!edsResponse.isEsito()) {
-					// Update transaction status
-					kafkaSRV.sendDeleteStatus(info.getTraceID(), workflowInstanceId, idDoc, edsResponse.getMessageError(), BLOCKING_ERROR, jwtPayloadToken, EDS_DELETE);
-					throw new EdsException("Error encountered while sending delete information to EDS client");
-				} else {
-					// Update transaction status
-					kafkaSRV.sendDeleteStatus(info.getTraceID(), workflowInstanceId, idDoc, "Delete effettuata su eds", SUCCESS, jwtPayloadToken, EDS_DELETE);
-				}
-			}
-
-
+ 
 			// ==============================
 			// [3] Send delete request to INI
 			// ==============================
