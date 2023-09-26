@@ -1,19 +1,20 @@
 package it.finanze.sanita.fse2.ms.gtw.dispatcher.service.impl;
 
-import java.util.Date;
-
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.IConfigClient;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EdsStrategyEnum;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.IConfigSRV;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.event.ApplicationStartedEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.IConfigClient;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EdsStrategyEnum;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.IConfigSRV;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility;
+import java.util.Date;
 
 @Service
+@Slf4j
 public class ConfigSRV implements IConfigSRV {
 
 	private static final Long DELTA_MS = 300000L;
@@ -35,6 +36,7 @@ public class ConfigSRV implements IConfigSRV {
 		synchronized (this) {
 			edsStrategy = configClient.getEDSStrategy();
 			lastUpdate = new Date().getTime();
+			log.info("[EDS] Running with strategy: {}", edsStrategy);
 		}
 	}
 
