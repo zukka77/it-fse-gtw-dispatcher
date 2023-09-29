@@ -221,7 +221,17 @@ public class DocumentReferenceSRV implements IDocumentReferenceSRV {
 			}
 
 			de.setAuthorRole(authorRole);
-			de.setAuthorInstitution("ULSS 9-TREVISO^^^^^&2.16.840.1.113883.2.9.4.1.1&ISO^^^^050109"); //TODO Capire da dove reperirlo
+
+			final Element authorInstitutionElement = docCDA.select("ClinicalDocument > author > assignedAuthor > representedOrganization > id").first();
+			if (authorInstitutionElement != null) {
+				String extension = authorInstitutionElement.attr(EXTENSION_ATTRIBUTE);
+				String root = authorInstitutionElement.attr("root");
+				String assigningAuthorityName = authorInstitutionElement.attr("assigningAuthorityName");
+				de.setAuthorInstitution(assigningAuthorityName + "^^^^^&" + root + "&ISO^^^^" + extension);
+			} else {
+				de.setAuthorInstitution("AUTHOR_INSTITUTION_NOT_PRESENT");
+			}
+			
 			final Element authorElement = docCDA.select("ClinicalDocument > author > assignedAuthor > id").first();
 			if (authorElement != null) {
 				de.setAuthor(authorElement.attr(EXTENSION_ATTRIBUTE));
