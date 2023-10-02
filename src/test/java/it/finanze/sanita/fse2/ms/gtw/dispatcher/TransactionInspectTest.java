@@ -12,6 +12,8 @@
 package it.finanze.sanita.fse2.ms.gtw.dispatcher;
 
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -21,17 +23,17 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.web.client.RestTemplate;
 
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.IStatusCheckClient;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.controller.ITransactionInspectCTL;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.TransactionInspectResDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.ITransactionInspectSRV;
 
 
 @AutoConfigureMockMvc
@@ -42,17 +44,14 @@ public class TransactionInspectTest {
 	@Autowired
 	private ServletWebServerApplicationContext webServerAppCtxt;
 	
-	@Autowired
-	ITransactionInspectCTL txInspectCtl; 
-	
 	@SpyBean
 	private IStatusCheckClient statusCheckClient; 
 	
 	@Autowired
 	public MockMvc mvc; 
-	
-	@SpyBean
-	RestTemplate restTemplate; 
+
+	@MockBean
+    private ITransactionInspectSRV transactionInspectSRV;
 	
 	@Test
 	@DisplayName("Call Search Event By wid Test")
@@ -69,5 +68,37 @@ public class TransactionInspectTest {
 				.andExpect(status().isOk()); 
 		
 	}
+
+	@Test
+    public void getEventsTest() throws Exception {
+        String workflowInstanceId = "wif_test";
+
+        TransactionInspectResDTO mockResponse = new TransactionInspectResDTO();
+        when(transactionInspectSRV.callSearchEventByWorkflowInstanceId(eq(workflowInstanceId)))
+                .thenReturn(mockResponse);
+
+        mvc.perform(get("/v1/status/{workflowInstanceId}", workflowInstanceId))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    public void getEventsWithMissingWifTest() throws Exception {
+        String missingWorkflowInstanceId = Constants.App.MISSING_WORKFLOW_PLACEHOLDER;
+
+        mvc.perform(get("/v1/status/{workflowInstanceId}", missingWorkflowInstanceId))
+                .andExpect(status().isBadRequest());
+    }
+
+	@Test
+    public void getEventsByTraceIdTest() throws Exception {
+        String traceId = "trace_id_test";
+
+        TransactionInspectResDTO mockResponse = new TransactionInspectResDTO();
+        when(transactionInspectSRV.callSearchEventByTraceId(eq(traceId)))
+                .thenReturn(mockResponse);
+
+        mvc.perform(get("/v1/status/search/{traceId}", traceId))
+                .andExpect(status().isOk());
+    }
 
 }
