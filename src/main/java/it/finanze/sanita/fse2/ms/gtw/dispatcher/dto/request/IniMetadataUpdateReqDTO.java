@@ -29,7 +29,5 @@ public class IniMetadataUpdateReqDTO {
     
     private String administrative_request;
     
-    // TODO: Aggiungere campo author institution
-    // private String author_institution;
-    
+    private String author_institution;
 }

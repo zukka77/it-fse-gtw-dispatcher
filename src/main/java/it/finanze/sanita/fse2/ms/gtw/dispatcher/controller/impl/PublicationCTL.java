@@ -251,11 +251,13 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 									jwtPayloadToken,
 									metadatiToUpdate.getDocumentType(),
 									wif,
-									requestBody.getAdministrativeRequest().getCode()));
+									requestBody.getAdministrativeRequest().getCode(),
+									metadatiToUpdate.getAuthorInstitution()
+							));
 					// Check response errors
 					if (!StringUtility.isNullOrEmpty(res.getErrorMessage())) {
 						// Send to indexer
-						kafkaSRV.sendUpdateRequest(wif, new IniMetadataUpdateReqDTO(metadatiToUpdate.getMarshallResponse(), jwtPayloadToken, metadatiToUpdate.getDocumentType(), wif, requestBody.getAdministrativeRequest().getCode()));
+						kafkaSRV.sendUpdateRequest(wif, new IniMetadataUpdateReqDTO(metadatiToUpdate.getMarshallResponse(), jwtPayloadToken, metadatiToUpdate.getDocumentType(), wif, requestBody.getAdministrativeRequest().getCode(), metadatiToUpdate.getAuthorInstitution()));
 						kafkaSRV.sendUpdateStatus(logTraceDTO.getTraceID(), wif, idDoc, EventStatusEnum.ASYNC_RETRY, jwtPayloadToken, "Transazione presa in carico", INI_UPDATE);
 						warning = Misc.WARN_ASYNC_TRANSACTION;
 					} else {
