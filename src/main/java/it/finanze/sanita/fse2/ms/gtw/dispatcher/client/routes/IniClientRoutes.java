@@ -11,20 +11,12 @@
  */
 package it.finanze.sanita.fse2.ms.gtw.dispatcher.client.routes;
 
-import static it.finanze.sanita.fse2.ms.gtw.dispatcher.client.routes.base.ClientRoutes.Ini.API_VERSION;
-import static it.finanze.sanita.fse2.ms.gtw.dispatcher.client.routes.base.ClientRoutes.Ini.DELETE_PATH;
-import static it.finanze.sanita.fse2.ms.gtw.dispatcher.client.routes.base.ClientRoutes.Ini.IDENTIFIER;
-import static it.finanze.sanita.fse2.ms.gtw.dispatcher.client.routes.base.ClientRoutes.Ini.IDENTIFIER_MS;
-import static it.finanze.sanita.fse2.ms.gtw.dispatcher.client.routes.base.ClientRoutes.Ini.METADATA_PATH;
-import static it.finanze.sanita.fse2.ms.gtw.dispatcher.client.routes.base.ClientRoutes.Ini.REFERENCE_PATH;
-import static it.finanze.sanita.fse2.ms.gtw.dispatcher.client.routes.base.ClientRoutes.Ini.REFERENCE_AUTHOR_PATH;
-import static it.finanze.sanita.fse2.ms.gtw.dispatcher.client.routes.base.ClientRoutes.Ini.UPDATE_PATH;
-
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.MicroservicesURLCFG;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.MicroservicesURLCFG;
+import static it.finanze.sanita.fse2.ms.gtw.dispatcher.client.routes.base.ClientRoutes.Ini.*;
 
 @Component
 public final class IniClientRoutes {
@@ -54,10 +46,6 @@ public final class IniClientRoutes {
 
     public String references(String id) {
         return base().pathSegment(API_VERSION, REFERENCE_PATH, id).build().toUriString();
-    }
-    
-    public String referencesAuthor(String id) {
-        return base().pathSegment(API_VERSION, REFERENCE_AUTHOR_PATH, id).build().toUriString();
     }
 
     public String metadata() {

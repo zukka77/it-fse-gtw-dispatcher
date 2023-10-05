@@ -81,26 +81,6 @@ public class IniClient extends AbstractClient implements IIniClient {
 
 		return output;
 	}
-	
-	@Override
-	public IniReferenceResponseDTO referenceAuthor(IniReferenceRequestDTO request) {
-
-		String endpoint = routes.referencesAuthor(request.getIdDoc());
-		IniReferenceResponseDTO output = null;
-
-		log.debug("{} - Executing request: {}", routes.identifier(), endpoint);
-
-		try {
-			// Execute request
-			ResponseEntity<IniReferenceResponseDTO> response = client.exchange(endpoint,POST,new HttpEntity<>(request.getToken()),IniReferenceResponseDTO.class);
-			// Retrieve body
-			output = response.getBody();
-		} catch (RestClientResponseException ex) {
-			toServerResponseEx(routes.identifier(), routes.microservice(), ex, REFERENCE_AUTHOR_PATH);
-		}
-
-		return output;
-	}
 
 	@Override
 	public IniTraceResponseDTO update(IniMetadataUpdateReqDTO request) {
