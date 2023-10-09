@@ -28,7 +28,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 
 @Slf4j
 @Component
-@ConditionalOnProperty("ms.validator.audit.enabled")
+@ConditionalOnProperty("ms.dispatcher.audit.enabled")
 public class AuditManager {
 
     @Autowired
