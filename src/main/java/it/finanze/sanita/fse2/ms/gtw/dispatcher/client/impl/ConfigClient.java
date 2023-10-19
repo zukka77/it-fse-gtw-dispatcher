@@ -20,6 +20,7 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EdsStrategyEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.BusinessException;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.ProfileUtility;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
@@ -88,6 +89,8 @@ public class ConfigClient extends AbstractClient implements IConfigClient {
         if(isReachable()) {
             String endpoint = msUrlCFG.getConfigHost() + "/v1/config-items/props?type=GENERIC&props=eds-strategy";
             output = restTemplate.getForObject(endpoint,String.class);
+            // If gtw-config answer but is not configured
+            if(StringUtils.isBlank(output)) output = EdsStrategyEnum.NO_EDS_WITH_LOG.name();
         }
         return output;
     }
