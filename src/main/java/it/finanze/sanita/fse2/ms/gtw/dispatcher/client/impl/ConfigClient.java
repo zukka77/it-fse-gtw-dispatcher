@@ -11,6 +11,15 @@
  */
 package it.finanze.sanita.fse2.ms.gtw.dispatcher.client.impl;
 
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.IConfigClient;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.impl.base.AbstractClient;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.response.WhoIsResponseDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.routes.ConfigClientRoutes;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ConfigItemTypeEnum;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.BusinessException;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.ProfileUtility;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
@@ -18,14 +27,8 @@ import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.IConfigClient;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.impl.base.AbstractClient;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.response.WhoIsResponseDTO;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.MicroservicesURLCFG;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.BusinessException;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.ProfileUtility;
-import lombok.extern.slf4j.Slf4j;
+import static it.finanze.sanita.fse2.ms.gtw.dispatcher.client.routes.base.ClientRoutes.Config.PROPS_NAME_AUDIT_ENABLED;
+import static it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ConfigItemTypeEnum.*;
 
 /**
  * Implementation of gtw-config Client.
@@ -35,22 +38,22 @@ import lombok.extern.slf4j.Slf4j;
 public class ConfigClient extends AbstractClient implements IConfigClient {
 
 	@Autowired
-	private MicroservicesURLCFG msUrlCFG;
+	private ConfigClientRoutes routes;
 	
     @Autowired
-    private RestTemplate restTemplate;
+    private RestTemplate client;
 
     @Autowired
-    private ProfileUtility profileUtility;
+    private ProfileUtility profiles;
 
     @Override
     public String getGatewayName() {
         String gatewayName = null;
         try {
             log.debug("Config Client - Calling Config Client to get Gateway Name");
-            final String endpoint = msUrlCFG.getConfigHost() + Constants.Client.Config.WHOIS_PATH;
+            final String endpoint = routes.whois();
 
-            final boolean isTestEnvironment = profileUtility.isDevOrDockerProfile() || profileUtility.isTestProfile();
+            final boolean isTestEnvironment = profiles.isDevOrDockerProfile() || profiles.isTestProfile();
             
             // Check if the endpoint is reachable
             if (isTestEnvironment && !isReachable()) {
@@ -58,8 +61,7 @@ public class ConfigClient extends AbstractClient implements IConfigClient {
                 return Constants.Client.Config.MOCKED_GATEWAY_NAME;
             }
 
-            final ResponseEntity<WhoIsResponseDTO> response = restTemplate.getForEntity(endpoint,
-                    WhoIsResponseDTO.class);
+            final ResponseEntity<WhoIsResponseDTO> response = client.getForEntity(endpoint, WhoIsResponseDTO.class);
 
             WhoIsResponseDTO body = response.getBody();
             
@@ -82,14 +84,30 @@ public class ConfigClient extends AbstractClient implements IConfigClient {
         return gatewayName;
     }
 
-    private boolean isReachable() {
-        try {
-            final String endpoint = msUrlCFG.getConfigHost() + Constants.Client.Config.STATUS_PATH;
-            restTemplate.getForEntity(endpoint, String.class);
-            return true;
-        } catch (ResourceAccessException clientException) {
-            return false;
+    @Override
+    public Boolean isAuditEnable(ConfigItemTypeEnum type, String props) {
+        boolean out = false;
+
+        String endpoint = routes.getConfigItem(GENERIC, PROPS_NAME_AUDIT_ENABLED);
+        log.debug("{} - Executing request: {}", routes.identifier(), endpoint);
+
+        if(isReachable()){
+            ResponseEntity<String> response = client.getForEntity(endpoint, String.class);
+            out = Boolean.parseBoolean(response.getBody());
         }
+
+        return out;
+    }
+
+    private boolean isReachable() {
+        boolean out;
+        try {
+            client.getForEntity(routes.status(), String.class);
+            out = true;
+        } catch (ResourceAccessException ex) {
+            out = false;
+        }
+        return out;
     }
 
 }

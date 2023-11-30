@@ -11,6 +11,10 @@
  */
 package it.finanze.sanita.fse2.ms.gtw.dispatcher.config;
 
+import lombok.NoArgsConstructor;
+
+import static lombok.AccessLevel.PRIVATE;
+
 /**
  * Constants application.
  */
@@ -84,18 +88,14 @@ public final class Constants {
 
 		public static final String BEARER_PREFIX = "Bearer ";
         public static final String SHA_ERROR = "Errore in fase di calcolo SHA-256";
-        public static final String HOST_ERROR = "Error while retrieving host informations";
 		public static final String SHA_ALGORITHM = "SHA-256";
 		public static final String JWT_MISSING_ISSUER_PLACEHOLDER = "UNDEFINED_JWT_ISSUER";
-		public static final String JWT_MISSING_SUBJECT_ROLE = "UNDEFINED_SUBJECT_ROLE";
 		public static final String JWT_MISSING_SUBJECT = "UNDEFINED_SUBJECT";
-		public static final String JWT_MISSING_LOCALITY = "UNDEFINED_LOCALITY";
 
 
 		public static final String MISSING_WORKFLOW_PLACEHOLDER = "UNKNOWN_WORKFLOW_ID";
 		public static final String MISSING_DOC_TYPE_PLACEHOLDER = "UNKNOWN_DOCUMENT_TYPE";
 		
-		public static final String LOG_TYPE_KPI = "kpi-structured-log";
 		public static final String LOG_TYPE_CONTROL = "control-structured-log";
 		public static final int MAX_SIZE_WARNING = 200000;
 		
@@ -141,34 +141,16 @@ public final class Constants {
 	public static final class Client {
 
 		private Client() {}
-		
-		public static final class Ini {
-		
-			private Ini() {}
 
-			public static final String DELETE_PATH = "/v1/ini-delete";
-			public static final String UPDATE_PATH = "/v1/ini-update";
-			public static final String REFERENCE_PATH = "/v1/get-reference/{idDoc}";
-			
-
-		}
-
+		@NoArgsConstructor(access = PRIVATE)
 		public static final class Eds {
-		
-			private Eds() {}
 			public static final String DELETE_PATH = "/v1/documents/{idDoc}";
 			public static final String UPDATE_PATH = "/v1/documents/{idDoc}/metadata";
 			public static final String ID_DOC_PLACEHOLDER = "{idDoc}";
 		}
 
+		@NoArgsConstructor(access = PRIVATE)
 		public static final class Config {
-		
-			private Config() {}
-
-			public static final String WHOIS_PATH = "/v1/whois";
-			
-			public static final String STATUS_PATH = "/status";
-		
 			public static final String MOCKED_GATEWAY_NAME = "mocked-gateway";
 		}
 	}

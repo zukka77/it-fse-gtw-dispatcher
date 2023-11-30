@@ -11,11 +11,15 @@
  */
 package it.finanze.sanita.fse2.ms.gtw.dispatcher.client;
 
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ConfigItemTypeEnum;
+
 /**
  * Interface of gtw-config Client.
  */
 public interface IConfigClient {
 	
 	String getGatewayName();
+
+	Boolean isAuditEnable(ConfigItemTypeEnum type, String props);
 
 }
