@@ -11,7 +11,7 @@
  */
 package it.finanze.sanita.fse2.ms.gtw.dispatcher.dto;
 
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.PublicationCreateReplaceMetadataDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.PublicationCreateReplaceWiiDTO;
 import lombok.Data;
 import org.jsoup.nodes.Document;
 
@@ -24,7 +24,7 @@ public class ValidationCreationInputDTO {
 
     private String cda;
 
-    private PublicationCreateReplaceMetadataDTO jsonObj;
+    private PublicationCreateReplaceWiiDTO jsonObj;
     
     private byte[] file;
     

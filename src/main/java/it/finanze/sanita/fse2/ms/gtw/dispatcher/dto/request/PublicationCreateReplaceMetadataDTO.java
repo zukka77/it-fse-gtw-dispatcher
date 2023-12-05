@@ -16,10 +16,6 @@ import javax.validation.constraints.Size;
 @AllArgsConstructor
 public class PublicationCreateReplaceMetadataDTO extends PublicationMetadataReqDTO {
 
-    @Schema(description = "Identificativo del workflow")
-    @Size(min = 0, max = 256)
-    private String workflowInstanceId;
-
     @Schema(description = "Identificativo documento", required = true)
     @Size(min = 0, max = 100)
     private String identificativoDoc;

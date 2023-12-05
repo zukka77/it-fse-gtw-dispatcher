@@ -47,6 +47,8 @@ import java.util.Objects;
 
 import static it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants.App.MISSING_DOC_TYPE_PLACEHOLDER;
 import static it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants.App.MISSING_WORKFLOW_PLACEHOLDER;
+import static it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.PublicationCreationReqDTO.*;
+import static it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.PublicationUpdateReqDTO.*;
 import static it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventStatusEnum.BLOCKING_ERROR;
 import static it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventStatusEnum.SUCCESS;
 import static it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventTypeEnum.*;
@@ -322,7 +324,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 			final JWTPayloadDTO jwtPayloadToken = extractAndValidateJWT(request, isReplace ? EventTypeEnum.REPLACE : EventTypeEnum.PUBLICATION);
 			validation.setJwtPayloadToken(jwtPayloadToken);
 
-			PublicationCreateReplaceMetadataDTO jsonObj = getAndValidatePublicationReq(request.getParameter("requestBody"), isReplace);
+			PublicationCreateReplaceWiiDTO jsonObj = getAndValidatePublicationReq(request.getParameter("requestBody"), isReplace);
 			validation.setJsonObj(jsonObj);
 
 			String idDoc = jsonObj.getIdentificativoDoc();
@@ -371,7 +373,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 	}
 
 	private ValidationDataDTO executePublicationReplace(final ValidationCreationInputDTO validation,
-			final JWTPayloadDTO jwtPayloadToken, PublicationCreateReplaceMetadataDTO jsonObj, final byte[] bytePDF,
+			final JWTPayloadDTO jwtPayloadToken, PublicationCreateReplaceWiiDTO jsonObj, final byte[] bytePDF,
 			final String cda) {
 		ValidationDataDTO validationInfo;
 		validationInfo = getValidationInfo(cda, jsonObj.getWorkflowInstanceId());
@@ -557,7 +559,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 	}
 
 	@Override
-	public ResponseEntity<PublicationResDTO> validateAndCreate(PublicationCreationReqDTO requestBody, MultipartFile file, HttpServletRequest request) {
+	public ResponseEntity<PublicationResDTO> validateAndCreate(ValidateAndCreateDTO requestBody, MultipartFile file, HttpServletRequest request) {
 		final Date startDateOperationValidation = new Date();
 		LogTraceInfoDTO traceInfoDTO = getLogTraceInfo();
 
@@ -608,8 +610,12 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 	
 	 
 	@Override
-	public ResponseEntity<PublicationResDTO> validateAndReplace(@Size(min = 1, max = 256) String idDoc,
-			PublicationUpdateReqDTO requestBody, MultipartFile file, HttpServletRequest request) {
+	public ResponseEntity<PublicationResDTO> validateAndReplace(
+		@Size(min = 1, max = 256) String idDoc,
+		ValidateAndReplaceDTO requestBody,
+		MultipartFile file,
+		HttpServletRequest request
+	) {
 		final Date startDateValidationOperation = new Date();
 		LogTraceInfoDTO traceInfoDTO = getLogTraceInfo();
 

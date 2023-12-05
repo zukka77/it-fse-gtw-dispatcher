@@ -24,7 +24,17 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class PublicationCreationReqDTO extends PublicationCreateReplaceMetadataDTO {
+public class PublicationCreationReqDTO extends PublicationCreateReplaceWiiDTO {
+
     @Schema(description = "Priorita")
     private Boolean priorita;
+
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class ValidateAndCreateDTO extends PublicationCreateReplaceMetadataDTO {
+        @Schema(description = "Priorita")
+        private Boolean priorita;
+    }
 }

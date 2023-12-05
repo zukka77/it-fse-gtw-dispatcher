@@ -104,9 +104,9 @@ public abstract class AbstractCTL {
 		return out;
 	}
 
-	protected PublicationCreateReplaceMetadataDTO getAndValidatePublicationReq(final String jsonREQ, final boolean isReplace) {
+	protected PublicationCreateReplaceWiiDTO getAndValidatePublicationReq(final String jsonREQ, final boolean isReplace) {
 
-		PublicationCreateReplaceMetadataDTO out;
+		PublicationCreateReplaceWiiDTO out;
 
 		if(isReplace) {
 			out = StringUtility.fromJSONJackson(jsonREQ, PublicationUpdateReqDTO.class);
