@@ -11,25 +11,10 @@
  */
 package it.finanze.sanita.fse2.ms.gtw.dispatcher.service.impl;
 
-import java.text.SimpleDateFormat;
-import java.util.Arrays;
-import java.util.Base64;
-import java.util.Date;
-
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Element;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
-
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.impl.FhirMappingClient;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.DocumentEntryDTO;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.DocumentReferenceDTO;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.FhirResourceDTO;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.ResourceDTO;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.SubmissionSetEntryDTO;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.PublicationCreationReqDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.*;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.PublicationCreateReplaceMetadataDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.client.TransformResDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.AttivitaClinicaEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.LowLevelDocEnum;
@@ -38,6 +23,16 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.ConnectionRefusedExce
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.IDocumentReferenceSRV;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility;
 import lombok.extern.slf4j.Slf4j;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Element;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
+
+import java.text.SimpleDateFormat;
+import java.util.Arrays;
+import java.util.Base64;
+import java.util.Date;
 
 @Service
 @Slf4j
@@ -57,7 +52,7 @@ public class DocumentReferenceSRV implements IDocumentReferenceSRV {
 
 	@Override
 	public ResourceDTO createFhirResources(final String cda,
-			String authorRole,final PublicationCreationReqDTO requestBody,
+			String authorRole,final PublicationCreateReplaceMetadataDTO requestBody,
 			final Integer size, final String hash, String transformId, String engineId) {
 		final ResourceDTO output = new ResourceDTO();
 		try {
@@ -100,7 +95,7 @@ public class DocumentReferenceSRV implements IDocumentReferenceSRV {
 		return output;
 	}
 
-	private DocumentReferenceDTO buildDocumentReferenceDTO(final String encodedCDA, final PublicationCreationReqDTO requestBody,
+	private DocumentReferenceDTO buildDocumentReferenceDTO(final String encodedCDA, final PublicationCreateReplaceMetadataDTO requestBody,
 			final Integer size, final String hash) {
 		final DocumentReferenceDTO documentReferenceDTO = new DocumentReferenceDTO();
 		try {
@@ -175,7 +170,7 @@ public class DocumentReferenceSRV implements IDocumentReferenceSRV {
 
 
 	private DocumentEntryDTO createDocumentEntry(final org.jsoup.nodes.Document docCDA,
-			final PublicationCreationReqDTO requestBody, final Integer size, final String hash,
+			final PublicationCreateReplaceMetadataDTO requestBody, final Integer size, final String hash,
 			String authorRole) {
 
 		DocumentEntryDTO de = new DocumentEntryDTO();

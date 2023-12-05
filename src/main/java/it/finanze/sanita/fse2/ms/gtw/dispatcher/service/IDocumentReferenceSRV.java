@@ -11,15 +11,15 @@
  */
 package it.finanze.sanita.fse2.ms.gtw.dispatcher.service;
 
-import java.io.Serializable;
-
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.ResourceDTO;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.PublicationCreationReqDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.PublicationCreateReplaceMetadataDTO;
+
+import java.io.Serializable;
 
 public interface IDocumentReferenceSRV extends Serializable{
 
-	ResourceDTO createFhirResources(final String cda, 
-			   String authorRole,PublicationCreationReqDTO requestBody,
-										   Integer size, String hash, String transformId, String engineId);
+	ResourceDTO createFhirResources(final String cda,
+									String authorRole, PublicationCreateReplaceMetadataDTO requestBody,
+									Integer size, String hash, String transformId, String engineId);
 
 }
