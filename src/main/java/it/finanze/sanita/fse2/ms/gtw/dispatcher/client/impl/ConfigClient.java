@@ -11,24 +11,24 @@
  */
 package it.finanze.sanita.fse2.ms.gtw.dispatcher.client.impl;
 
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.IConfigClient;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.impl.base.AbstractClient;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.response.WhoIsResponseDTO;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.routes.ConfigClientRoutes;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ConfigItemTypeEnum;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.BusinessException;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.ProfileUtility;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 
-import static it.finanze.sanita.fse2.ms.gtw.dispatcher.client.routes.base.ClientRoutes.Config.PROPS_NAME_AUDIT_ENABLED;
-import static it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ConfigItemTypeEnum.*;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.IConfigClient;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.impl.base.AbstractClient;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.response.WhoIsResponseDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.routes.ConfigClientRoutes;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.ConfigItemDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ConfigItemTypeEnum;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.BusinessException;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.ProfileUtility;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Implementation of gtw-config Client.
@@ -39,75 +39,100 @@ public class ConfigClient extends AbstractClient implements IConfigClient {
 
 	@Autowired
 	private ConfigClientRoutes routes;
+
+	@Autowired
+	private RestTemplate client;
+
+	@Autowired
+	private ProfileUtility profiles;
+
+	@Override
+	public ConfigItemDTO getConfigurationItems(ConfigItemTypeEnum type) {
+		UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(routes.base() + "/config-items").queryParam("type", type); 
+		return client.getForObject(builder.toUriString(), ConfigItemDTO.class);
+	}
+
+	@Override
+	public String getGatewayName() {
+		String gatewayName = null;
+		try {
+			log.debug("Config Client - Calling Config Client to get Gateway Name");
+			final String endpoint = routes.whois();
+
+			final boolean isTestEnvironment = profiles.isDevOrDockerProfile() || profiles.isTestProfile();
+
+			// Check if the endpoint is reachable
+			if (isTestEnvironment && !isReachable()) {
+				log.warn("Config Client - Config Client is not reachable, mocking for testing purpose");
+				return Constants.Client.Config.MOCKED_GATEWAY_NAME;
+			}
+
+			final ResponseEntity<WhoIsResponseDTO> response = client.getForEntity(endpoint, WhoIsResponseDTO.class);
+
+			WhoIsResponseDTO body = response.getBody();
+
+			if(body!=null) {
+				if (response.getStatusCode().is2xxSuccessful()) {
+					gatewayName = body.getGatewayName();
+				} else {
+					log.error("Config Client - Error calling Config Client to get Gateway Name");
+					throw new BusinessException("The Config Client has returned an error");
+				}
+			} else {
+				throw new BusinessException("The Config Client has returned an error - The body is null");
+			}
+		} catch (HttpStatusCodeException clientException) {
+			errorHandler("config", clientException, "/config/whois");
+		} catch (Exception e) {
+			log.error("Error encountered while retrieving Gateway name", e);
+			throw e;
+		}
+		return gatewayName;
+	}
+ 
+	private boolean isReachable() {
+		boolean out;
+		try {
+			client.getForEntity(routes.status(), String.class);
+			out = true;
+		} catch (ResourceAccessException ex) {
+			out = false;
+		}
+		return out;
+	}
 	
-    @Autowired
-    private RestTemplate client;
+ 
+	@Override
+	public Object getProps(ConfigItemTypeEnum type, String props, Object previous) {
+	    Object out = previous;
 
-    @Autowired
-    private ProfileUtility profiles;
+	    String endpoint = routes.getConfigItem(type, props);
 
-    @Override
-    public String getGatewayName() {
-        String gatewayName = null;
-        try {
-            log.debug("Config Client - Calling Config Client to get Gateway Name");
-            final String endpoint = routes.whois();
+	    if (isReachable()) {
+	        Object response = client.getForObject(endpoint, Object.class);
+	        out = convertResponse(response, previous);
+	    }
 
-            final boolean isTestEnvironment = profiles.isDevOrDockerProfile() || profiles.isTestProfile();
-            
-            // Check if the endpoint is reachable
-            if (isTestEnvironment && !isReachable()) {
-                log.warn("Config Client - Config Client is not reachable, mocking for testing purpose");
-                return Constants.Client.Config.MOCKED_GATEWAY_NAME;
-            }
+	    return out;
+	}
 
-            final ResponseEntity<WhoIsResponseDTO> response = client.getForEntity(endpoint, WhoIsResponseDTO.class);
+	@SuppressWarnings("unchecked")
+	private <T> T convertResponse(Object response, Object previous) {
+	    try {
+	        Class<T> targetType = (Class<T>) previous.getClass();
 
-            WhoIsResponseDTO body = response.getBody();
-            
-            if(body!=null) {
-            	if (response.getStatusCode().is2xxSuccessful()) {
-                    gatewayName = body.getGatewayName();
-                } else {
-                    log.error("Config Client - Error calling Config Client to get Gateway Name");
-                    throw new BusinessException("The Config Client has returned an error");
-                }
-            } else {
-            	throw new BusinessException("The Config Client has returned an error - The body is null");
-            }            
-        } catch (HttpStatusCodeException clientException) {
-            errorHandler("config", clientException, "/config/whois");
-        } catch (Exception e) {
-            log.error("Error encountered while retrieving Gateway name", e);
-            throw e;
-        }
-        return gatewayName;
-    }
-
-    @Override
-    public Boolean isAuditEnable(ConfigItemTypeEnum type, String props) {
-        boolean out = false;
-
-        String endpoint = routes.getConfigItem(GENERIC, PROPS_NAME_AUDIT_ENABLED);
-        log.debug("{} - Executing request: {}", routes.identifier(), endpoint);
-
-        if(isReachable()){
-            ResponseEntity<String> response = client.getForEntity(endpoint, String.class);
-            out = Boolean.parseBoolean(response.getBody());
-        }
-
-        return out;
-    }
-
-    private boolean isReachable() {
-        boolean out;
-        try {
-            client.getForEntity(routes.status(), String.class);
-            out = true;
-        } catch (ResourceAccessException ex) {
-            out = false;
-        }
-        return out;
-    }
+	        if (targetType == Integer.class) {
+	            return (T) Integer.valueOf(response.toString());
+	        } else if (targetType == Boolean.class) {
+	            return (T) Boolean.valueOf(response.toString());
+	        } else if (targetType == String.class) {
+	            return (T) response.toString();
+	        } else {
+	            return (T) response;
+	        }
+	    } catch (Exception e) {
+	        return null;
+	    }
+	}
 
 }

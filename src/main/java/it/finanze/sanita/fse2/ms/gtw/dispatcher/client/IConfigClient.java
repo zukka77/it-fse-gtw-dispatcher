@@ -11,6 +11,7 @@
  */
 package it.finanze.sanita.fse2.ms.gtw.dispatcher.client;
 
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.ConfigItemDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ConfigItemTypeEnum;
 
 /**
@@ -20,6 +21,8 @@ public interface IConfigClient {
 	
 	String getGatewayName();
 
-	Boolean isAuditEnable(ConfigItemTypeEnum type, String props);
-
+	ConfigItemDTO getConfigurationItems(ConfigItemTypeEnum type);
+	
+	Object getProps(ConfigItemTypeEnum type, String props, Object previous);
+	
 }
