@@ -1,25 +1,27 @@
 package it.finanze.sanita.fse2.ms.gtw.dispatcher.service.impl;
 
-import static it.finanze.sanita.fse2.ms.gtw.dispatcher.client.routes.base.ClientRoutes.Config.PROPS_NAME_AUDIT_ENABLED;
-import static it.finanze.sanita.fse2.ms.gtw.dispatcher.client.routes.base.ClientRoutes.Config.PROPS_NAME_CONTROL_LOG_ENABLED;
-import static it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ConfigItemTypeEnum.DISPATCHER;
-import static it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ConfigItemTypeEnum.GENERIC;
-
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Map.Entry;
-
-import javax.annotation.PostConstruct;
-
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.IConfigClient;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.ConfigItemDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ConfigItemTypeEnum;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.IConfigSRV;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.IConfigClient;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ConfigItemTypeEnum;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.IConfigSRV;
+import javax.annotation.PostConstruct;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
+import static it.finanze.sanita.fse2.ms.gtw.dispatcher.client.routes.base.ClientRoutes.Config.PROPS_NAME_AUDIT_ENABLED;
+import static it.finanze.sanita.fse2.ms.gtw.dispatcher.client.routes.base.ClientRoutes.Config.PROPS_NAME_CONTROL_LOG_ENABLED;
+import static it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.ConfigItemDTO.*;
+import static it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ConfigItemTypeEnum.DISPATCHER;
+import static it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ConfigItemTypeEnum.GENERIC;
+
+@Slf4j
 @Service
 public class ConfigSRV implements IConfigSRV {
 
@@ -28,9 +30,7 @@ public class ConfigSRV implements IConfigSRV {
     @Autowired
     private IConfigClient client;
 
-    private long lastUpdate;
-    
-	private final Map<String, Pair<Long, Object>> props;
+	private final Map<String, Pair<Long, String>> props;
 
 	public ConfigSRV() {
 		this.props = new HashMap<>();
@@ -39,51 +39,53 @@ public class ConfigSRV implements IConfigSRV {
     
     @PostConstruct
     public void postConstruct() {
-    	for(ConfigItemTypeEnum en : ConfigItemTypeEnum.values()) {
-    		for(Entry<String, String> el : client.getConfigurationItems(en).getItems().entrySet()) {
-        		props.put(el.getKey(), Pair.of(new Date().getTime(), el.getValue()));
-        	}
-    	}
-    }
-
-    private void refreshAuditEnable() {
-        Boolean previous = props.get(PROPS_NAME_AUDIT_ENABLED)!=null ? (Boolean)props.get(PROPS_NAME_AUDIT_ENABLED).getValue() : null;
-        Boolean audit = (Boolean)client.getProps(DISPATCHER, PROPS_NAME_AUDIT_ENABLED,previous);
-		props.put(PROPS_NAME_AUDIT_ENABLED, Pair.of(new Date().getTime(), audit));
-        
-    }
-    
-    @Override
-    public Boolean isAuditEnable() {
-        if (new Date().getTime() - lastUpdate >= DELTA_MS) {
-            synchronized(ConfigSRV.class) {
-            	if (new Date().getTime() - lastUpdate >= DELTA_MS) {
-            		refreshAuditEnable();	
-            	}
+        for(ConfigItemTypeEnum en : ConfigItemTypeEnum.values()) {
+            log.info("[GTW-CFG] Retrieving {} properties ...", en.name());
+            ConfigItemDTO items = client.getConfigurationItems(en);
+            List<ConfigDataItemDTO> opts = items.getConfigurationItems();
+            for(ConfigDataItemDTO opt : opts) {
+                opt.getItems().forEach((key, value) -> {
+                    log.info("[GTW-CFG] Property {} is set as {}", key, value);
+                    props.put(key, Pair.of(new Date().getTime(), value));
+                });
             }
         }
-        return (Boolean)props.get(PROPS_NAME_AUDIT_ENABLED).getValue();
     }
-    
-    private void refreshControlLogPersistenceEnable() {
-        Boolean previous = props.get(PROPS_NAME_CONTROL_LOG_ENABLED)!=null ? (Boolean)props.get(PROPS_NAME_CONTROL_LOG_ENABLED).getValue() : null;
-        Boolean controlLogEnabled = (Boolean)client.getProps(GENERIC, PROPS_NAME_CONTROL_LOG_ENABLED,previous);
-		props.put(PROPS_NAME_CONTROL_LOG_ENABLED, Pair.of(new Date().getTime(), controlLogEnabled));
-        
+
+    @Override
+    public Boolean isAuditEnable() {
+        long lastUpdate = props.get(PROPS_NAME_AUDIT_ENABLED).getKey();
+        if (new Date().getTime() - lastUpdate >= DELTA_MS) {
+            synchronized(ConfigSRV.class) {
+                if (new Date().getTime() - lastUpdate >= DELTA_MS) {
+                    refresh(DISPATCHER, PROPS_NAME_AUDIT_ENABLED);
+                }
+            }
+        }
+        return Boolean.parseBoolean(
+            props.get(PROPS_NAME_AUDIT_ENABLED).getValue()
+        );
     }
-    
 
     @Override
     public Boolean isControlLogPersistenceEnable() {
+        long lastUpdate = props.get(PROPS_NAME_CONTROL_LOG_ENABLED).getKey();
         if (new Date().getTime() - lastUpdate >= DELTA_MS) {
             synchronized(ConfigSRV.class) {
-            	if (new Date().getTime() - lastUpdate >= DELTA_MS) {
-            		refreshControlLogPersistenceEnable();	
-            	}
+                if (new Date().getTime() - lastUpdate >= DELTA_MS) {
+                    refresh(GENERIC, PROPS_NAME_CONTROL_LOG_ENABLED);
+                }
             }
         }
-        return (Boolean)props.get(PROPS_NAME_CONTROL_LOG_ENABLED).getValue();
+        return Boolean.parseBoolean(
+            props.get(PROPS_NAME_CONTROL_LOG_ENABLED).getValue()
+        );
     }
-       
+
+    private void refresh(ConfigItemTypeEnum type, String name) {
+        String previous = props.getOrDefault(name, Pair.of(0L, null)).getValue();
+        String prop = client.getProps(type, name, previous);
+        props.put(name, Pair.of(new Date().getTime(), prop));
+    }
   
 }

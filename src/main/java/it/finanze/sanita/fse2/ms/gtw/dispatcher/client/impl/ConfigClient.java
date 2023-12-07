@@ -97,39 +97,17 @@ public class ConfigClient extends AbstractClient implements IConfigClient {
 		}
 		return out;
 	}
-	
- 
+
+
 	@Override
-	public Object getProps(ConfigItemTypeEnum type, String props, Object previous) {
-	    Object out = previous;
-
-	    String endpoint = routes.getConfigItem(type, props);
-
-	    if (isReachable()) {
-	        Object response = client.getForObject(endpoint, Object.class);
-	        out = convertResponse(response, previous);
-	    }
-
-	    return out;
-	}
-
-	@SuppressWarnings("unchecked")
-	private <T> T convertResponse(Object response, Object previous) {
-	    try {
-	        Class<T> targetType = (Class<T>) previous.getClass();
-
-	        if (targetType == Integer.class) {
-	            return (T) Integer.valueOf(response.toString());
-	        } else if (targetType == Boolean.class) {
-	            return (T) Boolean.valueOf(response.toString());
-	        } else if (targetType == String.class) {
-	            return (T) response.toString();
-	        } else {
-	            return (T) response;
-	        }
-	    } catch (Exception e) {
-	        return null;
-	    }
+	public String getProps(ConfigItemTypeEnum type, String props, String previous) {
+		String out = previous;
+		String endpoint = routes.getConfigItem(type, props);
+		if (isReachable()) out = client.getForObject(endpoint, String.class);
+		if(out == null || !out.equals(previous)) {
+			log.info("[GTW-CFG] Property {} is set as {} (previously: {})", props, out, previous);
+		}
+		return out;
 	}
 
 }
