@@ -66,7 +66,6 @@ public class LoggerHelper {
 				jwtPayloadDTO = new JWTPayloadDTO(); 
 			}
 			LogDTO logDTO = LogDTO.builder().
-					op_issuer(jwtPayloadDTO.getIss()).
 					op_locality(jwtPayloadDTO.getLocality()).
 					message(message).
 					operation(operation.getCode()).
@@ -74,7 +73,6 @@ public class LoggerHelper {
 					op_timestamp_start(dateFormat.format(startDateOperation)).
 					op_timestamp_end(dateFormat.format(new Date())).
 					op_role(jwtPayloadDTO.getSubject_role()).
-					op_fiscal_code(CfUtility.extractFiscalCodeFromJwtSub(jwtPayloadDTO.getSub())).
 					gateway_name(getGatewayName()).
 					microservice_name(msName).
 					op_application_id(jwtPayloadDTO.getSubject_application_id()).
@@ -84,6 +82,14 @@ public class LoggerHelper {
 					workflow_instance_id(workflowInstanceId).
 					build();
 
+			if(configSRV.isSubjectPersistenceEnabled()) {
+				logDTO.setOp_fiscal_code(CfUtility.extractFiscalCodeFromJwtSub(jwtPayloadDTO.getSub()));
+			}
+			
+			if(configSRV.isCfOnIssuerNotAllowed()) {
+				logDTO.setOp_issuer(jwtPayloadDTO.getIss());
+			}
+			
 			final String logMessage = StringUtility.toJSON(logDTO);
 			log.trace(logMessage);
 
@@ -102,7 +108,6 @@ public class LoggerHelper {
 				jwtPayloadDTO = new JWTPayloadDTO(); 
 			}
 			LogDTO logDTO = LogDTO.builder().
-					op_issuer(jwtPayloadDTO.getIss()).
 					op_locality(jwtPayloadDTO.getLocality()).
 					message(message).
 					operation(operation.getCode()).
@@ -110,7 +115,6 @@ public class LoggerHelper {
 					op_timestamp_start(dateFormat.format(startDateOperation)).
 					op_timestamp_end(dateFormat.format(new Date())).
 					op_role(jwtPayloadDTO.getSubject_role()).
-					op_fiscal_code(CfUtility.extractFiscalCodeFromJwtSub(jwtPayloadDTO.getSub())).
 					gateway_name(getGatewayName()).
 					microservice_name(msName).
 					op_application_id(jwtPayloadDTO.getSubject_application_id()).
@@ -119,6 +123,14 @@ public class LoggerHelper {
 					log_type(logType).
 					workflow_instance_id(workflowInstanceId).
 					build();
+			
+			if(configSRV.isSubjectPersistenceEnabled()) {
+				logDTO.setOp_fiscal_code(CfUtility.extractFiscalCodeFromJwtSub(jwtPayloadDTO.getSub()));
+			}
+			
+			if(configSRV.isCfOnIssuerNotAllowed()) {
+				logDTO.setOp_issuer(jwtPayloadDTO.getIss());
+			}
 			
 			final String logMessage = StringUtility.toJSON(logDTO);
 			log.debug(logMessage);
@@ -137,7 +149,6 @@ public class LoggerHelper {
 				jwtPayloadDTO = new JWTPayloadDTO(); 
 			}
 			LogDTO logDTO = LogDTO.builder().
-					op_issuer(jwtPayloadDTO.getIss()).
 					op_locality(jwtPayloadDTO.getLocality()).
 					message(message).
 					operation(operation.getCode()).
@@ -146,7 +157,6 @@ public class LoggerHelper {
 					op_timestamp_end(dateFormat.format(new Date())).
 					op_document_type(documentType).
 					op_role(jwtPayloadDTO.getSubject_role()).
-					op_fiscal_code(CfUtility.extractFiscalCodeFromJwtSub(jwtPayloadDTO.getSub())).
 					gateway_name(getGatewayName()).
 					microservice_name(msName).
 					op_application_id(jwtPayloadDTO.getSubject_application_id()).
@@ -156,6 +166,14 @@ public class LoggerHelper {
 					workflow_instance_id(workflowInstanceId).
 					typeIdExtension(typeIdExtension).
 					build();
+			
+			if(configSRV.isSubjectPersistenceEnabled()) {
+				logDTO.setOp_fiscal_code(CfUtility.extractFiscalCodeFromJwtSub(jwtPayloadDTO.getSub()));
+			}
+			
+			if(configSRV.isCfOnIssuerNotAllowed()) {
+				logDTO.setOp_issuer(jwtPayloadDTO.getIss());
+			}
 			
 			final String logMessage = StringUtility.toJSON(logDTO);
 			log.info(logMessage);
@@ -173,7 +191,6 @@ public class LoggerHelper {
 				jwtPayloadToken = new JWTPayloadDTO(); 
 			}
 			LogDTO logDTO = LogDTO.builder().
-					op_issuer(jwtPayloadToken.getIss()).
 					op_locality(jwtPayloadToken.getLocality()).
 					message(message).
 					operation(operation.getCode()).
@@ -181,7 +198,6 @@ public class LoggerHelper {
 					op_timestamp_start(dateFormat.format(startDateOperation)).
 					op_timestamp_end(dateFormat.format(new Date())).
 					op_role(jwtPayloadToken.getSubject_role()).
-					op_fiscal_code(CfUtility.extractFiscalCodeFromJwtSub(jwtPayloadToken.getSub())).
 					gateway_name(getGatewayName()).
 					microservice_name(msName).
 					op_application_id(jwtPayloadToken.getSubject_application_id()).
@@ -191,6 +207,13 @@ public class LoggerHelper {
 					workflow_instance_id(workflowInstanceId).
 					build();
 			
+			if(configSRV.isSubjectPersistenceEnabled()) {
+				logDTO.setOp_fiscal_code(CfUtility.extractFiscalCodeFromJwtSub(jwtPayloadToken.getSub()));
+			}
+			
+			if(configSRV.isCfOnIssuerNotAllowed()) {
+				logDTO.setOp_issuer(jwtPayloadToken.getIss());
+			}
 			final String logMessage = StringUtility.toJSON(logDTO);
 			log.warn(logMessage);
 			if (Boolean.TRUE.equals(kafkaLogEnable)) {
@@ -208,7 +231,6 @@ public class LoggerHelper {
 				jwtPayloadToken = new JWTPayloadDTO(); 
 			}
 			LogDTO logDTO = LogDTO.builder().
-					op_issuer(jwtPayloadToken.getIss()).
 					op_locality(jwtPayloadToken.getLocality()).
 					message(message).
 					operation(operation.getCode()).
@@ -219,7 +241,6 @@ public class LoggerHelper {
 					op_error_description(error.getDescription()).
 					op_document_type(documentType).
 					op_role(jwtPayloadToken.getSubject_role()).
-					op_fiscal_code(CfUtility.extractFiscalCodeFromJwtSub(jwtPayloadToken.getSub())).
 					gateway_name(getGatewayName()).
 					microservice_name(msName).
 					op_application_id(jwtPayloadToken.getSubject_application_id()).
@@ -229,6 +250,12 @@ public class LoggerHelper {
 					workflow_instance_id(workflowInstanceId).
 					build();
 			
+			if(configSRV.isSubjectPersistenceEnabled()) {
+				logDTO.setOp_fiscal_code(CfUtility.extractFiscalCodeFromJwtSub(jwtPayloadToken.getSub()));
+			}
+			if(configSRV.isCfOnIssuerNotAllowed()) {
+				logDTO.setOp_issuer(jwtPayloadToken.getIss());
+			}
 			final String logMessage = StringUtility.toJSON(logDTO);
 			log.error(logMessage);
 			if (Boolean.TRUE.equals(kafkaLogEnable)) {

@@ -17,6 +17,8 @@ import java.util.Map;
 
 import static it.finanze.sanita.fse2.ms.gtw.dispatcher.client.routes.base.ClientRoutes.Config.PROPS_NAME_AUDIT_ENABLED;
 import static it.finanze.sanita.fse2.ms.gtw.dispatcher.client.routes.base.ClientRoutes.Config.PROPS_NAME_CONTROL_LOG_ENABLED;
+import static it.finanze.sanita.fse2.ms.gtw.dispatcher.client.routes.base.ClientRoutes.Config.PROPS_NAME_ISSUER_CF;
+import static it.finanze.sanita.fse2.ms.gtw.dispatcher.client.routes.base.ClientRoutes.Config.PROPS_NAME_SUBJECT;
 import static it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.ConfigItemDTO.*;
 import static it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ConfigItemTypeEnum.DISPATCHER;
 import static it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ConfigItemTypeEnum.GENERIC;
@@ -88,4 +90,33 @@ public class ConfigSRV implements IConfigSRV {
         props.put(name, Pair.of(new Date().getTime(), prop));
     }
   
+    @Override
+	public Boolean isSubjectPersistenceEnabled() {
+		long lastUpdate = props.get(PROPS_NAME_SUBJECT).getKey();
+		if (new Date().getTime() - lastUpdate >= DELTA_MS) {
+			synchronized (PROPS_NAME_SUBJECT) {
+				if (new Date().getTime() - lastUpdate >= DELTA_MS) {
+					refresh(GENERIC, PROPS_NAME_SUBJECT);
+				}
+			}
+		}
+		return Boolean.parseBoolean(
+			props.get(PROPS_NAME_SUBJECT).getValue()
+		);
+	}
+    
+    @Override
+	public Boolean isCfOnIssuerNotAllowed() {
+		long lastUpdate = props.get(PROPS_NAME_ISSUER_CF).getKey();
+		if (new Date().getTime() - lastUpdate >= DELTA_MS) {
+			synchronized(PROPS_NAME_ISSUER_CF) {
+				if (new Date().getTime() - lastUpdate >= DELTA_MS) {
+					refresh(GENERIC, PROPS_NAME_ISSUER_CF);
+				}
+			}
+		}
+		return Boolean.parseBoolean(
+			props.get(PROPS_NAME_ISSUER_CF).getValue()
+		);
+	}
 }

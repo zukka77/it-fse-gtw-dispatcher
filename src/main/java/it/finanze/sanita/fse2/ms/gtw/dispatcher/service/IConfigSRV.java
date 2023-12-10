@@ -6,4 +6,8 @@ public interface IConfigSRV {
     
     Boolean isControlLogPersistenceEnable();
     
+    Boolean isCfOnIssuerNotAllowed();
+    
+    Boolean isSubjectPersistenceEnabled();
+    
 }
