@@ -8,6 +8,6 @@ public interface IConfigSRV {
     
     Boolean isCfOnIssuerNotAllowed();
     
-    Boolean isSubjectPersistenceEnabled();
+    Boolean isSubjectNotAllowed();
     
 }

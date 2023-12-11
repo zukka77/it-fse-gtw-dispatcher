@@ -81,7 +81,7 @@ public class LoggerHelper {
 					workflow_instance_id(workflowInstanceId).
 					build();
 
-			if(configSRV.isSubjectPersistenceEnabled()) {
+			if(!configSRV.isSubjectNotAllowed()) {
 				logDTO.setOp_fiscal_code(CfUtility.extractFiscalCodeFromJwtSub(jwtPayloadDTO.getSub()));
 			}
 			
@@ -123,7 +123,7 @@ public class LoggerHelper {
 					workflow_instance_id(workflowInstanceId).
 					build();
 			
-			if(configSRV.isSubjectPersistenceEnabled()) {
+			if(!configSRV.isSubjectNotAllowed()) {
 				logDTO.setOp_fiscal_code(CfUtility.extractFiscalCodeFromJwtSub(jwtPayloadDTO.getSub()));
 			}
 			
@@ -166,7 +166,7 @@ public class LoggerHelper {
 					typeIdExtension(typeIdExtension).
 					build();
 			
-			if(configSRV.isSubjectPersistenceEnabled()) {
+			if(!configSRV.isSubjectNotAllowed()) {
 				logDTO.setOp_fiscal_code(CfUtility.extractFiscalCodeFromJwtSub(jwtPayloadDTO.getSub()));
 			}
 			
@@ -206,7 +206,7 @@ public class LoggerHelper {
 					workflow_instance_id(workflowInstanceId).
 					build();
 			
-			if(configSRV.isSubjectPersistenceEnabled()) {
+			if(!configSRV.isSubjectNotAllowed()) {
 				logDTO.setOp_fiscal_code(CfUtility.extractFiscalCodeFromJwtSub(jwtPayloadToken.getSub()));
 			}
 			
@@ -249,7 +249,7 @@ public class LoggerHelper {
 					workflow_instance_id(workflowInstanceId).
 					build();
 			
-			if(configSRV.isSubjectPersistenceEnabled()) {
+			if(!configSRV.isSubjectNotAllowed()) {
 				logDTO.setOp_fiscal_code(CfUtility.extractFiscalCodeFromJwtSub(jwtPayloadToken.getSub()));
 			}
 			if(!configSRV.isCfOnIssuerNotAllowed()) {
