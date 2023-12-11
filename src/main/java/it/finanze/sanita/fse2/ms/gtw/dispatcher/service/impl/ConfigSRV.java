@@ -58,7 +58,7 @@ public class ConfigSRV implements IConfigSRV {
     public Boolean isAuditEnable() {
         long lastUpdate = props.get(PROPS_NAME_AUDIT_ENABLED).getKey();
         if (new Date().getTime() - lastUpdate >= DELTA_MS) {
-            synchronized(ConfigSRV.class) {
+            synchronized(PROPS_NAME_CONTROL_LOG_ENABLED) {
                 if (new Date().getTime() - lastUpdate >= DELTA_MS) {
                     refresh(DISPATCHER, PROPS_NAME_AUDIT_ENABLED);
                 }
@@ -73,7 +73,7 @@ public class ConfigSRV implements IConfigSRV {
     public Boolean isControlLogPersistenceEnable() {
         long lastUpdate = props.get(PROPS_NAME_CONTROL_LOG_ENABLED).getKey();
         if (new Date().getTime() - lastUpdate >= DELTA_MS) {
-            synchronized(ConfigSRV.class) {
+            synchronized(PROPS_NAME_CONTROL_LOG_ENABLED) {
                 if (new Date().getTime() - lastUpdate >= DELTA_MS) {
                     refresh(GENERIC, PROPS_NAME_CONTROL_LOG_ENABLED);
                 }
@@ -82,12 +82,6 @@ public class ConfigSRV implements IConfigSRV {
         return Boolean.parseBoolean(
             props.get(PROPS_NAME_CONTROL_LOG_ENABLED).getValue()
         );
-    }
-
-    private void refresh(ConfigItemTypeEnum type, String name) {
-        String previous = props.getOrDefault(name, Pair.of(0L, null)).getValue();
-        String prop = client.getProps(type, name, previous);
-        props.put(name, Pair.of(new Date().getTime(), prop));
     }
   
     @Override
@@ -119,4 +113,10 @@ public class ConfigSRV implements IConfigSRV {
 			props.get(PROPS_NAME_ISSUER_CF).getValue()
 		);
 	}
+
+    private void refresh(ConfigItemTypeEnum type, String name) {
+        String previous = props.getOrDefault(name, Pair.of(0L, null)).getValue();
+        String prop = client.getProps(type, name, previous);
+        props.put(name, Pair.of(new Date().getTime(), prop));
+    }
 }
