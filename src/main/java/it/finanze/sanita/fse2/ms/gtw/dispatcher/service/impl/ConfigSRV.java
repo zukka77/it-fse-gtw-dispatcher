@@ -15,11 +15,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static it.finanze.sanita.fse2.ms.gtw.dispatcher.client.routes.base.ClientRoutes.Config.PROPS_NAME_AUDIT_ENABLED;
-import static it.finanze.sanita.fse2.ms.gtw.dispatcher.client.routes.base.ClientRoutes.Config.PROPS_NAME_CONTROL_LOG_ENABLED;
-import static it.finanze.sanita.fse2.ms.gtw.dispatcher.client.routes.base.ClientRoutes.Config.PROPS_NAME_ISSUER_CF;
-import static it.finanze.sanita.fse2.ms.gtw.dispatcher.client.routes.base.ClientRoutes.Config.PROPS_NAME_SUBJECT;
-import static it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.ConfigItemDTO.*;
+import static it.finanze.sanita.fse2.ms.gtw.dispatcher.client.routes.base.ClientRoutes.Config.*;
+import static it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.ConfigItemDTO.ConfigDataItemDTO;
 import static it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ConfigItemTypeEnum.DISPATCHER;
 import static it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ConfigItemTypeEnum.GENERIC;
 
@@ -52,6 +49,7 @@ public class ConfigSRV implements IConfigSRV {
                 });
             }
         }
+        integrity();
     }
 
     @Override
@@ -118,5 +116,18 @@ public class ConfigSRV implements IConfigSRV {
         String previous = props.getOrDefault(name, Pair.of(0L, null)).getValue();
         String prop = client.getProps(type, name, previous);
         props.put(name, Pair.of(new Date().getTime(), prop));
+    }
+
+    private void integrity() {
+        String err = "Missing props {} from dispatcher";
+        String[] out = new String[]{
+            PROPS_NAME_AUDIT_ENABLED,
+            PROPS_NAME_CONTROL_LOG_ENABLED,
+            PROPS_NAME_SUBJECT,
+            PROPS_NAME_ISSUER_CF
+        };
+        for (String prop : out) {
+            if(!props.containsKey(prop)) throw new IllegalStateException(err.replace("{}", prop));
+        }
     }
 }
