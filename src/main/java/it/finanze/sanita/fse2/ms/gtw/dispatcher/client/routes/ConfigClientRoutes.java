@@ -47,7 +47,7 @@ public final class ConfigClientRoutes {
 
     public String whois() {
         return base()
-            .pathSegment(API_WHOIS)
+            .pathSegment(API_VERSION, API_WHOIS)
             .build()
             .toUriString();
     }
