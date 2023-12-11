@@ -11,16 +11,6 @@
  */
 package it.finanze.sanita.fse2.ms.gtw.dispatcher.logging;
 
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
-
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.IConfigClient;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.JWTPayloadDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.LogDTO;
@@ -30,6 +20,15 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.IConfigSRV;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.CfUtility;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
  
 @Service
 @Slf4j
@@ -86,7 +85,7 @@ public class LoggerHelper {
 				logDTO.setOp_fiscal_code(CfUtility.extractFiscalCodeFromJwtSub(jwtPayloadDTO.getSub()));
 			}
 			
-			if(configSRV.isCfOnIssuerNotAllowed()) {
+			if(!configSRV.isCfOnIssuerNotAllowed()) {
 				logDTO.setOp_issuer(jwtPayloadDTO.getIss());
 			}
 			
@@ -128,7 +127,7 @@ public class LoggerHelper {
 				logDTO.setOp_fiscal_code(CfUtility.extractFiscalCodeFromJwtSub(jwtPayloadDTO.getSub()));
 			}
 			
-			if(configSRV.isCfOnIssuerNotAllowed()) {
+			if(!configSRV.isCfOnIssuerNotAllowed()) {
 				logDTO.setOp_issuer(jwtPayloadDTO.getIss());
 			}
 			
@@ -171,7 +170,7 @@ public class LoggerHelper {
 				logDTO.setOp_fiscal_code(CfUtility.extractFiscalCodeFromJwtSub(jwtPayloadDTO.getSub()));
 			}
 			
-			if(configSRV.isCfOnIssuerNotAllowed()) {
+			if(!configSRV.isCfOnIssuerNotAllowed()) {
 				logDTO.setOp_issuer(jwtPayloadDTO.getIss());
 			}
 			
@@ -211,7 +210,7 @@ public class LoggerHelper {
 				logDTO.setOp_fiscal_code(CfUtility.extractFiscalCodeFromJwtSub(jwtPayloadToken.getSub()));
 			}
 			
-			if(configSRV.isCfOnIssuerNotAllowed()) {
+			if(!configSRV.isCfOnIssuerNotAllowed()) {
 				logDTO.setOp_issuer(jwtPayloadToken.getIss());
 			}
 			final String logMessage = StringUtility.toJSON(logDTO);
@@ -253,7 +252,7 @@ public class LoggerHelper {
 			if(configSRV.isSubjectPersistenceEnabled()) {
 				logDTO.setOp_fiscal_code(CfUtility.extractFiscalCodeFromJwtSub(jwtPayloadToken.getSub()));
 			}
-			if(configSRV.isCfOnIssuerNotAllowed()) {
+			if(!configSRV.isCfOnIssuerNotAllowed()) {
 				logDTO.setOp_issuer(jwtPayloadToken.getIss());
 			}
 			final String logMessage = StringUtility.toJSON(logDTO);
