@@ -23,6 +23,6 @@ public interface IConfigClient {
 
 	ConfigItemDTO getConfigurationItems(ConfigItemTypeEnum type);
 	
-	String getProps(ConfigItemTypeEnum type, String props, String previous);
+	String getProps(String props, String previous, ConfigItemTypeEnum ms);
 	
 }

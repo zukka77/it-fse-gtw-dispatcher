@@ -28,6 +28,8 @@ import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 
+import static it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ConfigItemTypeEnum.GENERIC;
+
 /**
  * Implementation of gtw-config Client.
  */
@@ -100,12 +102,23 @@ public class ConfigClient extends AbstractClient implements IConfigClient {
 
 
 	@Override
-	public String getProps(ConfigItemTypeEnum type, String props, String previous) {
+	public String getProps(String props, String previous, ConfigItemTypeEnum ms) {
 		String out = previous;
-		String endpoint = routes.getConfigItem(type, props);
-		if (isReachable()) out = client.getForObject(endpoint, String.class);
+		ConfigItemTypeEnum src = ms;
+		// Check if gtw-config is available and get props
+		if (isReachable()) {
+			// Try to get the specific one
+			out = client.getForObject(routes.getConfigItem(ms, props), String.class);
+			// If the props don't exist
+			if (out == null) {
+				// Retrieve the generic one
+				out = client.getForObject(routes.getConfigItem(GENERIC, props), String.class);
+				// Set where has been retrieved from
+				src = GENERIC;
+			}
+		}
 		if(out == null || !out.equals(previous)) {
-			log.info("[GTW-CFG] Property {} is set as {} (previously: {})", props, out, previous);
+			log.info("[GTW-CFG] {} set as {} (previously: {}) from {}", props, out, previous, src);
 		}
 		return out;
 	}
