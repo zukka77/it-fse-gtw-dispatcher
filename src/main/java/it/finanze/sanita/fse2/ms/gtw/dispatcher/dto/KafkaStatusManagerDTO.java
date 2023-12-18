@@ -24,7 +24,7 @@ import lombok.Getter;
  */
 @Getter
 @Builder
-public class KafkaStatusManagerDTO extends AbstractDTO {
+public class KafkaStatusManagerDTO {
 
 	private String traceId;
 	

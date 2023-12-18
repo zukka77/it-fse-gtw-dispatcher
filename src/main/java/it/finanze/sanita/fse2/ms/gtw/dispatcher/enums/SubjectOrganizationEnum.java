@@ -28,7 +28,7 @@ public enum SubjectOrganizationEnum {
 	REGIONE_UMBRIA("100", "Regione Umbria"),
 	REGIONE_MARCHE("110", "Regione Marche"),
 	REGIONE_LAZIO("120", "Regione Lazio"),
-	REGIONE_ABBRUZZO("130", "Regione Abruzzo"),
+	REGIONE_ABRUZZO("130", "Regione Abruzzo"),
 	REGIONE_MOLISE("140", "Regione Molise"),
 	REGIONE_CAMPANIA("150", "Regione Campania"),
 	REGIONE_PUGLIA("160", "Regione Puglia"),
@@ -41,6 +41,7 @@ public enum SubjectOrganizationEnum {
 	SASN("001", "SASN"),
 	MDS("999", "MDS");
 
+	
 	@Getter
 	private final String code;
 	@Getter

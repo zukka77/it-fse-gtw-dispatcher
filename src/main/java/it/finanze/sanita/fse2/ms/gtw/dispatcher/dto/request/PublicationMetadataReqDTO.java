@@ -17,7 +17,6 @@ import javax.validation.constraints.Size;
 
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Schema;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.AbstractDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.AdministrativeReqEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.AttivitaClinicaEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.HealthcareFacilityEnum;
@@ -32,7 +31,7 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class PublicationMetadataReqDTO extends AbstractDTO {
+public class PublicationMetadataReqDTO {
 
 	@Schema(description = "Tipologia struttura che ha prodotto il documento", required = true)
 	private HealthcareFacilityEnum tipologiaStruttura;

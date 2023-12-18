@@ -14,8 +14,6 @@ package it.finanze.sanita.fse2.ms.gtw.dispatcher.client.impl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
@@ -41,16 +39,14 @@ public class FhirMappingClient implements IFhirMappingClient {
 	public TransformResDTO callConvertCdaInBundle(final FhirResourceDTO resourceToConvert) {
 		TransformResDTO out = null;
 		log.debug("Fhir Mapping Client - Calling Fhir Mapping to execute conversion");
-		ResponseEntity<TransformResDTO> response = null;
 		String url = msUrlCFG.getFhirMappingEngineHost() + "/v1/documents/transform";
 		HttpHeaders headers = new HttpHeaders();
 		headers.set("Content-Type", "application/json");
 		HttpEntity<?> entity = new HttpEntity<>(resourceToConvert, headers);
 		try {
-			response = restTemplate.exchange(url, HttpMethod.POST, entity, TransformResDTO.class);
-			out = response.getBody();
+			out = restTemplate.postForObject(url, entity, TransformResDTO.class);
 		} catch(ResourceAccessException cex) {
-			log.error("Connect error while call document transform :" + msUrlCFG.getFhirMappingEngineHost(),cex);
+			log.error("Connect error while call document transform :",cex);
 			throw new ConnectionRefusedException(msUrlCFG.getFhirMappingEngineHost(),"Connection refused");
 		}  
 		return out;

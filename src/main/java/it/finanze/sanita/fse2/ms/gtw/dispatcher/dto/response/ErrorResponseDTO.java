@@ -16,7 +16,6 @@ import javax.validation.constraints.Min;
 import javax.validation.constraints.Size;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.AbstractDTO;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -30,7 +29,7 @@ import lombok.EqualsAndHashCode;
 @Builder
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper=false)
-public class ErrorResponseDTO extends AbstractDTO {
+public class ErrorResponseDTO {
 
 	/**
 	 * Trace id log.

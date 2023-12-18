@@ -56,8 +56,7 @@ public class DocumentReferenceSRV implements IDocumentReferenceSRV {
 	private FhirMappingClient client;
 
 	@Override
-	public ResourceDTO createFhirResources(final String cda,
-			String authorRole,final PublicationCreationReqDTO requestBody,
+	public ResourceDTO createFhirResources(final String cda, String authorRole,final PublicationCreationReqDTO requestBody,
 			final Integer size, final String hash, String transformId, String engineId) {
 		final ResourceDTO output = new ResourceDTO();
 		try {
@@ -226,9 +225,7 @@ public class DocumentReferenceSRV implements IDocumentReferenceSRV {
 			if (authorElement != null) {
 				de.setAuthor(authorElement.attr(EXTENSION_ATTRIBUTE));
 			}
-			de.setFirma("true^Documento firmato");
 
-			de.setLanguageCode("it-IT");
 			de.setRepositoryUniqueId(requestBody.getIdentificativoRep());
 
 			if(requestBody.getDescriptions() != null) {

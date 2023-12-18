@@ -15,7 +15,7 @@ import lombok.Getter;
 
 public enum RoleEnum {
 
-	AAS("AAS", "Personale di assistenza ad alta specializzazione"),
+	AAS("AAS","Personale di assistenza ad alta specializzazione"),
 	APR("APR", "Medico Medicina Generale Pediatra di Libera Scelta"),
 	PSS("PSS", "Professionista del sociale"),
 	INF("INF", "Personale infermieristico"),
@@ -25,17 +25,17 @@ public enum RoleEnum {
 	OAM("OAM", "Operatore amministrativo"),
 	ASS("ASS", "Assistito"),
 	TUT("TUT", "Tutore"),
-	ING("ING", "Informal giver (Assistito)"),
-	GEN("GEN", "Genitore Assistito"),
+	ING("ING", "Informal giver"),
+	GEN("GEN", "Genitore"),
 	NOR("NOR", "Nodo regionale"),
 	DRS("DRS", "Dirigente sanitario"),
 	RSA("RSA", "Medico RSA"),
 	MRP("MRP", "Medico Rete di Patologia"),
 	INI("INI", "Infrastruttura Nazionale per l’Interoperabilità"),
-	OGC("OGC", "Operatore per la gestione dei consensi"),
-	OPI("OPI", "Operatore di informativa"),
+	OGC("OGC", "Operatore per la gestione dei consensi."),
+	OPI("OPI", "Operatore di informativa."),
 	MDS("MDS", "Ruolo del Ministero della Salute per la gestione del DGC");
-
+	
 	@Getter
 	private String code;
 	@Getter

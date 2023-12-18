@@ -13,7 +13,6 @@ package it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.client;
 
 import org.bson.Document;
 
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.AbstractDTO;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -25,8 +24,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode(callSuper=true)
-public class TransformResDTO extends AbstractDTO {
+public class TransformResDTO {
 
 	private String errorMessage;
 	

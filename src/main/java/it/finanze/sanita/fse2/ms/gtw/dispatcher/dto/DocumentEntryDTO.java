@@ -28,11 +28,9 @@ public class DocumentEntryDTO {
 	private String author;
 	private String authorRole;
 	private String authorInstitution;
-	private String languageCode;
 	private String repositoryUniqueId;
 	private String patientId;
 	private String conservazioneANorma;
-	private String firma;
 	private List<String> description;
 	private String serviceStartTime;
 	private String serviceStopTime;

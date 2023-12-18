@@ -16,7 +16,6 @@ import java.util.List;
 import javax.validation.constraints.Size;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.AbstractDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.AttivitaClinicaEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.HealthDataFormatEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.HealthcareFacilityEnum;
@@ -37,7 +36,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class TSPublicationCreationReqDTO extends AbstractDTO {
+public class TSPublicationCreationReqDTO {
 
 	@Schema(description = "Formato dei dati sanitari")
 	private HealthDataFormatEnum healthDataFormat;
