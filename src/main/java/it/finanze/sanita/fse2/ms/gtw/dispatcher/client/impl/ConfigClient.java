@@ -11,6 +11,15 @@
  */
 package it.finanze.sanita.fse2.ms.gtw.dispatcher.client.impl;
 
+import static it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ConfigItemTypeEnum.GENERIC;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Component;
+import org.springframework.web.client.HttpStatusCodeException;
+import org.springframework.web.client.ResourceAccessException;
+import org.springframework.web.client.RestTemplate;
+
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.IConfigClient;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.impl.base.AbstractClient;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.response.WhoIsResponseDTO;
@@ -21,21 +30,6 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ConfigItemTypeEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.BusinessException;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.ProfileUtility;
 import lombok.extern.slf4j.Slf4j;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.MicroservicesURLCFG;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EdsStrategyEnum;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.BusinessException;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.ProfileUtility;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Component;
-import org.springframework.web.client.HttpStatusCodeException;
-import org.springframework.web.client.ResourceAccessException;
-import org.springframework.web.client.RestTemplate;
-
-import static it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ConfigItemTypeEnum.GENERIC;
 
 /**
  * Implementation of gtw-config Client.
@@ -129,26 +123,6 @@ public class ConfigClient extends AbstractClient implements IConfigClient {
 		}
 		return out;
 	}
-    @Override
-    public String getEDSStrategy() {
-        String output = EdsStrategyEnum.NO_EDS_WITH_LOG.name(); 
-        if(isReachable()) {
-            String endpoint = msUrlCFG.getConfigHost() + "/v1/config-items/props?type=GENERIC&props=eds-strategy";
-            output = restTemplate.getForObject(endpoint,String.class);
-            // If gtw-config answer but is not configured
-            if(StringUtils.isBlank(output)) output = EdsStrategyEnum.NO_EDS_WITH_LOG.name();
-        }
-        return output;
-    }
-
-    private boolean isReachable() {
-        try {
-            final String endpoint = msUrlCFG.getConfigHost() + Constants.Client.Config.STATUS_PATH;
-            restTemplate.getForEntity(endpoint, String.class);
-            return true;
-        } catch (ResourceAccessException clientException) {
-            return false;
-        }
-    }
+    
 
 }
