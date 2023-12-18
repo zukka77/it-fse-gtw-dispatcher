@@ -21,4 +21,5 @@ public class GetMergedMetadatiDTO {
 	private String marshallResponse;
 	
 	private String documentType;
+	private String authorInstitution;
 }

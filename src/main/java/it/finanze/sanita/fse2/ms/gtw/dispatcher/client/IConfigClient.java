@@ -20,6 +20,7 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ConfigItemTypeEnum;
 public interface IConfigClient {
 	
 	String getGatewayName();
+	String getEDSStrategy();
 
 	ConfigItemDTO getConfigurationItems(ConfigItemTypeEnum type);
 	

@@ -30,31 +30,45 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
  
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.IConfigClient;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.JWTPayloadDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.LogDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ILogEnum;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ResultLogEnum;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.IConfigSRV;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.CfUtility;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility;
+import lombok.extern.slf4j.Slf4j;
+
 @Service
 @Slf4j
 public class LoggerHelper {
-    
+
 	Logger kafkaLog = LoggerFactory.getLogger("kafka-logger"); 
-	
-    @Autowired
+
+	@Autowired
 	private IConfigClient configClient;
     
     @Autowired
     private IConfigSRV configSRV;
 	
 	private String gatewayName;
-	
+
 	@Value("${log.kafka-log.enable}")
 	private boolean kafkaLogEnable;
 
 	@Value("${spring.application.name}")
 	private String msName;
-	
+
+	@Autowired
+	private IConfigSRV configSRV;
+
 	/* 
 	 * Specify here the format for the dates 
 	 */
 	private DateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss.SSS"); 
-	
+
+
 	/* 
 	 * Implements structured logs, at all logging levels
 	 */
@@ -139,7 +153,7 @@ public class LoggerHelper {
 		}
 		
 	} 
-	 
+
 	public void info(String logType,String workflowInstanceId, String message, ILogEnum operation, ResultLogEnum result, Date startDateOperation,  
 			String documentType, JWTPayloadDTO jwtPayloadDTO, String typeIdExtension) {
 		
@@ -183,7 +197,7 @@ public class LoggerHelper {
 		}
 		
 	} 
-	
+
 	public void warn(String logType,String workflowInstanceId, String message, ILogEnum operation, ResultLogEnum result, Date startDateOperation,JWTPayloadDTO jwtPayloadToken) {
 		if(configSRV.isControlLogPersistenceEnable()) {
 			if(jwtPayloadToken==null) {
@@ -222,7 +236,7 @@ public class LoggerHelper {
 		
  
 	} 
-	
+
 	public void error(String logType,String workflowInstanceId, String message, ILogEnum operation, ResultLogEnum result, Date startDateOperation,
 			   ILogEnum error,  String documentType, JWTPayloadDTO jwtPayloadToken) {
 		if(configSRV.isControlLogPersistenceEnable()) {
@@ -276,5 +290,5 @@ public class LoggerHelper {
 		}
 		return gatewayName;
 	}
-	
+
 }
