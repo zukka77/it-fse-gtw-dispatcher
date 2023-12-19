@@ -10,4 +10,6 @@ public interface IConfigSRV {
     
     Boolean isSubjectNotAllowed();
     
+    Boolean isRemoveEds();
+    
 }

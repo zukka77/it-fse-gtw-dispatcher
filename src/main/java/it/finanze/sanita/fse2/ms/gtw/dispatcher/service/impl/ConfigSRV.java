@@ -18,6 +18,7 @@ import java.util.Map;
 
 import static it.finanze.sanita.fse2.ms.gtw.dispatcher.client.routes.base.ClientRoutes.Config.*;
 import static it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ConfigItemTypeEnum.DISPATCHER;
+import static it.finanze.sanita.fse2.ms.gtw.dispatcher.client.routes.base.ClientRoutes.Config.PROPS_NAME_REMOVE_EDS_ENABLE;
 
 @Slf4j
 @Service
@@ -45,6 +46,20 @@ public class ConfigSRV implements IConfigSRV {
             log.info("Skipping gtw-config initialization due to test profile");
         }
     }
+    
+    
+	@Override
+	public Boolean isRemoveEds() {
+		long lastUpdate = props.get(PROPS_NAME_REMOVE_EDS_ENABLE).getKey();
+		if (new Date().getTime() - lastUpdate >= DELTA_MS) {
+			synchronized(PROPS_NAME_REMOVE_EDS_ENABLE) {
+				if (new Date().getTime() - lastUpdate >= DELTA_MS) {
+					refresh(PROPS_NAME_REMOVE_EDS_ENABLE);
+				}
+			}
+		}
+		return Boolean.parseBoolean(props.get(PROPS_NAME_REMOVE_EDS_ENABLE).getValue());
+	}
 
     @Override
     public Boolean isAuditEnable() {
@@ -118,7 +133,8 @@ public class ConfigSRV implements IConfigSRV {
             PROPS_NAME_AUDIT_ENABLED,
             PROPS_NAME_CONTROL_LOG_ENABLED,
             PROPS_NAME_SUBJECT,
-            PROPS_NAME_ISSUER_CF
+            PROPS_NAME_ISSUER_CF,
+            PROPS_NAME_REMOVE_EDS_ENABLE
         };
         for (String prop : out) {
             if(!props.containsKey(prop)) throw new IllegalStateException(err.replace("{}", prop));
