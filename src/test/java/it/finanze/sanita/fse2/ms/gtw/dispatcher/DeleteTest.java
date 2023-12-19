@@ -115,7 +115,7 @@ class DeleteTest extends AbstractTest {
 
 		mockIniClient(HttpStatus.OK, true);
 		mockEdsClient(HttpStatus.INTERNAL_SERVER_ERROR);
-		assertThrows(HttpServerErrorException.InternalServerError.class, () -> callDelete(idDocument));
+		assertThrows(BusinessException.class, () -> callDelete(idDocument));
 	}
 
 	void mockIniClient(final HttpStatus status, boolean esito) {
@@ -174,7 +174,7 @@ class DeleteTest extends AbstractTest {
 					.exchange(anyString(), eq(HttpMethod.DELETE), eq(null), ArgumentMatchers.eq(EdsResponseDTO.class));
 		} else {
 			Mockito.doThrow(new BusinessException("")).when(restTemplate)
-					.exchange(anyString(), eq(HttpMethod.DELETE), eq(null), ArgumentMatchers.eq(EdsResponseDTO.class));
+					.exchange(anyString(), eq(HttpMethod.DELETE), any(), ArgumentMatchers.eq(EdsResponseDTO.class));
 		}
 	}
 

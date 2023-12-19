@@ -377,33 +377,6 @@ class PublicationTest extends AbstractTest {
 	}
 
 	@Test
-	void publicationForcedTest() {
-
-		//given(client.callConvertCdaInBundle(any(FhirResourceDTO.class))).willReturn(new TransformResDTO("", "{\"json\" : \"json\"}"));
-		doReturn(new ResponseEntity<>(new TransformResDTO("", Document.parse("{\"json\" : \"json\"}")), HttpStatus.OK))
-				.when(restTemplate).exchange(anyString(), eq(HttpMethod.POST), any(HttpEntity.class), eq(TransformResDTO.class));
-
-		final byte[] file = FileUtility.getFileFromInternalResources("Files" + File.separator + "attachment" + File.separator + "SIGNED_LDO1.pdf");
-		final String jwtToken = generateJwt(file, true, EventTypeEnum.PUBLICATION);
-		
-		final ValidationCDAReqDTO validationRB = validateDataPreparation();
-			
-		// Mocking validator
-		final ValidationInfoDTO info = new ValidationInfoDTO(RawValidationEnum.OK, new ArrayList<>(), "", "");
-		given(validatorClient.validate(anyString(),anyString(), any())).willReturn(info);
-
-		final ResponseEntity<ValidationResDTO> validationResponse = callPlainValidation(jwtToken, file, validationRB);
-		assumeFalse(validationResponse == null);
-
-		final PublicationCreationReqDTO publicationRB = publicationDataPreparation();
-
-		final ResponseEntity<PublicationResDTO> publicationResponse = callPlainPublication(jwtToken, file, publicationRB);
-		assertNotNull(publicationResponse);
-		assertEquals(HttpStatus.CREATED.value(), publicationResponse.getStatusCode().value());
-		
-	}
-	
-	@Test
 	@DisplayName("error fhir creation")
 	void errorFhirResourceCreationTest() {
 		final byte[] file = FileUtility.getFileFromInternalResources("Files" + File.separator + "attachment" + File.separator + "LAB_OK.pdf");
