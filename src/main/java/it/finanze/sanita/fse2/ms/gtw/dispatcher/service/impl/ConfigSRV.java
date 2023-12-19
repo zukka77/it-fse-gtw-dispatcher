@@ -157,7 +157,7 @@ public class ConfigSRV implements IConfigSRV {
         integrity();
     }
 
-    private static class Locks {
+    private static final class Locks {
         public static final Object REMOVE_EDS_ENABLE = new Object();
         public static final Object CONTROL_LOG_ENABLED = new Object();
         public static final Object AUDIT_ENABLED = new Object();
