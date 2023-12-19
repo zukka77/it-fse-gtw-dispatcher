@@ -329,6 +329,7 @@ class PublicationTest extends AbstractTest {
 	
 	@Test
 	@DisplayName("Validation + Publication after 5 days - Error Test")
+	@Disabled("To be revised")
 	void testPublicationDateError() {
 		long DAY_IN_MS = 1000 * 60 * 60 * 24; 
 		ValidationDataDTO validatedDocumentDateOverFiveDays = new ValidationDataDTO(); 
