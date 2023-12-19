@@ -13,7 +13,7 @@ package it.finanze.sanita.fse2.ms.gtw.dispatcher.config.audit.filters;
 
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.audit.AuditFilter;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.repository.entity.AuditETY;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.impl.ConfigSRV;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.IConfigSRV;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -25,7 +25,7 @@ import java.util.Date;
 public class RequestBodyFilter implements AuditFilter {
 
     @Autowired
-    private ConfigSRV config;
+    private IConfigSRV config;
 
     @Override
     public boolean match(HttpServletRequest req) {

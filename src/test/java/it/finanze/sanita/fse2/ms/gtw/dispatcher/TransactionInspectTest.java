@@ -11,14 +11,15 @@
  */
 package it.finanze.sanita.fse2.ms.gtw.dispatcher;
 
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.IStatusCheckClient;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.TransactionInspectResDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.IConfigSRV;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.ITransactionInspectSRV;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -30,15 +31,17 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.IStatusCheckClient;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.TransactionInspectResDTO;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.ITransactionInspectSRV;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 
 @AutoConfigureMockMvc
 @ActiveProfiles(Constants.Profile.TEST)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class TransactionInspectTest {
 
 	@Autowired
@@ -52,7 +55,16 @@ public class TransactionInspectTest {
 
 	@MockBean
     private ITransactionInspectSRV transactionInspectSRV;
-	
+
+	@MockBean
+	private IConfigSRV config;
+
+
+	@BeforeAll
+	void init() {
+		when(config.isAuditEnable()).thenReturn(true);
+	}
+
 	@Test
 	@DisplayName("Call Search Event By wid Test")
 	void callSearchEventByWorkflowIdTest() throws Exception {
