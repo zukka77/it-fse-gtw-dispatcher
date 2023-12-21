@@ -11,8 +11,20 @@
  */
 package it.finanze.sanita.fse2.ms.gtw.dispatcher.service.impl;
 
-import java.util.Date;
-
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.kafka.KafkaProducerPropertiesCFG;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.kafka.KafkaTopicCFG;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.JWTPayloadDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.KafkaStatusManagerDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.PublicationCreateReplaceMetadataDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.*;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.BusinessException;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.IKafkaSRV;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.PriorityUtility;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,26 +34,7 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.SendResult;
 import org.springframework.stereotype.Service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.kafka.KafkaProducerPropertiesCFG;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.kafka.KafkaTopicCFG;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.JWTPayloadDTO;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.KafkaStatusManagerDTO;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.PublicationCreationReqDTO;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.AttivitaClinicaEnum;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.DestinationTypeEnum;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventStatusEnum;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventTypeEnum;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.PriorityTypeEnum;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.TipoDocAltoLivEnum;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.BusinessException;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.IKafkaSRV;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.PriorityUtility;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility;
-import lombok.extern.slf4j.Slf4j;
+import java.util.Date;
 
 
 /**
@@ -153,7 +146,7 @@ public class KafkaSRV implements IKafkaSRV {
 
 	@Override
 	public void sendPublicationStatus(final String traceId,final String workflowInstanceId, final EventStatusEnum eventStatus, final String message,
-									  final PublicationCreationReqDTO publicationReq, final JWTPayloadDTO jwtClaimDTO) {
+									  final PublicationCreateReplaceMetadataDTO publicationReq, final JWTPayloadDTO jwtClaimDTO) {
 
 		String identificativoDocumento = null;
 		AttivitaClinicaEnum tipoAttivita = null;
@@ -169,8 +162,8 @@ public class KafkaSRV implements IKafkaSRV {
 	}
 	
 	@Override
-	public void sendReplaceStatus(final String traceId,final String workflowInstanceId, final EventStatusEnum eventStatus, final String message,
-									  final PublicationCreationReqDTO publicationReq, final JWTPayloadDTO jwtClaimDTO) {
+	public void sendReplaceStatus(final String traceId, final String workflowInstanceId, final EventStatusEnum eventStatus, final String message,
+								  final PublicationCreateReplaceMetadataDTO publicationReq, final JWTPayloadDTO jwtClaimDTO) {
 
 		String identificativoDocumento = null;
 		AttivitaClinicaEnum tipoAttivita = null;

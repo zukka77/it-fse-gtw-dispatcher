@@ -38,6 +38,27 @@ import java.util.Objects;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.constraints.Size;
 
+import com.google.gson.Gson;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.IEdsClient;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.IIniClient;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.AccreditationSimulationCFG;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants.Misc;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.ValidationCFG;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.controller.IPublicationCTL;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.*;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.*;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.*;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.*;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.*;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.logging.LoggerHelper;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.*;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.facade.ICdaFacadeSRV;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.impl.IniEdsInvocationSRV;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.CdaUtility;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.ValidationUtility;
+import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,7 +67,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.google.gson.Gson;
+import javax.servlet.http.HttpServletRequest;
+import javax.validation.constraints.Size;
+import java.util.Date;
+import java.util.Objects;
 
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.IEdsClient;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.IIniClient;
@@ -110,6 +134,17 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.CdaUtility;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.ValidationUtility;
 import lombok.extern.slf4j.Slf4j;
+import static it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants.App.MISSING_DOC_TYPE_PLACEHOLDER;
+import static it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants.App.MISSING_WORKFLOW_PLACEHOLDER;
+import static it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.PublicationCreationReqDTO.*;
+import static it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.PublicationUpdateReqDTO.*;
+import static it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventStatusEnum.BLOCKING_ERROR;
+import static it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventStatusEnum.SUCCESS;
+import static it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventTypeEnum.*;
+import static it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.RestExecutionResultEnum.*;
+import static it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.CdaUtility.*;
+import static it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility.encodeSHA256;
+import static it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility.isNullOrEmpty;
 
 /**
  *  Publication controller.
@@ -197,8 +232,11 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 		iniInvocationSRV.insert(validationInfo.getValidationData().getWorkflowInstanceId(), validationInfo.getFhirResource(), validationInfo.getJwtPayloadToken());
 
 		PriorityTypeEnum priorityType = PriorityTypeEnum.NULL;
-		if (validationInfo.getJsonObj().getPriorita() != null) {
-			priorityType = Boolean.TRUE.equals(validationInfo.getJsonObj().getPriorita()) ? PriorityTypeEnum.HIGH : PriorityTypeEnum.LOW;
+		if(validationInfo.getJsonObj() instanceof PublicationCreationReqDTO) {
+			PublicationCreationReqDTO out = (PublicationCreationReqDTO) validationInfo.getJsonObj();
+			if (out.getPriorita() != null) {
+				priorityType = Boolean.TRUE.equals(out.getPriorita()) ? PriorityTypeEnum.HIGH : PriorityTypeEnum.LOW;
+			}
 		}
 
 		final IndexerValueDTO kafkaValue = new IndexerValueDTO();
@@ -379,7 +417,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 			final JWTPayloadDTO jwtPayloadToken = extractAndValidateJWT(request, isReplace ? EventTypeEnum.REPLACE : EventTypeEnum.PUBLICATION);
 			validation.setJwtPayloadToken(jwtPayloadToken);
 
-			PublicationCreationReqDTO jsonObj = getAndValidatePublicationReq(request.getParameter("requestBody"), isReplace);
+			PublicationCreateReplaceWiiDTO jsonObj = getAndValidatePublicationReq(request.getParameter("requestBody"), isReplace);
 			validation.setJsonObj(jsonObj);
 
 			String idDoc = jsonObj.getIdentificativoDoc();
@@ -427,7 +465,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 	}
 
 	private ValidationDataDTO executePublicationReplace(final ValidationCreationInputDTO validation,
-			final JWTPayloadDTO jwtPayloadToken, PublicationCreationReqDTO jsonObj, final byte[] bytePDF,
+			final JWTPayloadDTO jwtPayloadToken, PublicationCreateReplaceWiiDTO jsonObj, final byte[] bytePDF,
 			final String cda) {
 		ValidationDataDTO validationInfo;
 		validationInfo = getValidationInfo(cda, jsonObj.getWorkflowInstanceId());
@@ -450,7 +488,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 	}
 
 	private ResourceDTO callFhirMappingEngine(String transformId, String engineId,
-			final JWTPayloadDTO jwtPayloadToken, PublicationCreationReqDTO jsonObj, final byte[] bytePDF,
+			final JWTPayloadDTO jwtPayloadToken, PublicationCreateReplaceMetadataDTO jsonObj, final byte[] bytePDF,
 			final String cda, final String documentSha256) {
 		final ResourceDTO fhirResourcesDTO = documentReferenceSRV.createFhirResources(cda,jwtPayloadToken.getSubject_role(), jsonObj, bytePDF.length, documentSha256,transformId, engineId);
 
@@ -619,7 +657,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 	}
 
 	@Override
-	public ResponseEntity<PublicationResDTO> validateAndCreate(PublicationFatherCreationReqDTO requestBody,MultipartFile file, HttpServletRequest request) {
+	public ResponseEntity<PublicationResDTO> validateAndCreate(ValidateAndCreateDTO requestBody, MultipartFile file, HttpServletRequest request) {
 		final Date startDateOperationValidation = new Date();
 		LogTraceInfoDTO traceInfoDTO = getLogTraceInfo();
 
@@ -669,8 +707,12 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 	}
 
 	@Override
-	public ResponseEntity<PublicationResDTO> validateAndReplace(@Size(min = 1, max = 256) String idDoc,
-			PublicationUpdateReqDTO requestBody, MultipartFile file, HttpServletRequest request) {
+	public ResponseEntity<PublicationResDTO> validateAndReplace(
+		@Size(min = 1, max = 256) String idDoc,
+		ValidateAndReplaceDTO requestBody,
+		MultipartFile file,
+		HttpServletRequest request
+	) {
 		final Date startDateValidationOperation = new Date();
 		LogTraceInfoDTO traceInfoDTO = getLogTraceInfo();
 

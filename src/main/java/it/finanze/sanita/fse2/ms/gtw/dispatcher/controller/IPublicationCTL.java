@@ -22,7 +22,6 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.PublicationCreationReqDTO;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.PublicationFatherCreationReqDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.PublicationMetadataReqDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.PublicationUpdateReqDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.ErrorResponseDTO;
@@ -36,6 +35,9 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.constraints.Size;
+
+import static it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.PublicationCreationReqDTO.ValidateAndCreateDTO;
+import static it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.PublicationUpdateReqDTO.*;
 
 /**
  * Controller publication.
@@ -153,7 +155,7 @@ public interface IPublicationCTL {
 			@ApiResponse(responseCode = "503", description = "Service unavailable", content = @Content(mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE, schema = @Schema(implementation = ValidationErrorResponseDTO.class))),
 			@ApiResponse(responseCode = "504", description = "Endpoint request timed-out", content = @Content(mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE, schema = @Schema(implementation = ValidationErrorResponseDTO.class)))})
 	@ApiParam(value = "auth token")
-	ResponseEntity<PublicationResDTO> validateAndCreate(@RequestBody(required = false) PublicationFatherCreationReqDTO requestBody, @RequestPart("file") MultipartFile file, HttpServletRequest request);
+	ResponseEntity<PublicationResDTO> validateAndCreate(@RequestBody(required = false) ValidateAndCreateDTO requestBody, @RequestPart("file") MultipartFile file, HttpServletRequest request);
 
 	@PutMapping(value = "/documents/validate-and-replace/{idDoc}", produces = { MediaType.APPLICATION_JSON_VALUE }, consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
 	@ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = PublicationResDTO.class)))
@@ -175,6 +177,6 @@ public interface IPublicationCTL {
 			@ApiResponse(responseCode = "502", description = "Invalid response received from the API Implementation", content = @Content(mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE, schema = @Schema(implementation = ValidationErrorResponseDTO.class))),
 			@ApiResponse(responseCode = "503", description = "Service unavailable", content = @Content(mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE, schema = @Schema(implementation = ValidationErrorResponseDTO.class))),
 			@ApiResponse(responseCode = "504", description = "Endpoint request timed-out", content = @Content(mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE, schema = @Schema(implementation = ValidationErrorResponseDTO.class)))})
-	ResponseEntity<PublicationResDTO> validateAndReplace(@Size(min = 1, max = 256)@PathVariable(value = "idDoc", required = true) String idDoc, @RequestBody(required = false) PublicationUpdateReqDTO requestBody, @RequestPart("file") MultipartFile file, HttpServletRequest request);
+	ResponseEntity<PublicationResDTO> validateAndReplace(@Size(min = 1, max = 256)@PathVariable(value = "idDoc", required = true) String idDoc, @RequestBody(required = false) ValidateAndReplaceDTO requestBody, @RequestPart("file") MultipartFile file, HttpServletRequest request);
 
 }

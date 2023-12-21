@@ -11,22 +11,12 @@
  */
 package it.finanze.sanita.fse2.ms.gtw.dispatcher.service.impl;
 
-import java.util.Date;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.JWTPayloadDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.ValidationDataDTO;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.PublicationCreationReqDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.PublicationCreateReplaceMetadataDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.LogTraceInfoDTO;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ErrorInstanceEnum;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventStatusEnum;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventTypeEnum;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.OperationLogEnum;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.RestExecutionResultEnum;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ResultLogEnum;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.*;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.ConnectionRefusedException;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.ValidationErrorException;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.ValidationException;
@@ -36,6 +26,10 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.ICdaSRV;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.IErrorHandlerSRV;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.IKafkaSRV;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.util.Date;
 
 @Service
 public class ErrorHandlerSRV implements IErrorHandlerSRV {
@@ -50,9 +44,11 @@ public class ErrorHandlerSRV implements IErrorHandlerSRV {
     private LoggerHelper logger;
 
     @Override
-    public void connectionRefusedExceptionHandler(Date startDateOperation, ValidationDataDTO validationInfo, JWTPayloadDTO jwtPayloadToken, 
-        PublicationCreationReqDTO jsonObj, LogTraceInfoDTO traceInfoDTO, ConnectionRefusedException ex,
-        boolean isPublication, final String documentType) {
+    public void connectionRefusedExceptionHandler(
+        Date startDateOperation, ValidationDataDTO validationInfo, JWTPayloadDTO jwtPayloadToken,
+        PublicationCreateReplaceMetadataDTO jsonObj, LogTraceInfoDTO traceInfoDTO, ConnectionRefusedException ex,
+        boolean isPublication, final String documentType
+    ) {
         if (jsonObj == null) {
             cdaSRV.consumeHash(validationInfo.getHash());
         }
@@ -79,8 +75,11 @@ public class ErrorHandlerSRV implements IErrorHandlerSRV {
     }
 
     @Override
-    public void publicationValidationExceptionHandler(Date startDateOperation, ValidationDataDTO validationInfo, JWTPayloadDTO jwtPayloadToken, 
-        PublicationCreationReqDTO jsonObj, LogTraceInfoDTO traceInfoDTO, ValidationException e, boolean isPublication, final String documentType) {
+    public void publicationValidationExceptionHandler(
+        Date startDateOperation, ValidationDataDTO validationInfo, JWTPayloadDTO jwtPayloadToken,
+        PublicationCreateReplaceMetadataDTO jsonObj, LogTraceInfoDTO traceInfoDTO, ValidationException e, boolean isPublication, final String documentType
+    ) {
+
         if (jsonObj == null) {
             cdaSRV.consumeHash(validationInfo.getHash());
         }
