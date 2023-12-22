@@ -11,6 +11,8 @@
  */
 package it.finanze.sanita.fse2.ms.gtw.dispatcher.client.impl;
 
+import static it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ConfigItemTypeEnum.GENERIC;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
@@ -21,8 +23,10 @@ import org.springframework.web.client.RestTemplate;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.IConfigClient;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.impl.base.AbstractClient;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.response.WhoIsResponseDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.routes.ConfigClientRoutes;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.MicroservicesURLCFG;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.ConfigItemDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ConfigItemTypeEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.BusinessException;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.ProfileUtility;
 import lombok.extern.slf4j.Slf4j;
@@ -35,61 +39,90 @@ import lombok.extern.slf4j.Slf4j;
 public class ConfigClient extends AbstractClient implements IConfigClient {
 
 	@Autowired
-	private MicroservicesURLCFG msUrlCFG;
-	
-    @Autowired
-    private RestTemplate restTemplate;
+	private ConfigClientRoutes routes;
 
-    @Autowired
-    private ProfileUtility profileUtility;
+	@Autowired
+	private RestTemplate client;
 
-    @Override
-    public String getGatewayName() {
-        String gatewayName = null;
-        try {
-            log.debug("Config Client - Calling Config Client to get Gateway Name");
-            final String endpoint = msUrlCFG.getConfigHost() + Constants.Client.Config.WHOIS_PATH;
+	@Autowired
+	private ProfileUtility profiles;
 
-            final boolean isTestEnvironment = profileUtility.isDevOrDockerProfile() || profileUtility.isTestProfile();
-            
-            // Check if the endpoint is reachable
-            if (isTestEnvironment && !isReachable()) {
-                log.warn("Config Client - Config Client is not reachable, mocking for testing purpose");
-                return Constants.Client.Config.MOCKED_GATEWAY_NAME;
-            }
+	@Override
+	public ConfigItemDTO getConfigurationItems(ConfigItemTypeEnum type) {
+		return client.getForObject(routes.getConfigItems(type), ConfigItemDTO.class);
+	}
 
-            final ResponseEntity<WhoIsResponseDTO> response = restTemplate.getForEntity(endpoint,
-                    WhoIsResponseDTO.class);
+	@Override
+	public String getGatewayName() {
+		String gatewayName = null;
+		try {
+			log.debug("Config Client - Calling Config Client to get Gateway Name");
+			final String endpoint = routes.whois();
 
-            WhoIsResponseDTO body = response.getBody();
-            
-            if(body!=null) {
-            	if (response.getStatusCode().is2xxSuccessful()) {
-                    gatewayName = body.getGatewayName();
-                } else {
-                    log.error("Config Client - Error calling Config Client to get Gateway Name");
-                    throw new BusinessException("The Config Client has returned an error");
-                }
-            } else {
-            	throw new BusinessException("The Config Client has returned an error - The body is null");
-            }            
-        } catch (HttpStatusCodeException clientException) {
-            errorHandler("config", clientException, "/config/whois");
-        } catch (Exception e) {
-            log.error("Error encountered while retrieving Gateway name", e);
-            throw e;
-        }
-        return gatewayName;
-    }
+			final boolean isTestEnvironment = profiles.isDevOrDockerProfile() || profiles.isTestProfile();
 
-    private boolean isReachable() {
-        try {
-            final String endpoint = msUrlCFG.getConfigHost() + Constants.Client.Config.STATUS_PATH;
-            restTemplate.getForEntity(endpoint, String.class);
-            return true;
-        } catch (ResourceAccessException clientException) {
-            return false;
-        }
-    }
+			// Check if the endpoint is reachable
+			if (isTestEnvironment && !isReachable()) {
+				log.warn("Config Client - Config Client is not reachable, mocking for testing purpose");
+				return Constants.Client.Config.MOCKED_GATEWAY_NAME;
+			}
+
+			final ResponseEntity<WhoIsResponseDTO> response = client.getForEntity(endpoint, WhoIsResponseDTO.class);
+
+			WhoIsResponseDTO body = response.getBody();
+
+			if(body!=null) {
+				if (response.getStatusCode().is2xxSuccessful()) {
+					gatewayName = body.getGatewayName();
+				} else {
+					log.error("Config Client - Error calling Config Client to get Gateway Name");
+					throw new BusinessException("The Config Client has returned an error");
+				}
+			} else {
+				throw new BusinessException("The Config Client has returned an error - The body is null");
+			}
+		} catch (HttpStatusCodeException clientException) {
+			errorHandler("config", clientException, "/config/whois");
+		} catch (Exception e) {
+			log.error("Error encountered while retrieving Gateway name", e);
+			throw e;
+		}
+		return gatewayName;
+	}
+ 
+	private boolean isReachable() {
+		boolean out;
+		try {
+			client.getForEntity(routes.status(), String.class);
+			out = true;
+		} catch (ResourceAccessException ex) {
+			out = false;
+		}
+		return out;
+	}
+
+
+	@Override
+	public String getProps(String props, String previous, ConfigItemTypeEnum ms) {
+		String out = previous;
+		ConfigItemTypeEnum src = ms;
+		// Check if gtw-config is available and get props
+		if (isReachable()) {
+			// Try to get the specific one
+			out = client.getForObject(routes.getConfigItem(ms, props), String.class);
+			// If the props don't exist
+			if (out == null) {
+				// Retrieve the generic one
+				out = client.getForObject(routes.getConfigItem(GENERIC, props), String.class);
+				// Set where has been retrieved from
+				src = GENERIC;
+			}
+		}
+		if(out == null || !out.equals(previous)) {
+			log.info("[GTW-CFG] {} set as {} (previously: {}) from {}", props, out, previous, src);
+		}
+		return out;
+	}
+    
 
 }

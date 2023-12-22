@@ -12,20 +12,22 @@
 package it.finanze.sanita.fse2.ms.gtw.dispatcher.client.routes;
 
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.MicroservicesURLCFG;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ConfigItemTypeEnum;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import static it.finanze.sanita.fse2.ms.gtw.dispatcher.client.routes.base.ClientRoutes.Ini.*;
+import static it.finanze.sanita.fse2.ms.gtw.dispatcher.client.routes.base.ClientRoutes.Config.*;
+
 
 @Component
-public final class IniClientRoutes {
+public final class ConfigClientRoutes {
 
     @Autowired
-    private MicroservicesURLCFG microservices;
+    private MicroservicesURLCFG msUrlCFG;
 
     public UriComponentsBuilder base() {
-        return UriComponentsBuilder.fromHttpUrl(microservices.getIniClientHost());
+        return UriComponentsBuilder.fromHttpUrl(msUrlCFG.getConfigHost());
     }
 
     public String identifier() {
@@ -36,20 +38,35 @@ public final class IniClientRoutes {
         return IDENTIFIER_MS;
     }
 
-    public String delete() {
-        return base().pathSegment(API_VERSION, DELETE_PATH).build().toUriString();
+    public String status() {
+        return base()
+            .pathSegment(API_STATUS)
+            .build()
+            .toUriString();
     }
 
-    public String update() {
-        return base().pathSegment(API_VERSION, UPDATE_PATH).build().toUriString();
+    public String whois() {
+        return base()
+            .pathSegment(API_VERSION, API_WHOIS)
+            .build()
+            .toUriString();
     }
 
-    public String references(String id) {
-        return base().pathSegment(API_VERSION, REFERENCE_PATH, id).build().toUriString();
+    public String getConfigItem(ConfigItemTypeEnum type, String props) {
+        return base()
+            .pathSegment(API_VERSION, API_CONFIG_ITEMS, API_PROPS)
+            .queryParam(QP_TYPE, type.name())
+            .queryParam(QP_PROPS, props)
+            .build()
+            .toUriString();
     }
 
-    public String metadata() {
-        return base().pathSegment(API_VERSION, METADATA_PATH).build().toUriString();
+    public String getConfigItems(ConfigItemTypeEnum type) {
+        return base()
+            .pathSegment(API_VERSION, API_CONFIG_ITEMS)
+            .queryParam(QP_TYPE, type.name())
+            .build()
+            .toUriString();
     }
 
 }

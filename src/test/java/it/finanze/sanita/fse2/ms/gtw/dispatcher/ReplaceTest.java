@@ -11,23 +11,30 @@
  */
 package it.finanze.sanita.fse2.ms.gtw.dispatcher;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.BDDMockito.given;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.IIniClient;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.IValidatorClient;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.ValidationInfoDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.PublicationCreationReqDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.PublicationUpdateReqDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.IniReferenceResponseDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.IniTraceResponseDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.PublicationResDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.client.TransformResDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.client.ValidationResDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.*;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.BusinessException;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.repository.entity.IniEdsInvocationETY;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.repository.entity.ValidatedDocumentsETY;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.impl.ConfigSRV;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.FileUtility;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility;
+import lombok.extern.slf4j.Slf4j;
 import org.bson.Document;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentMatchers;
@@ -41,49 +48,27 @@ import org.springframework.core.io.ByteArrayResource;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.IIniClient;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.IValidatorClient;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.ValidationInfoDTO;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.PublicationCreationReqDTO;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.PublicationUpdateReqDTO;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.IniReferenceResponseDTO;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.IniTraceResponseDTO;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.PublicationResDTO;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.client.TransformResDTO;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.client.ValidationResDTO;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ActivityEnum;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.AttivitaClinicaEnum;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventCodeEnum;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventTypeEnum;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.HealthDataFormatEnum;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.HealthcareFacilityEnum;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.InjectionModeEnum;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.PracticeSettingCodeEnum;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.RawValidationEnum;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.TipoDocAltoLivEnum;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.BusinessException;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.repository.entity.IniEdsInvocationETY;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.repository.entity.ValidatedDocumentsETY;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.FileUtility;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility;
-import lombok.extern.slf4j.Slf4j;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.when;
 
 @Slf4j
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles(Constants.Profile.TEST)
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class ReplaceTest extends AbstractTest {
 
 	@Autowired
@@ -101,6 +86,14 @@ class ReplaceTest extends AbstractTest {
 	@SpyBean
 	private IIniClient iniClient;
 
+	@MockBean
+	private ConfigSRV config;
+
+	@BeforeAll
+	void init() {
+		when(config.isAuditEnable()).thenReturn(true);
+	}
+
 	@BeforeEach
 	void setup() {
 		mongoTemplate.dropCollection(IniEdsInvocationETY.class);
@@ -117,8 +110,8 @@ class ReplaceTest extends AbstractTest {
 	 	mockDocumentRef();
 	 	mockFhirMapping();
 	 	mockIniClient(HttpStatus.OK, true); 
-	 	mockGetReference(new IniReferenceResponseDTO(idDocument, null, "DocumentType"));
-		Mockito.doReturn(new IniReferenceResponseDTO(idDocument, "DocumentType", "")).when(iniClient).reference(any(it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.IniReferenceRequestDTO.class)); 
+	 	mockGetReference(new IniReferenceResponseDTO(idDocument, null, "DocumentType", null, null));
+		Mockito.doReturn(new IniReferenceResponseDTO(idDocument, "DocumentType", "", null, null)).when(iniClient).reference(any(it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.IniReferenceRequestDTO.class)); 
 
 	 	final byte[] pdfAttachment = FileUtility.getFileFromInternalResources("Files" + File.separator + "accreditamento" + File.separator + filename);
 		
@@ -177,9 +170,9 @@ class ReplaceTest extends AbstractTest {
 	 	
 	 	mockDocumentRef();
 	 	mockFhirMapping();
-	 	mockGetReference(new IniReferenceResponseDTO(idDocument, null,"DocumentType"));
+	 	mockGetReference(new IniReferenceResponseDTO(idDocument, null,"DocumentType", null, null));
 	 	//when(iniClient.reference(any(it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.IniReferenceRequestDTO.class))).thenReturn(true); 
-		Mockito.doReturn(new IniReferenceResponseDTO("uuid", "DocumentType", "")).when(iniClient).reference(any(it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.IniReferenceRequestDTO.class)); 
+		Mockito.doReturn(new IniReferenceResponseDTO("uuid", "DocumentType", "", null, null)).when(iniClient).reference(any(it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.IniReferenceRequestDTO.class)); 
 
 	 	final byte[] notPdfFile = FileUtility.getFileFromInternalResources("Files/Test.docx");
 	 	assertThrows(HttpClientErrorException.BadRequest.class, 

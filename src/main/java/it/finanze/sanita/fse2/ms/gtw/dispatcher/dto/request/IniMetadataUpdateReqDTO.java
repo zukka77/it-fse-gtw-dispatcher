@@ -27,4 +27,7 @@ public class IniMetadataUpdateReqDTO {
     
     private String workflow_instance_id;
     
+    private String administrative_request;
+    
+    private String author_institution;
 }

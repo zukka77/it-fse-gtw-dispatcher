@@ -11,11 +11,8 @@
  */
 package it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request;
 
-import javax.validation.constraints.Size;
-
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -27,12 +24,17 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
-public class PublicationCreationReqDTO extends PublicationFatherCreationReqDTO {
+public class PublicationCreationReqDTO extends PublicationCreateReplaceWiiDTO {
 
-	@Schema(description = "Identificativo del workflow")
-	@Size(min = 0, max = 256)
-	private String workflowInstanceId;
- 
-   
+    @Schema(description = "Priorita")
+    private Boolean priorita;
+
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class ValidateAndCreateDTO extends PublicationCreateReplaceMetadataDTO {
+        @Schema(description = "Priorita")
+        private Boolean priorita;
+    }
 }

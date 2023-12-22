@@ -11,6 +11,9 @@
  */
 package it.finanze.sanita.fse2.ms.gtw.dispatcher.client;
 
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.ConfigItemDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ConfigItemTypeEnum;
+
 /**
  * Interface of gtw-config Client.
  */
@@ -18,4 +21,8 @@ public interface IConfigClient {
 	
 	String getGatewayName();
 
+	ConfigItemDTO getConfigurationItems(ConfigItemTypeEnum type);
+	
+	String getProps(String props, String previous, ConfigItemTypeEnum ms);
+	
 }

@@ -11,30 +11,32 @@
  */
 package it.finanze.sanita.fse2.ms.gtw.dispatcher;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
-
-import java.util.Collections;
-import java.util.Date;
-
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.Gson;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.PublicationMetadataReqDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.EdsResponseDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.GetMergedMetadatiDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.IniTraceResponseDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.ResponseDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventTypeEnum;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.BusinessException;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.impl.ConfigSRV;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility;
+import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
@@ -44,24 +46,19 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.gson.Gson;
+import java.util.Collections;
+import java.util.Date;
 
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.PublicationMetadataReqDTO;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.EdsResponseDTO;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.GetMergedMetadatiDTO;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.IniTraceResponseDTO;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.ResponseDTO;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventTypeEnum;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.BusinessException;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility;
-import lombok.extern.slf4j.Slf4j;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.when;
 
 @Slf4j
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
 @ActiveProfiles(Constants.Profile.TEST)
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class UpdateTest extends AbstractTest {
 
 	@Autowired
@@ -74,6 +71,15 @@ class UpdateTest extends AbstractTest {
 	RestTemplate restTemplate;
 
 	private static final String TEST_REQUEST_BODY = "{\"tipologiaStruttura\":\"Ospedale\",\"attiCliniciRegoleAccesso\":[\"P99\"],\"tipoDocumentoLivAlto\":\"WOR\",\"assettoOrganizzativo\":\"AD_PSC001\",\"dataInizioPrestazione\":\"string\",\"dataFinePrestazione\":\"string\",\"conservazioneANorma\":\"string\",\"tipoAttivitaClinica\":\"PHR\",\"identificativoSottomissione\":\"string\"}";
+
+	@MockBean
+	private ConfigSRV config;
+
+
+	@BeforeAll
+	void init() {
+		when(config.isAuditEnable()).thenReturn(true);
+	}
 
 	@Test
 	@DisplayName("Update of a document")

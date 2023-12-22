@@ -11,15 +11,10 @@
  */
 package it.finanze.sanita.fse2.ms.gtw.dispatcher.service;
 
-import org.apache.kafka.clients.producer.RecordMetadata;
-
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.JWTPayloadDTO;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.PublicationCreationReqDTO;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.DestinationTypeEnum;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventStatusEnum;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventTypeEnum;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.PriorityTypeEnum;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.TipoDocAltoLivEnum;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.PublicationCreateReplaceMetadataDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.*;
+import org.apache.kafka.clients.producer.RecordMetadata;
 
 /**
  * Interface for service used to handle kafka communications
@@ -49,9 +44,9 @@ public interface IKafkaSRV {
 	void sendValidationStatus(String traceId, String workflowInstanceId, EventStatusEnum eventStatus, String message,JWTPayloadDTO jwtClaimDTO); 
 	void sendValidationStatus(String traceId,String workflowInstanceId, EventStatusEnum eventStatus, String message,
 			 JWTPayloadDTO jwtClaimDTO, EventTypeEnum eventTypeEnum);
-	void sendPublicationStatus(String traceId, String workflowInstanceId, EventStatusEnum eventStatus, String message, PublicationCreationReqDTO publicationReq, JWTPayloadDTO jwtClaimDTO);
+	void sendPublicationStatus(String traceId, String workflowInstanceId, EventStatusEnum eventStatus, String message, PublicationCreateReplaceMetadataDTO req, JWTPayloadDTO jwtClaimDTO);
 
-	void sendReplaceStatus(String traceId,String workflowInstanceId, EventStatusEnum eventStatus, String message, PublicationCreationReqDTO publicationReq, JWTPayloadDTO jwtClaimDTO);
+	void sendReplaceStatus(String traceId, String workflowInstanceId, EventStatusEnum eventStatus, String message, PublicationCreateReplaceMetadataDTO req, JWTPayloadDTO jwtClaimDTO);
 	void sendDeleteStatus(String traceId, String workflowInstanceId, String idDoc, String message, EventStatusEnum eventStatus, JWTPayloadDTO jwt, EventTypeEnum eventType);
 	void sendDeleteRequest(String workflowInstanceId, Object request);
 	

@@ -11,32 +11,24 @@
  */
 package it.finanze.sanita.fse2.ms.gtw.dispatcher;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.when;
-
-import java.io.File;
-import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.Map;
-
+import com.fasterxml.jackson.core.JsonProcessingException;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.IValidatorClient;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.ValidationInfoDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.ValidationCDAReqDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.ValidationResDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.*;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.repository.entity.ValidatedDocumentsETY;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.ICdaSRV;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.IConfigSRV;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.FileUtility;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility;
+import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.parser.Parser;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -46,25 +38,15 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.web.client.HttpClientErrorException;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
+import java.io.File;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.util.*;
 
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.IValidatorClient;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.ValidationInfoDTO;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.ValidationCDAReqDTO;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.ValidationResDTO;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ActivityEnum;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventTypeEnum;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.HealthDataFormatEnum;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.InjectionModeEnum;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.RawValidationEnum;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.RestExecutionResultEnum;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.TipoDocAltoLivEnum;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.repository.entity.ValidatedDocumentsETY;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.ICdaSRV;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.FileUtility;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility;
-import lombok.extern.slf4j.Slf4j;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.when;
 
 @Slf4j
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -106,8 +88,17 @@ class ValidationTest extends AbstractTest {
 	@MockBean
 	IValidatorClient validatorClient;
 
+
 	@Autowired
     public MongoTemplate mongo;
+
+	@MockBean
+	private IConfigSRV config;
+
+	@BeforeAll
+	void init() {
+		when(config.isAuditEnable()).thenReturn(true);
+	}
 
 	@BeforeEach
 	void createCollection(){

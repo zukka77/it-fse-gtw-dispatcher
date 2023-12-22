@@ -11,25 +11,10 @@
  */
 package it.finanze.sanita.fse2.ms.gtw.dispatcher.service.impl;
 
-import java.text.SimpleDateFormat;
-import java.util.Arrays;
-import java.util.Base64;
-import java.util.Date;
-
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Element;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
-
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.impl.FhirMappingClient;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.DocumentEntryDTO;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.DocumentReferenceDTO;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.FhirResourceDTO;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.ResourceDTO;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.SubmissionSetEntryDTO;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.PublicationCreationReqDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.*;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.PublicationCreateReplaceMetadataDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.client.TransformResDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.AttivitaClinicaEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.LowLevelDocEnum;
@@ -38,6 +23,16 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.ConnectionRefusedExce
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.IDocumentReferenceSRV;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility;
 import lombok.extern.slf4j.Slf4j;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Element;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
+
+import java.text.SimpleDateFormat;
+import java.util.Arrays;
+import java.util.Base64;
+import java.util.Date;
 
 @Service
 @Slf4j
@@ -56,7 +51,8 @@ public class DocumentReferenceSRV implements IDocumentReferenceSRV {
 	private FhirMappingClient client;
 
 	@Override
-	public ResourceDTO createFhirResources(final String cda, String authorRole,final PublicationCreationReqDTO requestBody,
+	public ResourceDTO createFhirResources(final String cda,
+			String authorRole,final PublicationCreateReplaceMetadataDTO requestBody,
 			final Integer size, final String hash, String transformId, String engineId) {
 		final ResourceDTO output = new ResourceDTO();
 		try {
@@ -99,7 +95,7 @@ public class DocumentReferenceSRV implements IDocumentReferenceSRV {
 		return output;
 	}
 
-	private DocumentReferenceDTO buildDocumentReferenceDTO(final String encodedCDA, final PublicationCreationReqDTO requestBody,
+	private DocumentReferenceDTO buildDocumentReferenceDTO(final String encodedCDA, final PublicationCreateReplaceMetadataDTO requestBody,
 			final Integer size, final String hash) {
 		final DocumentReferenceDTO documentReferenceDTO = new DocumentReferenceDTO();
 		try {
@@ -174,7 +170,7 @@ public class DocumentReferenceSRV implements IDocumentReferenceSRV {
 
 
 	private DocumentEntryDTO createDocumentEntry(final org.jsoup.nodes.Document docCDA,
-			final PublicationCreationReqDTO requestBody, final Integer size, final String hash,
+			final PublicationCreateReplaceMetadataDTO requestBody, final Integer size, final String hash,
 			String authorRole) {
 
 		DocumentEntryDTO de = new DocumentEntryDTO();
@@ -220,7 +216,17 @@ public class DocumentReferenceSRV implements IDocumentReferenceSRV {
 			}
 
 			de.setAuthorRole(authorRole);
-			de.setAuthorInstitution("ULSS 9-TREVISO^^^^^&2.16.840.1.113883.2.9.4.1.1&ISO^^^^050109"); //TODO Capire da dove reperirlo
+
+			final Element authorInstitutionElement = docCDA.select("ClinicalDocument > author > assignedAuthor > representedOrganization > id").first();
+			if (authorInstitutionElement != null) {
+				String extension = authorInstitutionElement.attr(EXTENSION_ATTRIBUTE);
+				String root = authorInstitutionElement.attr("root");
+				String assigningAuthorityName = authorInstitutionElement.attr("assigningAuthorityName");
+				de.setAuthorInstitution(assigningAuthorityName + "^^^^^&" + root + "&ISO^^^^" + extension);
+			} else {
+				de.setAuthorInstitution("AUTHOR_INSTITUTION_NOT_PRESENT");
+			}
+
 			final Element authorElement = docCDA.select("ClinicalDocument > author > assignedAuthor > id").first();
 			if (authorElement != null) {
 				de.setAuthor(authorElement.attr(EXTENSION_ATTRIBUTE));

@@ -11,24 +11,48 @@
  */
 package it.finanze.sanita.fse2.ms.gtw.dispatcher.client.routes.base;
 
+import lombok.NoArgsConstructor;
+
+import static lombok.AccessLevel.PRIVATE;
+
+@NoArgsConstructor(access = PRIVATE)
 public final class ClientRoutes {
-	
-	private ClientRoutes() {}
 
+    @NoArgsConstructor(access = PRIVATE)
     public static final class Ini {
-
-        private Ini() {}
         // COMMON
         public static final String IDENTIFIER_MS = "ini";
         public static final String IDENTIFIER = "[INI]";
-        // PATH PARAMS
-        public static final String ID_DOC_PATH_PARAM = "{id}";
         // ENDPOINT
         public static final String API_VERSION = "v1";
         public static final String DELETE_PATH = "ini-delete";
         public static final String UPDATE_PATH = "ini-update";
         public static final String REFERENCE_PATH = "get-reference";
         public static final  String METADATA_PATH = "get-merged-metadati";
+    }
+
+    @NoArgsConstructor(access = PRIVATE)
+    public static final class Config {
+        // COMMON
+        public static final String IDENTIFIER_MS = "cfg";
+        public static final String IDENTIFIER = "[CFG]";
+        // ENDPOINT
+        public static final String API_VERSION = "v1";
+        public static final String API_CONFIG_ITEMS = "config-items";
+        public static final String API_PROPS = "props";
+        public static final String API_STATUS = "status";
+        public static final String API_WHOIS = "whois";
+        // QP
+        public static final String QP_TYPE = "type";
+        public static final String QP_PROPS = "props";
+        // VALUES
+        public static final String PROPS_NAME_AUDIT_ENABLED = "audit-enabled";
+        public static final String PROPS_NAME_CONTROL_LOG_ENABLED = "control-log-persistence-enabled";
+        public static final String PROPS_NAME_ISSUER_CF = "issuer-cf-cleaning";
+        public static final String PROPS_NAME_SUBJECT = "subject-cleaning";
+        public static final String PROPS_NAME_REMOVE_EDS_ENABLE = "remove-eds-enabled";
+
+
     }
 
 }

@@ -11,14 +11,14 @@
  */
 package it.finanze.sanita.fse2.ms.gtw.dispatcher.service;
 
-import java.util.Date;
-
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.JWTPayloadDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.ValidationDataDTO;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.PublicationCreationReqDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.PublicationCreateReplaceMetadataDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.LogTraceInfoDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.ConnectionRefusedException;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.ValidationException;
+
+import java.util.Date;
 
 public interface IErrorHandlerSRV {
 
@@ -42,9 +42,9 @@ public interface IErrorHandlerSRV {
      * @param ex
      * @param isPublication
      */
-    void connectionRefusedExceptionHandler(Date startDateOperation, ValidationDataDTO validationInfo, JWTPayloadDTO jwtPayloadToken, 
-            PublicationCreationReqDTO jsonObj, LogTraceInfoDTO traceInfoDTO, ConnectionRefusedException ex,
-            boolean isPublication, String documentType);
+    void connectionRefusedExceptionHandler(Date startDateOperation, ValidationDataDTO validationInfo, JWTPayloadDTO jwtPayloadToken,
+                                           PublicationCreateReplaceMetadataDTO jsonObj, LogTraceInfoDTO traceInfoDTO, ConnectionRefusedException ex,
+                                           boolean isPublication, String documentType);
     /**
      * Handle validation exception for publication ep.
      * 
@@ -56,8 +56,8 @@ public interface IErrorHandlerSRV {
      * @param e
      * @param isPublication
      */
-    void publicationValidationExceptionHandler(Date startDateOperation, ValidationDataDTO validationInfo, JWTPayloadDTO jwtPayloadToken, 
-            PublicationCreationReqDTO jsonObj, LogTraceInfoDTO traceInfoDTO, ValidationException e, boolean isPublication, final String documentType);
+    void publicationValidationExceptionHandler(Date startDateOperation, ValidationDataDTO validationInfo, JWTPayloadDTO jwtPayloadToken,
+                                               PublicationCreateReplaceMetadataDTO jsonObj, LogTraceInfoDTO traceInfoDTO, ValidationException e, boolean isPublication, final String documentType);
     
     void updateValidationExceptionHandler(Date startDateOperation, LogTraceInfoDTO traceInfoDTO, String workflowInstanceId, JWTPayloadDTO jwtPayloadToken, 
     		ValidationException e, String documentType,String idDoc);

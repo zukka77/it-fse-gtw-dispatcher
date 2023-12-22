@@ -11,44 +11,42 @@
  */
 package it.finanze.sanita.fse2.ms.gtw.dispatcher;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
-
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentMatchers;
-import org.mockito.Mockito;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.SpyBean;
-import org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.HttpServerErrorException;
-import org.springframework.web.client.RestClientException;
-import org.springframework.web.client.RestTemplate;
-
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.EdsResponseDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.IniReferenceResponseDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.IniTraceResponseDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventTypeEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.BusinessException;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.IConfigSRV;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility;
 import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.mockito.ArgumentMatchers;
+import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.mock.mockito.SpyBean;
+import org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext;
+import org.springframework.http.*;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpServerErrorException;
+import org.springframework.web.client.RestClientException;
+import org.springframework.web.client.RestTemplate;
+
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.when;
 
 @Slf4j
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles(Constants.Profile.TEST)
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class DeleteTest extends AbstractTest {
 
 	@Autowired
@@ -56,6 +54,14 @@ class DeleteTest extends AbstractTest {
 
 	@SpyBean
 	RestTemplate restTemplate;
+
+	@MockBean
+	IConfigSRV config;
+
+	@BeforeAll
+	void init() {
+		when(config.isAuditEnable()).thenReturn(true);
+	}
 
 	@Test
 	@DisplayName("Delete of a document")
@@ -109,7 +115,7 @@ class DeleteTest extends AbstractTest {
 
 		mockIniClient(HttpStatus.OK, true);
 		mockEdsClient(HttpStatus.INTERNAL_SERVER_ERROR);
-		assertThrows(HttpServerErrorException.InternalServerError.class, () -> callDelete(idDocument));
+		assertThrows(BusinessException.class, () -> callDelete(idDocument));
 	}
 
 	void mockIniClient(final HttpStatus status, boolean esito) {
@@ -168,7 +174,7 @@ class DeleteTest extends AbstractTest {
 					.exchange(anyString(), eq(HttpMethod.DELETE), eq(null), ArgumentMatchers.eq(EdsResponseDTO.class));
 		} else {
 			Mockito.doThrow(new BusinessException("")).when(restTemplate)
-					.exchange(anyString(), eq(HttpMethod.DELETE), eq(null), ArgumentMatchers.eq(EdsResponseDTO.class));
+					.exchange(anyString(), eq(HttpMethod.DELETE), any(), ArgumentMatchers.eq(EdsResponseDTO.class));
 		}
 	}
 

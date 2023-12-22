@@ -16,7 +16,6 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.repository.mongo.IAuditRepo;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 import javax.servlet.http.HttpServletRequest;
@@ -28,7 +27,6 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 
 @Slf4j
 @Component
-@ConditionalOnProperty("ms.dispatcher.audit.enabled")
 public class AuditManager {
 
     @Autowired
