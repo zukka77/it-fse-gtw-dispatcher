@@ -26,7 +26,7 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.ValidationException;
 
 public final class ValidationUtility {
 
-	private static final String REPOSITORY_UNIQUE_ID_REGEX = "2\\.16\\.840\\.1\\.113883\\.2\\.9\\.2\\.(.*)\\.4\\.5\\..*";
+	private static final String REPOSITORY_UNIQUE_ID_REGEX = "^2\\.16\\.840\\.1\\.113883\\.2\\.9\\.2\\.(\\d+)\\.4\\.5\\..*$";
 
 	public static void checkDayAfterValidation(Date insertionDate, Integer dayAllowToPublishAfterValidation) {
 		if(DateUtility.getDifferenceDays(insertionDate, new Date()) > dayAllowToPublishAfterValidation) {
