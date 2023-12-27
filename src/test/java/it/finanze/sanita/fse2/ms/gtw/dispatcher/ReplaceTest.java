@@ -124,7 +124,7 @@ class ReplaceTest extends AbstractTest {
 		
 	 	PublicationUpdateReqDTO requestBody = new PublicationUpdateReqDTO();
 		requestBody.setIdentificativoDoc(idDocument);
-		requestBody.setIdentificativoRep("testRep");
+		requestBody.setIdentificativoRep("2.16.840.1.113883.2.9.2.080.4.5.1234");
 		requestBody.setIdentificativoSottomissione("testSottomissione");
 		requestBody.setTipoDocumentoLivAlto(TipoDocAltoLivEnum.WOR);
 		requestBody.setAssettoOrganizzativo(PracticeSettingCodeEnum.AD_PSC001);
@@ -208,7 +208,7 @@ class ReplaceTest extends AbstractTest {
 	
 	 	callValidation(ActivityEnum.VALIDATION, HealthDataFormatEnum.CDA, InjectionModeEnum.ATTACHMENT, pdfAttachment, true, false, true);
 
-	 	rBody.setIdentificativoRep("Identificativo rep");
+	 	rBody.setIdentificativoRep("2.16.840.1.113883.2.9.2.080.4.5.1234");
 	 	assertThrows(HttpClientErrorException.BadRequest.class, 
 	 		() ->  callReplace(idDocument, pdfAttachment, rBody, true), "Not providing a valid request body should throw a bad request exception");
 	
@@ -258,7 +258,9 @@ class ReplaceTest extends AbstractTest {
 	 private void mockFhirMapping() {
 	 	log.info("Mocking fhir-mapping client");
 	 	final ValidationInfoDTO info = new ValidationInfoDTO(RawValidationEnum.OK, new ArrayList<>(), "", "");
+		 TransformResDTO transform = new TransformResDTO("", new Document("_id", "idProva"));
 	 	Mockito.doReturn(new ResponseEntity<>(info, HttpStatus.OK)).when(restTemplate).exchange(anyString(), eq(HttpMethod.POST), any(HttpEntity.class), eq(ValidationResDTO.class));
+		 Mockito.doReturn(transform).when(restTemplate).postForObject(anyString(), any(HttpEntity.class), eq(TransformResDTO.class));
 	 }
 
 	 private List<IniEdsInvocationETY> getIniInvocationEntities(final String workflowInstanceId) {
@@ -306,7 +308,7 @@ class ReplaceTest extends AbstractTest {
 		 out.setDataFinePrestazione(""+new Date().getTime());
 		 out.setDataInizioPrestazione(""+new Date().getTime());
 		 out.setHealthDataFormat(HealthDataFormatEnum.CDA);
-		 out.setIdentificativoRep("Identificativo rep");
+		 out.setIdentificativoRep("2.16.840.1.113883.2.9.2.080.4.5.1234");
 		 out.setIdentificativoSottomissione("Identificativo Sottomissione");
 		 out.setMode(InjectionModeEnum.ATTACHMENT);
 		 out.setAttiCliniciRegoleAccesso(java.util.Arrays.asList(EventCodeEnum._94503_0.getCode()));
