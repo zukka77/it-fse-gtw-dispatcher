@@ -101,7 +101,7 @@ class DocumentReferenceTest extends AbstractTest {
 		output.setDataFinePrestazione(""+new Date().getTime());
 		output.setHealthDataFormat(HealthDataFormatEnum.CDA);
 		output.setIdentificativoDoc("Identificativo doc");
-		output.setIdentificativoRep("Identificativo rep");
+		output.setIdentificativoRep("2.16.840.1.113883.2.9.2.080.4.5.1234");
 		output.setIdentificativoSottomissione("identificativo sottomissione");
 		output.setMode(InjectionModeEnum.ATTACHMENT);
 		output.setAttiCliniciRegoleAccesso(Arrays.asList(EventCodeEnum._94503_0.getCode()));

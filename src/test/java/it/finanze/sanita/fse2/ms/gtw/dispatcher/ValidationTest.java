@@ -18,11 +18,13 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.ValidationInfoDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.ValidationCDAReqDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.ValidationResDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.*;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.ValidationException;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.repository.entity.ValidatedDocumentsETY;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.ICdaSRV;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.IConfigSRV;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.FileUtility;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.ValidationUtility;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -432,6 +434,16 @@ class ValidationTest extends AbstractTest {
 				pdfResource,
 				true, false, true);
 		assertEquals(RestExecutionResultEnum.SYNTAX_ERROR, result.values().iterator().next());
+	}
+
+	@Test
+	@DisplayName("Validator String repositoryUniqueId Test")
+	void validatorRepositoryUniqueIdFromStringTest() {
+		String rightId = "2.16.840.1.113883.2.9.2.080.4.5.1234";
+		String wrongRegionId = "2.16.840.1.113883.2.9.2.123.4.5.1234";
+
+		assertDoesNotThrow(() -> ValidationUtility.repositoryUniqueIdValidation(rightId));
+		assertThrows(ValidationException.class, () -> ValidationUtility.repositoryUniqueIdValidation(wrongRegionId));
 	}
 
 }

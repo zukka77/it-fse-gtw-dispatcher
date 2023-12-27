@@ -22,6 +22,7 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.BusinessException;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.ConnectionRefusedException;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.IDocumentReferenceSRV;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.ValidationUtility;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Element;
@@ -109,6 +110,7 @@ public class DocumentReferenceSRV implements IDocumentReferenceSRV {
 			}
 			documentReferenceDTO.setPracticeSettingCode(requestBody.getAssettoOrganizzativo().getDescription());
 			documentReferenceDTO.setTipoDocumentoLivAlto(requestBody.getTipoDocumentoLivAlto().getCode());
+			ValidationUtility.repositoryUniqueIdValidation(requestBody.getIdentificativoRep());
 			documentReferenceDTO.setRepositoryUniqueID(requestBody.getIdentificativoRep());
 			documentReferenceDTO.setServiceStartTime(requestBody.getDataInizioPrestazione());
 			documentReferenceDTO.setServiceStopTime(requestBody.getDataFinePrestazione());
@@ -232,6 +234,7 @@ public class DocumentReferenceSRV implements IDocumentReferenceSRV {
 				de.setAuthor(authorElement.attr(EXTENSION_ATTRIBUTE));
 			}
 
+			ValidationUtility.repositoryUniqueIdValidation(requestBody.getIdentificativoRep());
 			de.setRepositoryUniqueId(requestBody.getIdentificativoRep());
 
 			if(requestBody.getDescriptions() != null) {
