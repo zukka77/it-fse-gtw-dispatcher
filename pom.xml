@@ -79,7 +79,7 @@
 		<dependency>
 			<groupId>org.springdoc</groupId>
 			<artifactId>springdoc-openapi-ui</artifactId>
-			<version>1.6.7</version>
+			<version>1.6.11</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.yaml</groupId>
@@ -110,13 +110,6 @@
 			<groupId>ch.qos.logback.contrib</groupId>
 			<artifactId>logback-jackson</artifactId>
 			<version>0.1.5</version>
-		</dependency>
-
-		<!-- LOGSTASH LOGBACK ENCODER -->
-		<dependency>
-			<groupId>net.logstash.logback</groupId>
-			<artifactId>logstash-logback-encoder</artifactId>
-			<version>7.2</version>
 		</dependency>
 
 		<!-- DEVTOOL -->
@@ -153,6 +146,7 @@
 			<artifactId>bson</artifactId>
 			<version>4.8.2</version>
 		</dependency>
+		
 		<!-- KAFKA -->
 		<dependency>
 			<groupId>org.springframework.kafka</groupId>
@@ -194,6 +188,7 @@
 			<artifactId>jsoup</artifactId>
 			<version>1.15.3</version>
 		</dependency>
+		 
 	</dependencies>
 
 	<dependencyManagement>
