@@ -49,7 +49,7 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.PracticeSettingCodeEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.TipoDocAltoLivEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.BusinessException;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.ConnectionRefusedException;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.IDocumentReferenceSRV;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.IFhirSRV;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.impl.IniEdsInvocationSRV;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.FileUtility;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility;
@@ -59,7 +59,7 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility;
 class DocumentReferenceTest extends AbstractTest {
 
 	@Autowired
-	private IDocumentReferenceSRV documentReferenceSRV;
+	private IFhirSRV documentReferenceSRV;
 	
 	@MockBean
 	private FhirMappingClient client;

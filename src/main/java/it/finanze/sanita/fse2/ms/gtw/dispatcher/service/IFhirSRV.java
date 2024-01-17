@@ -14,9 +14,7 @@ package it.finanze.sanita.fse2.ms.gtw.dispatcher.service;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.ResourceDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.PublicationCreateReplaceMetadataDTO;
 
-import java.io.Serializable;
-
-public interface IDocumentReferenceSRV extends Serializable{
+public interface IFhirSRV {
 
 	ResourceDTO createFhirResources(final String cda,
 									String authorRole, PublicationCreateReplaceMetadataDTO requestBody,

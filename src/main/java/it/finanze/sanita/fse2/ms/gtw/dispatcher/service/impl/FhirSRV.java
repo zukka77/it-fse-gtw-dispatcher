@@ -11,145 +11,130 @@
  */
 package it.finanze.sanita.fse2.ms.gtw.dispatcher.service.impl;
 
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.impl.FhirMappingClient;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.*;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.PublicationCreateReplaceMetadataDTO;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.client.TransformResDTO;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.AttivitaClinicaEnum;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.LowLevelDocEnum;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.BusinessException;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.ConnectionRefusedException;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.IDocumentReferenceSRV;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.ValidationUtility;
-import lombok.extern.slf4j.Slf4j;
+import java.text.SimpleDateFormat;
+import java.util.Arrays;
+import java.util.Base64;
+import java.util.Date;
+
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Element;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
-import java.text.SimpleDateFormat;
-import java.util.Arrays;
-import java.util.Base64;
-import java.util.Date;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.impl.FhirMappingClient;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.AuthorSlotDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.DocumentEntryDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.DocumentReferenceDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.FhirResourceDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.ResourceDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.SubmissionSetEntryDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.PublicationCreateReplaceMetadataDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.client.TransformResDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.AttivitaClinicaEnum;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.LowLevelDocEnum;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.BusinessException;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.IFhirSRV;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.ValidationUtility;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @Slf4j
-public class DocumentReferenceSRV implements IDocumentReferenceSRV {
+public class FhirSRV implements IFhirSRV {
 
-	/**
-	 * Serial version uid.
-	 */
-	private static final long serialVersionUID = 6613399511662450678L;
 	private static final String PATH_CUSTODIAN_ID = "ClinicalDocument > custodian > assignedCustodian > representedCustodianOrganization > id";
 	private static final String PATH_PATIENT_ID = "ClinicalDocument > recordTarget > patientRole> id";
-	private static final String ERROR_MSG = "Error while create document reference request ";
 	private static final String EXTENSION_ATTRIBUTE = "extension";
 
 	@Autowired
 	private FhirMappingClient client;
 
 	@Override
-	public ResourceDTO createFhirResources(final String cda,
-			String authorRole,final PublicationCreateReplaceMetadataDTO requestBody,
+	public ResourceDTO createFhirResources(final String cda, String authorRole,final PublicationCreateReplaceMetadataDTO requestBody,
 			final Integer size, final String hash, String transformId, String engineId) {
+		
 		final ResourceDTO output = new ResourceDTO();
-		try {
-			final org.jsoup.nodes.Document docCDA = Jsoup.parse(cda);
-			final String encodedCDA = Base64.getEncoder().encodeToString(cda.getBytes());
+		final org.jsoup.nodes.Document docCDA = Jsoup.parse(cda);
+		final String encodedCDA = Base64.getEncoder().encodeToString(cda.getBytes());
 
-			final DocumentReferenceDTO documentReferenceDTO = buildDocumentReferenceDTO(encodedCDA, requestBody, size, hash);
+		final DocumentReferenceDTO documentReferenceDTO = buildDocumentReferenceDTO(encodedCDA, requestBody, size, hash);
+		FhirResourceDTO req = buildFhirResourceDTO(documentReferenceDTO, cda, transformId, engineId);
+		final TransformResDTO resDTO = client.callConvertCdaInBundle(req);
 
-			final TransformResDTO resDTO = callFhirMapping(documentReferenceDTO, cda, transformId, engineId);
+		if (!StringUtility.isNullOrEmpty(resDTO.getErrorMessage())) {
+			output.setErrorMessage(resDTO.getErrorMessage());
+		} else {
+			output.setBundleJson(StringUtility.toJSON(resDTO.getJson()));
 
-			if (!StringUtility.isNullOrEmpty(resDTO.getErrorMessage())) {
-				output.setErrorMessage(resDTO.getErrorMessage());
-			} else {
-				output.setBundleJson(StringUtility.toJSON(resDTO.getJson()));
+			AuthorSlotDTO authorSlot =  buildAuthorSlotDTO(authorRole,docCDA);
+			
+			try {
+				final SubmissionSetEntryDTO submissionSetEntryDTO = createSubmissionSetEntry(docCDA, requestBody.getTipoAttivitaClinica().getCode(),
+						requestBody.getIdentificativoSottomissione(),authorSlot);
+				output.setSubmissionSetEntryJson(StringUtility.toJSON(submissionSetEntryDTO));
+			} catch(final Exception ex) {
+				output.setErrorMessage(ex.getCause().getCause().getMessage());
+			}
 
+			if(StringUtility.isNullOrEmpty(resDTO.getErrorMessage())) {
 				try {
-					final SubmissionSetEntryDTO submissionSetEntryDTO = createSubmissionSetEntry(docCDA, requestBody.getTipoAttivitaClinica().getCode(),
-							requestBody.getIdentificativoSottomissione());
-					output.setSubmissionSetEntryJson(StringUtility.toJSON(submissionSetEntryDTO));
+					final DocumentEntryDTO documentEntryDTO = createDocumentEntry(docCDA, requestBody, size, hash,
+							authorSlot);
+					output.setDocumentEntryJson(StringUtility.toJSON(documentEntryDTO));
 				} catch(final Exception ex) {
 					output.setErrorMessage(ex.getCause().getCause().getMessage());
 				}
-
-				if(StringUtility.isNullOrEmpty(resDTO.getErrorMessage())) {
-					try {
-						final DocumentEntryDTO documentEntryDTO = createDocumentEntry(docCDA, requestBody, size, hash,authorRole);
-						output.setDocumentEntryJson(StringUtility.toJSON(documentEntryDTO));
-					} catch(final Exception ex) {
-						output.setErrorMessage(ex.getCause().getCause().getMessage());
-					}
-				}
 			}
-
-		} catch(final ConnectionRefusedException crex) {
-			throw crex;
-		} catch(final Exception ex) {
-			log.error("Error while running create fhir resources : " ,ex);
-			throw new BusinessException("Error while running create fhir resources : " ,ex);
 		}
+
 		return output;
 	}
 
 	private DocumentReferenceDTO buildDocumentReferenceDTO(final String encodedCDA, final PublicationCreateReplaceMetadataDTO requestBody,
 			final Integer size, final String hash) {
 		final DocumentReferenceDTO documentReferenceDTO = new DocumentReferenceDTO();
-		try {
-			documentReferenceDTO.setEncodedCDA(encodedCDA);
-			documentReferenceDTO.setSize(size);
-			documentReferenceDTO.setHash(hash);
-			documentReferenceDTO.setFacilityTypeCode(requestBody.getTipologiaStruttura().getCode());
+		documentReferenceDTO.setEncodedCDA(encodedCDA);
+		documentReferenceDTO.setSize(size);
+		documentReferenceDTO.setHash(hash);
+		documentReferenceDTO.setFacilityTypeCode(requestBody.getTipologiaStruttura().getCode());
 
-			if(requestBody.getAttiCliniciRegoleAccesso()!=null && !requestBody.getAttiCliniciRegoleAccesso().isEmpty()) { 
-				documentReferenceDTO.setEventCode(requestBody.getAttiCliniciRegoleAccesso());
-			}
-			documentReferenceDTO.setPracticeSettingCode(requestBody.getAssettoOrganizzativo().getDescription());
-			documentReferenceDTO.setTipoDocumentoLivAlto(requestBody.getTipoDocumentoLivAlto().getCode());
-			ValidationUtility.repositoryUniqueIdValidation(requestBody.getIdentificativoRep());
-			documentReferenceDTO.setRepositoryUniqueID(requestBody.getIdentificativoRep());
-			documentReferenceDTO.setServiceStartTime(requestBody.getDataInizioPrestazione());
-			documentReferenceDTO.setServiceStopTime(requestBody.getDataFinePrestazione());
-			documentReferenceDTO.setIdentificativoDoc(requestBody.getIdentificativoDoc());
-		} catch(final Exception ex) {
-			log.error(ERROR_MSG , ex);
-			throw new BusinessException(ERROR_MSG , ex);
+		if(requestBody.getAttiCliniciRegoleAccesso()!=null && !requestBody.getAttiCliniciRegoleAccesso().isEmpty()) { 
+			documentReferenceDTO.setEventCode(requestBody.getAttiCliniciRegoleAccesso());
 		}
+		documentReferenceDTO.setPracticeSettingCode(requestBody.getAssettoOrganizzativo().getDescription());
+		documentReferenceDTO.setTipoDocumentoLivAlto(requestBody.getTipoDocumentoLivAlto().getCode());
+		ValidationUtility.repositoryUniqueIdValidation(requestBody.getIdentificativoRep());
+		documentReferenceDTO.setRepositoryUniqueID(requestBody.getIdentificativoRep());
+		documentReferenceDTO.setServiceStartTime(requestBody.getDataInizioPrestazione());
+		documentReferenceDTO.setServiceStopTime(requestBody.getDataFinePrestazione());
+		documentReferenceDTO.setIdentificativoDoc(requestBody.getIdentificativoDoc());
+
 		return documentReferenceDTO;
 	}
 
-	private TransformResDTO callFhirMapping(final DocumentReferenceDTO documentReferenceDTO, final String cda,
+	private FhirResourceDTO buildFhirResourceDTO(final DocumentReferenceDTO documentReferenceDTO, final String cda,
 			String transformId, String engineId) {
-		TransformResDTO out = null;
-		try {
-
-			final FhirResourceDTO req = new FhirResourceDTO();
-			req.setCda(cda);
-			req.setDocumentReferenceDTO(documentReferenceDTO); 
-			req.setObjectId(transformId);
-			req.setEngineId(engineId);
-
-			out = client.callConvertCdaInBundle(req);
-		} catch(final ConnectionRefusedException crex) {
-			throw crex;
-		} catch(final Exception ex) {
-			log.error(ERROR_MSG , ex);
-			throw new BusinessException(ERROR_MSG , ex);
-		}
-		return out;
+		final FhirResourceDTO req = new FhirResourceDTO();
+		req.setCda(cda);
+		req.setDocumentReferenceDTO(documentReferenceDTO); 
+		req.setObjectId(transformId);
+		req.setEngineId(engineId);
+		return req;
 	}
-
+ 
 
 	private SubmissionSetEntryDTO createSubmissionSetEntry(final org.jsoup.nodes.Document docCDA, 
-			final String contentTypeCode, final String identificativoSottomissione) {
+			final String contentTypeCode, final String identificativoSottomissione,
+			AuthorSlotDTO authorSlotDTO) {
 
 		SubmissionSetEntryDTO sse = new SubmissionSetEntryDTO();
 
-
+		sse.setAuthor(authorSlotDTO.getAuthor());
+		sse.setAuthorInstitution(authorSlotDTO.getAuthorInstitution());
+		sse.setAuthorRole(authorSlotDTO.getAuthorRole());
+		sse.setPatientId(buildPatient(docCDA));
 		String sourceIdRoot = "";
 		final Element custodianPath = docCDA.select(PATH_CUSTODIAN_ID).first();
 		if (custodianPath != null) {
@@ -173,15 +158,12 @@ public class DocumentReferenceSRV implements IDocumentReferenceSRV {
 
 	private DocumentEntryDTO createDocumentEntry(final org.jsoup.nodes.Document docCDA,
 			final PublicationCreateReplaceMetadataDTO requestBody, final Integer size, final String hash,
-			String authorRole) {
+			AuthorSlotDTO authorSlotDTO) {
 
 		DocumentEntryDTO de = new DocumentEntryDTO();
 		try {
 
-			final Element patientIdElement = docCDA.select(PATH_PATIENT_ID).first();
-			if (patientIdElement != null) {
-				de.setPatientId(patientIdElement.attr(EXTENSION_ATTRIBUTE));
-			}
+			de.setPatientId(buildPatient(docCDA));
 
 			final Element confidentialityElement = docCDA.select("ClinicalDocument > confidentialityCode").first();
 			if (confidentialityElement != null) {
@@ -217,22 +199,10 @@ public class DocumentReferenceSRV implements IDocumentReferenceSRV {
 				de.setAdministrativeRequest(requestBody.getAdministrativeRequest().getCode());
 			}
 
-			de.setAuthorRole(authorRole);
+			de.setAuthorRole(authorSlotDTO.getAuthorRole());
+			de.setAuthorInstitution(authorSlotDTO.getAuthorInstitution());
+			de.setAuthor(authorSlotDTO.getAuthor());
 
-			final Element authorInstitutionElement = docCDA.select("ClinicalDocument > author > assignedAuthor > representedOrganization > id").first();
-			if (authorInstitutionElement != null) {
-				String extension = authorInstitutionElement.attr(EXTENSION_ATTRIBUTE);
-				String root = authorInstitutionElement.attr("root");
-				String assigningAuthorityName = authorInstitutionElement.attr("assigningAuthorityName");
-				de.setAuthorInstitution(assigningAuthorityName + "^^^^^&" + root + "&ISO^^^^" + extension);
-			} else {
-				de.setAuthorInstitution("AUTHOR_INSTITUTION_NOT_PRESENT");
-			}
-
-			final Element authorElement = docCDA.select("ClinicalDocument > author > assignedAuthor > id").first();
-			if (authorElement != null) {
-				de.setAuthor(authorElement.attr(EXTENSION_ATTRIBUTE));
-			}
 
 			ValidationUtility.repositoryUniqueIdValidation(requestBody.getIdentificativoRep());
 			de.setRepositoryUniqueId(requestBody.getIdentificativoRep());
@@ -266,6 +236,41 @@ public class DocumentReferenceSRV implements IDocumentReferenceSRV {
 			throw new BusinessException("Error while create document entry : " , ex);
 		}
 		return de;
+	}
+	
+	private String buildPatient(final org.jsoup.nodes.Document docCDA) {
+		String out = "";
+		final Element patientIdElement = docCDA.select(PATH_PATIENT_ID).first();
+		if (patientIdElement != null) {
+			String cf = patientIdElement.attr(EXTENSION_ATTRIBUTE);
+			String root = patientIdElement.attr("root");
+			out = cf + "^^^&" + root + "&ISO";
+		}
+return out;		
+	}
+	private AuthorSlotDTO buildAuthorSlotDTO(final String authorRole,final org.jsoup.nodes.Document docCDA) {
+		AuthorSlotDTO author = new AuthorSlotDTO();
+		author.setAuthorRole(authorRole);
+		
+		final Element authorInstitutionElement = docCDA.select("ClinicalDocument > author > assignedAuthor > representedOrganization > id").first();
+		if (authorInstitutionElement != null) {
+			String extension = authorInstitutionElement.attr(EXTENSION_ATTRIBUTE);
+			String root = authorInstitutionElement.attr("root");
+			String assigningAuthorityName = authorInstitutionElement.attr("assigningAuthorityName");
+			author.setAuthorInstitution(assigningAuthorityName + "^^^^^&" + root + "&ISO^^^^" + extension);
+		} else {
+			author.setAuthorInstitution("AUTHOR_INSTITUTION_NOT_PRESENT");
+		}
+		
+		final Element authorElement = docCDA.select("ClinicalDocument > author > assignedAuthor > id").first();
+		if (authorElement != null) {
+			String cfAuthor = authorElement.attr(EXTENSION_ATTRIBUTE); 
+			String rootAuthor = authorElement.attr("root");
+			//"^^^^^^^^&2.16.840.1.113883.2.9.4.3.2&ISO"
+			author.setAuthor(cfAuthor +"^^^^^^^^&" + rootAuthor + "&ISO");
+		}
+		
+		return author;
 	}
 
 }

@@ -102,7 +102,7 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.ValidationException;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.logging.LoggerHelper;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.IAccreditamentoSimulationSRV;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.IConfigSRV;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.IDocumentReferenceSRV;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.IFhirSRV;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.IErrorHandlerSRV;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.IJwtSRV;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.IKafkaSRV;
@@ -125,7 +125,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 	private IKafkaSRV kafkaSRV;
 
 	@Autowired
-	private IDocumentReferenceSRV documentReferenceSRV;
+	private IFhirSRV documentReferenceSRV;
 
 	@Autowired
 	private IniEdsInvocationSRV iniInvocationSRV;
