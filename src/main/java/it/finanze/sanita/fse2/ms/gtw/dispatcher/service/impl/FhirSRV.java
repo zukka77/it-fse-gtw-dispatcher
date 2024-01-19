@@ -196,7 +196,7 @@ public class FhirSRV implements IFhirSRV {
 			de.setHash(hash);
 			de.setSize(size);
 			if(requestBody.getAdministrativeRequest() != null) {
-				de.setAdministrativeRequest(requestBody.getAdministrativeRequest().getCode());
+				de.setAdministrativeRequest(requestBody.getAdministrativeRequest().getCode() + "^" + requestBody.getAdministrativeRequest().getDescription());
 			}
 
 			de.setAuthorRole(authorSlotDTO.getAuthorRole());
