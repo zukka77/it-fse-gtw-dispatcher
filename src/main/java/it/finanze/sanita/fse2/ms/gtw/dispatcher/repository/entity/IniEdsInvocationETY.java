@@ -34,6 +34,9 @@ public class IniEdsInvocationETY {
 	
 	@Field(name = "workflow_instance_id")
 	private String workflowInstanceId;
+	
+	@Field(name = "issuer")
+	private String issuer;
 
 	@Field(name = "riferimento_ini")
 	private String riferimentoIni;
