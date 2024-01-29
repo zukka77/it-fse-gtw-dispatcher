@@ -39,24 +39,22 @@ import com.lowagie.text.pdf.PdfString;
 
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.AttachmentDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.BusinessException;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class PDFUtility {
 	
-	private PDFUtility() {}
-	
+	 
 	public static String extractCDAFromAttachments(final byte[] cda, final String cdaAttachmentName) {
 		String out = null;
 		final Map<String, AttachmentDTO> attachments = extractAttachments(cda);
 		if (!attachments.isEmpty()) {
-			if (attachments.size() == 1) {
-				out = PDFUtility.detectCharsetAndExtract(attachments.values().iterator().next().getContent());
-			} else {
-				final AttachmentDTO attDTO = attachments.get(cdaAttachmentName);
-				if (attDTO != null) {
-					out = PDFUtility.detectCharsetAndExtract(attDTO.getContent());
-				}
+			final AttachmentDTO attDTO = attachments.get(cdaAttachmentName);
+			if (attDTO != null) {
+				out = PDFUtility.detectCharsetAndExtract(attDTO.getContent());
 			}
 		}
 		return out;
@@ -76,7 +74,7 @@ public class PDFUtility {
 		    			mimeType(entry.getValue().getEmbeddedFile().getSubtype()).
 		    			content(entry.getValue().getEmbeddedFile().toByteArray()).
 		    			build();
-		    	out.put(entry.getKey(), att);
+		    	out.put(entry.getKey().toLowerCase(), att);
 		    }
 		} catch (Exception e) {
 			log.warn("Errore in fase di estrazione allegati da pdf.");
@@ -162,7 +160,6 @@ public class PDFUtility {
 	public static String detectCharsetAndExtract(byte[] bytes) {
 		Charset detectedCharset = StandardCharsets.UTF_8;
 		try {
-			
 			XMLInputFactory factory = XMLInputFactory.newInstance();
 			factory.setProperty(XMLInputFactory.IS_SUPPORTING_EXTERNAL_ENTITIES, Boolean.FALSE);
 			factory.setProperty(XMLInputFactory.SUPPORT_DTD, Boolean.FALSE);
