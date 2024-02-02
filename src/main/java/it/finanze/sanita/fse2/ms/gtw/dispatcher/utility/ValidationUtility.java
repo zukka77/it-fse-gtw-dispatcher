@@ -18,6 +18,8 @@ import java.util.Date;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.lang3.StringUtils;
+
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.ErrorResponseDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ErrorInstanceEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.SubjectOrganizationEnum;
@@ -47,7 +49,8 @@ public final class ValidationUtility {
 		if(m.matches()) {
 			output = true;
 			if(m.groupCount()>0) {
-				output = SubjectOrganizationEnum.getCode(m.group(1)) != null;
+				String groupToCheck = StringUtils.leftPad(m.group(1), 3,"0");
+				output = SubjectOrganizationEnum.getCode(groupToCheck) != null;
 			}
 		} else {
 			output = false;
@@ -62,5 +65,5 @@ public final class ValidationUtility {
 			throw new ValidationException(error);
 		}
 	}
-
+ 
 }
