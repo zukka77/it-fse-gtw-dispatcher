@@ -17,6 +17,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamReader;
@@ -46,43 +47,46 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class PDFUtility {
+
 	
-	 
 	public static String extractCDAFromAttachments(final byte[] cda, final String cdaAttachmentName) {
-		String out = null;
-		final Map<String, AttachmentDTO> attachments = extractAttachments(cda);
-		if (!attachments.isEmpty()) {
-			final AttachmentDTO attDTO = attachments.get(cdaAttachmentName);
-			if (attDTO != null) {
-				out = PDFUtility.detectCharsetAndExtract(attDTO.getContent());
-			}
-		}
-		return out;
-	}
-	
-	private static Map<String, AttachmentDTO> extractAttachments(byte[] bytePDF) {
-		Map<String, AttachmentDTO> out = new HashMap<>();
-		
-		try (PDDocument pd = PDDocument.load(bytePDF)) {
-		    PDDocumentCatalog catalog = pd.getDocumentCatalog();
-		    PDDocumentNameDictionary names = catalog.getNames();
-		    PDEmbeddedFilesNameTreeNode embeddedFiles = names.getEmbeddedFiles();
-		    Map<String, PDComplexFileSpecification> embeddedFileNames = embeddedFiles.getNames();
-		    for (Map.Entry<String, PDComplexFileSpecification> entry : embeddedFileNames.entrySet()) {  
-		    	AttachmentDTO att = AttachmentDTO.builder().
-		    			fileName(entry.getKey()).
-		    			mimeType(entry.getValue().getEmbeddedFile().getSubtype()).
-		    			content(entry.getValue().getEmbeddedFile().toByteArray()).
-		    			build();
-		    	out.put(entry.getKey().toLowerCase(), att);
-		    }
-		} catch (Exception e) {
-			log.warn("Errore in fase di estrazione allegati da pdf.");
-		}
+	    String out = null;
+	    final Map<String, AttachmentDTO> attachments = extractAttachments(cda);
+	    if (!attachments.isEmpty()) {
+	        for (Entry<String, AttachmentDTO> att:attachments.entrySet()) {
+	            if (cdaAttachmentName.equals(att.getValue().getName())||cdaAttachmentName.equals(att.getValue().getFileName())) {
+	                out = PDFUtility.detectCharsetAndExtract(att.getValue().getContent());
+	                break;
+	            }
+	        }
+	    }
 	    return out;
 	}
-	
- 
+
+	private static Map<String, AttachmentDTO> extractAttachments(byte[] bytePDF) {
+	    Map<String, AttachmentDTO> out = new HashMap<>();
+	    
+	    try (PDDocument pd = PDDocument.load(bytePDF)) {
+	        PDDocumentCatalog catalog = pd.getDocumentCatalog();
+	        PDDocumentNameDictionary names = catalog.getNames();
+	        PDEmbeddedFilesNameTreeNode embeddedFiles = names.getEmbeddedFiles();
+	        Map<String, PDComplexFileSpecification> embeddedFileNames = embeddedFiles.getNames();
+	        for (Map.Entry<String, PDComplexFileSpecification> entry : embeddedFileNames.entrySet()) {
+	            AttachmentDTO att = AttachmentDTO.builder().
+	                    fileName(entry.getValue().getFilename()).
+	                    name(entry.getKey()).
+	                    mimeType(entry.getValue().getEmbeddedFile().getSubtype()).
+	                    content(entry.getValue().getEmbeddedFile().toByteArray()).
+	                    build();
+	            out.put(entry.getKey().toLowerCase(), att);
+	        }
+	    } catch (Exception e) {
+	        log.warn("Errore in fase di estrazione allegati da pdf.");
+	    }
+	    return out;
+	}
+
+
 	public static String unenvelopeA2(byte[] pdf) {
 		String out = null;
 		String errorMsg = "No CDA found.";
@@ -108,7 +112,7 @@ public class PDFUtility {
 												if (cdaPRStream != null) {
 													out = new String(PdfReader.getStreamBytes(cdaPRStream), StandardCharsets.UTF_8);
 													org.jsoup.nodes.Document doc = Jsoup.parse(out, "", Parser.xmlParser());
-											        out = doc.select("ClinicalDocument").first().toString();
+													out = doc.select("ClinicalDocument").first().toString();
 												} else {
 													errorMsg = "PRStream cdaPRStream [element 1] is null";
 												}

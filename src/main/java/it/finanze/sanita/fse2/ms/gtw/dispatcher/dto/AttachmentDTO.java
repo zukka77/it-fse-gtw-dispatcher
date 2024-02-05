@@ -17,6 +17,7 @@ import lombok.Getter;
 @Getter
 @Builder
 public class AttachmentDTO {
+	private String name;
 	private String fileName;
 	private byte[] content;
 	private String mimeType;
