@@ -48,6 +48,7 @@ import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.List;
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -373,7 +374,22 @@ public abstract class AbstractCTL {
 			throwInvalidTokenError(ErrorInstanceEnum.PERSON_ID_MISMATCH, message);
 		}
 		
-		String patientRoleCF = element.get(0).attr("extension");
+		String patientRoleCF = "";
+		if(element.size() == 1) {
+			patientRoleCF = element.get(0).attr("extension");
+		} else {
+			Optional<Element> el = element.stream().filter(e->e.attr("root").equals("2.16.840.1.113883.2.9.4.3.2")).findFirst();
+			if(el.isPresent()) {
+				patientRoleCF = el.get().attr("extension");	
+			}
+		}
+		
+		if (StringUtility.isNullOrEmpty(patientRoleCF)) {
+			String message = "JWT payload: non è stato possibile estrarre il codice fiscale del paziente presente nel CDA";
+			throwInvalidTokenError(ErrorInstanceEnum.PERSON_ID_MISMATCH, message);
+		}
+		
+		
 		String[] chunks = jwtPayloadToken.getPerson_id().split("\\^");
 		if(!chunks[0].equals(patientRoleCF)) { 
 			String message = "JWT payload: Person id presente nel JWT differente dal codice fiscale del paziente previsto sul CDA";
