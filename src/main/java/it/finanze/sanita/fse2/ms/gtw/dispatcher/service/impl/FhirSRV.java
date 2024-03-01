@@ -11,11 +11,13 @@
  */
 package it.finanze.sanita.fse2.ms.gtw.dispatcher.service.impl;
 
+import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.Date;
 
+import org.bson.Document;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Element;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,6 +38,7 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.AttivitaClinicaEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.LowLevelDocEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.BusinessException;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.IFhirSRV;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.FileUtility;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.ValidationUtility;
 import lombok.extern.slf4j.Slf4j;
@@ -248,16 +251,29 @@ public class FhirSRV implements IFhirSRV {
 		}
 return out;		
 	}
-	private AuthorSlotDTO buildAuthorSlotDTO(final String authorRole,final org.jsoup.nodes.Document docCDA) {
+	
+	public static void main(String[] args) {
+		byte[] cda = FileUtility.getFileFromInternalResources("cda.xml");
+		org.jsoup.nodes.Document cdaJsoup = Jsoup.parse(new String(cda, StandardCharsets.UTF_8));
+		AuthorSlotDTO author =  buildAuthorSlotDTO("APR", cdaJsoup);
+		System.out.println(author.getAuthorRole());
+		System.out.println(author.getAuthor());
+		System.out.println(author.getAuthorInstitution());
+		
+	}
+	
+	
+	private static AuthorSlotDTO buildAuthorSlotDTO(final String authorRole,final org.jsoup.nodes.Document docCDA) {
 		AuthorSlotDTO author = new AuthorSlotDTO();
 		author.setAuthorRole(authorRole);
-		
-		final Element authorInstitutionElement = docCDA.select("ClinicalDocument > author > assignedAuthor > representedOrganization > id").first();
-		if (authorInstitutionElement != null) {
+		String representedOrganizationTag = "ClinicalDocument > author > assignedAuthor > representedOrganization";
+		final Element authorInstitutionElement = docCDA.select(representedOrganizationTag + " > id").first();
+		final Element authorInstitutionName = docCDA.select(representedOrganizationTag + " > name").first();
+		if (authorInstitutionElement != null && authorInstitutionName!=null) {
 			String extension = authorInstitutionElement.attr(EXTENSION_ATTRIBUTE);
 			String root = authorInstitutionElement.attr("root");
-			String assigningAuthorityName = authorInstitutionElement.attr("assigningAuthorityName");
-			author.setAuthorInstitution(assigningAuthorityName + "^^^^^&" + root + "&ISO^^^^" + extension);
+			String name = authorInstitutionName.text();
+			author.setAuthorInstitution(name + "^^^^^&" + root + "&ISO^^^^" + extension);
 		} else {
 			author.setAuthorInstitution("AUTHOR_INSTITUTION_NOT_PRESENT");
 		}
@@ -266,7 +282,6 @@ return out;
 		if (authorElement != null) {
 			String cfAuthor = authorElement.attr(EXTENSION_ATTRIBUTE); 
 			String rootAuthor = authorElement.attr("root");
-			//"^^^^^^^^&2.16.840.1.113883.2.9.4.3.2&ISO"
 			author.setAuthor(cfAuthor +"^^^^^^^^&" + rootAuthor + "&ISO");
 		}
 		
