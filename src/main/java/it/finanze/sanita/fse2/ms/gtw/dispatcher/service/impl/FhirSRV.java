@@ -57,7 +57,7 @@ public class FhirSRV implements IFhirSRV {
 	@Override
 	public ResourceDTO createFhirResources(final String cda, String authorRole,final PublicationCreateReplaceMetadataDTO requestBody,
 			final Integer size, final String hash, String transformId, String engineId) {
-		
+
 		final ResourceDTO output = new ResourceDTO();
 		final org.jsoup.nodes.Document docCDA = Jsoup.parse(cda);
 		final String encodedCDA = Base64.getEncoder().encodeToString(cda.getBytes());
@@ -72,7 +72,7 @@ public class FhirSRV implements IFhirSRV {
 			output.setBundleJson(StringUtility.toJSON(resDTO.getJson()));
 
 			AuthorSlotDTO authorSlot =  buildAuthorSlotDTO(authorRole,docCDA);
-			
+
 			try {
 				final SubmissionSetEntryDTO submissionSetEntryDTO = createSubmissionSetEntry(docCDA, requestBody.getTipoAttivitaClinica().getCode(),
 						requestBody.getIdentificativoSottomissione(),authorSlot);
@@ -126,7 +126,7 @@ public class FhirSRV implements IFhirSRV {
 		req.setEngineId(engineId);
 		return req;
 	}
- 
+
 
 	private SubmissionSetEntryDTO createSubmissionSetEntry(final org.jsoup.nodes.Document docCDA, 
 			final String contentTypeCode, final String identificativoSottomissione,
@@ -240,7 +240,7 @@ public class FhirSRV implements IFhirSRV {
 		}
 		return de;
 	}
-	
+
 	private String buildPatient(final org.jsoup.nodes.Document docCDA) {
 		String out = "";
 		final Element patientIdElement = docCDA.select(PATH_PATIENT_ID).first();
@@ -249,20 +249,10 @@ public class FhirSRV implements IFhirSRV {
 			String root = patientIdElement.attr("root");
 			out = cf + "^^^&" + root + "&ISO";
 		}
-return out;		
+		return out;		
 	}
-	
-	public static void main(String[] args) {
-		byte[] cda = FileUtility.getFileFromInternalResources("cda.xml");
-		org.jsoup.nodes.Document cdaJsoup = Jsoup.parse(new String(cda, StandardCharsets.UTF_8));
-		AuthorSlotDTO author =  buildAuthorSlotDTO("APR", cdaJsoup);
-		System.out.println(author.getAuthorRole());
-		System.out.println(author.getAuthor());
-		System.out.println(author.getAuthorInstitution());
-		
-	}
-	
-	
+
+
 	private static AuthorSlotDTO buildAuthorSlotDTO(final String authorRole,final org.jsoup.nodes.Document docCDA) {
 		AuthorSlotDTO author = new AuthorSlotDTO();
 		author.setAuthorRole(authorRole);
@@ -277,14 +267,14 @@ return out;
 		} else {
 			author.setAuthorInstitution("AUTHOR_INSTITUTION_NOT_PRESENT");
 		}
-		
+
 		final Element authorElement = docCDA.select("ClinicalDocument > author > assignedAuthor > id").first();
 		if (authorElement != null) {
 			String cfAuthor = authorElement.attr(EXTENSION_ATTRIBUTE); 
 			String rootAuthor = authorElement.attr("root");
 			author.setAuthor(cfAuthor +"^^^^^^^^&" + rootAuthor + "&ISO");
 		}
-		
+
 		return author;
 	}
 
