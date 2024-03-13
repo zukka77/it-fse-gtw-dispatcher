@@ -11,6 +11,28 @@
  */
 package it.finanze.sanita.fse2.ms.gtw.dispatcher.controller.impl;
 
+import java.text.SimpleDateFormat;
+import java.util.Arrays;
+import java.util.Base64;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+
+import javax.annotation.Nullable;
+import javax.servlet.http.HttpServletRequest;
+
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.parser.Parser;
+import org.jsoup.select.Elements;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.CollectionUtils;
+import org.springframework.web.multipart.MultipartFile;
+
 import brave.Tracer;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.IValidatorClient;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.CDACFG;
@@ -21,10 +43,23 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.JWTPayloadDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.JWTTokenDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.ValidationDataDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.ValidationInfoDTO;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.*;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.PublicationCreateReplaceMetadataDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.PublicationCreateReplaceWiiDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.PublicationCreationReqDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.PublicationMetadataReqDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.PublicationUpdateReqDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.ValidationCDAReqDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.ErrorResponseDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.LogTraceInfoDTO;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.*;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ActivityEnum;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.DescriptionEnum;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ErrorInstanceEnum;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventCodeEnum;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventTypeEnum;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.InjectionModeEnum;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.RawValidationEnum;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.RestExecutionResultEnum;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.SubjectOrganizationEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.BusinessException;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.ConnectionRefusedException;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.ValidationException;
@@ -33,30 +68,14 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.facade.ICdaFacadeSRV;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.PDFUtility;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility;
 import lombok.extern.slf4j.Slf4j;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
-import org.jsoup.parser.Parser;
-import org.jsoup.select.Elements;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.util.CollectionUtils;
-import org.springframework.web.multipart.MultipartFile;
-
-import javax.annotation.Nullable;
-import javax.servlet.http.HttpServletRequest;
-import java.text.SimpleDateFormat;
-import java.util.Arrays;
-import java.util.Base64;
-import java.util.List;
-import java.util.Optional;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  *	Abstract controller.
  */
 @Slf4j
 public abstract class AbstractCTL {
+	
+	private static final String TEAM_OID = "2.16.840.1.113883.2.9.4.3.7";
 	 
 	@Autowired
 	private Tracer tracer;
@@ -374,26 +393,19 @@ public abstract class AbstractCTL {
 			throwInvalidTokenError(ErrorInstanceEnum.PERSON_ID_MISMATCH, message);
 		}
 		
-		String patientRoleCF = "";
-		if(element.size() == 1) {
-			patientRoleCF = element.get(0).attr("extension");
-		} else {
-			Optional<Element> el = element.stream().filter(e->e.attr("root").equals("2.16.840.1.113883.2.9.4.3.2")).findFirst();
-			if(el.isPresent()) {
-				patientRoleCF = el.get().attr("extension");	
-			}
-		}
-		
-		if (StringUtility.isNullOrEmpty(patientRoleCF)) {
-			String message = "JWT payload: non è stato possibile estrarre il codice fiscale del paziente presente nel CDA";
-			throwInvalidTokenError(ErrorInstanceEnum.PERSON_ID_MISMATCH, message);
-		}
-		
-		
 		String[] chunks = jwtPayloadToken.getPerson_id().split("\\^");
-		if(!chunks[0].equals(patientRoleCF)) { 
+
+		Map<String, String> resultMap = element.stream()
+                .collect(Collectors.toMap(e -> e.attr("extension"), e -> e.attr("root")));
+		
+		String oid = resultMap.get(chunks[0]);
+		if (StringUtility.isNullOrEmpty(oid)) {
 			String message = "JWT payload: Person id presente nel JWT differente dal codice fiscale del paziente previsto sul CDA";
 			throwInvalidTokenError(ErrorInstanceEnum.PERSON_ID_MISMATCH, message);
+		}
+		
+		if(!oid.equals(TEAM_OID)) {
+			jwtSRV.checkFiscalCode(jwtPayloadToken.getPerson_id(),"person_id");
 		}
 		
 	}
