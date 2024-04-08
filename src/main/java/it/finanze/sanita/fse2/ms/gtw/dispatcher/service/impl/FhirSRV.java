@@ -40,6 +40,7 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.AttivitaClinicaEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.LowLevelDocEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.BusinessException;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.IFhirSRV;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.DateUtility;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.ValidationUtility;
 import lombok.extern.slf4j.Slf4j;
@@ -231,14 +232,13 @@ public class FhirSRV implements IFhirSRV {
 			de.setPracticeSettingCode(requestBody.getAssettoOrganizzativo().name());
 			de.setPracticeSettingCodeName(requestBody.getAssettoOrganizzativo().getDescription());
 
-			final SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmmss");
 
-			if (requestBody.getDataInizioPrestazione() != null) {
-				de.setServiceStartTime(sdf.parse(requestBody.getDataInizioPrestazione()).toString());
+			if (requestBody.getDataInizioPrestazione() != null && DateUtility.isValidDateFormat(requestBody.getDataInizioPrestazione(), "yyyyMMddHHmmss")) {
+				de.setServiceStartTime(requestBody.getDataInizioPrestazione());
 			}
 
-			if (requestBody.getDataFinePrestazione() != null) {
-				de.setServiceStopTime(sdf.parse(requestBody.getDataFinePrestazione()).toString());
+			if (requestBody.getDataFinePrestazione() != null && DateUtility.isValidDateFormat(requestBody.getDataFinePrestazione(), "yyyyMMddHHmmss")) {
+				de.setServiceStopTime(requestBody.getDataFinePrestazione());
 			}
 		} catch(final Exception ex) {
 			log.error("Error while create document entry : " , ex);
