@@ -49,7 +49,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class FhirSRV implements IFhirSRV {
 
-	private static final String PATH_CUSTODIAN_ID = "ClinicalDocument > custodian > assignedCustodian > representedCustodianOrganization > id";
+	private static final String PATH_ID = "ClinicalDocument > id";
 	private static final String PATH_PATIENT_ID = "ClinicalDocument > recordTarget > patientRole> id";
 	private static final String EXTENSION_ATTRIBUTE = "extension";
 
@@ -141,12 +141,11 @@ public class FhirSRV implements IFhirSRV {
 		sse.setAuthorRole(authorSlotDTO.getAuthorRole());
 		sse.setPatientId(buildPatient(docCDA));
 		String sourceIdRoot = "";
-		final Element custodianPath = docCDA.select(PATH_CUSTODIAN_ID).first();
-		if (custodianPath != null) {
-			sourceIdRoot = custodianPath.attr("root");
+		final Element idPath = docCDA.select(PATH_ID).first();
+		if (idPath != null) {
+			sourceIdRoot = idPath.attr("root");
+			sse.setSourceId(sourceIdRoot.substring(0, sourceIdRoot.length()-4));
 		}
-
-		sse.setSourceId(sourceIdRoot);
 		sse.setUniqueID(identificativoSottomissione);
 
 		sse.setSubmissionTime(new SimpleDateFormat(Constants.Misc.INI_DATE_PATTERN).format(new Date()));
@@ -159,7 +158,8 @@ public class FhirSRV implements IFhirSRV {
 		}
 		return sse;
 	}
-
+ 
+ 
 
 	private DocumentEntryDTO createDocumentEntry(final org.jsoup.nodes.Document docCDA,
 			final PublicationCreateReplaceMetadataDTO requestBody, final Integer size, final String hash,
@@ -206,7 +206,7 @@ public class FhirSRV implements IFhirSRV {
 					administrativeRequestList.add(en.getCode() + "^" + en.getDescription());	
 				}
 				de.setAdministrativeRequest(administrativeRequestList);
-				
+
 			}
 
 			de.setAuthorRole(authorSlotDTO.getAuthorRole());
