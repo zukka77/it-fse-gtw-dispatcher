@@ -553,12 +553,11 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 			}
 
 			// Check response errors
-			if(!isNullOrEmpty(iniResponse.getErrorMessage())) {
+			if(Boolean.FALSE.equals(iniResponse.getEsito())) {
 				// Send to indexer
 				kafkaSRV.sendDeleteRequest(workflowInstanceId, deleteRequestDTO);
 				// Update transaction status
-				kafkaSRV.sendDeleteStatus(info.getTraceID(), workflowInstanceId, idDoc, "Transazione presa in carico", EventStatusEnum.ASYNC_RETRY, jwtPayloadToken,
-						INI_DELETE);
+				kafkaSRV.sendDeleteStatus(info.getTraceID(), workflowInstanceId, idDoc, "Transazione presa in carico", EventStatusEnum.ASYNC_RETRY, jwtPayloadToken,INI_DELETE);
 				warning = Misc.WARN_ASYNC_TRANSACTION;
 			} else {
 				// Update transaction status
