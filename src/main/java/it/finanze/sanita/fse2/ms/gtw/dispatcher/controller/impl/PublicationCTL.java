@@ -456,7 +456,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 			final JWTPayloadDTO jwtPayloadToken, PublicationCreateReplaceMetadataDTO jsonObj, final byte[] bytePDF,
 			final String cda, final String documentSha256) {
 		final ResourceDTO fhirResourcesDTO = documentReferenceSRV.createFhirResources(cda,jwtPayloadToken.getSubject_role(), jsonObj, bytePDF.length, documentSha256,transformId, engineId,
-				jwtPayloadToken.getSubject_organization_id());
+				jwtPayloadToken.getSubject_organization_id(),jwtPayloadToken.getLocality());
 
 		if(!isNullOrEmpty(fhirResourcesDTO.getErrorMessage())) {
 			final ErrorResponseDTO error = ErrorResponseDTO.builder()

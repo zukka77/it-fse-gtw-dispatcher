@@ -58,7 +58,7 @@ public class FhirSRV implements IFhirSRV {
 
 	@Override
 	public ResourceDTO createFhirResources(final String cda, String authorRole,final PublicationCreateReplaceMetadataDTO requestBody,
-			final Integer size, final String hash, String transformId, String engineId, String organizationId) {
+			final Integer size, final String hash, String transformId, String engineId, String organizationId,final String authorInstitution) {
 
 		final ResourceDTO output = new ResourceDTO();
 		final org.jsoup.nodes.Document docCDA = Jsoup.parse(cda);
@@ -72,8 +72,7 @@ public class FhirSRV implements IFhirSRV {
 			output.setErrorMessage(resDTO.getErrorMessage());
 		} else {
 			output.setBundleJson(StringUtility.toJSON(resDTO.getJson()));
-
-			AuthorSlotDTO authorSlot =  buildAuthorSlotDTO(authorRole,docCDA);
+			AuthorSlotDTO authorSlot =  buildAuthorSlotDTO(authorRole,authorInstitution,docCDA);
 
 			try {
 				final SubmissionSetEntryDTO submissionSetEntryDTO = createSubmissionSetEntry(docCDA, requestBody.getTipoAttivitaClinica().getCode(),
@@ -252,21 +251,11 @@ public class FhirSRV implements IFhirSRV {
 	}
 
 
-	private static AuthorSlotDTO buildAuthorSlotDTO(final String authorRole,final org.jsoup.nodes.Document docCDA) {
+	private static AuthorSlotDTO buildAuthorSlotDTO(final String authorRole,String authorInstitution,final org.jsoup.nodes.Document docCDA) {
 		AuthorSlotDTO author = new AuthorSlotDTO();
 		author.setAuthorRole(authorRole);
-		String representedOrganizationTag = "ClinicalDocument > author > assignedAuthor > representedOrganization";
-		final Element authorInstitutionElement = docCDA.select(representedOrganizationTag + " > id").first();
-		final Element authorInstitutionName = docCDA.select(representedOrganizationTag + " > name").first();
-		if (authorInstitutionElement != null && authorInstitutionName!=null) {
-			String extension = authorInstitutionElement.attr(EXTENSION_ATTRIBUTE);
-			String root = authorInstitutionElement.attr("root");
-			String name = authorInstitutionName.text();
-			author.setAuthorInstitution(name + "^^^^^&" + root + "&ISO^^^^" + extension);
-		} else {
-			author.setAuthorInstitution("AUTHOR_INSTITUTION_NOT_PRESENT");
-		}
-
+		author.setAuthorInstitution(authorInstitution);
+		
 		final Element authorElement = docCDA.select("ClinicalDocument > author > assignedAuthor > id").first();
 		if (authorElement != null) {
 			String cfAuthor = authorElement.attr(EXTENSION_ATTRIBUTE); 
