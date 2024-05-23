@@ -268,12 +268,12 @@ public class JwtSRV extends AbstractService implements IJwtSRV {
         }
     }
 
-	private ValidationException buildValidationException() {
+	private ValidationException buildValidationException() { 
 		ErrorResponseDTO error = ErrorResponseDTO.builder()
 				.type(RestExecutionResultEnum.INVALID_TOKEN_FIELD.getType())
 				.title(RestExecutionResultEnum.INVALID_TOKEN_FIELD.getTitle())
 				.instance(ErrorInstanceEnum.JWT_MALFORMED_FIELD.getInstance())
-				.detail("Il campo Locality non è valorizzato correttamente - EXAMPLE - FIELD1^^^^^FIELD2^^^^FIELD3")
+				.detail("Il campo Locality non è valorizzato correttamente - EXAMPLE - FIELD1^^^^^&FIELD2&ISO^^^^FIELD3")
 				.build();
 		return new ValidationException(error);
 	}
