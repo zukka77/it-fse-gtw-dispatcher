@@ -35,6 +35,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import brave.Tracer;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.IValidatorClient;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.BenchmarkCFG;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.CDACFG;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants.App;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants.Headers;
@@ -94,6 +95,9 @@ public abstract class AbstractCTL {
 	
 	@Autowired
 	private IJwtSRV jwtSRV;
+
+	@Autowired
+	private BenchmarkCFG benchmarkCfg;
 
 	protected LogTraceInfoDTO getLogTraceInfo() {
 		LogTraceInfoDTO out = new LogTraceInfoDTO(null, null);
@@ -501,9 +505,22 @@ public abstract class AbstractCTL {
 
 			if (ActivityEnum.VALIDATION.equals(activity)
 					&& Arrays.asList(RawValidationEnum.OK, RawValidationEnum.SEMANTIC_WARNING).contains(rawValRes.getResult())) {
-
-				final String hashedCDA = StringUtility.encodeSHA256B64(cdaWithoutLegalAuthenticator(cda));
-				cdaFacadeSRV.create(hashedCDA, workflowInstanceId, rawValRes.getTransformID(), rawValRes.getEngineID());
+ 
+				if(!benchmarkCfg.isBenchmarkEnable()){
+					final String hashedCDA = StringUtility.encodeSHA256B64(cdaWithoutLegalAuthenticator(cda));
+					cdaFacadeSRV.create(hashedCDA, workflowInstanceId, rawValRes.getTransformID(), rawValRes.getEngineID());
+				} else {
+					if(!cda.startsWith("<!--CDA_BENCHMARK_TEST-->")){
+						final String hashedCDA = StringUtility.encodeSHA256B64(cdaWithoutLegalAuthenticator(cda));
+						cdaFacadeSRV.create(hashedCDA, workflowInstanceId, rawValRes.getTransformID(), rawValRes.getEngineID());	
+					} else {
+						final String hashedCDA = StringUtility.encodeSHA256B64(cdaWithoutLegalAuthenticator(cda));
+						cdaFacadeSRV.createBenchMark(hashedCDA, workflowInstanceId, rawValRes.getTransformID(), rawValRes.getEngineID());	
+					}
+					
+				}
+				
+				
 			}
 
 			if (!RawValidationEnum.OK.equals(rawValRes.getResult())) {

@@ -52,6 +52,7 @@ import com.google.gson.Gson;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.IEdsClient;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.IIniClient;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.AccreditationSimulationCFG;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.BenchmarkCFG;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants.Misc;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.ValidationCFG;
@@ -163,6 +164,9 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 	
 	@Autowired
 	private IConfigSRV configSRV;
+
+	@Autowired
+	private BenchmarkCFG benchmarkCFG;
 
 
 	@Override
@@ -438,8 +442,16 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 
 		ValidationDataDTO validatedDocument = cdaSRV.getByWorkflowInstanceId(validationInfo.getWorkflowInstanceId()); 
 
-		cdaSRV.consumeHash(validationInfo.getHash()); 
-
+		if(!benchmarkCFG.isBenchmarkEnable()){
+			cdaSRV.consumeHash(validationInfo.getHash()); 
+		} else {
+			if(!cda.startsWith("<!--CDA_BENCHMARK_TEST-->")){
+				cdaSRV.consumeHash(validationInfo.getHash()); 
+			} else {
+				cdaSRV.consumeHashBenchmark(validationInfo.getHash()); 
+			} 
+		}
+ 
 		ValidationUtility.checkDayAfterValidation(validatedDocument.getInsertionDate(), validationCFG.getDaysAllowToPublishAfterValidation());
 
 		final String documentSha256 = encodeSHA256(bytePDF);

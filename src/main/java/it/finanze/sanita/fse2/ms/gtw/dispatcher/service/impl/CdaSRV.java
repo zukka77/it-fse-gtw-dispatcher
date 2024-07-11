@@ -37,6 +37,7 @@ public class CdaSRV implements ICdaSRV {
 	@Autowired 
 	private IValidatedDocumentsRepo cdaRepo;
 	
+	
 	@Override
 	public void create(final String hashedCDA, final String wii, String transfID, String engineID) {
 		try {
@@ -108,5 +109,28 @@ public class CdaSRV implements ICdaSRV {
 	}
 
 	 
+	@Override
+	public void createBenchMark(final String hashedCDA, final String wii, String transfID, String engineID) {
+		try {
+			cdaRepo.createBenchmark(ValidatedDocumentsETY.setContent(hashedCDA, wii, transfID, engineID));
+		} catch(Exception ex) {
+			log.error("Error creating cda :" ,ex);
+			throw new BusinessException("Error creating cda :" ,ex);
+		}
+	}
+
+	@Override
+	public boolean consumeHashBenchmark(final String hashToConsume) {
+		boolean consumed = false;
+		try {
+			if(!StringUtility.isNullOrEmpty(hashToConsume)) {
+				consumed = cdaRepo.deleteItemBenchmark(hashToConsume);
+			}
+		} catch (Exception e) {
+			log.error("Error while consuming hash from MongoDB", e);
+			throw new BusinessException("Error while consuming hash from MongoDB", e);
+		}
+		return consumed;
+	}
 
 }
