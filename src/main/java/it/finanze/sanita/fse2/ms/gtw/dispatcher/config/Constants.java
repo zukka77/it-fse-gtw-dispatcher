@@ -98,6 +98,7 @@ public final class Constants {
 		
 		public static final String LOG_TYPE_CONTROL = "control-structured-log";
 		public static final int MAX_SIZE_WARNING = 200000;
+		public static final String BENCHMARK_ISSUER = "TEST-BENCHMARK";
 		
 		
 		private App() {

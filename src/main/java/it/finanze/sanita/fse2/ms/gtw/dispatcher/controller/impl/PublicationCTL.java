@@ -296,6 +296,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 		try {
 			request.setAttribute("UPDATE_REQ", requestBody);
 			jwtPayloadToken = extractAndValidateJWT(request, EventTypeEnum.UPDATE);
+			request.setAttribute("JWT_ISSUER", jwtPayloadToken.getIss());
 
 			validateUpdateMetadataReq(requestBody);
 			wif = createWorkflowInstanceId(idDoc);
@@ -385,7 +386,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 		try {
 			final JWTPayloadDTO jwtPayloadToken = extractAndValidateJWT(request, isReplace ? EventTypeEnum.REPLACE : EventTypeEnum.PUBLICATION);
 			validation.setJwtPayloadToken(jwtPayloadToken);
-
+			request.setAttribute("JWT_ISSUER", jwtPayloadToken.getIss());
 			PublicationCreateReplaceWiiDTO jsonObj = getAndValidatePublicationReq(request.getParameter("requestBody"), isReplace);
 			validation.setJsonObj(jsonObj);
 
@@ -504,6 +505,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 		try {
 			// Extract token
 			jwtPayloadToken = extractAndValidateJWT(request, EventTypeEnum.DELETE); 
+			request.setAttribute("JWT_ISSUER", jwtPayloadToken.getIss());
 
 			subjApplicationId = jwtPayloadToken.getSubject_application_id(); 
 			subjApplicationVendor = jwtPayloadToken.getSubject_application_vendor();
