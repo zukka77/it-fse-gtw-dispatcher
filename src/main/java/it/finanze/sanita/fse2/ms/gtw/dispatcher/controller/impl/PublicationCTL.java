@@ -52,6 +52,7 @@ import com.google.gson.Gson;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.IEdsClient;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.IIniClient;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.AccreditationSimulationCFG;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.BenchmarkCFG;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants.Misc;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.ValidationCFG;
@@ -163,6 +164,9 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 	
 	@Autowired
 	private IConfigSRV configSRV;
+
+	@Autowired
+	private BenchmarkCFG benchmarkCFG;
 
 
 	@Override
@@ -292,6 +296,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 		try {
 			request.setAttribute("UPDATE_REQ", requestBody);
 			jwtPayloadToken = extractAndValidateJWT(request, EventTypeEnum.UPDATE);
+			request.setAttribute("JWT_ISSUER", jwtPayloadToken.getIss());
 
 			validateUpdateMetadataReq(requestBody);
 			wif = createWorkflowInstanceId(idDoc);
@@ -381,7 +386,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 		try {
 			final JWTPayloadDTO jwtPayloadToken = extractAndValidateJWT(request, isReplace ? EventTypeEnum.REPLACE : EventTypeEnum.PUBLICATION);
 			validation.setJwtPayloadToken(jwtPayloadToken);
-
+			request.setAttribute("JWT_ISSUER", jwtPayloadToken.getIss());
 			PublicationCreateReplaceWiiDTO jsonObj = getAndValidatePublicationReq(request.getParameter("requestBody"), isReplace);
 			validation.setJsonObj(jsonObj);
 
@@ -436,18 +441,26 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 		validationInfo = getValidationInfo(cda, jsonObj.getWorkflowInstanceId());
 		validation.setValidationData(validationInfo); // Updating validation info
 
-		ValidationDataDTO validatedDocument = cdaSRV.getByWorkflowInstanceId(validationInfo.getWorkflowInstanceId()); 
+		// ValidationDataDTO validatedDocument = cdaSRV.getByWorkflowInstanceId(validationInfo.getWorkflowInstanceId()); 
 
-		cdaSRV.consumeHash(validationInfo.getHash()); 
-
-		ValidationUtility.checkDayAfterValidation(validatedDocument.getInsertionDate(), validationCFG.getDaysAllowToPublishAfterValidation());
-
+		if(!benchmarkCFG.isBenchmarkEnable()){
+			cdaSRV.consumeHash(validationInfo.getHash()); 
+		} else {
+			if(!cda.startsWith("<!--CDA_BENCHMARK_TEST-->")){
+				cdaSRV.consumeHash(validationInfo.getHash()); 
+			} else {
+				cdaSRV.consumeHashBenchmark(validationInfo.getHash()); 
+			} 
+		}
+  
+		ValidationUtility.checkDayAfterValidation(validationInfo.getInsertionDate(), validationCFG.getDaysAllowToPublishAfterValidation());
+		
 		final String documentSha256 = encodeSHA256(bytePDF);
 		validation.setDocumentSha(documentSha256);
 
 		validateDocumentHash(documentSha256, validation.getJwtPayloadToken());
 
-		ResourceDTO fhirMappingResult = callFhirMappingEngine(validatedDocument.getTransformID(), validatedDocument.getEngineID(), jwtPayloadToken, jsonObj, bytePDF, cda,documentSha256);
+		ResourceDTO fhirMappingResult = callFhirMappingEngine(validationInfo.getTransformID(), validationInfo.getEngineID(), jwtPayloadToken, jsonObj, bytePDF, cda,documentSha256);
 		validation.setFhirResource(fhirMappingResult);
 		return validationInfo;
 	}
@@ -492,6 +505,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 		try {
 			// Extract token
 			jwtPayloadToken = extractAndValidateJWT(request, EventTypeEnum.DELETE); 
+			request.setAttribute("JWT_ISSUER", jwtPayloadToken.getIss());
 
 			subjApplicationId = jwtPayloadToken.getSubject_application_id(); 
 			subjApplicationVendor = jwtPayloadToken.getSubject_application_vendor();
