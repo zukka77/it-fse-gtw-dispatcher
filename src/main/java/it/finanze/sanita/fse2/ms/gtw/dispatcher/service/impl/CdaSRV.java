@@ -70,17 +70,19 @@ public class CdaSRV implements ICdaSRV {
 	 @Override
 	public ValidationDataDTO retrieveValidationInfo(final String hashPublication, final String wiiPublication) {
 		ValidationDataDTO data = new ValidationDataDTO();
-		data.setCdaValidated(false);
-		data.setHash(hashPublication);
+		// data.setCdaValidated(false);
+		// data.setHash(hashPublication);
 
-		try {
-			final String value = cdaRepo.findItemByHash(hashPublication).getWorkflowInstanceId();
+		try { 
+			data = cdaRepo.findItemByHash(hashPublication);
+			String wii = data.getWorkflowInstanceId();
+			// final String value = cdaRepo.findItemByHash(hashPublication).getWorkflowInstanceId();
 
-			if (value == null) {
+			if (wii == null) {
 				log.debug("Hash of CDA not found in Mongo, the CDA may be not validated");
-			} else {
-				data.setCdaValidated(true);
-				data.setWorkflowInstanceId(value);
+			} else { 
+				// data.setCdaValidated(true);
+				// data.setWorkflowInstanceId(wii);
 				if (!StringUtility.isNullOrEmpty(wiiPublication) && !wiiPublication.equals(data.getWorkflowInstanceId())) {
 					data.setCdaValidated(false);
 				}

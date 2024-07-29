@@ -441,7 +441,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 		validationInfo = getValidationInfo(cda, jsonObj.getWorkflowInstanceId());
 		validation.setValidationData(validationInfo); // Updating validation info
 
-		ValidationDataDTO validatedDocument = cdaSRV.getByWorkflowInstanceId(validationInfo.getWorkflowInstanceId()); 
+		// ValidationDataDTO validatedDocument = cdaSRV.getByWorkflowInstanceId(validationInfo.getWorkflowInstanceId()); 
 
 		if(!benchmarkCFG.isBenchmarkEnable()){
 			cdaSRV.consumeHash(validationInfo.getHash()); 
@@ -452,15 +452,15 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 				cdaSRV.consumeHashBenchmark(validationInfo.getHash()); 
 			} 
 		}
- 
-		ValidationUtility.checkDayAfterValidation(validatedDocument.getInsertionDate(), validationCFG.getDaysAllowToPublishAfterValidation());
-
+  
+		ValidationUtility.checkDayAfterValidation(validationInfo.getInsertionDate(), validationCFG.getDaysAllowToPublishAfterValidation());
+		
 		final String documentSha256 = encodeSHA256(bytePDF);
 		validation.setDocumentSha(documentSha256);
 
 		validateDocumentHash(documentSha256, validation.getJwtPayloadToken());
 
-		ResourceDTO fhirMappingResult = callFhirMappingEngine(validatedDocument.getTransformID(), validatedDocument.getEngineID(), jwtPayloadToken, jsonObj, bytePDF, cda,documentSha256);
+		ResourceDTO fhirMappingResult = callFhirMappingEngine(validationInfo.getTransformID(), validationInfo.getEngineID(), jwtPayloadToken, jsonObj, bytePDF, cda,documentSha256);
 		validation.setFhirResource(fhirMappingResult);
 		return validationInfo;
 	}
