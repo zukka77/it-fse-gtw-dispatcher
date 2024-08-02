@@ -13,6 +13,8 @@ package it.finanze.sanita.fse2.ms.gtw.dispatcher.service.impl;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -63,8 +65,11 @@ public class IniEdsInvocationSRV implements IIniEdsInvocationSRV {
 		List<Document> metadata = new ArrayList<>();
 		Document submissionSetEntryDoc = new Document("submissionSetEntry" ,Document.parse(submissionSetEntryJson));
 		Document documentEntryDoc = new Document("documentEntry" ,Document.parse(documentEntryJson));
-		Document tokenEntry = new Document("tokenEntry", new Document("payload",Document.parse(tokenEntryJson)));
-		
+		//Extract and set locality
+		Document payload = Document.parse(tokenEntryJson);
+		payload.put("locality", getLocality((String) payload.get("locality")));
+		Document tokenEntry = new Document("tokenEntry", payload);
+
 		metadata.add(submissionSetEntryDoc);
 		metadata.add(documentEntryDoc);
 		metadata.add(tokenEntry);
@@ -89,4 +94,15 @@ public class IniEdsInvocationSRV implements IIniEdsInvocationSRV {
 		return output; 
 	}
 
+	private String getLocality(String locality){
+		Pattern pattern = Pattern.compile("(&[^\\^]+&ISO\\^\\^\\^\\^\\S+)$");
+		Matcher matcher = pattern.matcher(locality);
+
+		if(matcher.find())
+			locality = matcher.group(1);
+		else
+			throw new BusinessException("[IniEdsInvocationSRV] Locality format is not handled");
+
+		return locality;
+	}
 }

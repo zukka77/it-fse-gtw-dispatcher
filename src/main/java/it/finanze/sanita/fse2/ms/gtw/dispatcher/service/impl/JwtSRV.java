@@ -33,6 +33,9 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.ValidationException;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.IJwtSRV;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 @Service
 public class JwtSRV extends AbstractService implements IJwtSRV {
 
@@ -69,7 +72,7 @@ public class JwtSRV extends AbstractService implements IJwtSRV {
 		checkNull(payload.getResource_hl7_type(), "resource_hl7_type"); 
 		validateActionCoherence(payload, ActionEnum.CREATE);
 		validatePurposeOfUseCoherence(payload, PurposeOfUseEnum.TREATMENT);
-		validateLocality(payload.getLocality());
+		validateLocalityOID(payload.getLocality());
 	}
 
 	@Override
@@ -78,7 +81,7 @@ public class JwtSRV extends AbstractService implements IJwtSRV {
 		checkNull(payload.getResource_hl7_type(), "resource_hl7_type"); 
 		validateActionCoherence(payload, ActionEnum.UPDATE);
 		validatePurposeOfUseCoherence(payload, PurposeOfUseEnum.UPDATE);
-		validateLocality(payload.getLocality());
+		validateLocalityOID(payload.getLocality());
 	}
 
 	@Override
@@ -86,7 +89,7 @@ public class JwtSRV extends AbstractService implements IJwtSRV {
 		performCommonValidation(payload);
 		validateActionCoherence(payload, ActionEnum.UPDATE);
 		validatePurposeOfUseCoherence(payload, PurposeOfUseEnum.UPDATE);
-		validateLocality(payload.getLocality());
+		validateLocalityXON(payload.getLocality());
 	}
 
 	@Override
@@ -94,7 +97,7 @@ public class JwtSRV extends AbstractService implements IJwtSRV {
 		performCommonValidation(payload);
 		validateActionCoherence(payload, ActionEnum.DELETE);
 		validatePurposeOfUseCoherence(payload, PurposeOfUseEnum.UPDATE);
-		validateLocality(payload.getLocality());
+		validateLocalityXON(payload.getLocality());
 	}
 
 	private void performCommonValidation(JWTPayloadDTO payload) {
@@ -249,31 +252,56 @@ public class JwtSRV extends AbstractService implements IJwtSRV {
 
 		return true;
 	}
-	
-	private void validateLocality(String locality) { 
-        int indexOfFirstSplitterChar = locality.indexOf("^^^^^&");
-        int indexOfSecondSplitterChar = locality.indexOf("&ISO^^^^");
-    
-        if(indexOfFirstSplitterChar==-1 || indexOfSecondSplitterChar==-1){
-            throw buildValidationException();
-        }
 
-        String nomeStruttura = locality.substring(0, indexOfFirstSplitterChar);
-        String oid = locality.substring(indexOfFirstSplitterChar+6,indexOfSecondSplitterChar);
-        String idStruttura = locality.substring(indexOfSecondSplitterChar+8, locality.length());
+	//M: Validate locality for create & replace
+	private void validateLocalityOID(String locality) {
+		//Regex for NOME_STRUTTURA^^^^^&CODICE_CATALOGO&STANDARD^^^^CODICE_STRUTTURA
+		Pattern pattern = Pattern.compile("^(.+)\\^\\^\\^\\^\\^&(\\S+)&(\\S+)\\^\\^\\^\\^(.+)$");
+		Matcher matcher = pattern.matcher(locality);
 
-        boolean isValid = !StringUtility.isNullOrEmpty(nomeStruttura) && !StringUtility.isNullOrEmpty(oid) && !StringUtility.isNullOrEmpty(idStruttura);
-        if(!isValid){
-            throw buildValidationException();
-        }
-    }
+		if (!matcher.matches()) {
+			throw buildValidationException();
+		}
+
+		// Extracting the groups based on our regex pattern
+		String nomeStruttura = matcher.group(1);
+		String oid = matcher.group(2);
+		String idStruttura = matcher.group(3);
+
+		// Validate extracted values
+		boolean isValid = !StringUtility.isNullOrEmpty(nomeStruttura) && !StringUtility.isNullOrEmpty(oid) && !StringUtility.isNullOrEmpty(idStruttura);
+		if (!isValid) {
+			throw buildValidationException();
+		}
+	}
+
+	//M: Validate locality for delete & update
+	private void validateLocalityXON(String locality){
+		//Regex for &CODICE_CATALOGO&STANDARD^^^^CODICE_STRUTTURA
+		Pattern pattern = Pattern.compile("^&(\\S+)&(\\S+)\\^\\^\\^\\^(.+)$");
+		Matcher matcher = pattern.matcher(locality);
+
+		if (!matcher.matches()) {
+			throw buildValidationException();
+		}
+
+		// Extracting the groups based on our regex pattern
+		String oid = matcher.group(1);
+		String idStruttura = matcher.group(3);
+
+		// Validate extracted values
+		boolean isValid = !StringUtility.isNullOrEmpty(oid) && !StringUtility.isNullOrEmpty(idStruttura);
+		if (!isValid) {
+			throw buildValidationException();
+		}
+	}
 
 	private ValidationException buildValidationException() { 
 		ErrorResponseDTO error = ErrorResponseDTO.builder()
 				.type(RestExecutionResultEnum.INVALID_TOKEN_FIELD.getType())
 				.title(RestExecutionResultEnum.INVALID_TOKEN_FIELD.getTitle())
 				.instance(ErrorInstanceEnum.JWT_MALFORMED_FIELD.getInstance())
-				.detail("Il campo Locality non è valorizzato correttamente - EXAMPLE - FIELD1^^^^^&FIELD2&ISO^^^^FIELD3")
+				.detail("Il campo Locality non è valorizzato correttamente")
 				.build();
 		return new ValidationException(error);
 	}
