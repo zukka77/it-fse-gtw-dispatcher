@@ -69,6 +69,14 @@ public class IniEdsInvocationSRV implements IIniEdsInvocationSRV {
 	private IniEdsInvocationETY buildETY(final String workflowInstanceId, final String bundleJson, final String submissionSetEntryJson,
 			final String documentEntryJson, final String tokenEntryJson, final String rifIni, final String issuer) {
 		IniEdsInvocationETY out = new IniEdsInvocationETY();
+
+		//START LOG
+		log.info("{}" + bundleJson);
+		log.info("{}" + submissionSetEntryJson);
+		log.info("{}" + documentEntryJson);
+		log.info("{}" + tokenEntryJson);
+		//END LOG
+
 		out.setWorkflowInstanceId(workflowInstanceId);
 		out.setData(Document.parse(bundleJson));
 		out.setIssuer(issuer);
