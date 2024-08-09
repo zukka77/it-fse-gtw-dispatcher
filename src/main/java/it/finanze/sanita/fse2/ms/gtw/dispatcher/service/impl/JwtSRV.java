@@ -68,11 +68,11 @@ public class JwtSRV extends AbstractService implements IJwtSRV {
 
 	@Override
 	public void validatePayloadForCreate(JWTPayloadDTO payload) {
-		performCommonValidation(payload);
 		checkNull(payload.getResource_hl7_type(), "resource_hl7_type"); 
 		validateActionCoherence(payload, ActionEnum.CREATE);
+		performCommonValidation(payload);
 		validatePurposeOfUseCoherence(payload, PurposeOfUseEnum.TREATMENT);
-		validateLocalityOID(payload.getLocality());
+		isValidLocality(payload.getLocality(),true);
 	}
 
 	@Override
@@ -81,7 +81,7 @@ public class JwtSRV extends AbstractService implements IJwtSRV {
 		checkNull(payload.getResource_hl7_type(), "resource_hl7_type"); 
 		validateActionCoherence(payload, ActionEnum.UPDATE);
 		validatePurposeOfUseCoherence(payload, PurposeOfUseEnum.UPDATE);
-		validateLocalityOID(payload.getLocality());
+		isValidLocality(payload.getLocality(),true);
 	}
 
 	@Override
@@ -89,7 +89,7 @@ public class JwtSRV extends AbstractService implements IJwtSRV {
 		performCommonValidation(payload);
 		validateActionCoherence(payload, ActionEnum.UPDATE);
 		validatePurposeOfUseCoherence(payload, PurposeOfUseEnum.UPDATE);
-		validateLocalityXON(payload.getLocality());
+		isValidLocality(payload.getLocality(),false);
 	}
 
 	@Override
@@ -97,7 +97,7 @@ public class JwtSRV extends AbstractService implements IJwtSRV {
 		performCommonValidation(payload);
 		validateActionCoherence(payload, ActionEnum.DELETE);
 		validatePurposeOfUseCoherence(payload, PurposeOfUseEnum.UPDATE);
-		validateLocalityXON(payload.getLocality());
+		isValidLocality(payload.getLocality(),false);
 	}
 
 	private void performCommonValidation(JWTPayloadDTO payload) {
@@ -253,49 +253,6 @@ public class JwtSRV extends AbstractService implements IJwtSRV {
 		return true;
 	}
 
-	//M: Validate locality for create & replace
-	private void validateLocalityOID(String locality) {
-		//Regex for NOME_STRUTTURA^^^^^&CODICE_CATALOGO&STANDARD^^^^CODICE_STRUTTURA
-		Pattern pattern = Pattern.compile("^(.+)\\^\\^\\^\\^\\^&(\\S+)&(\\S+)\\^\\^\\^\\^(.+)$");
-		Matcher matcher = pattern.matcher(locality);
-
-		if (!matcher.matches()) {
-			throw buildValidationException();
-		}
-
-		// Extracting the groups based on our regex pattern
-		String nomeStruttura = matcher.group(1);
-		String oid = matcher.group(2);
-		String idStruttura = matcher.group(3);
-
-		// Validate extracted values
-		boolean isValid = !StringUtility.isNullOrEmpty(nomeStruttura) && !StringUtility.isNullOrEmpty(oid) && !StringUtility.isNullOrEmpty(idStruttura);
-		if (!isValid) {
-			throw buildValidationException();
-		}
-	}
-
-	//M: Validate locality for delete & update
-	private void validateLocalityXON(String locality){
-		//Regex for &CODICE_CATALOGO&STANDARD^^^^CODICE_STRUTTURA
-		Pattern pattern = Pattern.compile("^&(\\S+)&(\\S+)\\^\\^\\^\\^(.+)$");
-		Matcher matcher = pattern.matcher(locality);
-
-		if (!matcher.matches()) {
-			throw buildValidationException();
-		}
-
-		// Extracting the groups based on our regex pattern
-		String oid = matcher.group(1);
-		String idStruttura = matcher.group(3);
-
-		// Validate extracted values
-		boolean isValid = !StringUtility.isNullOrEmpty(oid) && !StringUtility.isNullOrEmpty(idStruttura);
-		if (!isValid) {
-			throw buildValidationException();
-		}
-	}
-
 	private ValidationException buildValidationException() { 
 		ErrorResponseDTO error = ErrorResponseDTO.builder()
 				.type(RestExecutionResultEnum.INVALID_TOKEN_FIELD.getType())
@@ -307,4 +264,19 @@ public class JwtSRV extends AbstractService implements IJwtSRV {
 	}
  
 
+	public void isValidLocality(String input, boolean checkCreateAndReplace) {
+        String regex;
+        if (checkCreateAndReplace) {
+            // Nuova regex per il primo formato (senza "locality")
+            regex = "^[A-Z0-9_]+(\\^)+&\\d+(?:\\.\\d+)+&[A-Z0-9_]+(\\^)+[A-Z0-9_]+$";
+        } else {
+            // Regex per il secondo formato (con numeri e "&")
+            regex = "^\\d+(?:\\.\\d+)+&[A-Z0-9_]+(\\^\\^)+[A-Z0-9_]+$";
+        }
+		boolean isValid = Pattern.matches(regex, input);
+		if (!isValid) {
+			throw buildValidationException();
+		}
+    }
+ 
 }

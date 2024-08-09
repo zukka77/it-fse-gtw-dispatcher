@@ -65,12 +65,8 @@ public class IniEdsInvocationSRV implements IIniEdsInvocationSRV {
 		List<Document> metadata = new ArrayList<>();
 		Document submissionSetEntryDoc = new Document("submissionSetEntry" ,Document.parse(submissionSetEntryJson));
 		Document documentEntryDoc = new Document("documentEntry" ,Document.parse(documentEntryJson));
-		//Extract and set locality
-		Document payload = Document.parse(tokenEntryJson);
-		payload.put("locality", getLocality((String) payload.get("locality")));
-		Document tokenEntry = new Document("tokenEntry", payload);
-
-		metadata.add(submissionSetEntryDoc);
+		Document tokenEntry = new Document("tokenEntry", new Document("payload",Document.parse(tokenEntryJson)));
+	 	metadata.add(submissionSetEntryDoc);
 		metadata.add(documentEntryDoc);
 		metadata.add(tokenEntry);
 		
@@ -92,17 +88,5 @@ public class IniEdsInvocationSRV implements IIniEdsInvocationSRV {
 			throw new BusinessException("Error in replace while insert ini invocation item : " , ex);
 		}
 		return output; 
-	}
-
-	private String getLocality(String locality){
-		Pattern pattern = Pattern.compile("(&[^\\^]+&ISO\\^\\^\\^\\^\\S+)$");
-		Matcher matcher = pattern.matcher(locality);
-
-		if(matcher.find())
-			locality = matcher.group(1);
-		else
-			throw new BusinessException("[IniEdsInvocationSRV] Locality format is not handled");
-
-		return locality;
 	}
 }
