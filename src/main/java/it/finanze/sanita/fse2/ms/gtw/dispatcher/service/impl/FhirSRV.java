@@ -39,6 +39,7 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.AdministrativeReqEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.AttivitaClinicaEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.LowLevelDocEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.BusinessException;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.IConfigSRV;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.IFhirSRV;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.DateUtility;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility;
@@ -55,6 +56,9 @@ public class FhirSRV implements IFhirSRV {
 
 	@Autowired
 	private FhirMappingClient client;
+	
+	@Autowired
+	private IConfigSRV configSrv;
 
 	@Override
 	public ResourceDTO createFhirResources(final String cda, String authorRole,final PublicationCreateReplaceMetadataDTO requestBody,
@@ -66,31 +70,42 @@ public class FhirSRV implements IFhirSRV {
 
 		final DocumentReferenceDTO documentReferenceDTO = buildDocumentReferenceDTO(encodedCDA, requestBody, size, hash);
 		FhirResourceDTO req = buildFhirResourceDTO(documentReferenceDTO, cda, transformId, engineId);
-		final TransformResDTO resDTO = client.callConvertCdaInBundle(req);
+		
+		AuthorSlotDTO authorSlot =  buildAuthorSlotDTO(authorRole,docCDA);
 
-		if (!StringUtility.isNullOrEmpty(resDTO.getErrorMessage())) {
-			output.setErrorMessage(resDTO.getErrorMessage());
-		} else {
-			output.setBundleJson(StringUtility.toJSON(resDTO.getJson()));
+//		final TransformResDTO resDTO = client.callConvertCdaInBundle(req);
 
-			AuthorSlotDTO authorSlot =  buildAuthorSlotDTO(authorRole,docCDA);
+//		if (!StringUtility.isNullOrEmpty(resDTO.getErrorMessage())) {
+//			output.setErrorMessage(resDTO.getErrorMessage());
+//		} else {
+//			output.setBundleJson(StringUtility.toJSON(resDTO.getJson()));
 
+//			AuthorSlotDTO authorSlot =  buildAuthorSlotDTO(authorRole,docCDA);
+
+		try {
+			final SubmissionSetEntryDTO submissionSetEntryDTO = createSubmissionSetEntry(docCDA, requestBody.getTipoAttivitaClinica().getCode(),
+					requestBody.getIdentificativoSottomissione(),authorSlot,organizationId);
+			output.setSubmissionSetEntryJson(StringUtility.toJSON(submissionSetEntryDTO));
+		} catch(final Exception ex) {
+			output.setErrorMessage(ex.getCause().getCause().getMessage());
+		}
+
+		if(StringUtility.isNullOrEmpty(output.getErrorMessage())) {
 			try {
-				final SubmissionSetEntryDTO submissionSetEntryDTO = createSubmissionSetEntry(docCDA, requestBody.getTipoAttivitaClinica().getCode(),
-						requestBody.getIdentificativoSottomissione(),authorSlot,organizationId);
-				output.setSubmissionSetEntryJson(StringUtility.toJSON(submissionSetEntryDTO));
+				final DocumentEntryDTO documentEntryDTO = createDocumentEntry(docCDA, requestBody, size, hash,
+						authorSlot);
+				output.setDocumentEntryJson(StringUtility.toJSON(documentEntryDTO));
 			} catch(final Exception ex) {
 				output.setErrorMessage(ex.getCause().getCause().getMessage());
 			}
+		}
 
-			if(StringUtility.isNullOrEmpty(resDTO.getErrorMessage())) {
-				try {
-					final DocumentEntryDTO documentEntryDTO = createDocumentEntry(docCDA, requestBody, size, hash,
-							authorSlot);
-					output.setDocumentEntryJson(StringUtility.toJSON(documentEntryDTO));
-				} catch(final Exception ex) {
-					output.setErrorMessage(ex.getCause().getCause().getMessage());
-				}
+		if(!configSrv.isRemoveEds() && StringUtility.isNullOrEmpty(output.getErrorMessage())) {
+			final TransformResDTO resDTO = client.callConvertCdaInBundle(req);	
+			if (!StringUtility.isNullOrEmpty(resDTO.getErrorMessage())) {
+				output.setErrorMessage(resDTO.getErrorMessage());
+			} else {
+				output.setBundleJson(StringUtility.toJSON(resDTO.getJson()));
 			}
 		}
 
