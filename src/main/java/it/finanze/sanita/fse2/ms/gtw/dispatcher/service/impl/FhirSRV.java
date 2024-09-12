@@ -62,7 +62,7 @@ public class FhirSRV implements IFhirSRV {
 
 	@Override
 	public ResourceDTO createFhirResources(final String cda, String authorRole,final PublicationCreateReplaceMetadataDTO requestBody,
-			final Integer size, final String hash, String transformId, String engineId, String organizationId) {
+			final Integer size, final String hash, String transformId, String engineId, String organizationId,String sha1) {
 
 		final ResourceDTO output = new ResourceDTO();
 		final org.jsoup.nodes.Document docCDA = Jsoup.parse(cda);
@@ -92,7 +92,7 @@ public class FhirSRV implements IFhirSRV {
 
 		if(StringUtility.isNullOrEmpty(output.getErrorMessage())) {
 			try {
-				final DocumentEntryDTO documentEntryDTO = createDocumentEntry(docCDA, requestBody, size, hash,
+				final DocumentEntryDTO documentEntryDTO = createDocumentEntry(docCDA, requestBody, size, sha1,
 						authorSlot);
 				output.setDocumentEntryJson(StringUtility.toJSON(documentEntryDTO));
 			} catch(final Exception ex) {
@@ -173,7 +173,7 @@ public class FhirSRV implements IFhirSRV {
  
 
 	private DocumentEntryDTO createDocumentEntry(final org.jsoup.nodes.Document docCDA,
-			final PublicationCreateReplaceMetadataDTO requestBody, final Integer size, final String hash,
+			final PublicationCreateReplaceMetadataDTO requestBody, final Integer size, final String sha1,
 			AuthorSlotDTO authorSlotDTO) {
 
 		DocumentEntryDTO de = new DocumentEntryDTO();
@@ -208,7 +208,7 @@ public class FhirSRV implements IFhirSRV {
 			de.setUniqueId(requestBody.getIdentificativoDoc());
 			de.setMimeType("application/pdf+text/x-cda-r2+xml");
 			de.setCreationTime(new SimpleDateFormat(Constants.Misc.INI_DATE_PATTERN).format(new Date()));
-			de.setHash(hash);
+			de.setHash(sha1);
 			de.setSize(size);
 			if(requestBody.getAdministrativeRequest() != null) {
 				List<String> administrativeRequestList = new ArrayList<>();
