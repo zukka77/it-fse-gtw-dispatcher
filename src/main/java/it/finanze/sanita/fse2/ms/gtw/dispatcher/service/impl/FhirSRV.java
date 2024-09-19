@@ -19,6 +19,7 @@ import java.util.Date;
 import java.util.List;
 
 import org.jsoup.Jsoup;
+import org.jsoup.nodes.Element;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -263,13 +264,23 @@ public class FhirSRV implements IFhirSRV {
 		}
 		return out;		
 	}
-
-
-	private static AuthorSlotDTO buildAuthorSlotDTO(final String authorRole,String authorInstitution,final org.jsoup.nodes.Document docCDA) {
+ 
+	
+	private static AuthorSlotDTO buildAuthorSlotDTO(final String authorRole,final org.jsoup.nodes.Document docCDA) {
 		AuthorSlotDTO author = new AuthorSlotDTO();
 		author.setAuthorRole(authorRole);
-		author.setAuthorInstitution(authorInstitution);
-		
+		String representedOrganizationTag = "ClinicalDocument > author > assignedAuthor > representedOrganization";
+		final Element authorInstitutionElement = docCDA.select(representedOrganizationTag + " > id").first();
+		final Element authorInstitutionName = docCDA.select(representedOrganizationTag + " > name").first();
+		if (authorInstitutionElement != null && authorInstitutionName!=null) {
+			String extension = authorInstitutionElement.attr(EXTENSION_ATTRIBUTE);
+			String root = authorInstitutionElement.attr("root");
+			String name = authorInstitutionName.text();
+			author.setAuthorInstitution(name + "^^^^^&" + root + "&ISO^^^^" + extension);
+		} else {
+			author.setAuthorInstitution("AUTHOR_INSTITUTION_NOT_PRESENT");
+		}
+
 		final Element authorElement = docCDA.select("ClinicalDocument > author > assignedAuthor > id").first();
 		if (authorElement != null) {
 			String cfAuthor = authorElement.attr(EXTENSION_ATTRIBUTE); 
@@ -279,6 +290,7 @@ public class FhirSRV implements IFhirSRV {
 
 		return author;
 	}
+
 
 	 
 }
