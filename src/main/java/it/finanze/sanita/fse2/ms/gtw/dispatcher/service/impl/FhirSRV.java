@@ -19,11 +19,9 @@ import java.util.Date;
 import java.util.List;
 
 import org.jsoup.Jsoup;
-import org.jsoup.nodes.Element;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
-
 
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.impl.FhirMappingClient;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants;
@@ -39,6 +37,7 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.AdministrativeReqEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.AttivitaClinicaEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.LowLevelDocEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.BusinessException;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.IConfigSRV;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.IFhirSRV;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.DateUtility;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility;
@@ -55,10 +54,13 @@ public class FhirSRV implements IFhirSRV {
 
 	@Autowired
 	private FhirMappingClient client;
+	
+	@Autowired
+	private IConfigSRV configSrv;
 
 	@Override
 	public ResourceDTO createFhirResources(final String cda, String authorRole,final PublicationCreateReplaceMetadataDTO requestBody,
-			final Integer size, final String hash, String transformId, String engineId, String organizationId,final String authorInstitution) {
+			final Integer size, final String hash, String transformId, String engineId, String organizationId,final String authorInstitution,String sha1) {
 
 		final ResourceDTO output = new ResourceDTO();
 		final org.jsoup.nodes.Document docCDA = Jsoup.parse(cda);
@@ -66,30 +68,42 @@ public class FhirSRV implements IFhirSRV {
 
 		final DocumentReferenceDTO documentReferenceDTO = buildDocumentReferenceDTO(encodedCDA, requestBody, size, hash);
 		FhirResourceDTO req = buildFhirResourceDTO(documentReferenceDTO, cda, transformId, engineId);
-		final TransformResDTO resDTO = client.callConvertCdaInBundle(req);
+		
+		AuthorSlotDTO authorSlot =  buildAuthorSlotDTO(authorRole,docCDA);
 
-		if (!StringUtility.isNullOrEmpty(resDTO.getErrorMessage())) {
-			output.setErrorMessage(resDTO.getErrorMessage());
-		} else {
-			output.setBundleJson(StringUtility.toJSON(resDTO.getJson()));
-			AuthorSlotDTO authorSlot =  buildAuthorSlotDTO(authorRole,authorInstitution,docCDA);
+//		final TransformResDTO resDTO = client.callConvertCdaInBundle(req);
 
+//		if (!StringUtility.isNullOrEmpty(resDTO.getErrorMessage())) {
+//			output.setErrorMessage(resDTO.getErrorMessage());
+//		} else {
+//			output.setBundleJson(StringUtility.toJSON(resDTO.getJson()));
+
+//			AuthorSlotDTO authorSlot =  buildAuthorSlotDTO(authorRole,docCDA);
+
+		try {
+			final SubmissionSetEntryDTO submissionSetEntryDTO = createSubmissionSetEntry(docCDA, requestBody.getTipoAttivitaClinica().getCode(),
+					requestBody.getIdentificativoSottomissione(),authorSlot,organizationId);
+			output.setSubmissionSetEntryJson(StringUtility.toJSON(submissionSetEntryDTO));
+		} catch(final Exception ex) {
+			output.setErrorMessage(ex.getCause().getCause().getMessage());
+		}
+
+		if(StringUtility.isNullOrEmpty(output.getErrorMessage())) {
 			try {
-				final SubmissionSetEntryDTO submissionSetEntryDTO = createSubmissionSetEntry(docCDA, requestBody.getTipoAttivitaClinica().getCode(),
-						requestBody.getIdentificativoSottomissione(),authorSlot,organizationId);
-				output.setSubmissionSetEntryJson(StringUtility.toJSON(submissionSetEntryDTO));
+				final DocumentEntryDTO documentEntryDTO = createDocumentEntry(docCDA, requestBody, size, sha1,
+						authorSlot);
+				output.setDocumentEntryJson(StringUtility.toJSON(documentEntryDTO));
 			} catch(final Exception ex) {
 				output.setErrorMessage(ex.getCause().getCause().getMessage());
 			}
+		}
 
-			if(StringUtility.isNullOrEmpty(resDTO.getErrorMessage())) {
-				try {
-					final DocumentEntryDTO documentEntryDTO = createDocumentEntry(docCDA, requestBody, size, hash,
-							authorSlot);
-					output.setDocumentEntryJson(StringUtility.toJSON(documentEntryDTO));
-				} catch(final Exception ex) {
-					output.setErrorMessage(ex.getCause().getCause().getMessage());
-				}
+		if(!configSrv.isRemoveEds() && StringUtility.isNullOrEmpty(output.getErrorMessage())) {
+			final TransformResDTO resDTO = client.callConvertCdaInBundle(req);	
+			if (!StringUtility.isNullOrEmpty(resDTO.getErrorMessage())) {
+				output.setErrorMessage(resDTO.getErrorMessage());
+			} else {
+				output.setBundleJson(StringUtility.toJSON(resDTO.getJson()));
 			}
 		}
 
@@ -157,7 +171,7 @@ public class FhirSRV implements IFhirSRV {
  
 
 	private DocumentEntryDTO createDocumentEntry(final org.jsoup.nodes.Document docCDA,
-			final PublicationCreateReplaceMetadataDTO requestBody, final Integer size, final String hash,
+			final PublicationCreateReplaceMetadataDTO requestBody, final Integer size, final String sha1,
 			AuthorSlotDTO authorSlotDTO) {
 
 		DocumentEntryDTO de = new DocumentEntryDTO();
@@ -192,7 +206,7 @@ public class FhirSRV implements IFhirSRV {
 			de.setUniqueId(requestBody.getIdentificativoDoc());
 			de.setMimeType("application/pdf+text/x-cda-r2+xml");
 			de.setCreationTime(new SimpleDateFormat(Constants.Misc.INI_DATE_PATTERN).format(new Date()));
-			de.setHash(hash);
+			de.setHash(sha1);
 			de.setSize(size);
 			if(requestBody.getAdministrativeRequest() != null) {
 				List<String> administrativeRequestList = new ArrayList<>();

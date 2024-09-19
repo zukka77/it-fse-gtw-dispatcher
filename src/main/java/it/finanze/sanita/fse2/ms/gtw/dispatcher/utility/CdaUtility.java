@@ -41,14 +41,14 @@ public final class CdaUtility {
 	}
 
 	public static String createWorkflowInstanceId(final String idDoc) {
-		return encodeSHA256Hex(idDoc) + WIF_SEPARATOR + generateTransactionUID() + WIF_SUFFIX;
+		return encodeSHA256Hex(idDoc) + WIF_SEPARATOR + generateWii() + WIF_SUFFIX;
 	}
 
 	public static String getWorkflowInstanceId(final org.jsoup.nodes.Document docT) {
 
 		try {
 			String cxi = extractInfo(docT);	
-			return cxi + WIF_SEPARATOR + generateTransactionUID() + WIF_SUFFIX;
+			return cxi + WIF_SEPARATOR + generateWii() + WIF_SUFFIX;
 		} catch (Exception e) {
 			final ErrorResponseDTO error = ErrorResponseDTO.builder()
 				.title(RestExecutionResultEnum.WORKFLOW_ID_ERROR.getTitle())

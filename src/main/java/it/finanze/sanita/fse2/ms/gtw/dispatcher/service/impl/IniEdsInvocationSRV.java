@@ -41,19 +41,7 @@ public class IniEdsInvocationSRV implements IIniEdsInvocationSRV {
 	public Boolean insert(final String workflowInstanceId, final ResourceDTO fhirResourceDTO, final JWTPayloadDTO jwtPayloadToken) {
 		Boolean output = false;
 		try {
-			if(fhirResourceDTO!=null){
-				boolean bundleJsonPresent = fhirResourceDTO.getBundleJson()!=null;
-				boolean documentEntryPresent = fhirResourceDTO.getDocumentEntryJson()!=null;
-				boolean submissioneSetPresent = fhirResourceDTO.getSubmissionSetEntryJson()!=null;
-				boolean errorMessagePresent = !StringUtility.isNullOrEmpty(fhirResourceDTO.getErrorMessage());
-				log.info("BUNDLE JSON VALORIZZATO:" + bundleJsonPresent);
-				log.info("DOCUMENT ENTRY VALORIZZATO:" + documentEntryPresent);
-				log.info("SUBMISSIONE SET VALORIZZATO:" + submissioneSetPresent);
-				log.info("ERROR MESSAGE VALORIZZATO:" + errorMessagePresent);
-			} else {
-				log.error("Fhir resource dto è null");
-			}
-			
+		 
 			IniEdsInvocationETY etyToSave = buildETY(workflowInstanceId, fhirResourceDTO.getBundleJson(), fhirResourceDTO.getSubmissionSetEntryJson(),
 					fhirResourceDTO.getDocumentEntryJson(), StringUtility.toJSON(jwtPayloadToken), null, jwtPayloadToken.getIss());
 
@@ -71,16 +59,12 @@ public class IniEdsInvocationSRV implements IIniEdsInvocationSRV {
 	private IniEdsInvocationETY buildETY(final String workflowInstanceId, final String bundleJson, final String submissionSetEntryJson,
 			final String documentEntryJson, final String tokenEntryJson, final String rifIni, final String issuer) {
 		IniEdsInvocationETY out = new IniEdsInvocationETY();
-
-		//START LOG
-		log.info("{}" + bundleJson);
-		log.info("{}" + submissionSetEntryJson);
-		log.info("{}" + documentEntryJson);
-		log.info("{}" + tokenEntryJson);
-		//END LOG
-
+ 
 		out.setWorkflowInstanceId(workflowInstanceId);
-		out.setData(Document.parse(bundleJson));
+		if(!StringUtility.isNullOrEmpty(bundleJson)) {
+			out.setData(Document.parse(bundleJson));	
+		}
+		
 		out.setIssuer(issuer);
 		if (!StringUtility.isNullOrEmpty(rifIni)) {
 			out.setRiferimentoIni(rifIni);
