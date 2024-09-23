@@ -86,21 +86,6 @@ public final class CdaUtility {
 		return isNullOrEmpty(docType) ? Constants.App.MISSING_DOC_TYPE_PLACEHOLDER : docType;
 	}
 
-	public static String extractFieldCda(final org.jsoup.nodes.Document docT) {
-		String out = "";
-		try {
-			//root
-			String templateId = docT.select("templateid").get(0).attr("root");
-			//extension
-			String templateIdExtension = docT.select("templateid").get(0).attr("extension");
-			out = templateId + "_" + templateIdExtension;
-		} catch(Exception ex) {
-			log.error("Error while extracting info for schematron ", ex);
-			throw new BusinessException("Error while extracting info for schematron ", ex);
-		}
-
-		return out;
-	}
 
 	/**
 	 * Evaluate an identifier and validate it

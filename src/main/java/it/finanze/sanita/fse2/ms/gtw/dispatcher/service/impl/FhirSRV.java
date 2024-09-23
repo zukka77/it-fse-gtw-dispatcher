@@ -20,10 +20,10 @@ import java.util.List;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
-
 
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.impl.FhirMappingClient;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants;
@@ -37,6 +37,7 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.PublicationCreateRep
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.client.TransformResDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.AdministrativeReqEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.AttivitaClinicaEnum;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.DocumentTypeEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.LowLevelDocEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.BusinessException;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.IConfigSRV;
@@ -54,6 +55,8 @@ public class FhirSRV implements IFhirSRV {
 	private static final String PATH_PATIENT_ID = "ClinicalDocument > recordTarget > patientRole> id";
 	private static final String EXTENSION_ATTRIBUTE = "extension";
 
+	private static final String REFERENCE_ID_LIST_SUFFIX = "&ISO^urn:ihe:iti:xds:2013:order";
+	
 	@Autowired
 	private FhirMappingClient client;
 	
@@ -72,15 +75,6 @@ public class FhirSRV implements IFhirSRV {
 		FhirResourceDTO req = buildFhirResourceDTO(documentReferenceDTO, cda, transformId, engineId);
 		
 		AuthorSlotDTO authorSlot =  buildAuthorSlotDTO(authorRole,docCDA);
-
-//		final TransformResDTO resDTO = client.callConvertCdaInBundle(req);
-
-//		if (!StringUtility.isNullOrEmpty(resDTO.getErrorMessage())) {
-//			output.setErrorMessage(resDTO.getErrorMessage());
-//		} else {
-//			output.setBundleJson(StringUtility.toJSON(resDTO.getJson()));
-
-//			AuthorSlotDTO authorSlot =  buildAuthorSlotDTO(authorRole,docCDA);
 
 		try {
 			final SubmissionSetEntryDTO submissionSetEntryDTO = createSubmissionSetEntry(docCDA, requestBody.getTipoAttivitaClinica().getCode(),
@@ -248,11 +242,43 @@ public class FhirSRV implements IFhirSRV {
 			if (requestBody.getDataFinePrestazione() != null && DateUtility.isValidDateFormat(requestBody.getDataFinePrestazione(), "yyyyMMddHHmmss")) {
 				de.setServiceStopTime(requestBody.getDataFinePrestazione());
 			}
+			
+			String path = "";
+			final String code = docCDA.select("code").get(0).attr("code");
+			DocumentTypeEnum extractedDocType = DocumentTypeEnum.getByCode(code);
+			
+			//Se è uguale a VPS
+			String oid = "";
+			if(DocumentTypeEnum.CODE_59258_4.equals(extractedDocType)) {
+				path = "ClinicalDocument > section[ID='Piano_Cura_Dimissione'] > entry > act > reference > externalAct > id ";
+				oid = "2.16.840.1.113883.2.9.4.3.13";
+			} else {
+				path = "ClinicalDocument > inFulfillmentOf > order > id ";
+				oid = "2.16.840.1.113883.2.9.4.3.8";
+			}
+			
+			List<String> referenceIdList = buildReferenceIdList(docCDA, path,oid);
+			de.setReferenceIdList(referenceIdList);
+			
 		} catch(final Exception ex) {
 			log.error("Error while create document entry : " , ex);
 			throw new BusinessException("Error while create document entry : " , ex);
 		}
 		return de;
+	}
+	
+	private List<String> buildReferenceIdList(final org.jsoup.nodes.Document docCDA, final String path,
+			final String oid) {
+		List<String> out = new ArrayList<>();
+		Elements elements = docCDA.select(path);
+		if(!elements.isEmpty()) {
+			for(Element el : elements) {
+				String extension = el.attr(EXTENSION_ATTRIBUTE);
+				out.add(extension+"^^^&"+oid+REFERENCE_ID_LIST_SUFFIX);
+			}
+		}
+		 
+		return out;
 	}
 
 	private String buildPatient(final org.jsoup.nodes.Document docCDA) {
