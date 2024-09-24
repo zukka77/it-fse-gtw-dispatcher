@@ -243,21 +243,7 @@ public class FhirSRV implements IFhirSRV {
 				de.setServiceStopTime(requestBody.getDataFinePrestazione());
 			}
 			
-			String path = "";
-			final String code = docCDA.select("code").get(0).attr("code");
-			DocumentTypeEnum extractedDocType = DocumentTypeEnum.getByCode(code);
-			
-			//Se è uguale a VPS
-			String oid = "";
-			if(DocumentTypeEnum.CODE_59258_4.equals(extractedDocType)) {
-				path = "ClinicalDocument > component > structuredBody > component > section[ID='Piano_Cura_Dimissione'] > entry > act > reference > externalAct > id ";
-				oid = "2.16.840.1.113883.2.9.4.3.13";
-			} else {
-				path = "ClinicalDocument > inFulfillmentOf > order > id ";
-				oid = "2.16.840.1.113883.2.9.4.3.8";
-			}
-			
-			List<String> referenceIdList = buildReferenceIdList(docCDA, path,oid);
+			List<String> referenceIdList = buildReferenceIdList(docCDA, "ClinicalDocument > inFulfillmentOf > order > id","2.16.840.1.113883.2.9.4.3.8");
 			de.setReferenceIdList(referenceIdList);
 			
 		} catch(final Exception ex) {
