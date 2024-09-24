@@ -250,7 +250,7 @@ public class FhirSRV implements IFhirSRV {
 			//Se è uguale a VPS
 			String oid = "";
 			if(DocumentTypeEnum.CODE_59258_4.equals(extractedDocType)) {
-				path = "ClinicalDocument > section[ID='Piano_Cura_Dimissione'] > entry > act > reference > externalAct > id ";
+				path = "ClinicalDocument > component > structuredBody > component > section[ID='Piano_Cura_Dimissione'] > entry > act > reference > externalAct > id ";
 				oid = "2.16.840.1.113883.2.9.4.3.13";
 			} else {
 				path = "ClinicalDocument > inFulfillmentOf > order > id ";
