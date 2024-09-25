@@ -201,7 +201,8 @@ public class FhirSRV implements IFhirSRV {
 
 			de.setUniqueId(requestBody.getIdentificativoDoc());
 			de.setMimeType("application/pdf+text/x-cda-r2+xml");
-			de.setCreationTime(new SimpleDateFormat(Constants.Misc.INI_DATE_PATTERN).format(new Date()));
+			String effectiveTime = docCDA.select("ClinicalDocument > effectiveTime").val(); 
+			de.setCreationTime(effectiveTime);
 			de.setHash(sha1);
 			de.setSize(size);
 			if(requestBody.getAdministrativeRequest() != null) {
