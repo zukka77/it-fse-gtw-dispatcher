@@ -243,7 +243,7 @@ public class FhirSRV implements IFhirSRV {
 				de.setServiceStopTime(requestBody.getDataFinePrestazione());
 			}
 			
-			List<String> referenceIdList = buildReferenceIdList(docCDA, "ClinicalDocument > inFulfillmentOf > order > id","2.16.840.1.113883.2.9.4.3.8");
+			List<String> referenceIdList = buildReferenceIdList(docCDA, "ClinicalDocument > inFulfillmentOf > order > id");
 			de.setReferenceIdList(referenceIdList);
 			
 		} catch(final Exception ex) {
@@ -253,14 +253,16 @@ public class FhirSRV implements IFhirSRV {
 		return de;
 	}
 	
-	private List<String> buildReferenceIdList(final org.jsoup.nodes.Document docCDA, final String path,
-			final String oid) {
+	private List<String> buildReferenceIdList(final org.jsoup.nodes.Document docCDA, final String path) {
 		List<String> out = new ArrayList<>();
 		Elements elements = docCDA.select(path);
 		if(!elements.isEmpty()) {
 			for(Element el : elements) {
-				String extension = el.attr(EXTENSION_ATTRIBUTE);
-				out.add(extension+"^^^&"+oid+REFERENCE_ID_LIST_SUFFIX);
+				String nre = el.attr(EXTENSION_ATTRIBUTE);
+				if("2.16.840.1.113883.2.9.4.3.9".equals(nre)) {
+					String extension = el.attr(EXTENSION_ATTRIBUTE);
+					out.add(extension+"^^^&2.16.840.1.113883.2.9.4.3.8"+REFERENCE_ID_LIST_SUFFIX);	
+				} 
 			}
 		}
 		 
