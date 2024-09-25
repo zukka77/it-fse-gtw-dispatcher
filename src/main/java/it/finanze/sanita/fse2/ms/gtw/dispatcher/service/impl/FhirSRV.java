@@ -245,7 +245,10 @@ public class FhirSRV implements IFhirSRV {
 			}
 			
 			List<String> referenceIdList = buildReferenceIdList(docCDA, "ClinicalDocument > inFulfillmentOf > order > id");
-			de.setReferenceIdList(referenceIdList);
+			if(!referenceIdList.isEmpty()) {
+				de.setReferenceIdList(referenceIdList);	
+			}
+			
 			
 		} catch(final Exception ex) {
 			log.error("Error while create document entry : " , ex);
@@ -259,7 +262,7 @@ public class FhirSRV implements IFhirSRV {
 		Elements elements = docCDA.select(path);
 		if(!elements.isEmpty()) {
 			for(Element el : elements) {
-				String nre = el.attr(EXTENSION_ATTRIBUTE);
+				String nre = el.attr("root");
 				if("2.16.840.1.113883.2.9.4.3.9".equals(nre)) {
 					String extension = el.attr(EXTENSION_ATTRIBUTE);
 					out.add(extension+"^^^&2.16.840.1.113883.2.9.4.3.8"+REFERENCE_ID_LIST_SUFFIX);	
