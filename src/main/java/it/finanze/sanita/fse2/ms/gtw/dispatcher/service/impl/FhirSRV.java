@@ -18,9 +18,9 @@ import java.util.Base64;
 import java.util.Date;
 import java.util.List;
 
+import javax.lang.model.util.Elements;
+
 import org.jsoup.Jsoup;
-import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -37,7 +37,6 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.PublicationCreateRep
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.client.TransformResDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.AdministrativeReqEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.AttivitaClinicaEnum;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.DocumentTypeEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.LowLevelDocEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.BusinessException;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.IConfigSRV;
@@ -65,7 +64,8 @@ public class FhirSRV implements IFhirSRV {
 
 	@Override
 	public ResourceDTO createFhirResources(final String cda, String authorRole,final PublicationCreateReplaceMetadataDTO requestBody,
-			final Integer size, final String hash, String transformId, String engineId, String organizationId,String sha1) {
+			final Integer size, final String hash, String transformId, String engineId, String organizationId,
+			final String authorInstitution,String sha1) {
 
 		final ResourceDTO output = new ResourceDTO();
 		final org.jsoup.nodes.Document docCDA = Jsoup.parse(cda);
@@ -74,7 +74,7 @@ public class FhirSRV implements IFhirSRV {
 		final DocumentReferenceDTO documentReferenceDTO = buildDocumentReferenceDTO(encodedCDA, requestBody, size, hash);
 		FhirResourceDTO req = buildFhirResourceDTO(documentReferenceDTO, cda, transformId, engineId);
 		
-		AuthorSlotDTO authorSlot =  buildAuthorSlotDTO(authorRole,docCDA);
+		AuthorSlotDTO authorSlot =  buildAuthorSlotDTO(authorInstitution,authorRole,docCDA);
 
 		try {
 			final SubmissionSetEntryDTO submissionSetEntryDTO = createSubmissionSetEntry(docCDA, requestBody.getTipoAttivitaClinica().getCode(),
@@ -283,23 +283,12 @@ public class FhirSRV implements IFhirSRV {
 		}
 		return out;		
 	}
-
-
-	private static AuthorSlotDTO buildAuthorSlotDTO(final String authorRole,final org.jsoup.nodes.Document docCDA) {
+ 
+	
+	private static AuthorSlotDTO buildAuthorSlotDTO(final String authorInstitution,final String authorRole,final org.jsoup.nodes.Document docCDA) {
 		AuthorSlotDTO author = new AuthorSlotDTO();
 		author.setAuthorRole(authorRole);
-		String representedOrganizationTag = "ClinicalDocument > author > assignedAuthor > representedOrganization";
-		final Element authorInstitutionElement = docCDA.select(representedOrganizationTag + " > id").first();
-		final Element authorInstitutionName = docCDA.select(representedOrganizationTag + " > name").first();
-		if (authorInstitutionElement != null && authorInstitutionName!=null) {
-			String extension = authorInstitutionElement.attr(EXTENSION_ATTRIBUTE);
-			String root = authorInstitutionElement.attr("root");
-			String name = authorInstitutionName.text();
-			author.setAuthorInstitution(name + "^^^^^&" + root + "&ISO^^^^" + extension);
-		} else {
-			author.setAuthorInstitution("AUTHOR_INSTITUTION_NOT_PRESENT");
-		}
-
+		author.setAuthorInstitution(authorInstitution);
 		final Element authorElement = docCDA.select("ClinicalDocument > author > assignedAuthor > id").first();
 		if (authorElement != null) {
 			String cfAuthor = authorElement.attr(EXTENSION_ATTRIBUTE); 
@@ -309,6 +298,7 @@ public class FhirSRV implements IFhirSRV {
 
 		return author;
 	}
+
 
 	 
 }
