@@ -11,13 +11,14 @@
  */
 package it.finanze.sanita.fse2.ms.gtw.dispatcher.service.impl;
 
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.Date;
 import java.util.List;
-
+import java.util.TimeZone;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Element;
@@ -56,10 +57,10 @@ public class FhirSRV implements IFhirSRV {
 	private static final String EXTENSION_ATTRIBUTE = "extension";
 
 	private static final String REFERENCE_ID_LIST_SUFFIX = "&ISO^urn:ihe:iti:xds:2013:order";
-	
+
 	@Autowired
 	private FhirMappingClient client;
-	
+
 	@Autowired
 	private IConfigSRV configSrv;
 
@@ -74,7 +75,7 @@ public class FhirSRV implements IFhirSRV {
 
 		final DocumentReferenceDTO documentReferenceDTO = buildDocumentReferenceDTO(encodedCDA, requestBody, size, hash);
 		FhirResourceDTO req = buildFhirResourceDTO(documentReferenceDTO, cda, transformId, engineId);
-		
+
 		AuthorSlotDTO authorSlot =  buildAuthorSlotDTO(authorInstitution,authorRole,docCDA);
 
 		try {
@@ -149,7 +150,7 @@ public class FhirSRV implements IFhirSRV {
 		sse.setAuthorInstitution(authorSlotDTO.getAuthorInstitution());
 		sse.setAuthorRole(authorSlotDTO.getAuthorRole());
 		sse.setPatientId(buildPatient(docCDA));
-		
+
 		String sourceId = StringUtility.sanitizeSourceId(organizationId);
 		sse.setSourceId(SOURCE_ID_PREFIX+sourceId);
 		sse.setUniqueID(identificativoSottomissione);
@@ -164,8 +165,6 @@ public class FhirSRV implements IFhirSRV {
 		}
 		return sse;
 	}
- 
- 
 
 	private DocumentEntryDTO createDocumentEntry(final org.jsoup.nodes.Document docCDA,
 			final PublicationCreateReplaceMetadataDTO requestBody, final Integer size, final String sha1,
@@ -202,8 +201,8 @@ public class FhirSRV implements IFhirSRV {
 
 			de.setUniqueId(requestBody.getIdentificativoDoc());
 			de.setMimeType("application/pdf+text/x-cda-r2+xml");
-			String effectiveTime = docCDA.select("ClinicalDocument > effectiveTime").val(); 
-			de.setCreationTime(effectiveTime);
+			String effectiveTime = docCDA.select("ClinicalDocument > effectiveTime").val();
+			de.setCreationTime(DateUtility.convertDateCda(effectiveTime));
 			de.setHash(sha1);
 			de.setSize(size);
 			if(requestBody.getAdministrativeRequest() != null) {
@@ -244,20 +243,20 @@ public class FhirSRV implements IFhirSRV {
 			if (requestBody.getDataFinePrestazione() != null && DateUtility.isValidDateFormat(requestBody.getDataFinePrestazione(), "yyyyMMddHHmmss")) {
 				de.setServiceStopTime(requestBody.getDataFinePrestazione());
 			}
-			
+
 			List<String> referenceIdList = buildReferenceIdList(docCDA, "ClinicalDocument > inFulfillmentOf > order > id");
 			if(!referenceIdList.isEmpty()) {
 				de.setReferenceIdList(referenceIdList);	
 			}
-			
-			
+
+
 		} catch(final Exception ex) {
 			log.error("Error while create document entry : " , ex);
 			throw new BusinessException("Error while create document entry : " , ex);
 		}
 		return de;
 	}
-	
+
 	private List<String> buildReferenceIdList(final org.jsoup.nodes.Document docCDA, final String path) {
 		List<String> out = new ArrayList<>();
 		Elements elements = docCDA.select(path);
@@ -270,7 +269,7 @@ public class FhirSRV implements IFhirSRV {
 				} 
 			}
 		}
-		 
+
 		return out;
 	}
 
@@ -284,8 +283,8 @@ public class FhirSRV implements IFhirSRV {
 		}
 		return out;		
 	}
- 
-	
+
+
 	private static AuthorSlotDTO buildAuthorSlotDTO(final String authorInstitution,final String authorRole,final org.jsoup.nodes.Document docCDA) {
 		AuthorSlotDTO author = new AuthorSlotDTO();
 		author.setAuthorRole(authorRole);
@@ -301,5 +300,5 @@ public class FhirSRV implements IFhirSRV {
 	}
 
 
-	 
+
 }
