@@ -18,9 +18,10 @@ import java.util.Base64;
 import java.util.Date;
 import java.util.List;
 
-import javax.lang.model.util.Elements;
 
 import org.jsoup.Jsoup;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
