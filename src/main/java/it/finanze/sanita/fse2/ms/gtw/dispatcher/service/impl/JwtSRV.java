@@ -14,6 +14,8 @@ package it.finanze.sanita.fse2.ms.gtw.dispatcher.service.impl;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
+import java.util.regex.Pattern;
+
 import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -31,10 +33,6 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.SubjectOrganizationEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.SystemTypeEnum;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.ValidationException;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.IJwtSRV;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility;
-
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 @Service
 public class JwtSRV extends AbstractService implements IJwtSRV {
@@ -72,7 +70,7 @@ public class JwtSRV extends AbstractService implements IJwtSRV {
 		validateActionCoherence(payload, ActionEnum.CREATE);
 		performCommonValidation(payload);
 		validatePurposeOfUseCoherence(payload, PurposeOfUseEnum.TREATMENT);
-		isValidLocality(payload.getLocality(),true);
+		isValidLocality(payload.getLocality());
 	}
 
 	@Override
@@ -81,7 +79,7 @@ public class JwtSRV extends AbstractService implements IJwtSRV {
 		checkNull(payload.getResource_hl7_type(), "resource_hl7_type"); 
 		validateActionCoherence(payload, ActionEnum.UPDATE);
 		validatePurposeOfUseCoherence(payload, PurposeOfUseEnum.UPDATE);
-		isValidLocality(payload.getLocality(),true);
+		isValidLocality(payload.getLocality());
 	}
 
 	@Override
@@ -89,7 +87,6 @@ public class JwtSRV extends AbstractService implements IJwtSRV {
 		performCommonValidation(payload);
 		validateActionCoherence(payload, ActionEnum.UPDATE);
 		validatePurposeOfUseCoherence(payload, PurposeOfUseEnum.UPDATE);
-		isValidLocality(payload.getLocality(),false);
 	}
 
 	@Override
@@ -97,7 +94,6 @@ public class JwtSRV extends AbstractService implements IJwtSRV {
 		performCommonValidation(payload);
 		validateActionCoherence(payload, ActionEnum.DELETE);
 		validatePurposeOfUseCoherence(payload, PurposeOfUseEnum.UPDATE);
-		isValidLocality(payload.getLocality(),false);
 	}
 
 	private void performCommonValidation(JWTPayloadDTO payload) {
@@ -233,7 +229,7 @@ public class JwtSRV extends AbstractService implements IJwtSRV {
 			throw new ValidationException(error);
 		}
 	}
- 
+	  
 	
 	private boolean isValidOid(String oid) {
 		if (oid == null) 
@@ -264,19 +260,12 @@ public class JwtSRV extends AbstractService implements IJwtSRV {
 	}
  
 
-	public void isValidLocality(String input, boolean checkCreateAndReplace) {
-        String regex;
-        if (checkCreateAndReplace) {
-            // Nuova regex per il primo formato (senza "locality")
-            regex = "^[A-Z0-9_]+(\\^)+&\\d+(?:\\.\\d+)+&[A-Z0-9_]+(\\^)+[A-Z0-9_]+$";
-        } else {
-            // Regex per il secondo formato (con numeri e "&")
-            regex = "^\\d+(?:\\.\\d+)+&[A-Z0-9_]+(\\^\\^)+[A-Z0-9_]+$";
-        }
+	public void isValidLocality(String input) {
+		String regex = "^[a-zA-Z0-9]+[^\\^]*\\^\\^\\^\\^\\^\\&[^&]*\\&ISO\\^\\^\\^\\^[^\\^&]*$";
 		boolean isValid = Pattern.matches(regex, input);
 		if (!isValid) {
 			throw buildValidationException();
 		}
     }
- 
+	 
 }
