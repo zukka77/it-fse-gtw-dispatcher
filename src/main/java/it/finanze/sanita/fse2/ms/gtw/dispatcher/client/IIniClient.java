@@ -11,6 +11,7 @@
  */
 package it.finanze.sanita.fse2.ms.gtw.dispatcher.client;
 
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.IniAuditDto;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.DeleteRequestDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.IniMetadataUpdateReqDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.IniReferenceRequestDTO;
@@ -28,5 +29,7 @@ public interface IIniClient {
 	IniReferenceResponseDTO reference(IniReferenceRequestDTO iniReferenceRequestDTO);
 
 	GetMergedMetadatiDTO metadata(MergedMetadatiRequestDTO iniReq);
+	
+	IniAuditDto callSearchEventByWorkflowInstanceId(String workflowInstanceId);
 
 }

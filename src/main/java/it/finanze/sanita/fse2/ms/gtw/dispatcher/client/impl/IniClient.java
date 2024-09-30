@@ -30,6 +30,8 @@ import org.springframework.web.client.RestTemplate;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.IIniClient;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.impl.base.AbstractClient;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.routes.IniClientRoutes;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.MicroservicesURLCFG;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.IniAuditDto;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.DeleteRequestDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.IniMetadataUpdateReqDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.IniReferenceRequestDTO;
@@ -45,14 +47,14 @@ import lombok.extern.slf4j.Slf4j;
 public class IniClient extends AbstractClient implements IIniClient {
 
 	@Autowired
-	private RestTemplate client;
-
-	@Autowired
 	private IniClientRoutes routes;
 	
 	@Autowired
 	@Qualifier("restTemplateIni")
 	private RestTemplate restTemplateIni;
+	
+	@Autowired
+	private MicroservicesURLCFG msUrlCfg;
 
 	@Override
 	public IniTraceResponseDTO delete(final DeleteRequestDTO request) {
@@ -64,7 +66,7 @@ public class IniClient extends AbstractClient implements IIniClient {
 
 		try {
 			// Execute request
-			ResponseEntity<IniTraceResponseDTO> response = client.exchange(endpoint,DELETE,new HttpEntity<>(request),IniTraceResponseDTO.class);
+			ResponseEntity<IniTraceResponseDTO> response = restTemplateIni.exchange(endpoint,DELETE,new HttpEntity<>(request),IniTraceResponseDTO.class);
 			// Retrieve body
 			output = response.getBody();
 		} catch (RestClientResponseException ex) {
@@ -84,7 +86,7 @@ public class IniClient extends AbstractClient implements IIniClient {
 
 		try {
 			// Execute request
-			ResponseEntity<IniReferenceResponseDTO> response = client.exchange(endpoint,POST,new HttpEntity<>(request.getToken()),IniReferenceResponseDTO.class);
+			ResponseEntity<IniReferenceResponseDTO> response = restTemplateIni.exchange(endpoint,POST,new HttpEntity<>(request.getToken()),IniReferenceResponseDTO.class);
 			// Retrieve body
 			output = response.getBody();
 		} catch (RestClientResponseException ex) {
@@ -104,7 +106,7 @@ public class IniClient extends AbstractClient implements IIniClient {
 
 		try {
 			// Execute request
-			ResponseEntity<IniTraceResponseDTO> response = client.exchange(endpoint,PUT,new HttpEntity<>(request),IniTraceResponseDTO.class);
+			ResponseEntity<IniTraceResponseDTO> response = restTemplateIni.exchange(endpoint,PUT,new HttpEntity<>(request),IniTraceResponseDTO.class);
 			// Retrieve body
 			output = response.getBody();
 		} catch (RestClientResponseException ex) {
@@ -131,6 +133,19 @@ public class IniClient extends AbstractClient implements IIniClient {
 		}
 
 		return output;
+	}
+	
+	@Override
+	public IniAuditDto callSearchEventByWorkflowInstanceId(final String workflowInstanceId) {
+		String url =  msUrlCfg.getIniClientHost() + "/v1/" + workflowInstanceId;
+
+		IniAuditDto out = null;
+		try {
+			out = restTemplateIni.getForObject(url, IniAuditDto.class);
+		} catch (ResourceAccessException rax) {
+			throw new BusinessException("Timeout error while call search event by worflow instance id");
+		}
+		return out;
 	}
 	
  

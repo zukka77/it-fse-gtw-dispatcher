@@ -11,12 +11,21 @@
  */
 package it.finanze.sanita.fse2.ms.gtw.dispatcher.service.impl;
 
+import java.util.HashMap;
+import java.util.Map;
+
+import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.IConfigClient;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.IIniClient;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.IStatusCheckClient;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.IniAuditDto;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.StatusCheckDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.TransactionInspectResDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.ITransactionInspectSRV;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility;
 
 @Service
 public class TransactionInspectSRV implements ITransactionInspectSRV {
@@ -24,10 +33,29 @@ public class TransactionInspectSRV implements ITransactionInspectSRV {
 	@Autowired
 	private IStatusCheckClient statusCheckClient;
 	 
+	@Autowired
+	private IIniClient iniClient;
+	
+	@Autowired
+	private IConfigClient configClient;
 
 	@Override
 	public TransactionInspectResDTO callSearchEventByWorkflowInstanceId(final String workflowInstanceId) {
-		return statusCheckClient.callSearchEventByWorkflowInstanceId(workflowInstanceId);
+		TransactionInspectResDTO out = statusCheckClient.callSearchEventByWorkflowInstanceId(workflowInstanceId); 
+		if(true) {
+			IniAuditDto auditIniDto = iniClient.callSearchEventByWorkflowInstanceId(workflowInstanceId);
+			StatusCheckDTO status = new StatusCheckDTO();
+			status.setEventDate(""+auditIniDto.getEventDate());
+			Map<String,String> requestAndResponse = new HashMap<>();
+			requestAndResponse.put("soapResponse", auditIniDto.getSoapResponse());
+			requestAndResponse.put("soapRequest", auditIniDto.getSoapRequest());
+			status.setMessage(StringUtility.toJSONJackson(requestAndResponse));
+			status.setWorkflowInstanceId(workflowInstanceId);
+			out.getTransactionData().add(status);
+		}
+		
+		return out;
+		
 	}
 
 	@Override

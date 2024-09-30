@@ -51,5 +51,9 @@ public final class IniClientRoutes {
     public String metadata() {
         return base().pathSegment(API_VERSION, METADATA_PATH).build().toUriString();
     }
+    
+    public String workflowInstanceId() {
+        return base().pathSegment(API_VERSION, METADATA_PATH).build().toUriString();
+    }
 
 }
