@@ -26,9 +26,9 @@ public interface IIniClient {
 	
 	IniTraceResponseDTO update(IniMetadataUpdateReqDTO iniReq);
 
-	IniReferenceResponseDTO reference(IniReferenceRequestDTO iniReferenceRequestDTO);
+	IniReferenceResponseDTO reference(IniReferenceRequestDTO iniReferenceRequestDTO, String workflowInstanceId);
 
-	GetMergedMetadatiDTO metadata(MergedMetadatiRequestDTO iniReq);
+	GetMergedMetadatiDTO metadata(MergedMetadatiRequestDTO iniReq, String workflowInstanceId);
 	
 	IniAuditDto callSearchEventByWorkflowInstanceId(String workflowInstanceId);
 

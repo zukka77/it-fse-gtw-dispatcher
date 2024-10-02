@@ -111,7 +111,7 @@ class ReplaceTest extends AbstractTest {
 	 	mockFhirMapping();
 	 	mockIniClient(HttpStatus.OK, true); 
 	 	mockGetReference(new IniReferenceResponseDTO(idDocument, null, "DocumentType", null, null));
-		Mockito.doReturn(new IniReferenceResponseDTO(idDocument, "DocumentType", "", null, null)).when(iniClient).reference(any(it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.IniReferenceRequestDTO.class)); 
+		Mockito.doReturn(new IniReferenceResponseDTO(idDocument, "DocumentType", "", null, null)).when(iniClient).reference(any(it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.IniReferenceRequestDTO.class), anyString());
 
 	 	final byte[] pdfAttachment = FileUtility.getFileFromInternalResources("Files" + File.separator + "accreditamento" + File.separator + filename);
 		
@@ -172,7 +172,7 @@ class ReplaceTest extends AbstractTest {
 	 	mockFhirMapping();
 	 	mockGetReference(new IniReferenceResponseDTO(idDocument, null,"DocumentType", null, null));
 	 	//when(iniClient.reference(any(it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.IniReferenceRequestDTO.class))).thenReturn(true); 
-		Mockito.doReturn(new IniReferenceResponseDTO("uuid", "DocumentType", "", null, null)).when(iniClient).reference(any(it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.IniReferenceRequestDTO.class)); 
+		Mockito.doReturn(new IniReferenceResponseDTO("uuid", "DocumentType", "", null, null)).when(iniClient).reference(any(it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.IniReferenceRequestDTO.class), anyString());
 
 	 	final byte[] notPdfFile = FileUtility.getFileFromInternalResources("Files/Test.docx");
 	 	assertThrows(HttpClientErrorException.BadRequest.class, 
