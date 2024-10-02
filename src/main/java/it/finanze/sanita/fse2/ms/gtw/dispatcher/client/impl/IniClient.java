@@ -18,6 +18,9 @@ import static org.springframework.http.HttpMethod.DELETE;
 import static org.springframework.http.HttpMethod.POST;
 import static org.springframework.http.HttpMethod.PUT;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpEntity;
@@ -85,8 +88,13 @@ public class IniClient extends AbstractClient implements IIniClient {
 		log.debug("{} - Executing request: {}", routes.identifier(), endpoint);
 
 		try {
+			
+			Map<String,Object> requestBody = new HashMap<>();
+			requestBody.put("token", request.getToken());
+			requestBody.put("workflowInstanceId", "test");
+			
 			// Execute request
-			ResponseEntity<IniReferenceResponseDTO> response = restTemplateIni.exchange(endpoint,POST,new HttpEntity<>(request.getToken()),IniReferenceResponseDTO.class);
+			ResponseEntity<IniReferenceResponseDTO> response = restTemplateIni.exchange(endpoint,POST,new HttpEntity<>(requestBody),IniReferenceResponseDTO.class);
 			// Retrieve body
 			output = response.getBody();
 		} catch (RestClientResponseException ex) {
