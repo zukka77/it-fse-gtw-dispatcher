@@ -34,7 +34,7 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.IIniClient;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.impl.base.AbstractClient;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.routes.IniClientRoutes;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.MicroservicesURLCFG;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.IniAuditDto;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.IniAuditsDto;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.DeleteRequestDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.IniMetadataUpdateReqDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.IniReferenceRequestDTO;
@@ -146,12 +146,12 @@ public class IniClient extends AbstractClient implements IIniClient {
 	}
 	
 	@Override
-	public IniAuditDto callSearchEventByWorkflowInstanceId(final String workflowInstanceId) {
+	public IniAuditsDto callSearchEventByWorkflowInstanceId(final String workflowInstanceId) {
 		String url =  msUrlCfg.getIniClientHost() + "/v1/" + workflowInstanceId;
 
-		IniAuditDto out = null;
+		IniAuditsDto out = null;
 		try {
-			out = restTemplateIni.getForObject(url, IniAuditDto.class);
+			out = restTemplateIni.getForObject(url, IniAuditsDto.class);
 		} catch (ResourceAccessException rax) {
 			throw new BusinessException("Timeout error while call search event by worflow instance id");
 		}

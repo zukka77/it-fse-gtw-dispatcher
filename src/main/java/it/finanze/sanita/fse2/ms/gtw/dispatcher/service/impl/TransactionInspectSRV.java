@@ -11,21 +11,15 @@
  */
 package it.finanze.sanita.fse2.ms.gtw.dispatcher.service.impl;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.IConfigClient;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.IIniClient;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.IStatusCheckClient;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.IniAuditDto;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.StatusCheckDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.IniAuditsDto;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.TransactionInspectResDTO;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.IConfigSRV;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.ITransactionInspectSRV;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility;
 
 @Service
 public class TransactionInspectSRV implements ITransactionInspectSRV {
@@ -37,25 +31,19 @@ public class TransactionInspectSRV implements ITransactionInspectSRV {
 	private IIniClient iniClient;
 	
 	@Autowired
-	private IConfigClient configClient;
+	private IConfigSRV configSRV;
 
 	@Override
 	public TransactionInspectResDTO callSearchEventByWorkflowInstanceId(final String workflowInstanceId) {
 		TransactionInspectResDTO out = statusCheckClient.callSearchEventByWorkflowInstanceId(workflowInstanceId); 
-		if(true) {
-			IniAuditDto auditIniDto = iniClient.callSearchEventByWorkflowInstanceId(workflowInstanceId);
-			StatusCheckDTO status = new StatusCheckDTO();
-			status.setEventDate(""+auditIniDto.getEventDate());
-			Map<String,String> requestAndResponse = new HashMap<>();
-			requestAndResponse.put("soapResponse", auditIniDto.getSoapResponse());
-			requestAndResponse.put("soapRequest", auditIniDto.getSoapRequest());
-			status.setMessage(StringUtility.toJSONJackson(requestAndResponse));
-			status.setWorkflowInstanceId(workflowInstanceId);
-			out.getTransactionData().add(status);
+		if(configSRV.isAuditIniEnable()) {
+			IniAuditsDto auditsIniDto = iniClient.callSearchEventByWorkflowInstanceId(workflowInstanceId);
+			if(auditsIniDto!=null && !auditsIniDto.getAudit().isEmpty()) {
+				out.getTransactionData().addAll(auditsIniDto.getAudit());
+			}
 		}
 		
 		return out;
-		
 	}
 
 	@Override
