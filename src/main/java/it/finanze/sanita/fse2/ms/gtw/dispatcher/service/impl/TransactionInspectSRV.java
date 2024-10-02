@@ -11,12 +11,16 @@
  */
 package it.finanze.sanita.fse2.ms.gtw.dispatcher.service.impl;
 
+import java.util.Comparator;
+import java.util.stream.Collectors;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.IIniClient;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.client.IStatusCheckClient;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.IniAuditsDto;
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.StatusCheckDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.TransactionInspectResDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.IConfigSRV;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.ITransactionInspectSRV;
@@ -42,7 +46,7 @@ public class TransactionInspectSRV implements ITransactionInspectSRV {
 				out.getTransactionData().addAll(auditsIniDto.getAudit());
 			}
 		}
-		
+		out.setTransactionData(out.getTransactionData().stream().sorted(Comparator.comparing(StatusCheckDTO::getEventDate)).collect(Collectors.toList()));
 		return out;
 	}
 

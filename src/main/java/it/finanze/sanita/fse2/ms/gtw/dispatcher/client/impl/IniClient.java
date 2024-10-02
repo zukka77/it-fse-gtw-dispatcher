@@ -89,7 +89,7 @@ public class IniClient extends AbstractClient implements IIniClient {
 
 		try {
 			Map<String, Object> requestBody = new HashMap<>();
-			requestBody.put("token", request);
+			requestBody.put("token", request.getToken());
 			requestBody.put("workflowInstanceId", workflowInstanceId);
 			// Execute request
 			ResponseEntity<IniReferenceResponseDTO> response = restTemplateIni.exchange(endpoint,POST,new HttpEntity<>(requestBody),IniReferenceResponseDTO.class);
@@ -124,7 +124,7 @@ public class IniClient extends AbstractClient implements IIniClient {
 
 	
 	@Override
-	public GetMergedMetadatiDTO metadata(final MergedMetadatiRequestDTO request, String workflowInstanceId) {
+	public GetMergedMetadatiDTO metadata(final MergedMetadatiRequestDTO request) {
 
 		String endpoint = routes.metadata();
 		GetMergedMetadatiDTO output = null;
@@ -132,11 +132,7 @@ public class IniClient extends AbstractClient implements IIniClient {
 		log.debug("{} - Executing request: {}", routes.identifier(), endpoint);
 
 		try {
-			Map<String, Object> requestBody = new HashMap<>();
-			requestBody.put("token", request);
-			requestBody.put("workflowInstanceId", workflowInstanceId);
-
-			ResponseEntity<GetMergedMetadatiDTO> response = restTemplateIni.exchange(endpoint,PUT,new HttpEntity<>(requestBody),GetMergedMetadatiDTO.class);
+			ResponseEntity<GetMergedMetadatiDTO> response = restTemplateIni.exchange(endpoint,PUT,new HttpEntity<>(request),GetMergedMetadatiDTO.class);
 			output = response.getBody();
 		} catch (ResourceAccessException ex) {
 			throw new BusinessException("Timeout error while call merge metadati"); 
