@@ -23,7 +23,7 @@ public interface IIniClient {
 	
 	IniTraceResponseDTO delete(DeleteRequestDTO iniReq);
 	
-	IniTraceResponseDTO update(IniMetadataUpdateReqDTO iniReq);
+	IniTraceResponseDTO update(IniMetadataUpdateReqDTO request,boolean callUpdateV2);
 
 	IniReferenceResponseDTO reference(IniReferenceRequestDTO iniReferenceRequestDTO);
 

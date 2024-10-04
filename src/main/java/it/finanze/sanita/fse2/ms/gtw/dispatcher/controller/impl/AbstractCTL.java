@@ -690,7 +690,7 @@ public abstract class AbstractCTL {
     	return out;
     }
     
-    protected ResponseWifDTO updateAbstract(final String idDoc, final PublicationMetadataReqDTO requestBody, boolean callNewUpdate,
+    protected ResponseWifDTO updateAbstract(final String idDoc, final PublicationMetadataReqDTO requestBody, boolean callUpdateV2,
 			final HttpServletRequest request) {
 		// Estrazione token
 		JWTPayloadDTO jwtPayloadToken = null;
@@ -738,7 +738,7 @@ public abstract class AbstractCTL {
 					kafkaSRV.sendUpdateStatus(logTraceDTO.getTraceID(), wif, idDoc, SUCCESS, jwtPayloadToken, "Regime di mock", INI_UPDATE);
 				} else {
 					IniTraceResponseDTO res = iniClient.update(new IniMetadataUpdateReqDTO(metadatiToUpdate.getMarshallResponse(), jwtPayloadToken,metadatiToUpdate.getDocumentType(),wif,
-							metadatiToUpdate.getAdministrativeRequest(), metadatiToUpdate.getAuthorInstitution()));
+							metadatiToUpdate.getAdministrativeRequest(), metadatiToUpdate.getAuthorInstitution()),callUpdateV2);
 					// Check response errors
 					if(Boolean.FALSE.equals(res.getEsito())) {
 						// Send to indexer
