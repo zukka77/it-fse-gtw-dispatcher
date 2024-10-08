@@ -11,14 +11,12 @@
  */
 package it.finanze.sanita.fse2.ms.gtw.dispatcher.service.impl;
 
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.Date;
 import java.util.List;
-import java.util.TimeZone;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Element;
@@ -79,25 +77,15 @@ public class FhirSRV implements IFhirSRV {
 
 		AuthorSlotDTO authorSlot =  buildAuthorSlotDTO(authorInstitution,authorRole,docCDA);
 
-		try {
 			final SubmissionSetEntryDTO submissionSetEntryDTO = createSubmissionSetEntry(docCDA, requestBody.getTipoAttivitaClinica().getCode(),
 					requestBody.getIdentificativoSottomissione(),authorSlot,organizationId);
 			output.setSubmissionSetEntryJson(StringUtility.toJSON(submissionSetEntryDTO));
-		} catch(final Exception ex) {
-			output.setErrorMessage(ex.getCause().getCause().getMessage());
-		}
 
-		if(StringUtility.isNullOrEmpty(output.getErrorMessage())) {
-			try {
 				final DocumentEntryDTO documentEntryDTO = createDocumentEntry(docCDA, requestBody, size, sha1,
 						authorSlot);
 				output.setDocumentEntryJson(StringUtility.toJSON(documentEntryDTO));
-			} catch(final Exception ex) {
-				output.setErrorMessage(ex.getCause().getCause().getMessage());
-			}
-		}
 
-		if(!configSrv.isRemoveEds() && StringUtility.isNullOrEmpty(output.getErrorMessage())) {
+		if(!configSrv.isRemoveEds()) {
 			final TransformResDTO resDTO = client.callConvertCdaInBundle(req);	
 			if (!StringUtility.isNullOrEmpty(resDTO.getErrorMessage())) {
 				output.setErrorMessage(resDTO.getErrorMessage());
