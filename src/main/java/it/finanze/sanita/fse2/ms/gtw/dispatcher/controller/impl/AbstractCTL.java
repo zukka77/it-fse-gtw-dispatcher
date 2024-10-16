@@ -514,8 +514,8 @@ public abstract class AbstractCTL {
 						final String hashedCDA = StringUtility.encodeSHA256B64(cdaWithoutLegalAuthenticator(cda));
 						cdaFacadeSRV.create(hashedCDA, workflowInstanceId, rawValRes.getTransformID(), rawValRes.getEngineID());	
 					} else {
-						final String hashedCDA = StringUtility.encodeSHA256B64(cdaWithoutLegalAuthenticator(cda));
-						cdaFacadeSRV.createBenchMark(hashedCDA, workflowInstanceId, rawValRes.getTransformID(), rawValRes.getEngineID());	
+						final String hashedWII = StringUtility.encodeSHA256B64(workflowInstanceId);
+						cdaFacadeSRV.createBenchMark(hashedWII, workflowInstanceId, rawValRes.getTransformID(), rawValRes.getEngineID());	
 					}
 					
 				}
@@ -572,7 +572,12 @@ public abstract class AbstractCTL {
 	 * @throws ValidationException If the hash does not exists or is associated with a different {@code wii}
 	 */
     protected ValidationDataDTO getValidationInfo(final String cda, @Nullable final String wii) {
-		final String hashedCDA = StringUtility.encodeSHA256B64(cdaWithoutLegalAuthenticator(cda));
+    	String hashedCDA = "";
+		if(!cda.startsWith("<!--CDA_BENCHMARK_TEST-->")){
+			hashedCDA = StringUtility.encodeSHA256B64(cdaWithoutLegalAuthenticator(cda));
+		} else {
+			hashedCDA = StringUtility.encodeSHA256B64(wii);	
+		}
 
 		ValidationDataDTO validationInfo = cdaFacadeSRV.retrieveValidationInfo(hashedCDA, wii);
 		if (!validationInfo.isCdaValidated()) {

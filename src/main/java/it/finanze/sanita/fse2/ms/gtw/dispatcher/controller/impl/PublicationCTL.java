@@ -440,9 +440,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 			final String cda) {
 		ValidationDataDTO validationInfo;
 		validationInfo = getValidationInfo(cda, jsonObj.getWorkflowInstanceId());
-		validation.setValidationData(validationInfo); // Updating validation info
-
-		// ValidationDataDTO validatedDocument = cdaSRV.getByWorkflowInstanceId(validationInfo.getWorkflowInstanceId()); 
+		validation.setValidationData(validationInfo);  
 
 		if(!benchmarkCFG.isBenchmarkEnable()){
 			cdaSRV.consumeHash(validationInfo.getHash()); 
@@ -450,7 +448,8 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 			if(!cda.startsWith("<!--CDA_BENCHMARK_TEST-->")){
 				cdaSRV.consumeHash(validationInfo.getHash()); 
 			} else {
-				cdaSRV.consumeHashBenchmark(validationInfo.getHash()); 
+				String hash = StringUtility.encodeSHA256B64(validationInfo.getWorkflowInstanceId());
+				cdaSRV.consumeHashBenchmark(hash); 
 			} 
 		}
   
