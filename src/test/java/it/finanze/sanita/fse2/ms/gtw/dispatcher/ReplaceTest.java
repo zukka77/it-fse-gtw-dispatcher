@@ -57,6 +57,7 @@ import org.springframework.web.client.RestTemplate;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
@@ -110,8 +111,8 @@ class ReplaceTest extends AbstractTest {
 	 	mockDocumentRef();
 	 	mockFhirMapping();
 	 	mockIniClient(HttpStatus.OK, true); 
-	 	mockGetReference(new IniReferenceResponseDTO(idDocument, null, "DocumentType", null, null));
-		Mockito.doReturn(new IniReferenceResponseDTO(idDocument, "DocumentType", "", null, null)).when(iniClient).reference(any(it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.IniReferenceRequestDTO.class)); 
+	 	mockGetReference(new IniReferenceResponseDTO(Arrays.asList(idDocument), null, "DocumentType", null, null));
+		Mockito.doReturn(new IniReferenceResponseDTO(Arrays.asList(idDocument), "DocumentType", "", null, null)).when(iniClient).reference(any(it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.IniReferenceRequestDTO.class));
 
 	 	final byte[] pdfAttachment = FileUtility.getFileFromInternalResources("Files" + File.separator + "accreditamento" + File.separator + filename);
 		
@@ -165,14 +166,14 @@ class ReplaceTest extends AbstractTest {
 	 	final String idDocument = StringUtility.generateUUID();
 
 	 	IniReferenceResponseDTO responseDto = new IniReferenceResponseDTO(); 
-	 	responseDto.setUuid("test");
+	 	responseDto.setUuid(Arrays.asList("test"));
 	 	responseDto.setDocumentType("DocumentType"); 
 	 	
 	 	mockDocumentRef();
 	 	mockFhirMapping();
-	 	mockGetReference(new IniReferenceResponseDTO(idDocument, null,"DocumentType", null, null));
+	 	mockGetReference(new IniReferenceResponseDTO(Arrays.asList(idDocument), null,"DocumentType", null, null));
 	 	//when(iniClient.reference(any(it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.IniReferenceRequestDTO.class))).thenReturn(true); 
-		Mockito.doReturn(new IniReferenceResponseDTO("uuid", "DocumentType", "", null, null)).when(iniClient).reference(any(it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.IniReferenceRequestDTO.class)); 
+		Mockito.doReturn(new IniReferenceResponseDTO(Arrays.asList("uuid"), "DocumentType", "", null, null)).when(iniClient).reference(any(it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.IniReferenceRequestDTO.class));
 
 	 	final byte[] notPdfFile = FileUtility.getFileFromInternalResources("Files/Test.docx");
 	 	assertThrows(HttpClientErrorException.BadRequest.class, 
@@ -330,7 +331,7 @@ class ReplaceTest extends AbstractTest {
 				referenceResponse.setSpanID(StringUtility.generateUUID());
 				referenceResponse.setTraceID(StringUtility.generateUUID());
 				referenceResponse.setErrorMessage(null);
-				referenceResponse.setUuid(StringUtility.generateUUID());
+				referenceResponse.setUuid(Arrays.asList(StringUtility.generateUUID()));
 				Mockito.doReturn(new ResponseEntity<>(referenceResponse, status)).when(restTemplate).exchange(anyString(), eq(HttpMethod.POST), any(HttpEntity.class), ArgumentMatchers.eq(IniReferenceResponseDTO.class));
 				Mockito.doReturn(new ResponseEntity<>(response, status)).when(restTemplate).exchange(anyString(), eq(HttpMethod.PUT), any(HttpEntity.class), ArgumentMatchers.eq(IniTraceResponseDTO.class));
 				Mockito.doReturn(new ResponseEntity<>(response, status)).when(restTemplate).exchange(anyString(), eq(HttpMethod.DELETE), any(HttpEntity.class), ArgumentMatchers.eq(IniTraceResponseDTO.class));
@@ -345,7 +346,7 @@ class ReplaceTest extends AbstractTest {
 				referenceResponse.setSpanID(StringUtility.generateUUID());
 				referenceResponse.setTraceID(StringUtility.generateUUID());
 				referenceResponse.setErrorMessage(null);
-				referenceResponse.setUuid(StringUtility.generateUUID());
+				referenceResponse.setUuid(Arrays.asList(StringUtility.generateUUID()));
 				response.setSpanID(StringUtility.generateUUID());
 				response.setTraceID(StringUtility.generateUUID());
 				response.setEsito(false);

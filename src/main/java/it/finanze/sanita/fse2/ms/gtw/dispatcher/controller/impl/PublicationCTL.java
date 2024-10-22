@@ -355,9 +355,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 			final String cda) {
 		ValidationDataDTO validationInfo;
 		validationInfo = getValidationInfo(cda, jsonObj.getWorkflowInstanceId());
-		validation.setValidationData(validationInfo); // Updating validation info
-
-		// ValidationDataDTO validatedDocument = cdaSRV.getByWorkflowInstanceId(validationInfo.getWorkflowInstanceId()); 
+		validation.setValidationData(validationInfo);  
 
 		if(!benchmarkCFG.isBenchmarkEnable()){
 			cdaSRV.consumeHash(validationInfo.getHash()); 
@@ -365,7 +363,8 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 			if(!cda.startsWith("<!--CDA_BENCHMARK_TEST-->")){
 				cdaSRV.consumeHash(validationInfo.getHash()); 
 			} else {
-				cdaSRV.consumeHashBenchmark(validationInfo.getHash()); 
+				String hash = StringUtility.encodeSHA256B64(validationInfo.getWorkflowInstanceId());
+				cdaSRV.consumeHashBenchmark(hash); 
 			} 
 		}
   
@@ -530,7 +529,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 		return new ResponseWifDTO(workflowInstanceId, info, warning);
 	}
 
-	private DeleteRequestDTO buildRequestForIni(final String identificativoDocumento, final String uuid, final JWTPayloadDTO jwtPayloadToken,
+	private DeleteRequestDTO buildRequestForIni(final String identificativoDocumento, final List<String> uuid, final JWTPayloadDTO jwtPayloadToken,
 			final String documentType, String applicationId, String applicationVendor, String applicationVersion,
 			final String workflowInstanceId, String authorInstitution, List<String> administrativeRequest) {
 		DeleteRequestDTO out = null;

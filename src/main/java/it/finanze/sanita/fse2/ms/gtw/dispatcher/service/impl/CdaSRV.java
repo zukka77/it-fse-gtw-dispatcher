@@ -67,22 +67,18 @@ public class CdaSRV implements ICdaSRV {
 			throw new BusinessException("Error getting entity from Mongo", ex);
 		}
 	}
-	 @Override
+	
+	@Override
 	public ValidationDataDTO retrieveValidationInfo(final String hashPublication, final String wiiPublication) {
 		ValidationDataDTO data = new ValidationDataDTO();
-		// data.setCdaValidated(false);
-		// data.setHash(hashPublication);
 
 		try { 
 			data = cdaRepo.findItemByHash(hashPublication);
 			String wii = data.getWorkflowInstanceId();
-			// final String value = cdaRepo.findItemByHash(hashPublication).getWorkflowInstanceId();
 
 			if (wii == null) {
 				log.debug("Hash of CDA not found in Mongo, the CDA may be not validated");
 			} else { 
-				// data.setCdaValidated(true);
-				// data.setWorkflowInstanceId(wii);
 				if (!StringUtility.isNullOrEmpty(wiiPublication) && !wiiPublication.equals(data.getWorkflowInstanceId())) {
 					data.setCdaValidated(false);
 				}

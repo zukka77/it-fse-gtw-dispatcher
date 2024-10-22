@@ -66,9 +66,9 @@ public class JwtSRV extends AbstractService implements IJwtSRV {
 
 	@Override
 	public void validatePayloadForCreate(JWTPayloadDTO payload) {
-		checkNull(payload.getResource_hl7_type(), "resource_hl7_type"); 
-		validateActionCoherence(payload, ActionEnum.CREATE);
+		checkNull(payload.getResource_hl7_type(), "resource_hl7_type");
 		performCommonValidation(payload);
+		validateActionCoherence(payload, ActionEnum.CREATE);
 		validatePurposeOfUseCoherence(payload, PurposeOfUseEnum.TREATMENT);
 		isValidLocality(payload.getLocality());
 	}
