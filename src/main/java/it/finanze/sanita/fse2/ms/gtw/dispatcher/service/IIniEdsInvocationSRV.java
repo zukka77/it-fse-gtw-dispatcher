@@ -14,10 +14,12 @@ package it.finanze.sanita.fse2.ms.gtw.dispatcher.service;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.JWTPayloadDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.ResourceDTO;
 
+import java.util.List;
+
 public interface IIniEdsInvocationSRV {
 	
 	Boolean insert(String workflowInstanceId, ResourceDTO fhirResourceDTO, JWTPayloadDTO jwtPayloadToken);
 
-	Boolean replace(String workflowInstanceId, ResourceDTO fhirResourceDTO, JWTPayloadDTO jwtPayloadToken, String identificativoDocumento);
+	Boolean replace(String workflowInstanceId, ResourceDTO fhirResourceDTO, JWTPayloadDTO jwtPayloadToken, List<String> identificativoDocumento);
 
 }
