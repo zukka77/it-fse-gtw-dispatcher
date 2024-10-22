@@ -685,4 +685,9 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 		return new ResponseEntity<>(new PublicationResDTO(traceInfoDTO, warning, validationResult.getValidationData().getWorkflowInstanceId()), HttpStatus.OK);
 
 	}
+
+	@Override
+	public ResponseWifDTO updateMetadataIti_57(@Size(min = 1, max = 256) String idDoc, PublicationMetadataReqDTO requestBody, HttpServletRequest request) {
+		return updateAbstract(idDoc, requestBody, true,request);
+	}
 }
