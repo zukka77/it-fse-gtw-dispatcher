@@ -161,7 +161,7 @@ public class FhirSRV implements IFhirSRV {
 
 		DocumentEntryDTO de = new DocumentEntryDTO();
 		try {
-
+			de.setConservazioneANorma(requestBody.getConservazioneANorma());
 			de.setPatientId(buildPatient(docCDA));
 
 			final Element confidentialityElement = docCDA.select("ClinicalDocument > confidentialityCode").first();
