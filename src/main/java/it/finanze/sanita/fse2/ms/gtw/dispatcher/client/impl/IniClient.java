@@ -103,16 +103,23 @@ public class IniClient extends AbstractClient implements IIniClient {
 	}
 
 	@Override
-	public IniTraceResponseDTO update(IniMetadataUpdateReqDTO request) {
+	public IniTraceResponseDTO update(IniMetadataUpdateReqDTO request,boolean callUpdateV2) {
 
-		String endpoint = routes.update();
+		String endpoint = "";;
 		IniTraceResponseDTO output = null;
 
 		log.debug("{} - Executing request: {}", routes.identifier(), endpoint);
 
 		try {
-			// Execute request
-			ResponseEntity<IniTraceResponseDTO> response = restTemplateIni.exchange(endpoint,PUT,new HttpEntity<>(request),IniTraceResponseDTO.class);
+			ResponseEntity<IniTraceResponseDTO> response = null;
+			if(callUpdateV2) {
+				endpoint = routes.update("v2");
+				response = restTemplateIni.exchange(endpoint,PUT,new HttpEntity<>(request),IniTraceResponseDTO.class);
+			} else {
+				endpoint = routes.update("v1");
+				response = restTemplateIni.exchange(endpoint,PUT,new HttpEntity<>(request),IniTraceResponseDTO.class);	
+			}
+			
 			// Retrieve body
 			output = response.getBody();
 		} catch (RestClientResponseException ex) {

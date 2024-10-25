@@ -57,7 +57,7 @@ public class IniEdsInvocationSRV implements IIniEdsInvocationSRV {
 	}
 	
 	private IniEdsInvocationETY buildETY(final String workflowInstanceId, final String bundleJson, final String submissionSetEntryJson,
-			final String documentEntryJson, final String tokenEntryJson, final String rifIni, final String issuer) {
+			final String documentEntryJson, final String tokenEntryJson, final List<String> rifIni, final String issuer) {
 		IniEdsInvocationETY out = new IniEdsInvocationETY();
  
 		out.setWorkflowInstanceId(workflowInstanceId);
@@ -66,7 +66,7 @@ public class IniEdsInvocationSRV implements IIniEdsInvocationSRV {
 		}
 		
 		out.setIssuer(issuer);
-		if (!StringUtility.isNullOrEmpty(rifIni)) {
+		if (rifIni!=null && !rifIni.isEmpty()) {
 			out.setRiferimentoIni(rifIni);
 		}
 		
@@ -83,7 +83,7 @@ public class IniEdsInvocationSRV implements IIniEdsInvocationSRV {
 	}
 
 	@Override
-	public Boolean replace(String workflowInstanceId, ResourceDTO fhirResourceDTO, JWTPayloadDTO jwtPayloadToken, final String identificativoDocumento) {
+	public Boolean replace(String workflowInstanceId, ResourceDTO fhirResourceDTO, JWTPayloadDTO jwtPayloadToken, final List<String> identificativoDocumento) {
 		Boolean output = false;
 		try {
 			IniEdsInvocationETY etyToSave = buildETY(workflowInstanceId, fhirResourceDTO.getBundleJson(), fhirResourceDTO.getSubmissionSetEntryJson(),

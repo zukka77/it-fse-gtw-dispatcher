@@ -39,7 +39,7 @@ public class IniEdsInvocationETY {
 	private String issuer;
 
 	@Field(name = "riferimento_ini")
-	private String riferimentoIni;
+	private List<String> riferimentoIni;
 	
 	@Field(name = "data")
 	private org.bson.Document data;

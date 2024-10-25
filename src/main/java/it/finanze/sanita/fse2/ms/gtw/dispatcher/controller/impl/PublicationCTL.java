@@ -16,9 +16,7 @@ import static it.finanze.sanita.fse2.ms.gtw.dispatcher.config.Constants.App.MISS
 import static it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventStatusEnum.BLOCKING_ERROR;
 import static it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventStatusEnum.SUCCESS;
 import static it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventTypeEnum.EDS_DELETE;
-import static it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventTypeEnum.EDS_UPDATE;
 import static it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventTypeEnum.INI_DELETE;
-import static it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventTypeEnum.INI_UPDATE;
 import static it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.EventTypeEnum.RIFERIMENTI_INI;
 import static it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.RestExecutionResultEnum.FHIR_MAPPING_ERROR;
 import static it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.RestExecutionResultEnum.GENERIC_ERROR;
@@ -38,9 +36,9 @@ import java.util.Objects;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.constraints.Size;
+import javax.xml.bind.ValidationException;
 
 import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -64,10 +62,7 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.ResourceDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.ValidationCreationInputDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.ValidationDataDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.DeleteRequestDTO;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.EdsMetadataUpdateReqDTO;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.IniMetadataUpdateReqDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.IniReferenceRequestDTO;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.MergedMetadatiRequestDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.PublicationCreateReplaceMetadataDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.PublicationCreateReplaceWiiDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.PublicationCreationReqDTO;
@@ -77,7 +72,6 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.PublicationUpdateReq
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.request.PublicationUpdateReqDTO.ValidateAndReplaceDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.EdsResponseDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.ErrorResponseDTO;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.GetMergedMetadatiDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.IniReferenceResponseDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.IniTraceResponseDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.response.LogTraceInfoDTO;
@@ -100,7 +94,6 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.EdsException;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.IniException;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.MockEnabledException;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.NoRecordFoundException;
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.ValidationException;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.logging.LoggerHelper;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.IAccreditamentoSimulationSRV;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.IConfigSRV;
@@ -281,86 +274,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 
 	@Override
 	public ResponseWifDTO updateMetadata(final String idDoc, final PublicationMetadataReqDTO requestBody, final HttpServletRequest request) {
-
-		// Estrazione token
-		JWTPayloadDTO jwtPayloadToken = null;
-		final Date startDateOperation = new Date();
-		LogTraceInfoDTO logTraceDTO = getLogTraceInfo();
-		String wif = "";
-
-		log.info("[START] {}() with arguments {}={}, {}={}, {}={}","update","traceId", logTraceDTO.getTraceID(),"wif", wif,"idDoc", idDoc);
-
-		String warning = null;
-
-		if(!isValidMasterId(idDoc)) throw new ValidationException(createMasterIdError());
-
-		try {
-			request.setAttribute("UPDATE_REQ", requestBody);
-			jwtPayloadToken = extractAndValidateJWT(request, EventTypeEnum.UPDATE);
-			request.setAttribute("JWT_ISSUER", jwtPayloadToken.getIss());
-
-			validateUpdateMetadataReq(requestBody);
-			wif = createWorkflowInstanceId(idDoc);
-			final GetMergedMetadatiDTO metadatiToUpdate = iniClient.metadata(new MergedMetadatiRequestDTO(idDoc,jwtPayloadToken, requestBody,wif));
-			if(!StringUtility.isNullOrEmpty(metadatiToUpdate.getErrorMessage()) && !metadatiToUpdate.getErrorMessage().contains("Invalid region ip")) {
-				kafkaSRV.sendUpdateStatus(logTraceDTO.getTraceID(), wif, idDoc, BLOCKING_ERROR, jwtPayloadToken, metadatiToUpdate.getErrorMessage(), RIFERIMENTI_INI);
-				throw new IniException(metadatiToUpdate.getErrorMessage());
-			} else {
-				boolean regimeDiMock = metadatiToUpdate.getMarshallResponse()==null; 
-
-				if(regimeDiMock) {
-					kafkaSRV.sendUpdateStatus(logTraceDTO.getTraceID(), wif, idDoc, SUCCESS, jwtPayloadToken, "Regime mock", RIFERIMENTI_INI);
-				} else {
-					kafkaSRV.sendUpdateStatus(logTraceDTO.getTraceID(), wif, idDoc, SUCCESS, jwtPayloadToken, "Merge metadati effettuato correttamente", RIFERIMENTI_INI);
-				}
-
-				if(!configSRV.isRemoveEds()) {
-					EdsResponseDTO edsResponse = edsClient.update(new EdsMetadataUpdateReqDTO(idDoc, wif, requestBody));
-					if(edsResponse.isEsito()) {
-						kafkaSRV.sendUpdateStatus(logTraceDTO.getTraceID(), wif, idDoc, SUCCESS, jwtPayloadToken, "Update EDS effettuato correttamente", EDS_UPDATE);
-					} else {
-						kafkaSRV.sendUpdateStatus(logTraceDTO.getTraceID(), wif, idDoc, BLOCKING_ERROR, jwtPayloadToken, "Update EDS fallito", EDS_UPDATE);
-						throw new EdsException(edsResponse.getMessageError());
-					}
-				}
-				
-				if(regimeDiMock) {
-					kafkaSRV.sendUpdateStatus(logTraceDTO.getTraceID(), wif, idDoc, SUCCESS, jwtPayloadToken, "Regime di mock", INI_UPDATE);
-				} else {
-					IniTraceResponseDTO res = iniClient.update(new IniMetadataUpdateReqDTO(metadatiToUpdate.getMarshallResponse(), jwtPayloadToken,metadatiToUpdate.getDocumentType(),wif,
-							metadatiToUpdate.getAdministrativeRequest(), metadatiToUpdate.getAuthorInstitution()));
-					// Check response errors
-					if(Boolean.FALSE.equals(res.getEsito())) {
-						// Send to indexer
-						kafkaSRV.sendUpdateRequest(wif, new IniMetadataUpdateReqDTO(metadatiToUpdate.getMarshallResponse(), jwtPayloadToken, metadatiToUpdate.getDocumentType(), wif,
-								metadatiToUpdate.getAdministrativeRequest(), metadatiToUpdate.getAuthorInstitution()));
-						kafkaSRV.sendUpdateStatus(logTraceDTO.getTraceID(), wif, idDoc, EventStatusEnum.ASYNC_RETRY, jwtPayloadToken, "Transazione presa in carico", INI_UPDATE);
-						warning = Misc.WARN_ASYNC_TRANSACTION;
-					} else {
-						kafkaSRV.sendUpdateStatus(logTraceDTO.getTraceID(), wif, idDoc, SUCCESS, jwtPayloadToken, "Update ini effettuato correttamente", INI_UPDATE);
-					}
-				}  
-
-			}
-
-			logger.info(Constants.App.LOG_TYPE_CONTROL,wif,String.format("Update of CDA metadata completed for document with identifier %s", idDoc), OperationLogEnum.UPDATE_METADATA_CDA2, ResultLogEnum.OK, startDateOperation, MISSING_DOC_TYPE_PLACEHOLDER, jwtPayloadToken,null);
-		} catch (MockEnabledException me) {
-			throw me;
-		} catch (final ValidationException e) {
-			errorHandlerSRV.updateValidationExceptionHandler(startDateOperation, logTraceDTO, wif, jwtPayloadToken,e,null, idDoc);
-		} catch (Exception e) {
-			RestExecutionResultEnum errorInstance = RestExecutionResultEnum.GENERIC_ERROR;
-			if (e instanceof ValidationException) {
-				errorInstance = get(((ValidationException) e).getError().getType());
-			}
-
-			logger.error(Constants.App.LOG_TYPE_CONTROL,wif,String.format("Error while updating CDA metadata of document with identifier %s", idDoc), OperationLogEnum.UPDATE_METADATA_CDA2, ResultLogEnum.KO, startDateOperation, errorInstance.getErrorCategory(), MISSING_DOC_TYPE_PLACEHOLDER,jwtPayloadToken);
-			throw e;
-		}
-
-		log.info("[EXIT] {}() with arguments {}={}, {}={}, {}={}","update","traceId", logTraceDTO.getTraceID(),"wif", wif,"idDoc", idDoc);
-
-		return new ResponseWifDTO(wif, logTraceDTO, warning);
+		return updateAbstract(idDoc, requestBody, false,request);
 	}
 
 	private ValidationCreationInputDTO publicationAndReplace(final MultipartFile file, final HttpServletRequest request, final boolean isReplace,final String idDoc, final LogTraceInfoDTO traceInfoDTO) {
@@ -440,9 +354,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 			final String cda) {
 		ValidationDataDTO validationInfo;
 		validationInfo = getValidationInfo(cda, jsonObj.getWorkflowInstanceId());
-		validation.setValidationData(validationInfo); // Updating validation info
-
-		// ValidationDataDTO validatedDocument = cdaSRV.getByWorkflowInstanceId(validationInfo.getWorkflowInstanceId()); 
+		validation.setValidationData(validationInfo);  
 
 		if(!benchmarkCFG.isBenchmarkEnable()){
 			cdaSRV.consumeHash(validationInfo.getHash()); 
@@ -450,7 +362,8 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 			if(!cda.startsWith("<!--CDA_BENCHMARK_TEST-->")){
 				cdaSRV.consumeHash(validationInfo.getHash()); 
 			} else {
-				cdaSRV.consumeHashBenchmark(validationInfo.getHash()); 
+				String hash = StringUtility.encodeSHA256B64(validationInfo.getWorkflowInstanceId());
+				cdaSRV.consumeHashBenchmark(hash); 
 			} 
 		}
   
@@ -615,7 +528,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 		return new ResponseWifDTO(workflowInstanceId, info, warning);
 	}
 
-	private DeleteRequestDTO buildRequestForIni(final String identificativoDocumento, final String uuid, final JWTPayloadDTO jwtPayloadToken,
+	private DeleteRequestDTO buildRequestForIni(final String identificativoDocumento, final List<String> uuid, final JWTPayloadDTO jwtPayloadToken,
 			final String documentType, String applicationId, String applicationVendor, String applicationVersion,
 			final String workflowInstanceId, String authorInstitution, List<String> administrativeRequest) {
 		DeleteRequestDTO out = null;
@@ -770,5 +683,10 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 
 		return new ResponseEntity<>(new PublicationResDTO(traceInfoDTO, warning, validationResult.getValidationData().getWorkflowInstanceId()), HttpStatus.OK);
 
+	}
+
+	@Override
+	public ResponseWifDTO updateMetadataIti_57(@Size(min = 1, max = 256) String idDoc, PublicationMetadataReqDTO requestBody, HttpServletRequest request) {
+		return updateAbstract(idDoc, requestBody, true,request);
 	}
 }

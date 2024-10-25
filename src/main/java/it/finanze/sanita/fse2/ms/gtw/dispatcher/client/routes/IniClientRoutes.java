@@ -40,8 +40,8 @@ public final class IniClientRoutes {
         return base().pathSegment(API_VERSION, DELETE_PATH).build().toUriString();
     }
 
-    public String update() {
-        return base().pathSegment(API_VERSION, UPDATE_PATH).build().toUriString();
+    public String update(String apiVersion) {
+        return base().pathSegment(apiVersion, UPDATE_PATH).build().toUriString();
     }
 
     public String references(String id) {
