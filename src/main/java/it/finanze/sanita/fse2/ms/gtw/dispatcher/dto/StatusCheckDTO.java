@@ -11,10 +11,10 @@
  */
 package it.finanze.sanita.fse2.ms.gtw.dispatcher.dto;
 
+import javax.validation.constraints.Size;
+
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import javax.validation.constraints.Size;
 
 @Data
 @NoArgsConstructor
