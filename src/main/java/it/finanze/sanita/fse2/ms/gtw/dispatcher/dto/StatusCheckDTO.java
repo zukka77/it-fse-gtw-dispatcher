@@ -29,7 +29,7 @@ public class StatusCheckDTO {
 	@Size(min = 0, max = 100)
 	private String eventStatus;
 	
-	@Size(min = 0, max = 10000)
+	@Size(min = 0, max = 50000)
 	private String message;
 
 	@Size(min = 0, max = 100)
