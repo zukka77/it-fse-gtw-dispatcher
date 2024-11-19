@@ -221,6 +221,8 @@ public abstract class AbstractCTL {
 		if (errorMsg != null) {
 			final ErrorResponseDTO error = ErrorResponseDTO.builder()
 					.type(RestExecutionResultEnum.MANDATORY_ELEMENT_ERROR.getType())
+					.title(RestExecutionResultEnum.MANDATORY_ELEMENT_ERROR.getTitle())
+					.instance(ErrorInstanceEnum.MISSING_MANDATORY_ELEMENT.getInstance())
 
 					.detail(errorMsg).build();
 			throw new ValidationException(error);
