@@ -221,6 +221,8 @@ public abstract class AbstractCTL {
 		if (errorMsg != null) {
 			final ErrorResponseDTO error = ErrorResponseDTO.builder()
 					.type(RestExecutionResultEnum.MANDATORY_ELEMENT_ERROR.getType())
+					.title(RestExecutionResultEnum.MANDATORY_ELEMENT_ERROR.getTitle())
+					.instance(ErrorInstanceEnum.MISSING_MANDATORY_ELEMENT.getInstance())
 
 					.detail(errorMsg).build();
 			throw new ValidationException(error);
@@ -625,7 +627,6 @@ public abstract class AbstractCTL {
 		if(!cda.startsWith("<!--CDA_BENCHMARK_TEST-->")){
 			hashedCDA = StringUtility.encodeSHA256B64(cdaWithoutLegalAuthenticator(cda));
 		} else {
-			wii = "2.16.840.1.113883.2.9.2.120.4.4.b0f3ffcf25ce2aafc7dc901e2febc51f43837f4ca0fe3b6d1b02194e9047b6db.2f14e73610^^^^urn:ihe:iti:xdw:2013:workflowInstanceId";
 			hashedCDA = StringUtility.encodeSHA256B64(wii);
 		}
 
