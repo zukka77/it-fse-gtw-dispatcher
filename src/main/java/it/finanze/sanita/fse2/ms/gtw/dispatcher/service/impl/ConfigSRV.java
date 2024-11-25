@@ -8,6 +8,7 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.ProfileUtility;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
@@ -18,8 +19,6 @@ import java.util.Map;
 
 import static it.finanze.sanita.fse2.ms.gtw.dispatcher.client.routes.base.ClientRoutes.Config.*;
 import static it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ConfigItemTypeEnum.DISPATCHER;
-import static it.finanze.sanita.fse2.ms.gtw.dispatcher.client.routes.base.ClientRoutes.Config.PROPS_NAME_AUDIT_INI_ENABLED;
-import static it.finanze.sanita.fse2.ms.gtw.dispatcher.client.routes.base.ClientRoutes.Config.PROPS_NAME_REMOVE_EDS_ENABLE;
 
 @Slf4j
 @Service
@@ -30,6 +29,9 @@ public class ConfigSRV implements IConfigSRV {
     
     @Autowired
     private ProfileUtility profiles;
+
+    @Value("${ms.config.refresh-rate}")
+	private Long refreshRate;
 
 	private final Map<String, Pair<Long, String>> props;
 
@@ -51,9 +53,9 @@ public class ConfigSRV implements IConfigSRV {
 	@Override
 	public Boolean isRemoveEds() {
 		long lastUpdate = props.get(PROPS_NAME_REMOVE_EDS_ENABLE).getKey();
-		if (new Date().getTime() - lastUpdate >= getRefreshRate()) {
+		if (new Date().getTime() - lastUpdate >= refreshRate) {
 			synchronized(Locks.REMOVE_EDS_ENABLE) {
-				if (new Date().getTime() - lastUpdate >= getRefreshRate()) {
+				if (new Date().getTime() - lastUpdate >= refreshRate) {
 					refresh(PROPS_NAME_REMOVE_EDS_ENABLE);
 				}
 			}
@@ -64,9 +66,9 @@ public class ConfigSRV implements IConfigSRV {
     @Override
     public Boolean isAuditEnable() {
         long lastUpdate = props.get(PROPS_NAME_AUDIT_ENABLED).getKey();
-        if (new Date().getTime() - lastUpdate >= getRefreshRate()) {
+        if (new Date().getTime() - lastUpdate >= refreshRate) {
             synchronized(Locks.AUDIT_ENABLED) {
-                if (new Date().getTime() - lastUpdate >= getRefreshRate()) {
+                if (new Date().getTime() - lastUpdate >= refreshRate) {
                     refresh(PROPS_NAME_AUDIT_ENABLED);
                 }
             }
@@ -79,9 +81,9 @@ public class ConfigSRV implements IConfigSRV {
     @Override
     public Boolean isControlLogPersistenceEnable() {
         long lastUpdate = props.get(PROPS_NAME_CONTROL_LOG_ENABLED).getKey();
-        if (new Date().getTime() - lastUpdate >= getRefreshRate()) {
+        if (new Date().getTime() - lastUpdate >= refreshRate) {
             synchronized(Locks.CONTROL_LOG_ENABLED) {
-                if (new Date().getTime() - lastUpdate >= getRefreshRate()) {
+                if (new Date().getTime() - lastUpdate >= refreshRate) {
                     refresh(PROPS_NAME_CONTROL_LOG_ENABLED);
                 }
             }
@@ -94,9 +96,9 @@ public class ConfigSRV implements IConfigSRV {
     @Override
 	public Boolean isSubjectNotAllowed() {
 		long lastUpdate = props.get(PROPS_NAME_SUBJECT).getKey();
-		if (new Date().getTime() - lastUpdate >= getRefreshRate()) {
+		if (new Date().getTime() - lastUpdate >= refreshRate) {
 			synchronized (Locks.SUBJECT_CLEANING) {
-				if (new Date().getTime() - lastUpdate >= getRefreshRate()) {
+				if (new Date().getTime() - lastUpdate >= refreshRate) {
 					refresh(PROPS_NAME_SUBJECT);
 				}
 			}
@@ -109,9 +111,9 @@ public class ConfigSRV implements IConfigSRV {
     @Override
 	public Boolean isCfOnIssuerNotAllowed() {
 		long lastUpdate = props.get(PROPS_NAME_ISSUER_CF).getKey();
-		if (new Date().getTime() - lastUpdate >= getRefreshRate()) {
+		if (new Date().getTime() - lastUpdate >= refreshRate) {
 			synchronized(Locks.ISSUER_CF_CLEANING) {
-				if (new Date().getTime() - lastUpdate >= getRefreshRate()) {
+				if (new Date().getTime() - lastUpdate >= refreshRate) {
 					refresh(PROPS_NAME_ISSUER_CF);
 				}
 			}
@@ -124,9 +126,9 @@ public class ConfigSRV implements IConfigSRV {
     @Override
 	public Boolean isAuditIniEnable() {
 		long lastUpdate = props.get(PROPS_NAME_AUDIT_INI_ENABLED).getKey();
-		if (new Date().getTime() - lastUpdate >= getRefreshRate()) {
+		if (new Date().getTime() - lastUpdate >= refreshRate) {
 			synchronized(Locks.AUDIT_INI_ENABLED) {
-				if (new Date().getTime() - lastUpdate >= getRefreshRate()) {
+				if (new Date().getTime() - lastUpdate >= refreshRate) {
 					refresh(PROPS_NAME_AUDIT_INI_ENABLED);
 				}
 			}
@@ -168,11 +170,6 @@ public class ConfigSRV implements IConfigSRV {
             if(opts.isEmpty()) log.info("[GTW-CFG] No props were found");
         }
         integrity();
-    }
-
-    @Override
-    public long getRefreshRate() {
-        return 300_000L;
     }
 
     private static final class Locks {

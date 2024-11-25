@@ -5,6 +5,7 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.dto.ConfigItemDTO;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.service.impl.ConfigSRV;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.ProfileUtility;
 import org.apache.commons.lang3.tuple.Pair;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 
@@ -15,6 +16,8 @@ import java.util.Map;
 
 import static it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ConfigItemTypeEnum.GENERIC;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 public abstract class AbstractConfig {
@@ -42,8 +45,6 @@ public abstract class AbstractConfig {
         setup(prop);
         // Mock new answer
         when(client.getProps(eq(prop.getKey()), any(), any())).thenReturn(newValue);
-        // Force refresh
-        doReturn(0L).when(config).getRefreshRate();
         // Check it returns the new-value
         fn.run();
         // Verify client has been invoked

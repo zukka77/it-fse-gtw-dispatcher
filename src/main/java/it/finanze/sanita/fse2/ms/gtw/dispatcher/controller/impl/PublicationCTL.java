@@ -405,7 +405,7 @@ public class PublicationCTL extends AbstractCTL implements IPublicationCTL {
 					.type(GENERIC_ERROR.getType())
 					.title(GENERIC_ERROR.getTitle())
 					.instance(ErrorInstanceEnum.INVALID_DATE_FORMAT.getInstance())
-					.detail(ex.getCause().getMessage()).build();
+					.detail(ex.getMessage()).build();
 
 			throw new ValidationException(error);
 
