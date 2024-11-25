@@ -11,6 +11,8 @@ public interface IConfigSRV {
     Boolean isSubjectNotAllowed();
     
     Boolean isRemoveEds();
+
+    long getRefreshRate();
     
     Boolean isAuditIniEnable();
     

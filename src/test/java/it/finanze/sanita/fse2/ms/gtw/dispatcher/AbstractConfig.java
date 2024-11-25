@@ -45,6 +45,8 @@ public abstract class AbstractConfig {
         setup(prop);
         // Mock new answer
         when(client.getProps(eq(prop.getKey()), any(), any())).thenReturn(newValue);
+        // Force refresh
+        doReturn(0L).when(config).getRefreshRate();
         // Check it returns the new-value
         fn.run();
         // Verify client has been invoked
