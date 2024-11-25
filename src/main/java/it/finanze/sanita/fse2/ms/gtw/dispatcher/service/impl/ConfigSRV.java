@@ -8,6 +8,7 @@ import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.ProfileUtility;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
@@ -18,8 +19,6 @@ import java.util.Map;
 
 import static it.finanze.sanita.fse2.ms.gtw.dispatcher.client.routes.base.ClientRoutes.Config.*;
 import static it.finanze.sanita.fse2.ms.gtw.dispatcher.enums.ConfigItemTypeEnum.DISPATCHER;
-import static it.finanze.sanita.fse2.ms.gtw.dispatcher.client.routes.base.ClientRoutes.Config.PROPS_NAME_AUDIT_INI_ENABLED;
-import static it.finanze.sanita.fse2.ms.gtw.dispatcher.client.routes.base.ClientRoutes.Config.PROPS_NAME_REMOVE_EDS_ENABLE;
 
 @Slf4j
 @Service
@@ -30,6 +29,9 @@ public class ConfigSRV implements IConfigSRV {
     
     @Autowired
     private ProfileUtility profiles;
+
+    @Value("${ms.config.refresh-rate:900000}")
+	private Long refreshRate;
 
 	private final Map<String, Pair<Long, String>> props;
 
@@ -169,10 +171,10 @@ public class ConfigSRV implements IConfigSRV {
         }
         integrity();
     }
-
+    
     @Override
     public long getRefreshRate() {
-        return 300_000L;
+        return this.refreshRate;
     }
 
     private static final class Locks {
