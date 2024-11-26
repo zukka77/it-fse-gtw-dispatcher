@@ -78,17 +78,17 @@ public class KafkaPropertiesCFG {
 	@Autowired
 	private ProfileUtility profileUtility;
 
-	@Bean
-	public AdminClient client() {
-		Properties configProperties = new Properties();
-    	configProperties.put(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, producerBootstrapServers);
-    	if(!profileUtility.isDevOrDockerProfile() && !profileUtility.isTestProfile()) {
-    		configProperties.put("security.protocol", protocol);
-    		configProperties.put("sasl.mechanism", mechanism);
-    		configProperties.put("sasl.jaas.config", configJaas);
-    		configProperties.put("ssl.truststore.location", trustoreLocation);  
-    		configProperties.put("ssl.truststore.password", String.valueOf(trustorePassword)); 
-		}
-		return AdminClient.create(configProperties);
-	}
+//	@Bean
+//	public AdminClient client() {
+//		Properties configProperties = new Properties();
+//    	configProperties.put(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, producerBootstrapServers);
+//    	if(!profileUtility.isDevOrDockerProfile() && !profileUtility.isTestProfile()) {
+//    		configProperties.put("security.protocol", protocol);
+//    		configProperties.put("sasl.mechanism", mechanism);
+//    		configProperties.put("sasl.jaas.config", configJaas);
+//    		configProperties.put("ssl.truststore.location", trustoreLocation);  
+//    		configProperties.put("ssl.truststore.password", String.valueOf(trustorePassword)); 
+//		}
+//		return AdminClient.create(configProperties);
+//	}
 }

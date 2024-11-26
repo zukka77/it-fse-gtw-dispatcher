@@ -72,7 +72,11 @@ public class KafkaProducerCFG {
 		props.put(ProducerConfig.TRANSACTIONAL_ID_CONFIG, id + "-" + kafkaProducerPropCFG.getTransactionalId());
 		props.put(ProducerConfig.ACKS_CONFIG,kafkaProducerPropCFG.getAck());
 		props.put(ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG,kafkaProducerPropCFG.getIdempotence());
+		
+		props.put("sasl.login.callback.handler.class","it.finanze.sanita.fse2.ms.gtw.dispatcher.config.kafka.oauth2.OauthAuthenticateLoginCallbackHandler");
+		props.put("sasl.client.callback.handler.class","it.finanze.sanita.fse2.ms.gtw.dispatcher.config.kafka.oauth2.OauthAuthenticateValidatorCallbackHandler");
 
+		
 		if (!StringUtility.isNullOrEmpty(kafkaPropCFG.getProtocol())) {
 			props.put("security.protocol", kafkaPropCFG.getProtocol());
 		}
