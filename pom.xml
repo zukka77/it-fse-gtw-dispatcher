@@ -12,7 +12,7 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>2.7.3</version>
+		<version>2.7.18</version>
 		<relativePath />
 		<!-- lookup parent from repository -->
 	</parent>
@@ -27,12 +27,11 @@
 		<container.output>target/container</container.output>
 		<container.output.runtime>${container.output}/runtime</container.output.runtime>
 		<!-- Sonar integration -->
-		<sonar.organization>ministero-salute</sonar.organization>
-		<sonar.host.url>https://sonarcloud.io</sonar.host.url>
 		<sonar.exclusions>
 			src/main/java/it/finanze/sanita/fse2/ms/gtw/dispatcher/config/OpenApiCFG.java,
 			src/main/java/it/finanze/sanita/fse2/ms/gtw/dispatcher/logging/**/*.*
 		</sonar.exclusions>
+		<logback.version>1.2.13</logback.version>
 	</properties>
 
 	<dependencies>
@@ -139,10 +138,12 @@
 		<dependency>
 			<groupId>org.springframework.kafka</groupId>
 			<artifactId>spring-kafka</artifactId>
+			<version>2.9.11</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.kafka</groupId>
 			<artifactId>spring-kafka-test</artifactId>
+			<version>2.9.11</version>
 			<scope>test</scope>
 		</dependency>
 
@@ -180,7 +181,7 @@
 		<dependency>
 		    <groupId>commons-io</groupId>
 		    <artifactId>commons-io</artifactId>
-		    <version>2.10.0</version>
+		    <version>2.14.0</version>
 		</dependency>
 		 
 	</dependencies>
@@ -193,6 +194,12 @@
 				<version>${spring-cloud.version}</version>
 				<type>pom</type>
 				<scope>import</scope>
+			</dependency>
+			<dependency>
+				<groupId>org.xerial.snappy</groupId>
+				<artifactId>snappy-java</artifactId>
+				<version>1.1.10.4</version>
+				<scope>runtime</scope>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
