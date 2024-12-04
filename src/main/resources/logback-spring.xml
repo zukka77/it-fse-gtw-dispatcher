@@ -67,10 +67,11 @@
 			<producerConfig>bootstrap.servers=${kafka.bootstrap-servers}</producerConfig>
 			<producerConfig>metadata.fetch.timeout.ms=99999999999</producerConfig>
 			<producerConfig>client.id=${kafka.producer.client-id}</producerConfig>
-			<springProfile name="default">
+			
 				<producerConfig>security.protocol=${kafka.properties.security.protocol}</producerConfig>
 				<producerConfig>sasl.mechanism=${kafka.properties.sasl.mechanism}</producerConfig>
 				<producerConfig>sasl.jaas.config=${kafka.properties.sasl.jaas.config}</producerConfig>
+			<springProfile name="default">
 				<producerConfig>ssl.truststore.location=${kafka.properties.ssl.truststore.location}</producerConfig>
 				<producerConfig>ssl.truststore.password=${kafka.properties.ssl.truststore.password}</producerConfig>
 			</springProfile>

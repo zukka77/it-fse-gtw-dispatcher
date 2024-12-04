@@ -28,6 +28,7 @@ import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
 
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.kafka.oauth2.CustomAuthenticateCallbackHandler;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility;
 import lombok.extern.slf4j.Slf4j;
 
@@ -72,11 +73,7 @@ public class KafkaProducerCFG {
 		props.put(ProducerConfig.TRANSACTIONAL_ID_CONFIG, id + "-" + kafkaProducerPropCFG.getTransactionalId());
 		props.put(ProducerConfig.ACKS_CONFIG,kafkaProducerPropCFG.getAck());
 		props.put(ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG,kafkaProducerPropCFG.getIdempotence());
-		
-		props.put("sasl.login.callback.handler.class","it.finanze.sanita.fse2.ms.gtw.dispatcher.config.kafka.oauth2.OauthAuthenticateLoginCallbackHandler");
-		props.put("sasl.client.callback.handler.class","it.finanze.sanita.fse2.ms.gtw.dispatcher.config.kafka.oauth2.OauthAuthenticateValidatorCallbackHandler");
 
-		
 		if (!StringUtility.isNullOrEmpty(kafkaPropCFG.getProtocol())) {
 			props.put("security.protocol", kafkaPropCFG.getProtocol());
 		}
@@ -140,12 +137,15 @@ public class KafkaProducerCFG {
 	public Map<String, Object> producerWithoutTransactionConfigs() {
 		Map<String, Object> props = new HashMap<>();
 
-		props.put(ProducerConfig.CLIENT_ID_CONFIG, kafkaProducerPropCFG.getClientId()+ "-noTx");
-		props.put(ProducerConfig.RETRIES_CONFIG, kafkaProducerPropCFG.getRetries());
+//		props.put(ProducerConfig.CLIENT_ID_CONFIG, kafkaProducerPropCFG.getClientId()+ "-noTx");
+//		props.put(ProducerConfig.RETRIES_CONFIG, kafkaProducerPropCFG.getRetries());
 		props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaProducerPropCFG.getProducerBootstrapServers());
 		props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, kafkaProducerPropCFG.getKeySerializer());
 		props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, kafkaProducerPropCFG.getValueSerializer());
+		
+		props.put("sasl.login.callback.handler.class", CustomAuthenticateCallbackHandler.class);
 
+		
 		if (!StringUtils.isBlank(kafkaPropCFG.getProtocol())) {
 			props.put("security.protocol", kafkaPropCFG.getProtocol());
 		}
