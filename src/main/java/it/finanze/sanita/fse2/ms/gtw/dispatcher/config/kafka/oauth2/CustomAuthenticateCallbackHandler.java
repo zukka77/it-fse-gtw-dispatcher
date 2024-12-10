@@ -1,14 +1,18 @@
+//Copyright (c) Microsoft Corporation. All rights reserved.
+//Licensed under the MIT License.
+
 package it.finanze.sanita.fse2.ms.gtw.dispatcher.config.kafka.oauth2;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.MalformedURLException;
 import java.net.URI;
-import java.text.ParseException;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeoutException;
 
 import javax.security.auth.callback.Callback;
@@ -21,26 +25,40 @@ import org.apache.kafka.common.security.auth.AuthenticateCallbackHandler;
 import org.apache.kafka.common.security.oauthbearer.OAuthBearerToken;
 import org.apache.kafka.common.security.oauthbearer.OAuthBearerTokenCallback;
 
-import com.microsoft.azure.credentials.MSICredentials;
-import com.nimbusds.jwt.JWT;
-import com.nimbusds.jwt.JWTClaimsSet;
-import com.nimbusds.jwt.JWTParser;
+import com.microsoft.aad.msal4j.ClientCredentialFactory;
+import com.microsoft.aad.msal4j.ClientCredentialParameters;
+import com.microsoft.aad.msal4j.ConfidentialClientApplication;
+import com.microsoft.aad.msal4j.IAuthenticationResult;
+import com.microsoft.aad.msal4j.IClientCredential;
 
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.FileUtility;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public class CustomAuthenticateCallbackHandler implements AuthenticateCallbackHandler {
 
-    final static ScheduledExecutorService EXECUTOR_SERVICE = Executors.newScheduledThreadPool(1);
-    final static MSICredentials CREDENTIALS = new MSICredentials();
-    // Use AppServiceMSICredentials instead for App Service deployment.
-    // final static AppServiceMSICredentials CREDENTIALS = new AppServiceMSICredentials(AzureEnvironment.AZURE);
-    
-    private String sbUri;
+    private String tenantId;
+    private String clientId;
+    private String pwd;
+    private ConfidentialClientApplication aadClient;
+    private ClientCredentialParameters aadParameters;
 
+    public CustomAuthenticateCallbackHandler(String inTenantId, String inClientId, String inPwd) {
+    	tenantId = "https://login.microsoftonline.com/"+ inTenantId;
+    	clientId = inClientId;
+    	pwd = inPwd;
+    }
+    
     @Override
     public void configure(Map<String, ?> configs, String mechanism, List<AppConfigurationEntry> jaasConfigEntries) {
         String bootstrapServer = Arrays.asList(configs.get(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG)).get(0).toString();
+        
         bootstrapServer = bootstrapServer.replaceAll("\\[|\\]", "");
-        URI uri = URI.create("http://" + bootstrapServer);
-        this.sbUri = uri.getScheme() + "://" + uri.getHost();
+        URI uri = URI.create("https://" + bootstrapServer);
+        String sbUri = uri.getScheme() + "://" + uri.getHost();
+        this.aadParameters =
+                ClientCredentialParameters.builder(Collections.singleton(sbUri + "/.default"))
+                .build();
     }
 
     public void handle(Callback[] callbacks) throws IOException, UnsupportedCallbackException {
@@ -50,7 +68,7 @@ public class CustomAuthenticateCallbackHandler implements AuthenticateCallbackHa
                     OAuthBearerToken token = getOAuthBearerToken();
                     OAuthBearerTokenCallback oauthCallback = (OAuthBearerTokenCallback) callback;
                     oauthCallback.token(token);
-                } catch (InterruptedException | ExecutionException | TimeoutException | ParseException e) {
+                } catch (InterruptedException | ExecutionException | TimeoutException e) {
                     e.printStackTrace();
                 }
             } else {
@@ -59,15 +77,30 @@ public class CustomAuthenticateCallbackHandler implements AuthenticateCallbackHa
         }
     }
 
-    OAuthBearerToken getOAuthBearerToken() throws InterruptedException, ExecutionException, TimeoutException, IOException, ParseException
+    OAuthBearerToken getOAuthBearerToken() throws MalformedURLException, InterruptedException, ExecutionException, TimeoutException
     {
-        String accesToken = CREDENTIALS.getToken(sbUri);
-        JWT jwt = JWTParser.parse(accesToken);
-        JWTClaimsSet claims = jwt.getJWTClaimsSet();
-        
-        return new OAuthBearerTokenImp(accesToken, claims.getExpirationTime());
+        if (this.aadClient == null) {
+            synchronized(this) {
+                if (this.aadClient == null) {
+                	IClientCredential credential = null;
+                	try{
+                		InputStream certificato = new ByteArrayInputStream(FileUtility.getFileFromInternalResources("client_FSD-SA-0005.pfx"));
+                		credential = ClientCredentialFactory.createFromCertificate(certificato, this.pwd);	
+                	}catch(Exception ex) {
+                		System.out.println("Stop");
+                	}
+                    this.aadClient = ConfidentialClientApplication.builder(this.clientId, credential)
+                            .authority(this.tenantId)
+                            .build();
+                }
+            }
+        }
+
+        IAuthenticationResult authResult = this.aadClient.acquireToken(this.aadParameters).get();
+        log.info("Token oauth2 acquired");
+        return new OAuthBearerTokenImp(authResult.accessToken(), authResult.expiresOnDate());
     }
-    
+
     public void close() throws KafkaException {
         // NOOP
     }
