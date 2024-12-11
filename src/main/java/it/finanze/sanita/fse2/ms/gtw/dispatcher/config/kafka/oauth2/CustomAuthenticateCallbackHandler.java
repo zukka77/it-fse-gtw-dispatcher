@@ -31,6 +31,7 @@ import com.microsoft.aad.msal4j.ConfidentialClientApplication;
 import com.microsoft.aad.msal4j.IAuthenticationResult;
 import com.microsoft.aad.msal4j.IClientCredential;
 
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.exceptions.BusinessException;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.FileUtility;
 import lombok.extern.slf4j.Slf4j;
 
@@ -89,8 +90,9 @@ public class CustomAuthenticateCallbackHandler implements AuthenticateCallbackHa
                 	try{
                 		InputStream certificato = new ByteArrayInputStream(FileUtility.getFileFromInternalResources(pfxName));
                 		credential = ClientCredentialFactory.createFromCertificate(certificato, this.pwd);	
-                	}catch(Exception ex) {
-                		System.out.println("Stop");
+                	} catch(Exception ex) {
+                		log.error("Error while try to crate credential from certificate");
+                		throw new BusinessException(ex);
                 	}
                     this.aadClient = ConfidentialClientApplication.builder(this.appId, credential)
                             .authority(this.tenantId)
