@@ -38,27 +38,28 @@ import lombok.extern.slf4j.Slf4j;
 public class CustomAuthenticateCallbackHandler implements AuthenticateCallbackHandler {
 
     private String tenantId;
-    private String clientId;
+	
+    private String appId;
+	
     private String pwd;
+	
     private ConfidentialClientApplication aadClient;
     private ClientCredentialParameters aadParameters;
 
-    public CustomAuthenticateCallbackHandler(String inTenantId, String inClientId, String inPwd) {
-    	tenantId = "https://login.microsoftonline.com/"+ inTenantId;
-    	clientId = inClientId;
-    	pwd = inPwd;
-    }
-    
     @Override
     public void configure(Map<String, ?> configs, String mechanism, List<AppConfigurationEntry> jaasConfigEntries) {
         String bootstrapServer = Arrays.asList(configs.get(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG)).get(0).toString();
-        
+       
         bootstrapServer = bootstrapServer.replaceAll("\\[|\\]", "");
         URI uri = URI.create("https://" + bootstrapServer);
         String sbUri = uri.getScheme() + "://" + uri.getHost();
         this.aadParameters =
                 ClientCredentialParameters.builder(Collections.singleton(sbUri + "/.default"))
                 .build();
+        this.tenantId = "https://login.microsoftonline.com/"+ Arrays.asList(configs.get("kafka.oauth.tenantId")).get(0).toString();
+        this.appId = Arrays.asList(configs.get("kafka.oauth.appId")).get(0).toString();
+        this.pwd = Arrays.asList(configs.get("kafka.oauth.pwd")).get(0).toString();
+
     }
 
     public void handle(Callback[] callbacks) throws IOException, UnsupportedCallbackException {
@@ -77,8 +78,7 @@ public class CustomAuthenticateCallbackHandler implements AuthenticateCallbackHa
         }
     }
 
-    OAuthBearerToken getOAuthBearerToken() throws MalformedURLException, InterruptedException, ExecutionException, TimeoutException
-    {
+    private OAuthBearerToken getOAuthBearerToken() throws MalformedURLException, InterruptedException, ExecutionException, TimeoutException {
         if (this.aadClient == null) {
             synchronized(this) {
                 if (this.aadClient == null) {
@@ -89,7 +89,7 @@ public class CustomAuthenticateCallbackHandler implements AuthenticateCallbackHa
                 	}catch(Exception ex) {
                 		System.out.println("Stop");
                 	}
-                    this.aadClient = ConfidentialClientApplication.builder(this.clientId, credential)
+                    this.aadClient = ConfidentialClientApplication.builder(this.appId, credential)
                             .authority(this.tenantId)
                             .build();
                 }

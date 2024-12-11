@@ -23,7 +23,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.env.Environment;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
@@ -52,7 +51,7 @@ public class KafkaProducerCFG {
 	@Autowired
 	private KafkaProducerPropertiesCFG kafkaProducerPropCFG;
 
- 
+
 	/** 
 	 *  Kafka producer configurazione.
 	 */
@@ -86,9 +85,12 @@ public class KafkaProducerCFG {
 		if (kafkaPropCFG.getTrustorePassword() != null && kafkaPropCFG.getTrustorePassword().length > 0) {
 			props.put("ssl.truststore.password", String.valueOf(kafkaPropCFG.getTrustorePassword()));
 		}
-		
+
 		if("OAUTHBEARER".equals(kafkaPropCFG.getMechanism())) {
-			props.put("sasl.login.callback.handler.class", "it.finanze.sanita.fse2.ms.gtw.dispatcher.config.kafka.oauth2.CustomAuthenticateCallbackHandler");	
+			props.put("sasl.login.callback.handler.class", CustomAuthenticateCallbackHandler.class);
+			props.put("kafka.oauth.tenantId", kafkaPropCFG.getTenantId());	
+			props.put("kafka.oauth.appId", kafkaPropCFG.getAppId());	
+			props.put("kafka.oauth.pwd", kafkaPropCFG.getPwd());	
 		}
 
 		return props;
@@ -139,8 +141,8 @@ public class KafkaProducerCFG {
 		props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaProducerPropCFG.getProducerBootstrapServers());
 		props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, kafkaProducerPropCFG.getKeySerializer());
 		props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, kafkaProducerPropCFG.getValueSerializer());
-		
-		
+
+
 		if (!StringUtils.isBlank(kafkaPropCFG.getProtocol())) {
 			props.put("security.protocol", kafkaPropCFG.getProtocol());
 		}
@@ -156,9 +158,12 @@ public class KafkaProducerCFG {
 		if (kafkaPropCFG.getTrustorePassword() != null && kafkaPropCFG.getTrustorePassword().length > 0) {
 			props.put("ssl.truststore.password", String.valueOf(kafkaPropCFG.getTrustorePassword()));
 		}
-		
+
 		if("OAUTHBEARER".equals(kafkaPropCFG.getMechanism())) {
-			props.put("sasl.login.callback.handler.class", "it.finanze.sanita.fse2.ms.gtw.dispatcher.config.kafka.oauth2.CustomAuthenticateCallbackHandler");	
+			props.put("sasl.login.callback.handler.class", CustomAuthenticateCallbackHandler.class);
+			props.put("kafka.oauth.tenantId", kafkaPropCFG.getTenantId());	
+			props.put("kafka.oauth.appId", kafkaPropCFG.getAppId());	
+			props.put("kafka.oauth.pwd", kafkaPropCFG.getPwd());	
 		}
 
 

@@ -17,10 +17,10 @@ import org.apache.kafka.clients.admin.AdminClient;
 import org.apache.kafka.clients.admin.AdminClientConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.kafka.oauth2.CustomAuthenticateCallbackHandler;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.ProfileUtility;
 import lombok.Data;
 
@@ -69,17 +69,20 @@ public class KafkaPropertiesCFG {
 	@Value("${kafka.properties.ssl.truststore.password}")
 	private transient char[] trustorePassword;
 	 
-	/**
-	 * Enable Ssl flag.
-	 */
-	@Value("${kafka.enablessl}")
-	private boolean enableSSL;
-	
+	@Value("${kafka.oauth.tenantId}")
+	private String tenantId;
+
+	@Value("${kafka.oauth.appId}")
+	private String appId;
+
+	@Value("${kafka.oauth.pwd}")
+	private String pwd;
 
 	@Autowired
 	private ProfileUtility profileUtility;
 
 	@Bean
+	@ConditionalOnProperty(name = "sasl.mechanism", havingValue = "OAUTHBEARER", matchIfMissing = false)
 	public AdminClient client() {
 		Properties configProperties = new Properties();
     	configProperties.put(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, producerBootstrapServers);
@@ -89,7 +92,6 @@ public class KafkaPropertiesCFG {
     		configProperties.put("sasl.jaas.config", configJaas);
     		configProperties.put("ssl.truststore.location", trustoreLocation);  
     		configProperties.put("ssl.truststore.password", String.valueOf(trustorePassword)); 
-    		configProperties.put("sasl.login.callback.handler.class", CustomAuthenticateCallbackHandler.class);
 		}
 		return AdminClient.create(configProperties);
 	}
