@@ -23,11 +23,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.env.Environment;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
 
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.kafka.oauth2.CustomAuthenticateCallbackHandler;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility;
 import lombok.extern.slf4j.Slf4j;
 
@@ -51,9 +51,6 @@ public class KafkaProducerCFG {
 	@Autowired
 	private KafkaProducerPropertiesCFG kafkaProducerPropCFG;
 
-	@Autowired
-	private Environment env;
-
 
 	/** 
 	 *  Kafka producer configurazione.
@@ -65,32 +62,52 @@ public class KafkaProducerCFG {
 		InetAddress id = getLocalHost();
 
 		props.put(ProducerConfig.CLIENT_ID_CONFIG, kafkaProducerPropCFG.getClientId() + "-tx" + "-" + id );
+		System.out.println("CLIENT_ID_CONFIG:"+kafkaProducerPropCFG.getClientId() + "-tx" + "-" + id);
 		props.put(ProducerConfig.RETRIES_CONFIG, kafkaProducerPropCFG.getRetries());
 		props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaProducerPropCFG.getProducerBootstrapServers());
+		System.out.println("BOOTSTRAP:"+kafkaProducerPropCFG.getProducerBootstrapServers());
 		props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, kafkaProducerPropCFG.getKeySerializer());
 		props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, kafkaProducerPropCFG.getValueSerializer());
 		props.put(ProducerConfig.TRANSACTIONAL_ID_CONFIG, id + "-" + kafkaProducerPropCFG.getTransactionalId());
+		System.out.println("TRANSACTION_ID:"+id + "-" + kafkaProducerPropCFG.getTransactionalId());
 		props.put(ProducerConfig.ACKS_CONFIG,kafkaProducerPropCFG.getAck());
 		props.put(ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG,kafkaProducerPropCFG.getIdempotence());
 
+		System.out.println("PROTOCOL:"+kafkaPropCFG.getProtocol());
 		if (!StringUtility.isNullOrEmpty(kafkaPropCFG.getProtocol())) {
 			props.put("security.protocol", kafkaPropCFG.getProtocol());
 		}
+		
+		System.out.println("MECHANISM:"+kafkaPropCFG.getMechanism());
 		if (!StringUtility.isNullOrEmpty(kafkaPropCFG.getMechanism())) {
 			props.put("sasl.mechanism", kafkaPropCFG.getMechanism());
 		}
+		
+		System.out.println("CONFIG JAAS:"+kafkaPropCFG.getConfigJaas());
 		if (!StringUtility.isNullOrEmpty(kafkaPropCFG.getConfigJaas())) {
 			props.put("sasl.jaas.config", kafkaPropCFG.getConfigJaas());
 		}
+		
+		System.out.println("TRUSTORE LOCATION:"+kafkaPropCFG.getTrustoreLocation());
 		if (!StringUtility.isNullOrEmpty(kafkaPropCFG.getTrustoreLocation())) {
 			props.put("ssl.truststore.location", kafkaPropCFG.getTrustoreLocation());
 		}
+		
 		if (kafkaPropCFG.getTrustorePassword() != null && kafkaPropCFG.getTrustorePassword().length > 0) {
 			props.put("ssl.truststore.password", String.valueOf(kafkaPropCFG.getTrustorePassword()));
+			System.out.println("TRUSTORE PWD:"+String.valueOf(kafkaPropCFG.getTrustorePassword()));
 		}
 
-		if(!StringUtility.isNullOrEmpty(env.getProperty("kafka.properties.request.timeout.ms"))) {
-			props.put(ProducerConfig.REQUEST_TIMEOUT_MS_CONFIG , env.getProperty("kafka.properties.request.timeout.ms"));
+		if("OAUTHBEARER".equals(kafkaPropCFG.getMechanism())) {
+			props.put("sasl.login.callback.handler.class", CustomAuthenticateCallbackHandler.class);
+			props.put("kafka.oauth.tenantId", kafkaPropCFG.getTenantId());	
+			System.out.println("TENNT ID:"+kafkaPropCFG.getTenantId());
+			props.put("kafka.oauth.appId", kafkaPropCFG.getAppId());
+			System.out.println("APP ID:"+kafkaPropCFG.getAppId());
+			props.put("kafka.oauth.pfxPathName", kafkaPropCFG.getPfxPathName());
+			System.out.println("PFX PATHNAME:"+kafkaPropCFG.getPfxPathName());
+			props.put("kafka.oauth.pwd", kafkaPropCFG.getPwd());
+			System.out.println("PASS:"+kafkaPropCFG.getPwd());
 		}
 
 		return props;
@@ -139,24 +156,48 @@ public class KafkaProducerCFG {
 		props.put(ProducerConfig.CLIENT_ID_CONFIG, kafkaProducerPropCFG.getClientId()+ "-noTx");
 		props.put(ProducerConfig.RETRIES_CONFIG, kafkaProducerPropCFG.getRetries());
 		props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaProducerPropCFG.getProducerBootstrapServers());
+		System.out.println("BOOTSTRAP:"+kafkaProducerPropCFG.getProducerBootstrapServers());
 		props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, kafkaProducerPropCFG.getKeySerializer());
 		props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, kafkaProducerPropCFG.getValueSerializer());
 
-		if (!StringUtils.isBlank(kafkaPropCFG.getProtocol())) {
+
+		System.out.println("PROTOCOL:"+kafkaPropCFG.getProtocol());
+		if (!StringUtility.isNullOrEmpty(kafkaPropCFG.getProtocol())) {
 			props.put("security.protocol", kafkaPropCFG.getProtocol());
 		}
-		if (!StringUtils.isBlank(kafkaPropCFG.getMechanism())) {
+		
+		System.out.println("MECHANISM:"+kafkaPropCFG.getMechanism());
+		if (!StringUtility.isNullOrEmpty(kafkaPropCFG.getMechanism())) {
 			props.put("sasl.mechanism", kafkaPropCFG.getMechanism());
 		}
-		if (!StringUtils.isBlank(kafkaPropCFG.getConfigJaas())) {
+		
+		System.out.println("CONFIG JAAS:"+kafkaPropCFG.getConfigJaas());
+		if (!StringUtility.isNullOrEmpty(kafkaPropCFG.getConfigJaas())) {
 			props.put("sasl.jaas.config", kafkaPropCFG.getConfigJaas());
 		}
-		if (!StringUtils.isBlank(kafkaPropCFG.getTrustoreLocation())) {
+		
+		System.out.println("TRUSTORE LOCATION:"+kafkaPropCFG.getTrustoreLocation());
+		if (!StringUtility.isNullOrEmpty(kafkaPropCFG.getTrustoreLocation())) {
 			props.put("ssl.truststore.location", kafkaPropCFG.getTrustoreLocation());
 		}
+		
 		if (kafkaPropCFG.getTrustorePassword() != null && kafkaPropCFG.getTrustorePassword().length > 0) {
 			props.put("ssl.truststore.password", String.valueOf(kafkaPropCFG.getTrustorePassword()));
+			System.out.println("TRUSTORE PWD:"+String.valueOf(kafkaPropCFG.getTrustorePassword()));
 		}
+
+		if("OAUTHBEARER".equals(kafkaPropCFG.getMechanism())) {
+			props.put("sasl.login.callback.handler.class", CustomAuthenticateCallbackHandler.class);
+			props.put("kafka.oauth.tenantId", kafkaPropCFG.getTenantId());	
+			System.out.println("TENNT ID:"+kafkaPropCFG.getTenantId());
+			props.put("kafka.oauth.appId", kafkaPropCFG.getAppId());
+			System.out.println("APP ID:"+kafkaPropCFG.getAppId());
+			props.put("kafka.oauth.pfxPathName", kafkaPropCFG.getPfxPathName());
+			System.out.println("PFX PATHNAME:"+kafkaPropCFG.getPfxPathName());
+			props.put("kafka.oauth.pwd", kafkaPropCFG.getPwd());
+			System.out.println("PASS:"+kafkaPropCFG.getPwd());
+		}
+
 
 		return props;
 	}

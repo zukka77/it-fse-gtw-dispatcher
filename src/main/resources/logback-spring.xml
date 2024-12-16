@@ -59,21 +59,24 @@
 			</encoder>
 
 			<topic>${kafka.log.base-topic}</topic>
-			<keyingStrategy class="it.finanze.sanita.fse2.ms.gtw.dispatcher.logging.HostNameKeyingStrategy" />
-			<deliveryStrategy class="it.finanze.sanita.fse2.ms.gtw.dispatcher.logging.BlockingDeliveryStrategy">
+			<keyingStrategy
+				class="it.finanze.sanita.fse2.ms.gtw.dispatcher.logging.HostNameKeyingStrategy" />
+			<deliveryStrategy
+				class="it.finanze.sanita.fse2.ms.gtw.dispatcher.logging.BlockingDeliveryStrategy">
 				<timeout>0</timeout>
 			</deliveryStrategy>
 
 			<producerConfig>bootstrap.servers=${kafka.bootstrap-servers}</producerConfig>
 			<producerConfig>metadata.fetch.timeout.ms=99999999999</producerConfig>
 			<producerConfig>client.id=${kafka.producer.client-id}</producerConfig>
-			<springProfile name="default">
-				<producerConfig>security.protocol=${kafka.properties.security.protocol}</producerConfig>
-				<producerConfig>sasl.mechanism=${kafka.properties.sasl.mechanism}</producerConfig>
-				<producerConfig>sasl.jaas.config=${kafka.properties.sasl.jaas.config}</producerConfig>
-				<producerConfig>ssl.truststore.location=${kafka.properties.ssl.truststore.location}</producerConfig>
-				<producerConfig>ssl.truststore.password=${kafka.properties.ssl.truststore.password}</producerConfig>
-			</springProfile>
+			<producerConfig>security.protocol=${kafka.properties.security.protocol}</producerConfig>
+			<producerConfig>sasl.mechanism=${kafka.properties.sasl.mechanism}</producerConfig>
+			<producerConfig>sasl.jaas.config=${kafka.properties.sasl.jaas.config}</producerConfig>
+			<producerConfig>sasl.login.callback.handler.class=it.finanze.sanita.fse2.ms.gtw.dispatcher.config.kafka.oauth2.CustomAuthenticateCallbackHandler</producerConfig>
+			<producerConfig>kafka.oauth.tenantId=${kafka.oauth.tenantId}</producerConfig>
+			<producerConfig>kafka.oauth.appId=${kafka.oauth.appId}</producerConfig>
+			<producerConfig>kafka.oauth.pfxPathName=${kafka.oauth.pfxPathName}</producerConfig>
+			<producerConfig>kafka.oauth.pwd=${kafka.oauth.pwd}</producerConfig>
 		</appender>
 	</logger>
 
