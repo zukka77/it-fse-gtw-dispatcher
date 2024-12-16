@@ -77,12 +77,6 @@
 			<producerConfig>kafka.oauth.appId=${kafka.oauth.appId}</producerConfig>
 			<producerConfig>kafka.oauth.pfxPathName=${kafka.oauth.pfxPathName}</producerConfig>
 			<producerConfig>kafka.oauth.pwd=${kafka.oauth.pwd}</producerConfig>
-			<springProfile name="default">
-				<producerConfig>ssl.truststore.location=${kafka.properties.ssl.truststore.location}
-				</producerConfig>
-				<producerConfig>ssl.truststore.password=${kafka.properties.ssl.truststore.password}
-				</producerConfig>
-			</springProfile>
 		</appender>
 	</logger>
 
