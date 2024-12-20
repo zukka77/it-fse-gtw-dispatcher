@@ -196,6 +196,13 @@
 		      <version>1.6.15</version>
 		      <scope>compile</scope>
 		</dependency>
+		<!-- https://mvnrepository.com/artifact/org.codehaus.janino/janino -->
+		<dependency>
+            <groupId>org.codehaus.janino</groupId>
+            <artifactId>janino</artifactId>
+            <version>3.1.7</version>
+        </dependency>
+
 		 
 	</dependencies>
 
