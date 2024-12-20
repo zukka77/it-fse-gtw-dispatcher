@@ -23,11 +23,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.env.Environment;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
 
+import it.finanze.sanita.fse2.ms.gtw.dispatcher.config.kafka.oauth2.CustomAuthenticateCallbackHandler;
 import it.finanze.sanita.fse2.ms.gtw.dispatcher.utility.StringUtility;
 import lombok.extern.slf4j.Slf4j;
 
@@ -51,9 +51,6 @@ public class KafkaProducerCFG {
 	@Autowired
 	private KafkaProducerPropertiesCFG kafkaProducerPropCFG;
 
-	@Autowired
-	private Environment env;
-
 
 	/** 
 	 *  Kafka producer configurazione.
@@ -76,21 +73,30 @@ public class KafkaProducerCFG {
 		if (!StringUtility.isNullOrEmpty(kafkaPropCFG.getProtocol())) {
 			props.put("security.protocol", kafkaPropCFG.getProtocol());
 		}
+		
 		if (!StringUtility.isNullOrEmpty(kafkaPropCFG.getMechanism())) {
 			props.put("sasl.mechanism", kafkaPropCFG.getMechanism());
 		}
+		
 		if (!StringUtility.isNullOrEmpty(kafkaPropCFG.getConfigJaas())) {
 			props.put("sasl.jaas.config", kafkaPropCFG.getConfigJaas());
 		}
+		
 		if (!StringUtility.isNullOrEmpty(kafkaPropCFG.getTrustoreLocation())) {
 			props.put("ssl.truststore.location", kafkaPropCFG.getTrustoreLocation());
 		}
+		
 		if (kafkaPropCFG.getTrustorePassword() != null && kafkaPropCFG.getTrustorePassword().length > 0) {
 			props.put("ssl.truststore.password", String.valueOf(kafkaPropCFG.getTrustorePassword()));
+			System.out.println("TRUSTORE PWD:"+String.valueOf(kafkaPropCFG.getTrustorePassword()));
 		}
 
-		if(!StringUtility.isNullOrEmpty(env.getProperty("kafka.properties.request.timeout.ms"))) {
-			props.put(ProducerConfig.REQUEST_TIMEOUT_MS_CONFIG , env.getProperty("kafka.properties.request.timeout.ms"));
+		if("OAUTHBEARER".equals(kafkaPropCFG.getMechanism())) {
+			props.put("sasl.login.callback.handler.class", CustomAuthenticateCallbackHandler.class);
+			props.put("kafka.oauth.tenantId", kafkaPropCFG.getTenantId());	
+			props.put("kafka.oauth.appId", kafkaPropCFG.getAppId());
+			props.put("kafka.oauth.pfxPathName", kafkaPropCFG.getPfxPathName());
+			props.put("kafka.oauth.pwd", kafkaPropCFG.getPwd());
 		}
 
 		return props;
@@ -142,21 +148,34 @@ public class KafkaProducerCFG {
 		props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, kafkaProducerPropCFG.getKeySerializer());
 		props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, kafkaProducerPropCFG.getValueSerializer());
 
-		if (!StringUtils.isBlank(kafkaPropCFG.getProtocol())) {
+		if (!StringUtility.isNullOrEmpty(kafkaPropCFG.getProtocol())) {
 			props.put("security.protocol", kafkaPropCFG.getProtocol());
 		}
-		if (!StringUtils.isBlank(kafkaPropCFG.getMechanism())) {
+		
+		if (!StringUtility.isNullOrEmpty(kafkaPropCFG.getMechanism())) {
 			props.put("sasl.mechanism", kafkaPropCFG.getMechanism());
 		}
-		if (!StringUtils.isBlank(kafkaPropCFG.getConfigJaas())) {
+		
+		if (!StringUtility.isNullOrEmpty(kafkaPropCFG.getConfigJaas())) {
 			props.put("sasl.jaas.config", kafkaPropCFG.getConfigJaas());
 		}
-		if (!StringUtils.isBlank(kafkaPropCFG.getTrustoreLocation())) {
+		
+		if (!StringUtility.isNullOrEmpty(kafkaPropCFG.getTrustoreLocation())) {
 			props.put("ssl.truststore.location", kafkaPropCFG.getTrustoreLocation());
 		}
+		
 		if (kafkaPropCFG.getTrustorePassword() != null && kafkaPropCFG.getTrustorePassword().length > 0) {
 			props.put("ssl.truststore.password", String.valueOf(kafkaPropCFG.getTrustorePassword()));
 		}
+
+		if("OAUTHBEARER".equals(kafkaPropCFG.getMechanism())) {
+			props.put("sasl.login.callback.handler.class", CustomAuthenticateCallbackHandler.class);
+			props.put("kafka.oauth.tenantId", kafkaPropCFG.getTenantId());	
+			props.put("kafka.oauth.appId", kafkaPropCFG.getAppId());
+			props.put("kafka.oauth.pfxPathName", kafkaPropCFG.getPfxPathName());
+			props.put("kafka.oauth.pwd", kafkaPropCFG.getPwd());
+		}
+
 
 		return props;
 	}
